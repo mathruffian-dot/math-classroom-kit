@@ -1,17 +1,18 @@
 {
-  "name": "health-classroom-kit",
-  "version": "0.1.1",
+  "name": "math-classroom-kit",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "node scripts/dev.mjs",
-    "build": "vite build",
+    "build": "npm run lessons && vite build",
     "preview": "wrangler dev --ip 127.0.0.1 --port 8787",
-    "typecheck": "tsc --noEmit",
-    "test": "node --test tests/*.test.mjs",
+    "typecheck": "npm run lessons && tsc --noEmit",
+    "test": "npm run lessons && node --test tests/*.test.mjs",
     "test:e2e": "playwright test",
-    "check": "npm run typecheck && npm test && npm run build",
-    "deploy": "npm run build && wrangler deploy"
+    "check": "npm run typecheck && node --test tests/*.test.mjs && vite build",
+    "deploy": "npm run build && wrangler deploy --env production",
+    "lessons": "node scripts/build-lessons.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.64.0",

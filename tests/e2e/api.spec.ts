@@ -14,7 +14,7 @@ async function client() {
 
 async function teacher() {
   const c = await client();
-  const r = await c.post('/api/login', { data: { role: 'teacher' } });
+  const r = await c.post('/api/login', { data: { role: 'teacher', account: 'teacher', password: '11235813' } });
   expect(r.ok(), await r.text()).toBeTruthy();
   expect((await r.json()).user.role).toBe('teacher');
   return c;
@@ -24,7 +24,7 @@ async function fixture(seats = 3, separateClass = false) {
   const t = await teacher();
   const id = unique();
   const lesson = {
-    schemaVersion: 1, id, title: `測試課程 ${id}`, description: '僅限自動化測試的虛構教材。', subject: '健康', duration: 15,
+    schemaVersion: 1, id, title: `測試課程 ${id}`, description: '僅限自動化測試的虛構教材。', subject: '數學', duration: 15,
     objectives: ['閱讀情境並提出選擇'],
     slides: [
       { id: 'intro', title: '虛構情境', body: '小安在運動後休息。', notes: 'QA_TEACHER_ONLY_NOTE',

@@ -34,6 +34,18 @@ const paths: Record<string, string> = {
   shield: '<path d="m12 2 9 4v6c0 5-9 10-9 10S3 17 3 12V6Z"/><path d="m8 12 3 3 5-6"/>',
   screen: '<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M12 17v5m-5 0h10"/>',
   menu: '<path d="M4 6h16M4 12h16M4 18h16"/>',
+  sigma: '<path d="M18 5H6l6 7-6 7h12"/>',
+  camera: '<path d="M4 8h3l2-3h6l2 3h3v11H4Z"/><circle cx="12" cy="13" r="3.5"/>',
+  image: '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/>',
+  sliders: '<path d="M4 7h10m4 0h2M4 17h2m4 0h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/>',
+  key: '<circle cx="8" cy="15" r="4"/><path d="m11 12 9-9m-4 4 3 3"/>',
+  wand: '<path d="m4 20 11-11m2-6v3m3 1h-3m-4-1 1 1m6 5 1 1M15 9l-2-2"/>',
+  stamp: '<path d="M5 21h14M6 17h12v-3a3 3 0 0 0-3-3h-1V8a2 2 0 1 0-4 0v3H9a3 3 0 0 0-3 3Z"/>',
+  next: '<path d="m9 6 6 6-6 6"/>',
+  prev: '<path d="m15 6-6 6 6 6"/>',
+  target: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/>',
+  x: '<path d="M6 6l12 12M18 6 6 18"/>',
+  grid2: '<path d="M3 9h18M3 15h18M9 3v18M15 3v18"/>',
 };
 export const icon = (name: string, cls = '') =>
   `<svg class="icon ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name] || paths.book}</svg>`;

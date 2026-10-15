@@ -9,6 +9,7 @@ export interface StorageEnv {
   SUPABASE_PUBLISHABLE_KEY?: string;
   SUPABASE_SECRET_KEY?: string;
   TEACHER_EMAILS?: string;
+  TEACHER_ACCOUNT?: string;
   AI_BASE_URL?: string;
   AI_MODEL?: string;
   AI_API_KEY?: string;

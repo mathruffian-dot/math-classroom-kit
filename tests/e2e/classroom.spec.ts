@@ -5,273 +5,218 @@ import { resolve } from 'node:path';
 const baseURL = process.env.E2E_BASE_URL || 'http://127.0.0.1:8787';
 const screenshots = resolve('artifacts/screenshots');
 const contexts: BrowserContext[] = [];
-const cleanup: { context: BrowserContext; type: 'sessions' | 'lessons'; id: string }[] = [];
+const cleanup: { context: BrowserContext; id: string }[] = [];
+const LESSON_FILE = 'content/lessons/g8-1-1-sum-square.json';
 
-async function surface(browser: Browser, width = 1440, height = 1000, touch = false) {
+async function surface(browser: Browser, width = 1440, height = 900, touch = false) {
   const context = await browser.newContext({ baseURL, viewport: { width, height }, hasTouch: touch, deviceScaleFactor: 1 });
   contexts.push(context);
-  const page = await context.newPage();
-  return { context, page };
+  return { context, page: await context.newPage() };
 }
 async function loginTeacher(page: Page) {
   await page.goto('/');
-  await page.getByRole('button', { name: '教師示範', exact: true }).click();
+  await page.getByLabel('帳號').fill('teacher');
+  await page.getByLabel('密碼').fill('11235813');
+  await page.locator('#login-form').getByRole('button', { name: '登入' }).click();
   await expect(page.getByTestId('lesson-card').first()).toBeVisible();
-  // A reusable local Wrangler process can retain an older demo seed across builds.
-  // Refresh only this repository's fictional demo lesson, never a real classroom.
-  const sample = JSON.parse(await readFile(resolve('content/demo.json'), 'utf8'));
+  // 重複使用的本機 Wrangler 可能保留舊版範例；只刷新本專案的範例課程。
+  const sample = JSON.parse(await readFile(resolve(LESSON_FILE), 'utf8'));
   const refreshed = await page.request.put(`/api/lessons/${sample.id}`, { headers: { Origin: baseURL }, data: { lesson: sample } });
   expect(refreshed.ok(), await refreshed.text()).toBeTruthy();
+  await page.reload();
 }
 async function start(page: Page, context: BrowserContext) {
-  await page.getByTestId('lesson-card').filter({ hasText: '我的一天，如何更有節奏？' }).getByRole('button', { name: '開始上課', exact: true }).click();
+  await page.getByTestId('lesson-card').filter({ hasText: '和的平方公式' }).getByRole('button', { name: '開始上課' }).click();
   await page.locator('#start-form select').selectOption('demo-class');
-  await page.locator('#start-form').getByRole('button', { name: '開始上課', exact: true }).click();
+  await page.locator('#start-form').getByRole('button', { name: '開始上課' }).click();
   await expect(page.getByTestId('session-slide')).toBeVisible();
   const id = page.url().split('/session/')[1];
-  cleanup.push({ context, type: 'sessions', id });
+  cleanup.push({ context, id });
   return id;
 }
-async function loginStudent(page: Page, seat = 1) {
+async function loginStudent(page: Page, seat: number) {
   await page.goto('/#/student');
-  await page.getByLabel('座號', { exact: true }).fill(String(seat));
-  await page.getByLabel('識別碼', { exact: true }).fill(`DEMO${String(seat).padStart(2, '0')}`);
-  await page.getByRole('button', { name: '學生示範', exact: true }).click();
+  await page.getByLabel('座號').fill(String(seat));
+  await page.getByLabel('識別碼').fill(`DEMO${String(seat).padStart(2, '0')}`);
+  await page.locator('#login-form').getByRole('button', { name: '登入' }).click();
   await expect(page.getByTestId('session-slide')).toBeVisible();
 }
-async function slide(page: Page, index: number) {
-  await page.getByRole('button', { name: `第 ${index} 頁`, exact: true }).click();
+async function goSlide(page: Page, n: number) {
+  await page.locator(`.slide-dots button`).nth(n - 1).click();
+  await expect(page.locator('.room-progress span').first()).toHaveText(String(n));
 }
 async function openActivity(page: Page) {
-  await page.getByRole('button', { name: '開放作答', exact: true }).click();
-  await expect(page.getByRole('button', { name: '結束作答', exact: true })).toBeVisible();
+  await page.getByTestId('toggle-activity').click();
+  await expect(page.getByRole('button', { name: '結束作答' })).toBeVisible();
 }
-async function noHorizontalOverflow(page: Page) {
-  const size = await page.evaluate(() => ({ full: document.documentElement.scrollWidth, viewport: innerWidth }));
-  expect(size.full).toBeLessThanOrEqual(size.viewport + 1);
-  const stage = await page.getByTestId('session-slide').boundingBox();
-  const panel = await page.locator('.interaction-panel').boundingBox();
-  if (stage && panel) {
-    const overlapping = stage.x < panel.x + panel.width - 1 && stage.x + stage.width > panel.x + 1
-      && stage.y < panel.y + panel.height - 1 && stage.y + stage.height > panel.y + 1;
-    expect(overlapping, 'Slide and answer panel must never overlap').toBe(false);
-  }
-}
-async function touchTarget(page: Page, selector: string) {
-  for (const element of await page.locator(selector).all()) {
-    if (!await element.isVisible()) continue;
-    const box = await element.boundingBox();
-    expect(box?.width, `${selector}: minimum width`).toBeGreaterThanOrEqual(48);
-    expect(box?.height, `${selector}: minimum height`).toBeGreaterThanOrEqual(48);
-  }
+/** 一個頁面在全螢幕內完成：不得出現頁面捲動或水平溢位。 */
+async function fitsViewport(page: Page) {
+  const size = await page.evaluate(() => ({
+    w: document.documentElement.scrollWidth,
+    h: document.documentElement.scrollHeight,
+    vw: innerWidth,
+    vh: innerHeight,
+  }));
+  expect(size.w, 'no horizontal overflow').toBeLessThanOrEqual(size.vw + 1);
+  expect(size.h, 'no page scroll').toBeLessThanOrEqual(size.vh + 1);
 }
 async function shot(page: Page, name: string) {
   await mkdir(screenshots, { recursive: true });
-  await page.screenshot({ path: resolve(screenshots, name), fullPage: true });
+  await page.screenshot({ path: resolve(screenshots, name) });
+}
+async function answerPanel(page: Page) {
+  // 手機版作答區在「作答」分頁。
+  const tab = page.locator('.phone-tabs [data-tab="answer"]');
+  if (await tab.isVisible()) {
+    await tab.click();
+    await expect(page.locator('.panel-col')).toBeVisible();
+  }
 }
 test.afterEach(async () => {
-  for (const resource of cleanup.splice(0)) {
-    await resource.context.request.delete(`/api/${resource.type}/${resource.id}`, { headers: { Origin: baseURL }, data: {} });
-  }
-  await Promise.all(contexts.splice(0).map(c => c.close()));
+  for (const r of cleanup.splice(0))
+    await r.context.request.delete(`/api/sessions/${r.id}`, { headers: { Origin: baseURL }, data: {} });
+  await Promise.all(contexts.splice(0).map((c) => c.close()));
 });
 
-test('teacher and independent iPad student complete all activity formats and isolated HTML', async ({ browser }) => {
+test('teacher and students complete numeric, manipulate and handwritten answers with grading and release', async ({ browser }) => {
+  test.setTimeout(120_000);
+  const teacher = await surface(browser, 1440, 900);
+  await loginTeacher(teacher.page);
+  await fitsViewport(teacher.page);
+  await shot(teacher.page, 'teacher-dashboard.png');
+  await start(teacher.page, teacher.context);
+  await fitsViewport(teacher.page);
+  await shot(teacher.page, 'teacher-slide1.png');
+
+  const ipad = await surface(browser, 1024, 768, true);
+  await loginStudent(ipad.page, 1);
+  const phone = await surface(browser, 390, 844, true);
+  await loginStudent(phone.page, 2);
+  await fitsViewport(ipad.page);
+  await fitsViewport(phone.page);
+
+  // 操作題：拖滑桿到 a=6、b=2 後送出。
+  await goSlide(teacher.page, 3);
+  await openActivity(teacher.page);
+  await expect(ipad.page.getByRole('button', { name: '送出我的操作' })).toBeEnabled();
+  await ipad.page.locator('input[data-param="a"]').fill('6');
+  await ipad.page.locator('input[data-param="b"]').fill('2');
+  await expect(ipad.page.locator('#manip-vars')).toContainText('a = 6');
+  await ipad.page.getByRole('button', { name: '送出我的操作' }).click();
+  await expect(ipad.page.locator('.saved-answer')).toBeVisible();
+  await answerPanel(phone.page);
+  await phone.page.getByRole('button', { name: '送出我的操作' }).click();
+  await expect(teacher.page.locator('#answer-count')).toHaveText(/^2 \//);
+  await expect(teacher.page.locator('.correct-rate strong')).toHaveText('1');
+  await shot(ipad.page, 'ipad-manipulate.png');
+
+  // 步驟聚焦：第 4 頁按下一步後，目前步驟發光、其他反暗。
+  await goSlide(teacher.page, 4);
+  await teacher.page.locator('[data-viz="next"]').click();
+  await expect.poll(() => teacher.page.locator('.viz-focus').count()).toBeGreaterThan(0);
+  expect(await teacher.page.locator('.viz-dim').count()).toBeGreaterThan(0);
+
+  // 數值題：分數、算式都接受，伺服器判定對錯；抽「答對」只會抽到答對的人。
+  await goSlide(teacher.page, 5);
+  await openActivity(teacher.page);
+  await answerPanel(phone.page);
+  await phone.page.locator('#numeric-answer').fill('1681');
+  await phone.page.getByTestId('submit-answer').click();
+  await ipad.page.locator('#numeric-answer').fill('1600+1');
+  await ipad.page.getByTestId('submit-answer').click();
+  await expect(teacher.page.locator('#answer-count')).toHaveText(/^2 \//);
+  await teacher.page.locator('[data-action="draw-filter"][data-filter="correct"]').click();
+  await teacher.page.getByTestId('draw-seat').click();
+  await expect(teacher.page.locator('.draw-result strong')).toContainText('2');
+  await expect(teacher.page.locator('.draw-result small')).toContainText('答對');
+  await teacher.page.getByRole('button', { name: '公布結果' }).click();
+  await expect(phone.page.locator('.verdict.ok')).toBeVisible();
+  await fitsViewport(phone.page);
+  await shot(phone.page, 'phone-numeric-result.png');
+
+  // 手寫題：在畫布上寫字後送出；教師 AI 批改（無金鑰時為模擬）、改分、發回。
+  await goSlide(teacher.page, 7);
+  await openActivity(teacher.page);
+  await ipad.page.getByTestId('open-sketch').click();
+  const canvas = ipad.page.getByTestId('sketch-canvas');
+  const box = (await canvas.boundingBox())!;
+  await ipad.page.mouse.move(box.x + box.width * 0.2, box.y + box.height * 0.3);
+  await ipad.page.mouse.down();
+  for (let i = 1; i <= 12; i++) await ipad.page.mouse.move(box.x + box.width * (0.2 + i * 0.04), box.y + box.height * (0.3 + (i % 2) * 0.05));
+  await ipad.page.mouse.up();
+  await ipad.page.locator('[data-sk="text"]').fill('小明漏了 12x');
+  await shot(ipad.page, 'ipad-sketch.png');
+  await ipad.page.getByTestId('sketch-done').click();
+  await expect(ipad.page.locator('.canvas-launch img')).toBeVisible();
+  await ipad.page.getByTestId('submit-answer').click();
+  await expect(ipad.page.locator('.saved-answer .answer-thumb')).toBeVisible();
+  await expect(teacher.page.getByTestId('submission-grid').locator('.submission')).toHaveCount(1);
+  await teacher.page.getByTestId('grade-all').click();
+  await expect(teacher.page.locator('.submission .st.review, .submission .st.graded')).toBeVisible({ timeout: 15_000 });
+  await teacher.page.locator('.submission').first().click();
+  await expect(teacher.page.locator('#grade-form')).toBeVisible();
+  await expect(teacher.page.locator('.redpen-host svg.redpen')).toBeVisible();
+  for (const [criterion, score] of [['find', 2], ['expand', 3], ['model', 2]] as const)
+    await teacher.page.locator(`input[name="c-${criterion}"][value="${score}"]`).check({ force: true });
+  await teacher.page.locator('#grade-form textarea[name="feedback"]').fill('找到錯誤了，面積圖再標上 6x。');
+  await shot(teacher.page, 'teacher-grading.png');
+  await teacher.page.locator('#grade-form button[value="release"]').click();
+  await expect(ipad.page.getByTestId('student-feedback')).toContainText('7', { timeout: 10_000 });
+  await expect(ipad.page.getByTestId('student-feedback')).toContainText('面積圖再標上 6x');
+  await expect(ipad.page.locator('.feedback-card svg.redpen')).toBeVisible();
+  await shot(ipad.page, 'ipad-feedback.png');
+  await answerPanel(phone.page);
+  await expect(phone.page.getByTestId('student-feedback')).toHaveCount(0);
+  await fitsViewport(teacher.page);
+  await fitsViewport(ipad.page);
+});
+
+test('every page of the sample lesson fits one screen on projector, iPad and phone', async ({ browser }) => {
   test.setTimeout(90_000);
-  const t = await surface(browser);
-  const s = await surface(browser, 768, 1024, true);
-  const pageErrors: string[] = [];
-  t.page.on('pageerror', e => pageErrors.push(e.message));
-  s.page.on('pageerror', e => pageErrors.push(e.message));
-  await loginTeacher(t.page);
-  const sid = await start(t.page, t.context);
-  await loginStudent(s.page);
-  await expect(s.page.getByTestId('session-slide')).toContainText('留一點空間');
-  await slide(t.page, 2);
-  await openActivity(t.page);
-  await expect(s.page.getByTestId('poll-option-0')).toBeEnabled();
-  await touchTarget(s.page, '.answer-option, [data-testid="submit-answer"]');
-  await s.page.getByTestId('poll-option-0').tap();
-  await s.page.getByTestId('submit-answer').tap();
-  await expect(s.page.getByText('已儲存你的回答', { exact: true })).toBeVisible();
-  await expect(t.page.locator('#answer-count')).toHaveText('1 / 40');
-  await s.page.reload();
-  await expect(s.page.getByText('已儲存你的回答', { exact: true })).toBeVisible();
-  await expect(s.page.getByTestId('poll-option-0')).toHaveAttribute('aria-pressed', 'true');
-  await t.page.getByRole('button', { name: '公布統計', exact: true }).click();
-  await expect(s.page.getByText('全班回饋', { exact: true })).toBeVisible();
-  for (const [width, height, label] of [[768, 1024, 'student-ipad-portrait'], [1024, 768, 'student-ipad-landscape'], [390, 844, 'student-phone']] as const) {
-    await s.page.setViewportSize({ width, height });
-    await noHorizontalOverflow(s.page);
-    await shot(s.page, `${label}.png`);
+  const teacher = await surface(browser, 1920, 1080);
+  await loginTeacher(teacher.page);
+  await start(teacher.page, teacher.context);
+  const pages = await teacher.page.locator('.slide-dots button').count();
+  const ipad = await surface(browser, 820, 1180, true);
+  await loginStudent(ipad.page, 3);
+  const phone = await surface(browser, 375, 667, true);
+  await loginStudent(phone.page, 4);
+  for (let n = 1; n <= pages; n++) {
+    await goSlide(teacher.page, n);
+    for (const p of [teacher.page, ipad.page, phone.page]) {
+      await expect(p.locator('.room-progress span').first()).toHaveText(String(n));
+      await fitsViewport(p);
+      const visual = p.locator('.slide-visual');
+      if (await visual.count()) {
+        const b = await visual.boundingBox();
+        expect(b && b.height, `page ${n}: visual area must keep usable height`).toBeGreaterThan(p === phone.page ? 120 : 180);
+      }
+    }
+    if (n === 3 || n === 7) {
+      await shot(teacher.page, `projector-p${n}.png`);
+      await shot(ipad.page, `ipad-portrait-p${n}.png`);
+      await shot(phone.page, `phone-p${n}.png`);
+    }
   }
-  await s.page.setViewportSize({ width: 768, height: 1024 });
-  await t.page.getByRole('button', { name: '教師同步翻頁', exact: true }).click();
-  await expect(s.page.getByRole('button', { name: '第 4 頁', exact: true })).toBeEnabled();
-  await slide(s.page, 4);
-  await expect(s.page.getByText('自主閱讀中', { exact: true })).toBeVisible();
-  await expect(s.page.getByTestId('submit-answer')).toHaveCount(0);
-  await s.page.getByRole('button', { name: '回到目前活動', exact: true }).tap();
-  await expect(s.page.getByText('已儲存你的回答', { exact: true })).toBeVisible();
-  await t.page.getByRole('button', { name: '學生自主瀏覽', exact: true }).click();
-  await expect(s.page.getByRole('button', { name: '第 4 頁', exact: true })).toBeDisabled();
-  await slide(t.page, 3);
-  await openActivity(t.page);
-  await expect(s.page.getByTestId('poll-option-3')).toBeEnabled();
-  for (const option of [0, 1, 3]) await s.page.getByTestId(`poll-option-${option}`).tap();
-  await s.page.getByTestId('submit-answer').tap();
-  await expect(s.page.getByText('已儲存你的回答', { exact: true })).toBeVisible();
-  await slide(t.page, 4);
-  await openActivity(t.page);
-  await s.page.getByRole('button', { name: '4', exact: true }).tap();
-  await s.page.getByTestId('submit-answer').tap();
-  await expect(s.page.getByText('已儲存你的回答', { exact: true })).toBeVisible();
-  await slide(t.page, 5);
-  await openActivity(t.page);
-  await s.page.getByLabel('你的回答', { exact: true }).fill('QA_PRIVATE_REMARK：我建議先比較需要的時間，因為安排會更清楚。');
-  await s.page.getByTestId('submit-answer').tap();
-  await expect(t.page.locator('#aggregate')).toContainText('QA_PRIVATE_REMARK');
-  await t.page.getByRole('button', { name: '大屏授課', exact: true }).click();
-  await expect(t.page.locator('#aggregate')).not.toContainText('QA_PRIVATE_REMARK');
-  await expect(t.page.locator('.teacher-notes')).toHaveCount(0);
-  await t.page.waitForResponse(r => r.url().endsWith(`/api/sessions/${sid}`));
-  await expect(t.page.locator('#aggregate')).not.toContainText('QA_PRIVATE_REMARK');
-  await t.page.getByRole('button', { name: '標準授課', exact: true }).click();
-  await slide(t.page, 6);
-  await openActivity(t.page);
-  const frame = s.page.frameLocator('#custom-activity');
-  await expect(frame.getByRole('button', { name: '① 觀察', exact: true })).toBeEnabled();
-  expect(await s.page.locator('#custom-activity').getAttribute('sandbox')).toBe('allow-scripts');
-  await frame.getByRole('button', { name: '① 觀察', exact: true }).tap();
-  await expect(s.page.getByText('已儲存你的回答', { exact: true })).toBeVisible();
-  const view = await (await t.context.request.get(`/api/sessions/${sid}`)).json();
-  expect(view.answers).toHaveLength(5);
-  expect(view.answers.map((a: any) => a.value)).toEqual([0, [0, 1, 3], 4, 'QA_PRIVATE_REMARK：我建議先比較需要的時間，因為安排會更清楚。', 0]);
-  expect(pageErrors).toEqual([]);
 });
 
-test('touch board persists normalized strokes, supports undo/redo and keeps drawing separate from slide navigation', async ({ browser }) => {
-  const t = await surface(browser, 1440, 1000, true);
-  await t.page.goto('/');
-  await expect(t.page.getByRole('button', { name: '教師示範', exact: true })).toBeVisible();
-  await shot(t.page, 'landing-desktop.png');
-  await loginTeacher(t.page);
-  await shot(t.page, 'teacher-workspace.png');
-  const sid = await start(t.page, t.context);
-  await t.page.getByRole('button', { name: '學生加入資訊', exact: true }).tap();
-  await expect(t.page.getByTestId('join-qr')).toBeVisible();
-  expect(await t.page.getByTestId('join-qr').evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
-  const entry = new URL(await t.page.getByLabel('學生入口連結', { exact: true }).inputValue());
-  expect(entry.searchParams.get('class')).toBe('DEMO801');
-  expect(entry.hash).toBe('#/student');
-  await t.page.getByRole('button', { name: '關閉對話框', exact: true }).tap();
-  await t.page.getByRole('button', { name: '大屏授課', exact: true }).tap();
-  await expect(t.page.locator('.big-screen')).toBeVisible();
-  await touchTarget(t.page, '.teaching-toolbar button, .slide-navigation .btn');
-  await t.page.getByTestId('tool-pen').tap();
-  const canvas = t.page.getByTestId('whiteboard-canvas');
-  expect(await canvas.evaluate(el => getComputedStyle(el).touchAction)).toBe('none');
-  const bounds = (await canvas.boundingBox())!;
-  const cdp = await t.context.newCDPSession(t.page);
-  const points = [{ x: bounds.x + bounds.width * .2, y: bounds.y + bounds.height * .3 }, { x: bounds.x + bounds.width * .35, y: bounds.y + bounds.height * .45 }, { x: bounds.x + bounds.width * .55, y: bounds.y + bounds.height * .3 }];
-  const saved = t.page.waitForResponse(r => r.url().endsWith('/whiteboard') && r.request().method() === 'PUT');
-  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ ...points[0], id: 1 }] });
-  for (const point of points.slice(1)) await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ ...point, id: 1 }] });
-  await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
-  expect((await saved).ok()).toBe(true);
-  const before = await (await t.context.request.get(`/api/sessions/${sid}`)).json();
-  const stroke = before.whiteboard.welcome[0];
-  expect(stroke.points.length).toBeGreaterThan(2);
-  expect(stroke.points[0].x).toBeCloseTo(.2, 2);
-  expect(stroke.points[0].y).toBeCloseTo(.3, 2);
-  expect(before.session.slideIndex).toBe(0);
-  const undoSaved = t.page.waitForResponse(r => r.url().endsWith('/whiteboard') && r.request().method() === 'PUT');
-  await t.page.getByRole('button', { name: '復原', exact: true }).tap();
-  await undoSaved;
-  expect((await (await t.context.request.get(`/api/sessions/${sid}`)).json()).whiteboard.welcome).toHaveLength(0);
-  const redoSaved = t.page.waitForResponse(r => r.url().endsWith('/whiteboard') && r.request().method() === 'PUT');
-  await t.page.getByRole('button', { name: '重做', exact: true }).tap();
-  await redoSaved;
-  expect((await (await t.context.request.get(`/api/sessions/${sid}`)).json()).whiteboard.welcome).toEqual(before.whiteboard.welcome);
-  await shot(t.page, 'teacher-large-screen.png');
-  await t.page.setViewportSize({ width: 768, height: 1024 });
-  await noHorizontalOverflow(t.page);
-  await shot(t.page, 'teacher-tablet-portrait.png');
-  await t.page.reload();
-  await expect(t.page.getByTestId('whiteboard-canvas')).toBeVisible();
-  const after = await (await t.context.request.get(`/api/sessions/${sid}`)).json();
-  expect(after.whiteboard.welcome).toEqual(before.whiteboard.welcome);
-  const pixels = await t.page.getByTestId('whiteboard-canvas').evaluate((element: HTMLCanvasElement) => {
-    const data = element.getContext('2d')!.getImageData(0, 0, element.width, element.height).data;
-    let visible = 0; for (let i = 3; i < data.length; i += 4) if (data[i] > 0) visible++;
-    return visible;
-  });
-  expect(pixels).toBeGreaterThan(50);
-  await t.page.getByTestId('draw-seat').tap();
-  await expect(t.page.locator('.draw-result')).toBeVisible();
-  await t.page.getByTestId('buzz-open').tap();
-  const s = await surface(browser, 768, 1024, true);
-  await loginStudent(s.page, 2);
-  await s.page.getByTestId('buzz-button').tap();
-  await expect(t.page.locator('.buzz-panel')).toContainText('2');
-  await expect(t.page.locator('.buzz-panel')).toContainText('搶答成功');
-  await t.page.getByTestId('tool-laser').tap();
-  await expect(t.page.getByTestId('tool-laser')).toHaveAttribute('aria-pressed', 'true');
-  await t.page.getByTestId('tool-spotlight').tap();
-  await expect(t.page.getByTestId('tool-spotlight')).toHaveAttribute('aria-pressed', 'true');
-  await t.page.getByRole('button', { name: '全螢幕', exact: true }).tap();
-  await expect.poll(() => t.page.evaluate(() => !!document.fullscreenElement)).toBe(true);
-  await t.page.getByRole('button', { name: '全螢幕', exact: true }).tap();
-  await expect.poll(() => t.page.evaluate(() => !!document.fullscreenElement)).toBe(false);
-});
-
-test('teacher imports, edits, saves and exports a reusable lesson, with mock AI clearly labelled', async ({ browser }) => {
-  const t = await surface(browser);
-  await loginTeacher(t.page);
-  const sample = JSON.parse(await readFile(resolve('content/demo.json'), 'utf8'));
-  sample.title = `匯入測試 ${Date.now()}`;
-  const chooser = t.page.waitForEvent('filechooser');
-  await t.page.getByTestId('import-lesson').click();
-  await (await chooser).setFiles({ name: 'lesson.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(sample)) });
-  const card = t.page.getByTestId('lesson-card').filter({ hasText: sample.title });
-  await expect(card).toBeVisible();
-  await card.getByRole('button', { name: '編輯教材' }).click();
-  const id = t.page.url().split('/lesson/')[1];
-  cleanup.push({ context: t.context, type: 'lessons', id });
-  await t.page.getByLabel('課程名稱', { exact: true }).fill(`${sample.title}・已修訂`);
-  await t.page.getByTestId('save-lesson').click();
-  await expect(t.page.locator('#toast')).toContainText('教材已儲存');
-  await t.page.reload();
-  await expect(t.page.getByLabel('課程名稱', { exact: true })).toHaveValue(`${sample.title}・已修訂`);
-  const downloaded = t.page.waitForEvent('download');
-  await t.page.getByRole('button', { name: '匯出課程 JSON', exact: true }).click();
-  const path = await (await downloaded).path();
-  const exported = JSON.parse(await readFile(path!, 'utf8'));
-  expect(exported.id).toBe(id);
-  expect(exported.title).toBe(`${sample.title}・已修訂`);
-  await t.page.getByRole('button', { name: 'AI 檢查課程邏輯', exact: true }).click();
-  await expect(t.page.getByRole('dialog')).toContainText('模擬分析・未呼叫外部 API');
-  await expect(t.page.getByRole('dialog')).toContainText('未呼叫 AI');
-});
-
-test('an offline student answer is retried once after connectivity returns', async ({ browser }) => {
-  const t = await surface(browser);
-  const s = await surface(browser, 1024, 768, true);
-  await loginTeacher(t.page);
-  const sid = await start(t.page, t.context);
-  await loginStudent(s.page, 3);
-  await slide(t.page, 2);
-  await openActivity(t.page);
-  await expect(s.page.getByTestId('poll-option-0')).toBeEnabled();
-  await s.page.getByTestId('poll-option-0').tap();
-  await s.context.setOffline(true);
-  await s.page.getByTestId('submit-answer').tap();
-  await expect(s.page.locator('#answer-status')).toContainText('待送出');
-  await s.context.setOffline(false);
-  await expect(s.page.getByText('已儲存你的回答', { exact: true })).toBeVisible();
-  await expect(t.page.locator('#answer-count')).toHaveText('1 / 40');
-  const view = await (await t.context.request.get(`/api/sessions/${sid}`)).json();
-  expect(view.answers).toHaveLength(1);
-  await s.page.reload();
-  await expect(s.page.getByText('已儲存你的回答', { exact: true })).toBeVisible();
+test('teacher edits a lesson with live preview, sees AI drafts labelled, and settings never echo the API key', async ({ browser }) => {
+  const teacher = await surface(browser, 1440, 900);
+  await loginTeacher(teacher.page);
+  await teacher.page.getByTestId('lesson-card').filter({ hasText: '和的平方公式' }).getByRole('button', { name: '編輯' }).click();
+  await expect(teacher.page.locator('#preview-stage .viz')).toBeVisible();
+  await teacher.page.locator('#preview-slide').selectOption('6');
+  await expect(teacher.page.locator('#preview-stage h1')).toContainText('小明');
+  await teacher.page.goto('/#/settings');
+  await expect(teacher.page.locator('#ai-form select[name="provider"]')).toHaveValue('openai');
+  await expect(teacher.page.locator('#ai-form input[name="model"]')).toHaveValue('gpt-6-luna');
+  const key = 'sk-test-e2e-not-real-WXYZ9876';
+  await teacher.page.locator('#ai-form input[name="apiKey"]').fill(key);
+  await teacher.page.locator('#ai-form button[type="submit"]').click();
+  await expect(teacher.page.locator('#ai-form input[name="apiKey"]')).toHaveAttribute('placeholder', /9876/);
+  expect(await teacher.page.content()).not.toContain(key);
+  const settings = await teacher.page.request.get('/api/settings/ai');
+  expect(await settings.text()).not.toContain(key);
+  await teacher.page.getByRole('button', { name: '移除金鑰' }).click();
+  await expect(teacher.page.locator('.setting-status')).toContainText('尚未設定');
 });

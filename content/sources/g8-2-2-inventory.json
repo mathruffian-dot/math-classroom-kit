@@ -1,0 +1,1053 @@
+{
+  "source": {
+    "pdf": "八年級/115上_國中_數學_教材資源_課本_學用PDF_二年級/05-115國中數學2上-課本-2-2-學用(115f231560).pdf",
+    "pages": {
+      "pdfPages": "1-19",
+      "printedPages": "73-91",
+      "printedPage": "pdfPage + 72"
+    },
+    "answers": "八年級/115上_國中_數學_教材資源_備課用書_備課PDF_二年級/03-115國中數學2上-備課-L02(115f231511).pdf（備課PDF 第 30–45 頁 = 課本 PDF 第 1–16 頁，紅字解答）",
+    "pageImages": "八年級/115上_視覺化互動教學/textbook-pages/2-2/page-NN.png",
+    "crops": "math-classroom-kit/public/lesson-assets/g8-2-2/，pymupdf 2.5x 渲染；box 為相對頁面座標 [x0,y0,x1,y1]",
+    "notIncluded": "自我評量 P90–91（pdfPage 18–19，6 大題）與備課用書「會考觀測站」未列入",
+    "generated": "2026-10-15"
+  },
+  "items": [
+    {
+      "kind": "key-box",
+      "label": "根式的簡記",
+      "topic": "根式的表示（簡記）",
+      "pdfPage": 1,
+      "printedPage": 73,
+      "problems": [],
+      "crop": {
+        "file": "keybox-notation.png",
+        "box": [
+          0.1133,
+          0.4857,
+          0.8954,
+          0.6076
+        ]
+      },
+      "note": "若 a≠0 且 b 為正數：(1) a×√b=a√b (2) √b÷a=√b/a 或 (1/a)√b"
+    },
+    {
+      "kind": "practice",
+      "label": "根式的表示 隨堂練習",
+      "topic": "整數／分數與根式的乘除",
+      "pdfPage": 1,
+      "printedPage": 73,
+      "problems": [
+        {
+          "expr": "(−5)×2√3",
+          "answer": "−10√3",
+          "answerSource": "official"
+        },
+        {
+          "expr": "(−(4/3)√2)×(−6)",
+          "answer": "8√2",
+          "answerSource": "official"
+        },
+        {
+          "expr": "(−4√2)÷6",
+          "answer": "−(2/3)√2",
+          "answerSource": "official"
+        }
+      ],
+      "crop": {
+        "file": "notation-practice.png",
+        "box": [
+          0.1079,
+          0.7087,
+          0.8975,
+          0.8194
+        ]
+      },
+      "note": "本節第一個隨堂練習，前面沒有例題"
+    },
+    {
+      "kind": "key-box",
+      "label": "根式的乘法運算",
+      "topic": "根式的乘法",
+      "pdfPage": 2,
+      "printedPage": 74,
+      "problems": [],
+      "crop": {
+        "file": "keybox-mult.png",
+        "box": [
+          0.1025,
+          0.5272,
+          0.8846,
+          0.5946
+        ]
+      },
+      "note": "若 a≥0, b≥0，則 √a×√b=√(a×b)；前文以 (√2×√3)²=2×3 說明"
+    },
+    {
+      "kind": "example",
+      "label": "例1",
+      "topic": "根式的乘法運算",
+      "pdfPage": 2,
+      "printedPage": 74,
+      "problems": [
+        {
+          "expr": "√3×√7",
+          "answer": "√21",
+          "answerSource": "official"
+        },
+        {
+          "expr": "3√3×(−2√5)",
+          "answer": "−6√15",
+          "answerSource": "official"
+        }
+      ],
+      "crop": {
+        "file": "ex1.png",
+        "box": [
+          0.1025,
+          0.6335,
+          0.8867,
+          0.7347
+        ]
+      }
+    },
+    {
+      "kind": "practice",
+      "label": "例1 隨堂練習",
+      "topic": "根式的乘法運算（含長方形面積）",
+      "pdfPage": 3,
+      "printedPage": 75,
+      "problems": [
+        {
+          "expr": "1(1) √5×√14",
+          "answer": "√70",
+          "answerSource": "official"
+        },
+        {
+          "expr": "1(2) (−2√3)×(4√2)",
+          "answer": "−8√6",
+          "answerSource": "official"
+        },
+        {
+          "expr": "2. 長方形長 √13 公分、寬 √5 公分，求面積",
+          "answer": "√65 平方公分",
+          "answerSource": "official"
+        }
+      ],
+      "crop": {
+        "file": "ex1-practice.png",
+        "box": [
+          0.1079,
+          0.0933,
+          0.9018,
+          0.4097
+        ]
+      },
+      "note": "第2題附長方形圖"
+    },
+    {
+      "kind": "example",
+      "label": "例2",
+      "topic": "比較根式的大小",
+      "pdfPage": 3,
+      "printedPage": 75,
+      "problems": [
+        {
+          "expr": "比較 3√2 與 2√3 的大小",
+          "answer": "3√2>2√3（√18>√12）",
+          "answerSource": "official"
+        }
+      ],
+      "crop": {
+        "file": "ex2.png",
+        "box": [
+          0.1133,
+          0.4797,
+          0.8954,
+          0.5532
+        ]
+      },
+      "note": "旁註另解：平方後比較 18>12"
+    },
+    {
+      "kind": "practice",
+      "label": "例2 隨堂練習",
+      "topic": "比較根式的大小",
+      "pdfPage": 3,
+      "printedPage": 75,
+      "problems": [
+        {
+          "expr": "比較 6√2 與 5√3 的大小",
+          "answer": "5√3>6√2（√75>√72）",
+          "answerSource": "official"
+        }
+      ],
+      "crop": {
+        "file": "ex2-practice.png",
+        "box": [
+          0.1133,
+          0.739,
+          0.8954,
+          0.8038
+        ]
+      }
+    },
+    {
+      "kind": "key-box",
+      "label": "根式的除法運算",
+      "topic": "根式的除法",
+      "pdfPage": 4,
+      "printedPage": 76,
+      "problems": [],
+      "crop": {
+        "file": "keybox-div.png",
+        "box": [
+          0.1025,
+          0.3699,
+          0.8846,
+          0.4598
+        ]
+      },
+      "note": "若 a≥0, b>0，則 √a÷√b=√a/√b=√(a/b)=√(a÷b)"
+    },
+    {
+      "kind": "example",
+      "label": "例3",
+      "topic": "根式的除法運算",
+      "pdfPage": 4,
+      "printedPage": 76,
+      "problems": [
+        {
+          "expr": "√35÷√7",
+          "answer": "√5",
+          "answerSource": "official"
+        },
+        {
+          "expr": "√(7/2)÷(√3/√6)",
+          "answer": "√7",
+          "answerSource": "official"
+        }
+      ],
+      "crop": {
+        "file": "ex3.png",
+        "box": [
+          0.1025,
+          0.4771,
+          0.8846,
+          0.586
+        ]
+      }
+    },
+    {
+      "kind": "practice",
+      "label": "例3 隨堂練習",
+      "topic": "根式的除法運算",
+      "pdfPage": 4,
+      "printedPage": 76,
+      "problems": [
+        {
+          "expr": "√48÷√8",
+          "answer": "√6",
+          "answerSource": "official"
+        },
+        {
+          "expr": "(√6/√3)÷√(2/3)",
+          "answer": "√3",
+          "answerSource": "official"
+        }
+      ],
+      "crop": {
+        "file": "ex3-practice.png",
+        "box": [
+          0.0992,
+          0.7347,
+          0.8867,
+          0.8487
+        ]
+      }
+    },
+    {
+      "kind": "explore",
+      "label": "最簡根式（探索）",
+      "topic": "化簡最簡根式：面積18的正方形切成9個面積2的小正方形",
+      "pdfPage": 5,
+      "printedPage": 77,
+      "problems": [],
+      "crop": {
+        "file": "explore-simplest.png",
+        "box": [
+          0.1165,
+          0.1383,
+          0.8954,
+          0.4598
+        ]
+      },
+      "note": "√18=3√2（圖解與 √18=√(2×3²)=3√2）"
+    },
+    {
+      "kind": "key-box",
+      "label": "最簡根式的定義",
+      "topic": "化簡最簡根式",
+      "pdfPage": 5,
+      "printedPage": 77,
+      "problems": [],
+      "crop": {
+        "file": "keybox-simplest.png",
+        "box": [
+          0.1079,
+          0.4754,
+          0.8975,
+          0.7519
+        ]
+      },
+      "note": "r√n 中 n 化成標準分解式後每個質因數次方都是1；不是最簡根式的三種情形：(1)質因數次方大於1 (2)根號內有分數或小數 (3)分母有根式"
+    },
+    {
+      "kind": "practice",
+      "label": "最簡根式 隨堂練習",
+      "topic": "判斷最簡根式",
+      "pdfPage": 5,
+      "printedPage": 77,
+      "problems": [
+        {
+          "expr": "下列哪些是最簡根式？3√2、√25、(2/3)√6、√24/2、√5/√3、√5.1",
+          "answer": "3√2、(2/3)√6",
+          "answerSource": "official"
+        }
+      ],
+      "crop": {
+        "file": "simplest-practice.png",
+        "box": [
+          0.1079,
+          0.7537,
+          0.8975,
+          0.8712
+        ]
+      },
+      "note": "本隨堂練習前面沒有例題"
+    },
+    {
+      "kind": "example",
+      "label": "例4",
+      "topic": "化簡最簡根式",
+      "pdfPage": 6,
+      "printedPage": 78,
+      "problems": [
+        {
+          "expr": "√(2⁵)",
+          "answer": "4√2",
+          "answerSource": "official"
+        },
+        {
+          "expr": "√24",
+          "answer": "2√6",
+          "answerSource": "official"
+        }
+      ],
+      "crop": {
+        "file": "ex4.png",
+        "box": [
+          0.1025,
+          0.0933,
+          0.8867,
+          0.1945
+        ]
+      }
+    },
+    {
+      "kind": "practice",
+      "label": "例4 隨堂練習",
+      "topic": "化簡最簡根式",
+      "pdfPage": 6,
+      "printedPage": 78,
+      "problems": [
+        {
+          "expr": "√(7³)",
+          "answer": "7√7",
+          "answerSource": "official"
+        },
+        {
+          "expr": "√54",
+          "answer": "3√6",
+          "answerSource": "official"
+        }
+      ],
+      "crop": {
+        "file": "ex4-practice.png",
+        "box": [
+          0.0992,
+          0.3933,
+          0.8867,
+          0.4927
+        ]
+      }
+    },
+    {
+      "kind": "explore",
+      "label": "補給站：√2 在數線上的位置",
+      "topic": "以旋轉在數線上標出 √2",
+      "pdfPage": 6,
+      "printedPage": 78,
+      "problems": [],
+      "crop": {
+        "file": "explore-sqrt2-numberline.png",
+        "box": [
+          0.1025,
+          0.6586,
+          0.8867,
+          0.9265
+        ]
+      },
+      "note": "正方形 OABC 面積 2，以 O 為中心把 OA 旋轉到數線得 P 點，OP=√2"
+    },
+    {
+      "kind": "explore",
+      "label": "根式的有理化（探索）",
+      "topic": "分母有理化：面積2的正方形切4等分",
+      "pdfPage": 7,
+      "printedPage": 79,
+      "problems": [],
+      "crop": {
+        "file": "explore-rationalize.png",
+        "box": [
+          0.1133,
+          0.0908,
+          0.8954,
+          0.5877
+        ]
+      },
+      "note": "小正方形邊長：用邊長算 √2/2，用面積算 √(1/2)=1/√2；比較哪個較易估算（√2≈1.414）"
+    },
+    {
+      "kind": "key-box",
+      "label": "有理化分母的定義",
+      "topic": "分母有理化",
+      "pdfPage": 7,
+      "printedPage": 79,
+      "problems": [],
+      "crop": {
+        "file": "keybox-rationalize.png",
+        "box": [
+          0.1079,
+          0.7606,
+          0.8975,
+          0.9144
+        ]
+      },
+      "note": "√(1/2)=1/√2=(1×√2)/(√2×√2)=√2/2；使分母沒有根號的過程稱為有理化分母"
+    },
+    {
+      "kind": "key-box",
+      "label": "有理化分母化成最簡根式",
+      "topic": "分母有理化",
+      "pdfPage": 8,
+      "printedPage": 80,
+      "problems": [],
+      "crop": {
+        "file": "keybox-rationalize-sqrt3.png",
+        "box": [
+          0.0992,
+          0.0951,
+          0.8867,
+          0.261
+        ]
+      },
+      "note": "√2/√3=(√2×√3)/(√3×√3)=√6/3（或 (1/3)√6）"
+    },
+    {
+      "kind": "example",
+      "label": "例5",
+      "topic": "分母有理化（有理化分母）",
+      "pdfPage": 8,
+      "printedPage": 80,
+      "problems": [
+        {
+          "expr": "4/(3√5)",
+          "answer": "4√5/15",
+          "answerSource": "official"
+        },
+        {
+          "expr": "√(7/18)",
+          "answer": "√14/6",
+          "answerSource": "official"
+        },
+        {
+          "expr": "√0.7",
+          "answer": "√70/10",
+          "answerSource": "official"
+        }
+      ],
+      "crop": {
+        "file": "ex5.png",
+        "box": [
+          0.1025,
+          0.2723,
+          0.8867,
+          0.3846
+        ]
+      }
+    },
+    {
+      "kind": "practice",
+      "label": "例5 隨堂練習",
+      "topic": "分母有理化",
+      "pdfPage": 8,
+      "printedPage": 80,
+      "problems": [
+        {
+          "expr": "√3/(5√2)",
+          "answer": "√6/10",
+          "answerSource": "official"
+        },
+        {
+          "expr": "√(7/12)",
+          "answer": "√21/6",
+          "answerSource": "official"
+        },
+        {
+          "expr": "√1.3",
+          "answer": "√130/10",
+          "answerSource": "official"
+        }
+      ],
+      "crop": {
+        "file": "ex5-practice.png",
+        "box": [
+          0.0992,
+          0.6439,
+          0.8867,
+          0.7623
+        ]
+      }
+    },
+    {
+      "kind": "example",
+      "label": "例6",
+      "topic": "根式的乘除運算與有理化",
+      "pdfPage": 9,
+      "printedPage": 81,
+      "problems": [
+        {
+          "expr": "√(8/3)×√(27/16)",
+          "answer": "3√2/2",
+          "answerSource": "official"
+        },
+        {
+          "expr": "√45÷√30",
+          "answer": "√6/2",
+          "answerSource": "official"
+        }
+      ],
+      "crop": {
+        "file": "ex6.png",
+        "box": [
+          0.1133,
+          0.0933,
+          0.8954,
+          0.2031
+        ]
+      }
+    },
+    {
+      "kind": "practice",
+      "label": "例6 隨堂練習",
+      "topic": "根式的乘除運算與有理化",
+      "pdfPage": 9,
+      "printedPage": 81,
+      "problems": [
+        {
+          "expr": "√(7/8)×√(14/3)",
+          "answer": "7√3/6",
+          "answerSource": "official"
+        },
+        {
+          "expr": "√2÷√11",
+          "answer": "√22/11",
+          "answerSource": "official"
+        }
+      ],
+      "crop": {
+        "file": "ex6-practice.png",
+        "box": [
+          0.1133,
+          0.5428,
+          0.8954,
+          0.6525
+        ]
+      }
+    },
+    {
+      "kind": "key-box",
+      "label": "同類方根",
+      "topic": "根式加減（同類方根）",
+      "pdfPage": 10,
+      "printedPage": 82,
+      "problems": [],
+      "crop": {
+        "file": "keybox-like-radicals.png",
+        "box": [
+          0.1025,
+          0.1469,
+          0.8867,
+          0.4624
+        ]
+      },
+      "note": "√a、√b 化為最簡根式後根號內數相同稱同類方根；例：6√6、√6、−(2/3)√6；√75 與 √12（5√3、2√3）；5√3 與 5√2 不是。對照 x+2x=3x ↔ √2+2√2=3√2"
+    },
+    {
+      "kind": "example",
+      "label": "例7",
+      "topic": "根式加減：同類方根的合併",
+      "pdfPage": 10,
+      "printedPage": 82,
+      "problems": [
+        {
+          "expr": "7√3−3√3",
+          "answer": "4√3",
+          "answerSource": "official"
+        },
+        {
+          "expr": "√2−5√2+√3",
+          "answer": "−4√2+√3",
+          "answerSource": "official"
+        }
+      ],
+      "crop": {
+        "file": "ex7.png",
+        "box": [
+          0.1025,
+          0.4736,
+          0.8867,
+          0.5748
+        ]
+      }
+    },
+    {
+      "kind": "practice",
+      "label": "例7 隨堂練習",
+      "topic": "根式加減：同類方根的合併",
+      "pdfPage": 10,
+      "printedPage": 82,
+      "problems": [
+        {
+          "expr": "3√11−8√11",
+          "answer": "−5√11",
+          "answerSource": "official"
+        },
+        {
+          "expr": "7√2−2√3−3√2",
+          "answer": "4√2−2√3",
+          "answerSource": "official"
+        }
+      ],
+      "crop": {
+        "file": "ex7-practice.png",
+        "box": [
+          0.0992,
+          0.7303,
+          0.8867,
+          0.8341
+        ]
+      }
+    },
+    {
+      "kind": "example",
+      "label": "例8",
+      "topic": "根式加減：化簡後再合併同類方根",
+      "pdfPage": 11,
+      "printedPage": 83,
+      "problems": [
+        {
+          "expr": "√48−5√12+√45",
+          "answer": "−6√3+3√5",
+          "answerSource": "official"
+        },
+        {
+          "expr": "3/√2+(7/2)√2",
+          "answer": "5√2",
+          "answerSource": "official"
+        }
+      ],
+      "crop": {
+        "file": "ex8.png",
+        "box": [
+          0.1133,
+          0.1858,
+          0.8954,
+          0.3025
+        ]
+      },
+      "note": "p83 頁首重點：先將各項化為最簡根式，再合併同類方根"
+    },
+    {
+      "kind": "practice",
+      "label": "例8 隨堂練習",
+      "topic": "根式加減：化簡後再合併同類方根",
+      "pdfPage": 11,
+      "printedPage": 83,
+      "problems": [
+        {
+          "expr": "√32−√12−√2",
+          "answer": "3√2−2√3",
+          "answerSource": "official"
+        },
+        {
+          "expr": "1/√5+(4/5)√5",
+          "answer": "√5",
+          "answerSource": "official"
+        }
+      ],
+      "crop": {
+        "file": "ex8-practice.png",
+        "box": [
+          0.1133,
+          0.5359,
+          0.8954,
+          0.6482
+        ]
+      }
+    },
+    {
+      "kind": "example",
+      "label": "例9",
+      "topic": "根式的四則運算（分配律）",
+      "pdfPage": 12,
+      "printedPage": 84,
+      "problems": [
+        {
+          "expr": "−2√3(√6−√2)",
+          "answer": "−6√2+2√6",
+          "answerSource": "official"
+        },
+        {
+          "expr": "(√3−√2)(√6+1)",
+          "answer": "2√2−√3",
+          "answerSource": "official"
+        }
+      ],
+      "crop": {
+        "file": "ex9.png",
+        "box": [
+          0.1025,
+          0.2005,
+          0.8867,
+          0.3025
+        ]
+      }
+    },
+    {
+      "kind": "practice",
+      "label": "例9 隨堂練習",
+      "topic": "根式的四則運算（分配律）",
+      "pdfPage": 12,
+      "printedPage": 84,
+      "problems": [
+        {
+          "expr": "√6(√3+2√2)",
+          "answer": "3√2+4√3",
+          "answerSource": "official"
+        },
+        {
+          "expr": "(√2−1)(√6+√3)",
+          "answer": "√3",
+          "answerSource": "official"
+        }
+      ],
+      "crop": {
+        "file": "ex9-practice.png",
+        "box": [
+          0.1025,
+          0.5117,
+          0.8867,
+          0.6093
+        ]
+      }
+    },
+    {
+      "kind": "example",
+      "label": "例10",
+      "topic": "根式的四則運算（乘除混合）",
+      "pdfPage": 13,
+      "printedPage": 85,
+      "problems": [
+        {
+          "expr": "√(1/3)×√(2/3)÷√(1/4)",
+          "answer": "2√2/3",
+          "answerSource": "official"
+        },
+        {
+          "expr": "(4√2+√6)÷√3",
+          "answer": "(4√6+3√2)/3（或 (4√6)/3+√2）",
+          "answerSource": "official"
+        }
+      ],
+      "crop": {
+        "file": "ex10.png",
+        "box": [
+          0.1133,
+          0.0908,
+          0.8954,
+          0.2057
+        ]
+      }
+    },
+    {
+      "kind": "practice",
+      "label": "例10 隨堂練習",
+      "topic": "根式的四則運算（乘除混合）",
+      "pdfPage": 13,
+      "printedPage": 85,
+      "problems": [
+        {
+          "expr": "√(3/4)×√(1/2)÷√(3/2)",
+          "answer": "1/2",
+          "answerSource": "official"
+        },
+        {
+          "expr": "(4√6−2)÷√2",
+          "answer": "4√3−√2",
+          "answerSource": "official"
+        }
+      ],
+      "crop": {
+        "file": "ex10-practice.png",
+        "box": [
+          0.1079,
+          0.5272,
+          0.8975,
+          0.6439
+        ]
+      }
+    },
+    {
+      "kind": "key-box",
+      "label": "乘法公式與根式",
+      "topic": "乘法公式與根式",
+      "pdfPage": 14,
+      "printedPage": 86,
+      "problems": [],
+      "crop": {
+        "file": "keybox-formulas.png",
+        "box": [
+          0.0971,
+          0.0864,
+          0.8867,
+          0.1452
+        ]
+      },
+      "note": "(a+b)²=a²+2ab+b²、(a−b)²=a²−2ab+b²、(a+b)(a−b)=a²−b² 在 a、b 是根式時也成立"
+    },
+    {
+      "kind": "example",
+      "label": "例11",
+      "topic": "乘法公式與根式：完全平方公式",
+      "pdfPage": 14,
+      "printedPage": 86,
+      "problems": [
+        {
+          "expr": "利用 (a+b)²=a²+2ab+b² 展開 (3+2√5)²",
+          "answer": "29+12√5",
+          "answerSource": "official"
+        }
+      ],
+      "crop": {
+        "file": "ex11.png",
+        "box": [
+          0.1025,
+          0.1685,
+          0.8867,
+          0.2437
+        ]
+      }
+    },
+    {
+      "kind": "practice",
+      "label": "例11 隨堂練習",
+      "topic": "乘法公式與根式：完全平方公式",
+      "pdfPage": 14,
+      "printedPage": 86,
+      "problems": [
+        {
+          "expr": "利用 (a−b)²=a²−2ab+b² 展開 (√7−√3)²",
+          "answer": "10−2√21",
+          "answerSource": "official"
+        }
+      ],
+      "crop": {
+        "file": "ex11-practice.png",
+        "box": [
+          0.1025,
+          0.4693,
+          0.8867,
+          0.5359
+        ]
+      }
+    },
+    {
+      "kind": "explore",
+      "label": "Thinking",
+      "topic": "乘法公式與根式：√a+√b≠√(a+b)",
+      "pdfPage": 14,
+      "printedPage": 86,
+      "problems": [
+        {
+          "expr": "(√3+√2)² 和 (√5)²，判別 (√3+√2) 與 √5 是否相等",
+          "answer": "(√3+√2)²=5+2√6，(√5)²=5，不相等",
+          "answerSource": "official"
+        },
+        {
+          "expr": "(√7−√5)² 和 (√2)²，判別 (√7−√5) 與 √2 是否相等",
+          "answer": "(√7−√5)²=12−2√35，(√2)²=2，不相等",
+          "answerSource": "official"
+        }
+      ],
+      "crop": {
+        "file": "thinking.png",
+        "box": [
+          0.0992,
+          0.6525,
+          0.8867,
+          0.7848
+        ]
+      }
+    },
+    {
+      "kind": "example",
+      "label": "例12",
+      "topic": "乘法公式與根式：平方差公式",
+      "pdfPage": 15,
+      "printedPage": 87,
+      "problems": [
+        {
+          "expr": "利用 (a+b)(a−b)=a²−b² 展開 (3+√5)(3−√5)",
+          "answer": "4",
+          "answerSource": "official"
+        }
+      ],
+      "crop": {
+        "file": "ex12.png",
+        "box": [
+          0.1133,
+          0.0908,
+          0.8954,
+          0.1642
+        ]
+      }
+    },
+    {
+      "kind": "practice",
+      "label": "例12 隨堂練習",
+      "topic": "乘法公式與根式：平方差公式",
+      "pdfPage": 15,
+      "printedPage": 87,
+      "problems": [
+        {
+          "expr": "利用 (a+b)(a−b)=a²−b² 展開 (√3+√5)(√3−√5)",
+          "answer": "−2",
+          "answerSource": "official"
+        }
+      ],
+      "crop": {
+        "file": "ex12-practice.png",
+        "box": [
+          0.1133,
+          0.3933,
+          0.8954,
+          0.4581
+        ]
+      }
+    },
+    {
+      "kind": "key-box",
+      "label": "利用平方差公式有理化分母",
+      "topic": "分母有理化（共軛）",
+      "pdfPage": 15,
+      "printedPage": 87,
+      "problems": [],
+      "crop": {
+        "file": "keybox-conjugate.png",
+        "box": [
+          0.1079,
+          0.6292,
+          0.8975,
+          0.9265
+        ]
+      },
+      "note": "1/(√5−√3)=(√5+√3)/2；例：1/(√5−√3)+(√5−√3)=(3√5−√3)/2（也可表示成 3√5/2−√3/2）"
+    },
+    {
+      "kind": "example",
+      "label": "例13",
+      "topic": "分母有理化：利用平方差公式",
+      "pdfPage": 16,
+      "printedPage": 88,
+      "problems": [
+        {
+          "expr": "3/(√7−2)",
+          "answer": "√7+2",
+          "answerSource": "official"
+        },
+        {
+          "expr": "√2/(√6+√5)",
+          "answer": "2√3−√10",
+          "answerSource": "official"
+        }
+      ],
+      "crop": {
+        "file": "ex13.png",
+        "box": [
+          0.0992,
+          0.0908,
+          0.8867,
+          0.2109
+        ]
+      },
+      "note": "課本附思路分析：分母 (√a−√b) 時同乘 (√a+√b)；分母 (√a+√b) 時同乘 (√a−√b)"
+    },
+    {
+      "kind": "practice",
+      "label": "例13 隨堂練習",
+      "topic": "分母有理化：利用平方差公式",
+      "pdfPage": 16,
+      "printedPage": 88,
+      "problems": [
+        {
+          "expr": "√3/(√6−√2)",
+          "answer": "(3√2+√6)/4",
+          "answerSource": "official"
+        },
+        {
+          "expr": "1/(√3+2)",
+          "answer": "−√3+2（即 2−√3）",
+          "answerSource": "official"
+        }
+      ],
+      "crop": {
+        "file": "ex13-practice.png",
+        "box": [
+          0.0992,
+          0.6525,
+          0.8867,
+          0.7796
+        ]
+      }
+    },
+    {
+      "kind": "key-box",
+      "label": "重點回顧",
+      "topic": "2-2 重點回顧（乘法、除法、最簡根式、同類方根、有理化分母）",
+      "pdfPage": 17,
+      "printedPage": 89,
+      "problems": [],
+      "crop": {
+        "file": "keybox-summary.png",
+        "box": [
+          0.1079,
+          0.0778,
+          0.9061,
+          0.8453
+        ]
+      }
+    }
+  ]
+}

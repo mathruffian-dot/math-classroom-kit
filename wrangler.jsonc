@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "health-classroom-kit",
+  "name": "math-classroom-kit",
   "main": "worker/index.ts",
   "compatibility_date": "2026-10-01",
   "assets": {
@@ -13,12 +13,28 @@
     "bindings": [{ "name": "CLASSROOM", "class_name": "ClassroomDurableObject" }],
   },
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["ClassroomDurableObject"] }],
+  // 本機開發：示範模式（只允許 127.0.0.1）。
   "vars": {
     "APP_MODE": "demo",
     "APP_INSTANCE": "default",
     "ALLOW_PUBLIC_DEMO": "false",
-    "AI_BASE_URL": "https://api.openai.com/v1",
-    "AI_DAILY_LIMIT": "20",
+    "AI_DAILY_LIMIT": "200",
   },
   "dev": { "ip": "127.0.0.1", "port": 8787 },
+  "env": {
+    // 正式部署：npm run deploy。資料與作答照片都存在 Durable Object，不需要 Supabase。
+    // 教師帳號以 secret 設定：npx wrangler secret put TEACHER_ACCOUNT --env production
+    "production": {
+      "name": "math-classroom-kit",
+      "durable_objects": {
+        "bindings": [{ "name": "CLASSROOM", "class_name": "ClassroomDurableObject" }],
+      },
+      "vars": {
+        "APP_MODE": "cloudflare",
+        "APP_INSTANCE": "default",
+        "ALLOW_PUBLIC_DEMO": "false",
+        "AI_DAILY_LIMIT": "200",
+      },
+    },
+  },
 }

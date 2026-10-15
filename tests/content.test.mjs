@@ -45,11 +45,16 @@ test('example lessons have unique stable IDs and valid activity options', async 
     assert.ok(lesson.slides.length >= 3, `${lesson.id}: show several different slide examples`);
     const ids = lesson.slides.map(s => s.id);
     assert.equal(new Set(ids).size, ids.length, 'Slide IDs must be unique');
+    // 每一頁都要有依該頁內容設計的 IRS。
+    for (const s of lesson.slides) assert.ok(s.activity, `${lesson.id}/${s.id}: every slide needs an IRS activity`);
     const activities = lesson.slides.flatMap(s => s.activity ? [s.activity] : []);
     assert.equal(new Set(activities.map(a => a.id)).size, activities.length, 'Activity IDs must be unique');
     for (const activity of activities) {
       assert.ok(activity.prompt);
-      assert.ok(['single', 'multiple', 'scale', 'short'].includes(activity.type));
+      assert.ok(['single', 'multiple', 'scale', 'short', 'numeric', 'canvas', 'manipulate'].includes(activity.type));
+      if (activity.type === 'canvas') assert.ok(activity.rubric?.criteria?.length, `${activity.id}: canvas needs a rubric`);
+      if (activity.type === 'numeric') assert.ok(activity.answer, `${activity.id}: numeric needs an answer`);
+      if (activity.type === 'manipulate') assert.ok(activity.check, `${activity.id}: manipulate needs a check`);
       if (['single', 'multiple'].includes(activity.type)) {
         assert.ok(activity.options.length >= 2);
         assert.equal(new Set(activity.options).size, activity.options.length);

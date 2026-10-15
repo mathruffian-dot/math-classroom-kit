@@ -62,3 +62,45 @@ export async function verifyCloudTeacher(
   );
   return user;
 }
+
+/** 預設教師密碼（費氏數列 1,1,2,3,5,8,13）。第一次登入後請立即修改。 */
+export const DEFAULT_TEACHER_PASSWORD = '11235813';
+export interface TeacherSecret {
+  salt: string;
+  hash: string;
+  iterations: number;
+  changedAt: string;
+}
+const toHex = (bytes: Uint8Array) =>
+  Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+export async function hashPassword(
+  password: string,
+  salt = toHex(crypto.getRandomValues(new Uint8Array(16))),
+  iterations = 100000,
+): Promise<TeacherSecret> {
+  const key = await crypto.subtle.importKey('raw', encoder.encode(password), 'PBKDF2', false, [
+    'deriveBits',
+  ]);
+  const bits = await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', hash: 'SHA-256', salt: encoder.encode(salt), iterations },
+    key,
+    256,
+  );
+  return { salt, hash: toHex(new Uint8Array(bits)), iterations, changedAt: new Date().toISOString() };
+}
+export async function verifyPassword(password: string, secret: TeacherSecret | undefined) {
+  if (!secret) return password === DEFAULT_TEACHER_PASSWORD;
+  const candidate = await hashPassword(password, secret.salt, secret.iterations);
+  // 固定時間比較，避免以回應時間猜測雜湊。
+  let diff = candidate.hash.length ^ secret.hash.length;
+  for (let i = 0; i < Math.min(candidate.hash.length, secret.hash.length); i++)
+    diff |= candidate.hash.charCodeAt(i) ^ secret.hash.charCodeAt(i);
+  return diff === 0;
+}
+/** 教師帳號：部署時以 TEACHER_ACCOUNT 設為自己的 Cloudflare 帳號信箱。 */
+export function teacherAccount(env: StorageEnv): string {
+  const account = (env.TEACHER_ACCOUNT || '').trim().toLowerCase();
+  if (account) return account;
+  assert(env.APP_MODE !== 'cloudflare', '尚未設定 TEACHER_ACCOUNT（教師帳號）', 503);
+  return 'teacher';
+}

@@ -1,4 +1,20 @@
-import type { Activity, Lesson, Stroke } from '../shared/types';
+import type {
+  Activity,
+  AnswerValue,
+  Interactive,
+  InteractiveShape,
+  Lesson,
+  Rubric,
+  Stroke,
+} from '../shared/types';
+import {
+  ExprError,
+  compile,
+  evaluate,
+  isSimplestRadical,
+  parseNumberAnswer,
+  variablesOf,
+} from '../shared/expr';
 
 export class HttpError extends Error {
   status: number;
@@ -28,6 +44,13 @@ export function integer(value: unknown, min: number, max: number): number {
   );
   return Number(value);
 }
+export function num(value: unknown, name: string, min = -1e6, max = 1e6): number {
+  assert(
+    typeof value === 'number' && Number.isFinite(value) && value >= min && value <= max,
+    `${name}必須是 ${min}–${max} 的數字`,
+  );
+  return value;
+}
 export function identifier(value: unknown): string {
   const id = str(value, 'ID', 100, 1);
   assert(/^[a-zA-Z0-9_-]+$/.test(id), 'ID 只接受英數、底線和連字號');
@@ -38,9 +61,217 @@ function texts(value: unknown, name: string, maxCount = 20): string[] {
   assert(Array.isArray(value) && value.length <= maxCount, `${name}必須是陣列`);
   return value.map((v) => str(v, name, 3000));
 }
-export function validateActivity(input: unknown): Activity {
+const VAR_NAME = /^[A-Za-z][A-Za-z0-9]{0,15}$/;
+const COLOR = /^(#[\da-f]{3,8}|[a-z]{3,20})$/i;
+function expression(value: unknown, name: string, known?: Set<string>): string {
+  const src = str(value, name, 400, 1);
+  try {
+    compile(src);
+    if (known)
+      for (const v of variablesOf(src))
+        assert(known.has(v), `${name}「${src}」使用了未定義的變數 ${v}`);
+  } catch (e) {
+    if (e instanceof ExprError) throw new HttpError(400, `${name}「${src}」無法解析：${e.message}`);
+    throw e;
+  }
+  return src;
+}
+function expr(value: unknown, name: string, known: Set<string>): string | number {
+  if (typeof value === 'number') return num(value, name);
+  return expression(value, name, known);
+}
+const SHAPES = [
+  'function',
+  'segment',
+  'line',
+  'polygon',
+  'circle',
+  'rect',
+  'text',
+  'point',
+  'angle',
+  'brace',
+];
+export function validateInteractive(input: unknown): Interactive {
+  const i = record(input),
+    v = record(i.view);
+  const view: Interactive['view'] = {
+    xMin: num(v.xMin, 'xMin'),
+    xMax: num(v.xMax, 'xMax'),
+    yMin: num(v.yMin, 'yMin'),
+    yMax: num(v.yMax, 'yMax'),
+  };
+  assert(view.xMax > view.xMin && view.yMax > view.yMin, '視覺化座標範圍不正確');
+  if (v.grid !== undefined) view.grid = num(v.grid, 'grid', 0, 1000);
+  if (v.axes !== undefined) view.axes = v.axes === true;
+  if (v.aspect !== undefined) {
+    assert(['equal', 'fill'].includes(String(v.aspect)), 'aspect 只能是 equal 或 fill');
+    view.aspect = v.aspect as 'equal' | 'fill';
+  }
+  const known = new Set<string>(['step']);
+  const out: Interactive = { view, shapes: [] };
+  if (i.params !== undefined) {
+    assert(Array.isArray(i.params) && i.params.length <= 8, '滑桿參數最多 8 個');
+    out.params = i.params.map((input) => {
+      const p = record(input),
+        id = str(p.id, '參數 ID', 16, 1);
+      assert(VAR_NAME.test(id) && !known.has(id), `參數 ID「${id}」不合法或重複`);
+      known.add(id);
+      const kind = p.kind === 'toggle' ? 'toggle' : 'slider';
+      const param: NonNullable<Interactive['params']>[number] = {
+        id,
+        kind,
+        value: num(p.value, '參數初始值'),
+      };
+      if (p.label !== undefined) param.label = str(p.label, '參數名稱', 40);
+      if (p.unit !== undefined) param.unit = str(p.unit, '單位', 10);
+      if (kind === 'slider') {
+        param.min = num(p.min, '最小值');
+        param.max = num(p.max, '最大值');
+        param.step = num(p.step ?? 1, '間距', 1e-6, 1e6);
+        assert(param.max > param.min, `參數 ${id} 的最大值需大於最小值`);
+        assert((param.max - param.min) / param.step <= 2000, `參數 ${id} 的刻度過密`);
+      }
+      return param;
+    });
+  }
+  if (i.points !== undefined) {
+    assert(Array.isArray(i.points) && i.points.length <= 8, '拖曳點最多 8 個');
+    out.points = i.points.map((input) => {
+      const p = record(input),
+        id = str(p.id, '點 ID', 8, 1);
+      assert(/^[A-Za-z][A-Za-z0-9]{0,7}$/.test(id), `點 ID「${id}」不合法`);
+      for (const n of [`${id}x`, `${id}y`]) {
+        assert(!known.has(n), `點 ${id} 與其他變數名稱衝突`);
+        known.add(n);
+      }
+      const point: NonNullable<Interactive['points']>[number] = {
+        id,
+        x: num(p.x, '點座標'),
+        y: num(p.y, '點座標'),
+      };
+      if (p.label !== undefined) point.label = str(p.label, '點標籤', 20);
+      if (p.snap !== undefined) point.snap = num(p.snap, 'snap', 0, 1000);
+      if (p.lock !== undefined) {
+        assert(['x', 'y'].includes(String(p.lock)), 'lock 只能是 x 或 y');
+        point.lock = p.lock as 'x' | 'y';
+      }
+      for (const k of ['minX', 'maxX', 'minY', 'maxY'] as const)
+        if (p[k] !== undefined) point[k] = num(p[k], k);
+      if (p.color !== undefined) point.color = str(p.color, '顏色', 20);
+      return point;
+    });
+  }
+  assert(Array.isArray(i.shapes) && i.shapes.length <= 80, '圖形最多 80 個');
+  out.shapes = i.shapes.map((input) => {
+    const s = record(input);
+    assert(SHAPES.includes(String(s.type)), `不支援的圖形類型 ${String(s.type)}`);
+    const shape: InteractiveShape = { type: s.type as InteractiveShape['type'] };
+    // 函數圖形的自變數是 x（不必另外宣告為參數）。
+    if (s.expr !== undefined) shape.expr = expression(s.expr, '函數', new Set([...known, 'x']));
+    if (s.domain !== undefined) {
+      assert(Array.isArray(s.domain) && s.domain.length === 2, 'domain 需要兩個值');
+      shape.domain = [expr(s.domain[0], 'domain', known), expr(s.domain[1], 'domain', known)];
+    }
+    if (s.points !== undefined) {
+      assert(Array.isArray(s.points) && s.points.length <= 40, '圖形頂點最多 40 個');
+      shape.points = s.points.map((pt) => {
+        assert(Array.isArray(pt) && pt.length === 2, '頂點需要 [x, y]');
+        return [expr(pt[0], '頂點', known), expr(pt[1], '頂點', known)] as [
+          string | number,
+          string | number,
+        ];
+      });
+    }
+    for (const k of ['x', 'y', 'w', 'h', 'r'] as const)
+      if (s[k] !== undefined) shape[k] = expr(s[k], k, known);
+    if (s.text !== undefined) {
+      shape.text = str(s.text, '圖形文字', 200);
+      for (const m of shape.text.matchAll(/\{([^}]+)\}/g)) expression(m[1], '文字運算式', known);
+    }
+    for (const k of ['color', 'fill'] as const)
+      if (s[k] !== undefined) {
+        shape[k] = str(s[k], '顏色', 30);
+        assert(COLOR.test(shape[k]!) || /^rgba?\([\d\s.,%]+\)$/.test(shape[k]!), '顏色格式不正確');
+      }
+    if (s.dash !== undefined) shape.dash = s.dash === true;
+    if (s.width !== undefined) shape.width = num(s.width, '線寬', 0.5, 20);
+    if (s.size !== undefined) shape.size = num(s.size, '字級', 8, 80);
+    if (s.show !== undefined) shape.show = expression(s.show, 'show', known);
+    if (s.step !== undefined) shape.step = integer(s.step, 0, 20);
+    if (s.focus !== undefined) {
+      assert(Array.isArray(s.focus) && s.focus.length <= 21, 'focus 必須是步驟編號陣列');
+      shape.focus = [...new Set(s.focus.map((n) => integer(n, 0, 20)))];
+    }
+    if (s.toggle !== undefined) {
+      shape.toggle = str(s.toggle, 'toggle', 16, 1);
+      assert(
+        out.params?.some((p) => p.id === shape.toggle && p.kind === 'toggle'),
+        `toggle「${shape.toggle}」必須是 kind: toggle 的參數`,
+      );
+    }
+    return shape;
+  });
+  if (i.readouts !== undefined) {
+    assert(Array.isArray(i.readouts) && i.readouts.length <= 8, '讀數最多 8 個');
+    out.readouts = i.readouts.map((input) => {
+      const r = record(input);
+      const readout: NonNullable<Interactive['readouts']>[number] = {
+        label: str(r.label, '讀數名稱', 60, 1),
+        expr: expression(r.expr, '讀數', known),
+      };
+      if (r.digits !== undefined) readout.digits = integer(r.digits, 0, 6);
+      return readout;
+    });
+  }
+  if (i.steps !== undefined) out.steps = texts(i.steps, '步驟說明', 20);
+  if (i.caption !== undefined) out.caption = str(i.caption, '圖說', 300);
+  return out;
+}
+export function interactiveVariables(i?: Interactive): Set<string> {
+  const known = new Set<string>();
+  for (const p of i?.params || []) known.add(p.id);
+  for (const p of i?.points || []) {
+    known.add(`${p.id}x`);
+    known.add(`${p.id}y`);
+  }
+  if (i?.steps?.length) known.add('step');
+  return known;
+}
+function validateRubric(input: unknown): Rubric {
+  const r = record(input);
+  assert(
+    Array.isArray(r.criteria) && r.criteria.length >= 1 && r.criteria.length <= 8,
+    '評量規準需要 1–8 個向度',
+  );
+  const ids = new Set<string>();
+  const rubric: Rubric = {
+    criteria: r.criteria.map((input) => {
+      const c = record(input),
+        id = identifier(c.id);
+      assert(!ids.has(id), '評量向度 ID 不可重複');
+      ids.add(id);
+      const points = integer(c.points, 1, 100);
+      assert(Array.isArray(c.levels) && c.levels.length >= 2 && c.levels.length <= 6, `向度 ${id} 需要 2–6 個等級`);
+      const levels = c.levels.map((l) => {
+        const level = record(l);
+        return {
+          score: integer(level.score, 0, points),
+          description: str(level.description, '等級描述', 600, 1),
+        };
+      });
+      assert(levels.some((l) => l.score === points), `向度 ${id} 需要有滿分等級`);
+      return { id, label: str(c.label, '向度名稱', 100, 1), points, levels };
+    }),
+  };
+  if (r.reference !== undefined) rubric.reference = str(r.reference, '參考解答', 4000);
+  if (r.graderNotes !== undefined) rubric.graderNotes = str(r.graderNotes, '批改提醒', 2000);
+  return rubric;
+}
+const TYPES = ['single', 'multiple', 'scale', 'short', 'numeric', 'canvas', 'manipulate'];
+export function validateActivity(input: unknown, interactive?: Interactive): Activity {
   const a = record(input);
-  assert(['single', 'multiple', 'scale', 'short'].includes(String(a.type)), '不支援的活動類型');
+  assert(TYPES.includes(String(a.type)), '不支援的活動類型');
   const out: Activity = {
     id: identifier(a.id),
     type: a.type as Activity['type'],
@@ -61,6 +292,67 @@ export function validateActivity(input: unknown): Activity {
     if (a.minLabel !== undefined) out.minLabel = str(a.minLabel, '量尺標籤', 100);
     if (a.maxLabel !== undefined) out.maxLabel = str(a.maxLabel, '量尺標籤', 100);
   }
+  if (out.type === 'numeric') {
+    if (a.form !== undefined) {
+      assert(a.form === 'simplest-radical', 'form 只支援 simplest-radical');
+      out.form = 'simplest-radical';
+    }
+    const checkAnswer = (value: unknown, name: string) => {
+      const answer = str(value, name, 60, 1);
+      try {
+        parseNumberAnswer(answer);
+      } catch {
+        throw new HttpError(400, `${name}「${answer}」無法解析`);
+      }
+      assert(
+        out.form !== 'simplest-radical' || isSimplestRadical(answer),
+        `${name}「${answer}」不是最簡根式，請改寫標準答案`,
+      );
+      return answer;
+    };
+    if (a.items !== undefined) {
+      assert(
+        Array.isArray(a.items) && a.items.length >= 1 && a.items.length <= 3,
+        '換數字小題需要 1–3 題',
+      );
+      out.items = a.items.map((input, i) => {
+        const it = record(input);
+        const item: NonNullable<Activity['items']>[number] = {
+          prompt: str(it.prompt, '小題題目', 300, 1),
+          answer: checkAnswer(it.answer, `第 ${i + 1} 小題答案`),
+        };
+        if (it.tolerance !== undefined) item.tolerance = num(it.tolerance, '容許誤差', 0, 1e6);
+        return item;
+      });
+    } else out.answer = checkAnswer(a.answer, '數值答案');
+    if (a.tolerance !== undefined) out.tolerance = num(a.tolerance, '容許誤差', 0, 1e6);
+    if (a.unit !== undefined) out.unit = str(a.unit, '單位', 20);
+  }
+  if (out.type === 'manipulate') {
+    assert(interactive, '操作題需要同一頁的 interactive 視覺化');
+    const known = interactiveVariables(interactive);
+    known.delete('step');
+    out.check = expression(a.check, '判斷式', known);
+    if (a.record !== undefined) {
+      assert(Array.isArray(a.record) && a.record.length <= 16, 'record 必須是陣列');
+      out.record = a.record.map((v) => {
+        const name = str(v, '記錄變數', 20, 1);
+        assert(known.has(name), `record 的變數 ${name} 未定義`);
+        return name;
+      });
+    }
+  }
+  if (out.type === 'canvas') {
+    out.canvas = (['blank', 'grid', 'axes', 'dots'].includes(String(a.canvas))
+      ? a.canvas
+      : 'grid') as Activity['canvas'];
+    out.allowPhoto = a.allowPhoto !== false;
+  }
+  if (a.rubric !== undefined) {
+    assert(['short', 'canvas'].includes(out.type), '只有短答與畫布題可設定評量規準');
+    out.rubric = validateRubric(a.rubric);
+  }
+  if (out.type === 'canvas') assert(out.rubric, '畫布題必須事先寫好評量規準（rubric）');
   if (a.explanation !== undefined) out.explanation = str(a.explanation, '解析', 4000);
   out.sensitive = a.sensitive === true;
   out.aiAllowed = a.aiAllowed === true;
@@ -83,47 +375,175 @@ export function validateLesson(input: unknown): Lesson {
     subject: str(l.subject ?? '', '科目', 100),
     duration: integer(l.duration ?? 45, 1, 600),
     objectives: texts(l.objectives ?? [], '學習目標'),
-    slides: l.slides.map((input) => {
+    slides: l.slides.map((input, index) => {
       const s = record(input),
         id = identifier(s.id);
       assert(!slideIds.has(id), '投影片 ID 不可重複');
       slideIds.add(id);
-      const slide: Lesson['slides'][number] = {
-        id,
-        title: str(s.title, '投影片標題', 300, 1),
-        body: str(s.body ?? '', '內文', 10000),
-      };
-      for (const field of ['eyebrow', 'notes', 'source', 'customHtml'] as const)
-        if (s[field] !== undefined)
-          slide[field] = str(s[field], field, field === 'customHtml' ? 40000 : 5000);
-      if (s.bullets !== undefined) slide.bullets = texts(s.bullets, '重點');
-      if (s.visual !== undefined) {
-        assert(['balance', 'steps', 'cards', 'bars'].includes(String(s.visual)), '不支援的視覺化');
-        slide.visual = s.visual as typeof slide.visual;
+      const where = `第 ${index + 1} 頁`;
+      try {
+        const slide: Lesson['slides'][number] = {
+          id,
+          title: str(s.title, '投影片標題', 300, 1),
+          body: str(s.body ?? '', '內文', 10000),
+        };
+        for (const field of ['eyebrow', 'notes', 'source', 'customHtml', 'phase'] as const)
+          if (s[field] !== undefined)
+            slide[field] = str(
+              s[field],
+              field,
+              field === 'customHtml' ? 40000 : field === 'phase' ? 40 : 5000,
+            );
+        if (s.bullets !== undefined) slide.bullets = texts(s.bullets, '重點');
+        if (s.visual !== undefined) {
+          assert(
+            ['balance', 'steps', 'cards', 'bars'].includes(String(s.visual)),
+            '不支援的視覺化',
+          );
+          slide.visual = s.visual as typeof slide.visual;
+        }
+        if (s.interactive !== undefined) slide.interactive = validateInteractive(s.interactive);
+        if (s.figures !== undefined) {
+          assert(Array.isArray(s.figures) && s.figures.length <= 3, '課本截圖每頁最多 3 張');
+          slide.figures = s.figures.map((input) => {
+            const f = record(input);
+            const src = str(f.src, '截圖路徑', 160, 5);
+            assert(
+              /^[a-z0-9][a-z0-9-]*\/[A-Za-z0-9._-]+\.(png|jpe?g|webp)$/.test(src) && !src.includes('..'),
+              `截圖路徑「${src}」格式應為 課程資料夾/檔名.png`,
+            );
+            const fig: NonNullable<Lesson['slides'][number]['figures']>[number] = {
+              src,
+              alt: str(f.alt, '截圖說明', 300, 1),
+            };
+            if (f.caption !== undefined) fig.caption = str(f.caption, '截圖標題', 200);
+            return fig;
+          });
+        }
+        if (s.activity) {
+          slide.activity = validateActivity(s.activity, slide.interactive);
+          assert(!activityIds.has(slide.activity.id), '活動 ID 不可重複');
+          activityIds.add(slide.activity.id);
+        }
+        return slide;
+      } catch (e) {
+        if (e instanceof HttpError) throw new HttpError(e.status, `${where}：${e.message}`);
+        throw e;
       }
-      if (s.activity) {
-        slide.activity = validateActivity(s.activity);
-        assert(!activityIds.has(slide.activity.id), '活動 ID 不可重複');
-        activityIds.add(slide.activity.id);
-      }
-      return slide;
     }),
     updatedAt: new Date().toISOString(),
   };
   return out;
 }
-export function validateAnswer(a: Activity, value: unknown): string | number | number[] {
+export function validateAnswer(a: Activity, value: unknown): AnswerValue {
   if (a.type === 'short') return str(str(value, '短答', 2000, 1).trim(), '短答', 2000, 1);
   if (a.type === 'scale') return integer(value, a.min!, a.max!);
   if (a.type === 'single') return integer(value, 0, a.options!.length - 1);
+  if (a.type === 'numeric') {
+    const one = (v: unknown) => {
+      const text = str(v, '數值答案', 60, 1).trim();
+      try {
+        parseNumberAnswer(text);
+      } catch {
+        throw new HttpError(400, '請輸入數字、分數或算式，例如 12、-3/4、2√3');
+      }
+      return text;
+    };
+    if (a.items) {
+      assert(
+        Array.isArray(value) && value.length === a.items.length,
+        `請完成全部 ${a.items.length} 小題`,
+      );
+      return value.map(one);
+    }
+    return one(value);
+  }
+  if (a.type === 'canvas') {
+    const v = record(value),
+      out: { text?: string; imageId?: string; source?: 'draw' | 'photo' } = {};
+    if (v.text !== undefined && v.text !== '') out.text = str(v.text, '文字說明', 2000).trim();
+    if (v.imageId !== undefined) out.imageId = identifier(v.imageId);
+    if (v.source !== undefined) {
+      assert(['draw', 'photo'].includes(String(v.source)), '作答來源不正確');
+      out.source = v.source as 'draw' | 'photo';
+    }
+    assert(out.text || out.imageId, '請在畫布作答、拍照或寫下說明');
+    return out;
+  }
+  if (a.type === 'manipulate') {
+    const v = record(record(value).vars);
+    const entries = Object.entries(v);
+    assert(entries.length >= 1 && entries.length <= 24, '操作結果格式不正確');
+    const vars: Record<string, number> = {};
+    for (const [k, n] of entries) {
+      assert(/^[A-Za-z][A-Za-z0-9]{0,15}$/.test(k), '操作變數名稱不正確');
+      vars[k] = num(n, '操作數值');
+    }
+    return { vars };
+  }
   assert(
     Array.isArray(value) && value.length > 0 && value.length <= a.options!.length,
     '請至少選一個答案',
   );
   return [...new Set(value.map((v) => integer(v, 0, a.options!.length - 1)))].sort((a, b) => a - b);
 }
+/** 伺服器判定 numeric／manipulate 的對錯；其他題型回傳 undefined。 */
+function numericVerdict(
+  a: Activity,
+  given: string,
+  answer: string,
+  tolerance = 0,
+): { ok: boolean; note?: string } {
+  const got = parseNumberAnswer(given),
+    want = parseNumberAnswer(answer),
+    tol = Math.max(tolerance, 1e-9 * Math.max(1, Math.abs(want)));
+  if (Math.abs(got - want) > tol) return { ok: false };
+  if (a.form === 'simplest-radical' && !isSimplestRadical(given))
+    return { ok: false, note: '數值正確，但還沒化成最簡根式' };
+  return { ok: true };
+}
+/** numeric 的詳細判定（含多小題與最簡根式說明）。 */
+export function judgeNumeric(
+  a: Activity,
+  value: AnswerValue,
+): { correct: boolean; itemsCorrect?: boolean[]; note?: string } | undefined {
+  if (a.type !== 'numeric') return undefined;
+  if (a.items && Array.isArray(value)) {
+    const results = a.items.map((it, i) =>
+      numericVerdict(a, String(value[i]), it.answer, it.tolerance ?? a.tolerance),
+    );
+    const notes = results.map((r, i) => (r.note ? `第 ${i + 1} 小題${r.note}` : '')).filter(Boolean);
+    return {
+      correct: results.every((r) => r.ok),
+      itemsCorrect: results.map((r) => r.ok),
+      ...(notes.length ? { note: notes.join('；') } : {}),
+    };
+  }
+  if (typeof value === 'string' && a.answer) {
+    const r = numericVerdict(a, value, a.answer, a.tolerance);
+    return { correct: r.ok, ...(r.note ? { note: r.note } : {}) };
+  }
+  return undefined;
+}
+export function judge(a: Activity, value: AnswerValue): boolean | undefined {
+  if (a.type === 'numeric') return judgeNumeric(a, value)?.correct;
+  if (a.type === 'manipulate' && a.check && value && typeof value === 'object' && 'vars' in value) {
+    try {
+      return !!evaluate(a.check, value.vars);
+    } catch {
+      return false;
+    }
+  }
+  if (a.type === 'single' && a.correct && typeof value === 'number') return a.correct[0] === value;
+  if (a.type === 'multiple' && a.correct && Array.isArray(value))
+    return (
+      [...a.correct].sort((x, y) => x - y).join(',') ===
+      [...(value as number[])].sort((x, y) => x - y).join(',')
+    );
+  return undefined;
+}
 export function validateStrokes(value: unknown): Stroke[] {
-  assert(Array.isArray(value) && value.length <= 100, '每頁最多 100 筆畫');
+  assert(Array.isArray(value) && value.length <= 200, '每頁最多 200 筆畫');
   return value.map((input) => {
     const s = record(input),
       color = str(s.color, '筆色', 20);
