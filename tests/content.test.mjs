@@ -53,7 +53,7 @@ test('example lessons have unique stable IDs and valid activity options', async 
       assert.ok(activity.prompt);
       assert.ok(['single', 'multiple', 'scale', 'short', 'numeric', 'canvas', 'manipulate'].includes(activity.type));
       if (activity.type === 'canvas') assert.ok(activity.rubric?.criteria?.length, `${activity.id}: canvas needs a rubric`);
-      if (activity.type === 'numeric') assert.ok(activity.answer, `${activity.id}: numeric needs an answer`);
+      if (activity.type === 'numeric') assert.ok(activity.answer || activity.items?.length, `${activity.id}: numeric needs an answer or items`);
       if (activity.type === 'manipulate') assert.ok(activity.check, `${activity.id}: manipulate needs a check`);
       if (['single', 'multiple'].includes(activity.type)) {
         assert.ok(activity.options.length >= 2);

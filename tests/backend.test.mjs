@@ -346,7 +346,7 @@ test('live grading runs parallel votes outside the queue and commits the consens
       const reply={transcript:'(2x+3)^2=4x^2+12x+9',scores:[{criterionId:'find',score:scores[0]},{criterionId:'expand',score:scores[1]},{criterionId:'model',score:scores[2]}],feedback:'做得好',confidence:0.9,annotations:[{mark:'circle',x:.1,y:.2,x2:.5,y2:.3},{mark:'note',x:.6,y:.2,text:'這裡'}]};
       return Response.json({choices:[{message:{content:'```json\n'+JSON.stringify(reply)+'\n```'}}]});
     };
-    const result=await call('/api/ai','POST',{task:'grade',sessionId:session.id,answerId:answer.id,votes:3},t);
+    const result=await call('/api/ai','POST',{task:'grade',sessionId:session.id,answerId:answer.id,votes:3,depth:'full'},t);
     assert.equal(bodies.length,3);
     assert(bodies.every(b=>b.max_completion_tokens&&!('temperature' in b)&&!('max_tokens' in b)),'reasoning models use max_completion_tokens');
     assert.equal(bodies[0].messages[1].content[1].image_url.url,PNG);
@@ -375,8 +375,8 @@ test('grading helpers and expression engine are safe and deterministic',()=>{
 });
 
 test('simplest radical form and multi-item numeric questions are judged per item',async()=>{
-  for(const ok of ['2√3','3+2√2','√6/3','-5√2','7','(3+√2)/2','2sqrt(3)','√(15)'])assert.equal(expr.isSimplestRadical(ok),true,ok);
-  for(const bad of ['√12','1/√2','√2+√2','4√8','√4','3+1+√2','2√3/√3'])assert.equal(expr.isSimplestRadical(bad),false,bad);
+  for(const ok of ['2√3','3+2√2','√6/3','-5√2','7','(3+√2)/2','2sqrt(3)','√(15)','4√6/3+√2','(2/3)√6','-2√2/3','√130/10'])assert.equal(expr.isSimplestRadical(ok),true,ok);
+  for(const bad of ['√12','1/√2','√2+√2','4√8','√4','3+1+√2','2√3/√3','3/(√7-2)','√5/√3'])assert.equal(expr.isSimplestRadical(bad),false,bad);
   const {f,lesson,session}=await setup();
   const item={id:'items-q',type:'numeric',prompt:'化成最簡根式',form:'simplest-radical',items:[{prompt:'√12',answer:'2√3'},{prompt:'√18',answer:'3√2'},{prompt:'1/√2',answer:'√2/2'}]};
   const custom={...lesson,id:'items-lesson',slides:[{id:'s1',title:'化簡',body:'',activity:item}]};
@@ -393,4 +393,37 @@ test('simplest radical form and multi-item numeric questions are judged per item
   assert.equal(t.aggregate.counts.item0,1);assert.equal(t.aggregate.counts.item1,undefined);
   assert.equal((await f.call(`/api/sessions/${s.id}`,'GET',null,'student')).body.answers[0].note,undefined,'hidden until results');
   void session;
+});
+
+test('layer 1 (default) only judges right/wrong; teacher can set the verdict; layer 2 replaces it',async()=>{
+  const {f,lesson,session}=await setup();
+  await openSlide(f,session,lesson,'error-canvas');
+  const answer=(await f.call(`/api/sessions/${session.id}/answers`,'POST',{submissionId:'v1',activityId:'error-canvas',value:{text:'(2x+3)^2=4x^2+12x+9'}},'student')).body.answer;
+  const v=(await f.call('/api/ai','POST',{task:'grade',sessionId:session.id,answerId:answer.id})).body.grade;
+  assert.equal(v.depth,'verdict');assert.equal(v.scores.length,0);assert.equal(v.annotations.length,0);
+  const set=(await f.call(`/api/sessions/${session.id}/grades/${answer.id}`,'PUT',{verdict:true,released:true})).body.grade;
+  assert.equal(set.correct,true);assert.equal(set.mode,'teacher');assert.equal(set.total,set.max);
+  assert.equal((await f.call(`/api/sessions/${session.id}/control`,'POST',{action:'draw',filter:'correct'})).body.session.drawnSeat,1);
+  const own=(await f.call(`/api/sessions/${session.id}`,'GET',null,'student')).body.grades[0];
+  assert.equal(own.correct,true);assert.equal(own.depth,'verdict');
+  const full=(await f.call('/api/ai','POST',{task:'grade',sessionId:session.id,answerId:answer.id,depth:'full'})).body.grade;
+  assert.equal(full.depth,'full');assert.equal(full.scores.length,3);
+});
+
+test('plain textbook notation converts to LaTeX that keeps radicals, fractions, parentheses, × and ÷',()=>{
+  const cases={
+    'a√b':String.raw`a\sqrt{b}`,
+    '√a × √b':String.raw`\sqrt{a}\times \sqrt{b}`,
+    '√(a×b)':String.raw`\sqrt{a\times b}`,
+    '(−2√3) × (4√2)':String.raw`\left(-2\sqrt{3}\right)\times \left(4\sqrt{2}\right)`,
+    '√35 ÷ √7':String.raw`\sqrt{35}\div \sqrt{7}`,
+    '4/(3√5)':String.raw`\frac{4}{3\sqrt{5}}`,
+    '(√5+√3)/2':String.raw`\frac{\sqrt{5}+\sqrt{3}}{2}`,
+    '4√6/3+√2':String.raw`\frac{4\sqrt{6}}{3}+\sqrt{2}`,
+    '(3 + 2√5)²':String.raw`\left(3+2\sqrt{5}\right)^{2}`,
+    '(√3 − √2)(√6 + 1)':String.raw`\left(\sqrt{3}-\sqrt{2}\right)\left(\sqrt{6}+1\right)`,
+  };
+  for(const [input,want] of Object.entries(cases))assert.equal(expr.answerToTex(input),want,input);
+  assert.equal(expr.answerToTex('不是算式'),null);
+  assert.equal(expr.evaluate('(2+3)÷5'),1,'÷ still evaluates as division');
 });

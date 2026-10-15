@@ -1,6 +1,7 @@
 import type { Interactive, InteractiveShape } from '../shared/types';
-import { tryEval, type Vars } from '../shared/expr';
+import { compile, tryEval, variablesOf, type Vars } from '../shared/expr';
 import { escape as esc } from './api';
+import { md } from './math';
 
 /** 數字格式：最多 4 位小數、去尾零、負號用 −。 */
 export function fmt(v: number, digits?: number): string {
@@ -9,8 +10,29 @@ export function fmt(v: number, digits?: number): string {
   const trimmed = digits !== undefined ? String(Number(fixed)) : fixed;
   return trimmed.replace(/^-/, '−');
 }
+/**
+ * 文字樣板：{運算式} 代入即時數值。
+ * 在 $…$（LaTeX）裡，只有能解析且變數都已定義的 {…} 才代入，並保留大括號，
+ * 所以 $\sqrt{m}$ 會變成 $\sqrt{12}$，而 \text{…}、\frac{1}{2} 這類 LaTeX 不受影響。
+ */
 export function template(text: string, vars: Vars): string {
-  return text.replace(/\{([^}]+)\}/g, (_, src) => fmt(tryEval(src, vars)));
+  return text
+    .split(/(\$[^$]+\$)/g)
+    .map((part) => {
+      if (!(part.length > 2 && part.startsWith('$') && part.endsWith('$')))
+        return part.replace(/\{([^}]+)\}/g, (_, src) => fmt(tryEval(src, vars)));
+      return part.replace(/\{([^{}]+)\}/g, (whole, src: string) => {
+        try {
+          compile(src);
+          if (!variablesOf(src).every((v) => v in vars)) return whole;
+        } catch {
+          return whole;
+        }
+        const v = tryEval(src, vars);
+        return Number.isFinite(v) ? `{${String(+v.toFixed(6))}}` : whole;
+      });
+    })
+    .join('');
 }
 export interface InteractiveController {
   vars(): Vars;
@@ -91,6 +113,18 @@ export function mountInteractive(
     }
     return out;
   }
+  function label(x: number, y: number, size: number, color: string, content: string, anchor: 'middle' | 'start' = 'middle') {
+    if (/[$√]/.test(content)) {
+      // 靠左對齊的標籤（點旁的文字）把方框往右挪半個寬度。
+      return mathLabel(anchor === 'start' ? x + W / 2 - 4 * k : x, y, size, color, content, anchor === 'start' ? ' data-align="start"' : '');
+    }
+    return `<text x="${x}" y="${y}" class="viz-label" font-size="${font(size)}" fill="${esc(color)}" text-anchor="${anchor}">${esc(content)}</text>`;
+  }
+  function mathLabel(cx: number, cy: number, size: number, color: string, content: string, extra = '') {
+    const h = size * k * 2.4,
+      w = W;
+    return `<foreignObject x="${cx - w / 2}" y="${cy - h / 2}" width="${w}" height="${h}" class="viz-math"${extra}><div class="viz-math-box" style="font-size:${size * k}px;color:${esc(color)}">${md(content)}</div></foreignObject>`;
+  }
   function shape(s: InteractiveShape): string {
     const tog = s.toggle ? ` data-toggle="${esc(s.toggle)}" class="viz-clickable"` : '';
     switch (s.type) {
@@ -152,13 +186,16 @@ export function mountInteractive(
         const x = ev(s.x),
           y = ev(s.y);
         if (!finite(x, y) || !s.text) return '';
-        return `<text x="${X(x)}" y="${Y(y)}" class="viz-text" font-size="${font(s.size)}" fill="${esc(s.color || INK)}"${tog}>${esc(template(s.text, vars))}</text>`;
+        const content = template(s.text, vars);
+        // 含 $…$ 或 √ 的文字用 KaTeX 排版（foreignObject），其他用 SVG 文字。
+        if (/[$√]/.test(content)) return mathLabel(X(x), Y(y), s.size || 18, s.color || INK, content, tog);
+        return `<text x="${X(x)}" y="${Y(y)}" class="viz-text" font-size="${font(s.size)}" fill="${esc(s.color || INK)}"${tog}>${esc(content)}</text>`;
       }
       case 'point': {
         const x = ev(s.x),
           y = ev(s.y);
         if (!finite(x, y)) return '';
-        return `<circle cx="${X(x)}" cy="${Y(y)}" r="${5 * k}" fill="${esc(s.color || INK)}"/>${s.text ? `<text x="${X(x) + 10 * k}" y="${Y(y) - 10 * k}" class="viz-label" font-size="${font(s.size || 16)}">${esc(template(s.text, vars))}</text>` : ''}`;
+        return `<circle cx="${X(x)}" cy="${Y(y)}" r="${5 * k}" fill="${esc(s.color || INK)}"/>${s.text ? label(X(x) + 10 * k, Y(y) - 10 * k, s.size || 16, s.color || '#4b5478', template(s.text, vars), 'start') : ''}`;
       }
       case 'angle': {
         if (!s.points || s.points.length < 3) return '';
@@ -191,7 +228,7 @@ export function mountInteractive(
           a2 = [a[0] + nx * off, a[1] + ny * off],
           b2 = [b[0] + nx * off, b[1] + ny * off],
           m = [(a2[0] + b2[0]) / 2 + nx * 14 * k, (a2[1] + b2[1]) / 2 + ny * 14 * k];
-        return `<path d="M${a[0] + nx * 4 * k} ${a[1] + ny * 4 * k}L${a2[0]} ${a2[1]}L${b2[0]} ${b2[1]}L${b[0] + nx * 4 * k} ${b[1] + ny * 4 * k}" class="viz-brace" stroke="${esc(s.color || '#6b7394')}"/>${s.text ? `<text x="${m[0]}" y="${m[1]}" class="viz-label" font-size="${font(s.size || 16)}" fill="${esc(s.color || '#4b5478')}">${esc(template(s.text, vars))}</text>` : ''}`;
+        return `<path d="M${a[0] + nx * 4 * k} ${a[1] + ny * 4 * k}L${a2[0]} ${a2[1]}L${b2[0]} ${b2[1]}L${b[0] + nx * 4 * k} ${b[1] + ny * 4 * k}" class="viz-brace" stroke="${esc(s.color || '#6b7394')}"/>${s.text ? label(m[0], m[1], s.size || 16, s.color || '#4b5478', template(s.text, vars)) : ''}`;
       }
     }
     return '';
@@ -244,7 +281,7 @@ export function mountInteractive(
     }
     const cap = controls.querySelector<HTMLElement>('.viz-step-caption');
     if (cap && spec.steps) {
-      cap.textContent = spec.steps[vars.step] || '';
+      cap.innerHTML = md(spec.steps[vars.step] || '');
       controls.querySelector<HTMLElement>('.viz-step-count')!.textContent =
         `${vars.step + 1} / ${spec.steps.length}`;
       controls.querySelector<HTMLButtonElement>('[data-viz="prev"]')!.disabled = vars.step <= 0;
@@ -260,17 +297,17 @@ export function mountInteractive(
   const sliders = (spec.params || [])
     .map((p) =>
       p.kind === 'toggle'
-        ? `<button type="button" class="viz-toggle" data-param-toggle="${p.id}" aria-pressed="${!!vars[p.id]}"><i></i>${esc(p.label || p.id)}</button>`
-        : `<label class="viz-slider"><span class="viz-slider-head"><span>${esc(p.label || p.id)}</span><output data-param-value="${p.id}"></output></span><input type="range" min="${p.min}" max="${p.max}" step="${p.step}" value="${vars[p.id]}" data-param="${p.id}" aria-label="${esc(p.label || p.id)}"></label>`,
+        ? `<button type="button" class="viz-toggle" data-param-toggle="${p.id}" aria-pressed="${!!vars[p.id]}"><i></i>${md(p.label || p.id)}</button>`
+        : `<label class="viz-slider"><span class="viz-slider-head"><span>${md(p.label || p.id)}</span><output data-param-value="${p.id}"></output></span><input type="range" min="${p.min}" max="${p.max}" step="${p.step}" value="${vars[p.id]}" data-param="${p.id}" aria-label="${esc(p.label || p.id)}"></label>`,
     )
     .join('');
   const steps = spec.steps?.length
     ? `<div class="viz-steps"><button type="button" class="viz-step-btn" data-viz="prev" aria-label="上一步">‹</button><span class="viz-step-count"></span><button type="button" class="viz-step-btn primary" data-viz="next">下一步 ›</button><p class="viz-step-caption" aria-live="polite"></p></div>`
     : '';
   const readouts = spec.readouts?.length
-    ? `<dl class="viz-readouts">${spec.readouts.map((r) => `<div><dt>${esc(r.label)}</dt><dd data-readout="${esc(r.label)}"></dd></div>`).join('')}</dl>`
+    ? `<dl class="viz-readouts">${spec.readouts.map((r) => `<div><dt>${md(r.label)}</dt><dd data-readout="${esc(r.label)}"></dd></div>`).join('')}</dl>`
     : '';
-  controls.innerHTML = `${steps}${sliders ? `<div class="viz-params">${sliders}</div>` : ''}${readouts}${spec.caption ? `<p class="viz-caption">${esc(spec.caption)}</p>` : ''}${(spec.params?.length || spec.points?.length || spec.steps?.length) ? '<button type="button" class="viz-reset" data-viz="reset">重設</button>' : ''}`;
+  controls.innerHTML = `${steps}${sliders ? `<div class="viz-params">${sliders}</div>` : ''}${readouts}${spec.caption ? `<p class="viz-caption">${md(spec.caption)}</p>` : ''}${(spec.params?.length || spec.points?.length || spec.steps?.length) ? '<button type="button" class="viz-reset" data-viz="reset">重設</button>' : ''}`;
 
   const onInput = (e: Event) => {
     const input = e.target as HTMLInputElement;

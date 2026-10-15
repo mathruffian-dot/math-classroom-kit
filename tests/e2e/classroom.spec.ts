@@ -25,8 +25,8 @@ async function loginTeacher(page: Page) {
   expect(refreshed.ok(), await refreshed.text()).toBeTruthy();
   await page.reload();
 }
-async function start(page: Page, context: BrowserContext) {
-  await page.getByTestId('lesson-card').filter({ hasText: '和的平方公式' }).getByRole('button', { name: '開始上課' }).click();
+async function start(page: Page, context: BrowserContext, title = '和的平方公式') {
+  await page.getByTestId('lesson-card').filter({ hasText: title }).getByRole('button', { name: '開始上課' }).click();
   await page.locator('#start-form select').selectOption('demo-class');
   await page.locator('#start-form').getByRole('button', { name: '開始上課' }).click();
   await expect(page.getByTestId('session-slide')).toBeVisible();
@@ -151,10 +151,23 @@ test('teacher and students complete numeric, manipulate and handwritten answers 
   await ipad.page.getByTestId('submit-answer').click();
   await expect(ipad.page.locator('.saved-answer .answer-thumb')).toBeVisible();
   await expect(teacher.page.getByTestId('submission-grid').locator('.submission')).toHaveCount(1);
+  // 第 1 層（預設）：只判斷對錯。
+  await expect(teacher.page.getByTestId('grade-all')).toContainText('AI 判斷對錯');
   await teacher.page.getByTestId('grade-all').click();
-  await expect(teacher.page.locator('.submission .st.review, .submission .st.graded')).toBeVisible({ timeout: 15_000 });
+  await expect(teacher.page.locator('.submission .st.wrong')).toBeVisible({ timeout: 15_000 });
   await teacher.page.locator('.submission').first().click();
   await expect(teacher.page.locator('#grade-form')).toBeVisible();
+  await expect(teacher.page.locator('.layer2')).not.toHaveAttribute('open', '');
+  await teacher.page.locator('#grade-form textarea[name="feedback"]').fill('找到錯誤了，很好！');
+  await teacher.page.getByTestId('judge-right').click();
+  await expect(teacher.page.locator('.submission .st.right')).toBeVisible();
+  await teacher.page.getByRole('button', { name: '發回批改' }).click();
+  await expect(ipad.page.getByTestId('student-feedback')).toContainText('✓ 正確', { timeout: 10_000 });
+  await expect(ipad.page.locator('.feedback-card svg.redpen')).toBeVisible();
+  // 第 2 層：開啟紅筆批改後依規準給分。
+  await teacher.page.getByTestId('toggle-redpen').check({ force: true });
+  await teacher.page.locator('.submission').first().click();
+  await expect(teacher.page.locator('.layer2')).toHaveAttribute('open', '');
   await expect(teacher.page.locator('.redpen-host svg.redpen')).toBeVisible();
   for (const [criterion, score] of [['find', 2], ['expand', 3], ['model', 2]] as const)
     await teacher.page.locator(`input[name="c-${criterion}"][value="${score}"]`).check({ force: true });
@@ -171,11 +184,18 @@ test('teacher and students complete numeric, manipulate and handwritten answers 
   await fitsViewport(ipad.page);
 });
 
-test('every page of the sample lesson fits one screen on projector, iPad and phone', async ({ browser }) => {
-  test.setTimeout(90_000);
+for (const [lessonTitle, tag] of [
+  ['和的平方公式', 'g8-1-1'],
+  ['2-2 根式的運算（1）', 'g8-2-2a'],
+  ['2-2 根式的運算（2）', 'g8-2-2b'],
+  ['2-2 根式的運算（3）', 'g8-2-2c'],
+  ['2-2 根式的運算（4）', 'g8-2-2d'],
+] as const)
+test(`every page of ${tag} fits one screen on projector, iPad and phone`, async ({ browser }) => {
+  test.setTimeout(150_000);
   const teacher = await surface(browser, 1920, 1080);
   await loginTeacher(teacher.page);
-  await start(teacher.page, teacher.context);
+  await start(teacher.page, teacher.context, lessonTitle);
   const pages = await teacher.page.locator('.slide-dots button').count();
   const ipad = await surface(browser, 820, 1180, true);
   await loginStudent(ipad.page, 3);
@@ -193,10 +213,13 @@ test('every page of the sample lesson fits one screen on projector, iPad and pho
       }
     }
     if (n === 3 || n === 7) {
-      await shot(teacher.page, `projector-p${n}.png`);
-      await shot(ipad.page, `ipad-portrait-p${n}.png`);
-      await shot(phone.page, `phone-p${n}.png`);
+      await shot(teacher.page, `${tag}-projector-p${n}.png`);
+      await shot(ipad.page, `${tag}-ipad-portrait-p${n}.png`);
+      await shot(phone.page, `${tag}-phone-p${n}.png`);
     }
+    // 課本截圖要能載入（只給登入者）。
+    for (const img of await teacher.page.locator('.textbook-fig img').all())
+      expect(await img.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth > 0), `page ${n}: textbook crop loads`).toBe(true);
   }
 });
 

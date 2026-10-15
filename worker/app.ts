@@ -52,6 +52,10 @@ import {
   lessonPrompt,
   memoryVault,
   aggregateVotes,
+  aggregateVerdicts,
+  VERDICT_SYSTEM,
+  mockVerdict,
+  normalizeVerdict,
   mockGrade,
   normalizeGrade,
   resolveAi,
@@ -218,7 +222,7 @@ function latestAnswers(answers: Answer[], activityId?: string): Answer[] {
 /** 對錯：選擇／數值／操作題看自動判定；有評量規準的題目以「滿分」視為答對，未批改回傳 undefined。 */
 function answerVerdict(answer: Answer, grade?: Grade): boolean | undefined {
   if (answer.correct !== undefined) return answer.correct;
-  if (grade) return grade.total === grade.max;
+  if (grade) return grade.correct ?? grade.total === grade.max;
   return undefined;
 }
 function hideKeys(activity: Activity) {
@@ -886,6 +890,19 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
           ?.activity;
         assert(activity?.rubric, '此題沒有評量規準', 400);
         const previous = s.grades![answerId];
+        if (typeof body.verdict === 'boolean' && body.scores === undefined) {
+          // 第 1 層：教師直接判對錯。
+          const verdict = normalizeVerdict(
+            { correct: body.verdict, reason: typeof body.feedback === 'string' ? body.feedback : previous?.feedback, transcript: previous?.transcript, confidence: 1 },
+            activity.rubric,
+            { answerId, activityId: answer.activityId, seat: answer.seat },
+            'teacher',
+          );
+          verdict.released = body.released === true || (body.released === undefined && !!previous?.released);
+          s.grades![answerId] = verdict;
+          session.revision++;
+          return save({ grade: verdict });
+        }
         const grade = normalizeGrade(
           {
             scores: body.scores,
@@ -1343,13 +1360,21 @@ async function analyze(
     const imageId =
       typeof value === 'object' && value && 'imageId' in value ? value.imageId : undefined;
     const image = imageId ? await vault.get<string>(`blob:${imageId}`) : undefined;
-    system = GRADER_SYSTEM;
+    // 第 1 層（預設）只判對錯；第 2 層依規準給分並加紅筆批註。
+    const full = body.depth === 'full';
+    system = full ? GRADER_SYSTEM : VERDICT_SYSTEM;
     content = [{ type: 'text', text: gradingPrompt(activity, rubric, text) }];
     if (image) content.push({ type: 'image_url', image_url: { url: image } });
-    maxTokens = 2500;
+    maxTokens = full ? 2500 : 900;
     votes = Math.min(3, Math.max(1, Math.round(Number(body.votes) || 1)));
-    finish = (reply) => normalizeGrade(extractJson(reply), rubric, base, 'live', !!image);
-    combine = (runs) => ({ mode: 'live', grade: aggregateVotes(runs as Grade[], rubric) });
+    finish = (reply) =>
+      full
+        ? normalizeGrade(extractJson(reply), rubric, base, 'live', !!image)
+        : normalizeVerdict(extractJson(reply), rubric, base, 'live');
+    combine = (runs) => ({
+      mode: 'live',
+      grade: full ? aggregateVotes(runs as Grade[], rubric) : aggregateVerdicts(runs as Grade[]),
+    });
     commit = (latest, result) => {
       const target = latest.sessions[s.session.id];
       const grade = (result as { grade?: Grade }).grade;
@@ -1359,7 +1384,7 @@ async function analyze(
       target.session.revision++;
     };
     mock = () => {
-      const grade = mockGrade(rubric, base, !!image);
+      const grade = full ? mockGrade(rubric, base, !!image) : mockVerdict(rubric, base);
       s.grades![answerId] = grade;
       s.session.revision++;
       return { mode: 'mock', grade };

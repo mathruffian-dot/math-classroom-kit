@@ -998,7 +998,7 @@ td small {
   gap: 10px;
   font-size: clamp(16px, 1.4vw, 22px);
 }
-.idea-card span {
+.idea-card > span {
   font-weight: 800;
   font-size: 13px;
   opacity: 0.7;
@@ -1034,7 +1034,7 @@ td small {
   border: 1.5px solid var(--line);
   font-size: clamp(15px, 1.2vw, 20px);
 }
-.step-card span {
+.step-card > span {
   width: 34px;
   height: 34px;
   border-radius: 50%;
@@ -1061,14 +1061,15 @@ td small {
   background: var(--blue);
 }
 
-/* 課本截圖：與可操作圖並排；窄螢幕時縮成上方一條，可點開放大 */
+/* 課本截圖：一排放在上方（課本題目多為橫向長條），可操作圖在下方；點圖可放大 */
 .slide-visual.with-figure {
   display: grid;
-  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.6fr);
-  gap: 14px;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 10px;
 }
 .slide-visual.figure-only {
-  grid-template-columns: 1fr;
+  grid-template-rows: minmax(0, 1fr);
 }
 .viz-host {
   min-width: 0;
@@ -1078,19 +1079,24 @@ td small {
 }
 .textbook-figs {
   display: flex;
-  flex-direction: column;
   gap: 8px;
   min-height: 0;
-  overflow-y: auto;
+  max-height: 30cqh;
+  overflow: hidden;
 }
 .textbook-fig {
   margin: 0;
   display: grid;
-  gap: 4px;
-  min-height: 0;
+  gap: 2px;
+  flex: 1 1 0;
+  min-width: 0;
+  align-content: start;
 }
 .textbook-fig button {
-  padding: 6px;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  padding: 4px;
   border-radius: 12px;
   border: 1.5px solid var(--line);
   background: #fff;
@@ -1100,8 +1106,8 @@ td small {
 .textbook-fig button::after {
   content: '課本';
   position: absolute;
-  top: 6px;
-  left: 6px;
+  top: 4px;
+  left: 4px;
   font-size: 11px;
   font-weight: 800;
   background: var(--ink);
@@ -1111,9 +1117,10 @@ td small {
 }
 .textbook-fig img {
   display: block;
-  width: 100%;
+  max-width: 100%;
+  max-height: calc(30cqh - 14px);
+  width: auto;
   height: auto;
-  max-height: 100%;
   object-fit: contain;
 }
 .textbook-fig figcaption {
@@ -1121,27 +1128,16 @@ td small {
   color: var(--muted);
 }
 .figure-only .textbook-figs {
+  max-height: 100%;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
 }
-.figure-only .textbook-fig img {
-  max-height: 46cqh;
-  width: auto;
-  max-width: 100%;
+.figure-only .textbook-fig {
+  flex: 0 1 auto;
 }
-@container (max-width: 700px) {
-  .slide-visual.with-figure:not(.figure-only) {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto minmax(0, 1fr);
-  }
-  .with-figure:not(.figure-only) .textbook-figs {
-    flex-direction: row;
-    max-height: 22cqh;
-  }
-  .with-figure:not(.figure-only) .textbook-fig img {
-    max-height: calc(22cqh - 16px);
-    width: auto;
-  }
+.figure-only .textbook-fig img {
+  max-height: 44cqh;
 }
 .figure-zoom {
   width: 100%;
@@ -1170,7 +1166,7 @@ td small {
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;
-  overflow: visible;
+  overflow: hidden;
 }
 .viz-controls {
   display: flex;
@@ -1256,6 +1252,47 @@ td small {
 }
 .viz-steps:has(.viz-step-caption:not(:empty)) .viz-step-caption {
   color: var(--ink);
+}
+.viz-math {
+  overflow: visible;
+  pointer-events: none;
+}
+.viz-math.viz-clickable {
+  pointer-events: auto;
+}
+.viz-math-box {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  white-space: nowrap;
+  line-height: 1;
+  text-shadow:
+    0 0 3px #fff,
+    0 0 3px #fff,
+    0 0 3px #fff;
+}
+.viz-math[data-align='start'] .viz-math-box {
+  justify-content: flex-start;
+}
+.tex-preview {
+  min-height: 1.6em;
+  font-size: 18px;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.tex-preview .muted {
+  font-size: 12px;
+}
+.katex {
+  font-size: 1.08em;
+}
+.slide-head h1 .katex {
+  font-size: 1em;
 }
 .viz-clickable {
   cursor: pointer;
@@ -1607,7 +1644,7 @@ input[type='range']::-moz-range-thumb {
   gap: 8px;
   font-size: 13.5px;
 }
-.result-row > div:first-child span {
+.result-row > div:first-child > span {
   display: flex;
   gap: 4px;
   align-items: center;
@@ -1742,6 +1779,14 @@ input[type='range']::-moz-range-thumb {
 .st.review {
   color: #fff;
   background: #d18b00;
+}
+.st.right {
+  background: var(--green);
+  color: #fff;
+}
+.st.wrong {
+  background: var(--red);
+  color: #fff;
 }
 .st.released {
   color: #fff;
@@ -2163,7 +2208,7 @@ input[type='range']::-moz-range-thumb {
   overflow: hidden;
   padding: 0;
 }
-.canvas-launch span {
+.canvas-launch > span {
   display: grid;
   justify-items: center;
   gap: 4px;
@@ -2224,7 +2269,7 @@ input[type='range']::-moz-range-thumb {
   gap: 4px;
   min-width: 0;
 }
-.saved-answer span {
+.saved-answer > div > span {
   word-break: break-word;
 }
 .answer-thumb {
@@ -2292,7 +2337,7 @@ input[type='range']::-moz-range-thumb {
   font-weight: 800;
   color: #c92a2a;
 }
-.feedback-card header span {
+.feedback-card header > span {
   display: flex;
   gap: 6px;
   align-items: center;
@@ -2667,18 +2712,57 @@ svg.redpen {
   min-height: 20px;
   height: 20px;
 }
-.level b {
+.level > b {
   font-size: 18px;
   min-width: 1.2em;
   text-align: center;
 }
-.level span {
+.level > span {
   font-size: 13px;
   line-height: 1.45;
 }
 .criterion > input {
   min-height: 38px;
   font-size: 13.5px;
+}
+.layer1 {
+  display: grid;
+  gap: 8px;
+  background: #f6f8fc;
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+.layer1 h3,
+.layer2 summary {
+  font-size: 15px;
+  font-weight: 800;
+}
+.layer1 label {
+  margin: 0;
+}
+.layer2 {
+  border: 1.5px dashed #ffb4b4;
+  border-radius: 12px;
+  padding: 8px 10px;
+  display: grid;
+  gap: 8px;
+}
+.layer2[open] {
+  border-style: solid;
+}
+.layer2 summary {
+  cursor: pointer;
+  color: #c92a2a;
+}
+.feedback-card.right {
+  border-color: #b6e6cc;
+  background: #f5fcf8;
+}
+.feedback-card.right header {
+  color: #12754a;
+}
+.verdict-mark {
+  font-size: 22px !important;
 }
 .grade-actions,
 .grade-nav {

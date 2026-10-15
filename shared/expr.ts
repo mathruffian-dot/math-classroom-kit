@@ -7,7 +7,8 @@ type Node =
   | { k: 'num'; v: number }
   | { k: 'var'; name: string }
   | { k: 'un'; op: string; a: Node }
-  | { k: 'bin'; op: string; a: Node; b: Node }
+  | { k: 'bin'; op: string; a: Node; b: Node; sym?: 'imp' | 'times' | 'div' }
+  | { k: 'paren'; a: Node }
   | { k: 'call'; fn: string; args: Node[] }
   | { k: 'if'; c: Node; a: Node; b: Node };
 
@@ -46,9 +47,10 @@ export class ExprError extends Error {}
 function tokenize(src: string): string[] {
   const out: string[] = [];
   const re =
-    /\s*(?:(\d+(?:\.\d*)?|\.\d+)|([A-Za-z_][A-Za-z0-9_]*)|(<=|>=|==|!=|&&|\|\||[-+*/^()<>!,?:%]))/y;
+    /\s*(?:(\d+(?:\.\d*)?|\.\d+)|([A-Za-z_][A-Za-z0-9_]*)|(<=|>=|==|!=|&&|\|\||[-+*/^()<>!,?:%÷]))/y;
   let i = 0;
-  const s = src.replace(/[×＊]/g, '*').replace(/[÷／]/g, '/').replace(/[－−]/g, '-');
+  // ÷ 保留為獨立符號，排版時才能顯示「÷」而不是分數。
+  const s = src.replace(/[×＊]/g, '*').replace(/[／]/g, '/').replace(/[－−]/g, '-').replace(/＋/g, '+');
   while (i < s.length) {
     if (/\s/.test(s[i])) {
       i++;
@@ -113,9 +115,15 @@ export function parse(src: string): Node {
     let a = unary();
     for (;;) {
       const x = peek();
-      if (x === '*' || x === '/' || x === '%') a = { k: 'bin', op: take(), a, b: unary() };
+      if (x === '*') {
+        take();
+        a = { k: 'bin', op: '*', a, b: unary(), sym: 'times' };
+      } else if (x === '÷') {
+        take();
+        a = { k: 'bin', op: '/', a, b: unary(), sym: 'div' };
+      } else if (x === '/' || x === '%') a = { k: 'bin', op: take(), a, b: unary() };
       // 隱含乘法：2a、2(a+b)、(a+b)(a-b)
-      else if (isNum(x) || isName(x) || x === '(') a = { k: 'bin', op: '*', a, b: power() };
+      else if (isNum(x) || isName(x) || x === '(') a = { k: 'bin', op: '*', a, b: power(), sym: 'imp' };
       else return a;
     }
   }
@@ -145,7 +153,7 @@ export function parse(src: string): Node {
       take('(');
       const e = ternary();
       take(')');
-      return e;
+      return { k: 'paren', a: e };
     }
     if (isName(x)) {
       take();
@@ -187,6 +195,8 @@ function run(n: Node, vars: Vars): number {
     }
     case 'if':
       return run(n.c, vars) ? run(n.a, vars) : run(n.b, vars);
+    case 'paren':
+      return run(n.a, vars);
     case 'call':
       return FUNCS[n.fn](...n.args.map((x) => run(x, vars)));
     case 'bin': {
@@ -261,6 +271,7 @@ export function variablesOf(src: string): string[] {
     }
     if (n.k === 'call') n.args.forEach(walk);
     if (n.k === 'if') [n.c, n.a, n.b].forEach(walk);
+    if (n.k === 'paren') walk(n.a);
   };
   walk(compile(src));
   return [...out];
@@ -274,7 +285,9 @@ export function parseNumberAnswer(input: string): number {
     .trim()
     .replace(/，/g, ',')
     .replace(/\s+/g, '')
-    .replace(/√\(?([\d.]+)\)?/g, 'sqrt($1)');
+    // √(n) 或 √n；括號要成對才吃掉，避免 (√5+√3)/2 的右括號被誤吞。
+    .replace(/√\(([\d.]+)\)|√([\d.]+)/g, (_, a, b) => `sqrt(${a ?? b})`)
+    .replace(/√\(/g, 'sqrt(');
   if (!s || s.length > 60 || /[A-Za-z_]/.test(s.replace(/sqrt/g, '')))
     throw new ExprError('請輸入數字、分數或算式');
   const v = evaluate(s);
@@ -305,18 +318,86 @@ const squareFree = (n: number) => {
 export function isSimplestRadical(input: string): boolean {
   const s = normalizeRadicals(input);
   if (!s || /√[^\d]/.test(s) || /√\d+\.\d/.test(s)) return false;
-  // 分母不可有根號。
-  const slash = s.lastIndexOf('/');
-  if (slash >= 0 && s.slice(slash).includes('√')) return false;
+  // 分母不可有根號：「/√」或「/(…√…)」。
+  if (/\/[-]?√/.test(s) || /\/\([^)]*√[^)]*\)/.test(s)) return false;
   const radicands = [...s.matchAll(/√(\d+)/g)].map((m) => Number(m[1]));
   if (radicands.some((n) => n < 2 || !squareFree(n))) return false;
   if (new Set(radicands).size !== radicands.length) return false;
   // 只允許最外層一組括號作為分子，例如 (3+√2)/2。
-  const body = s.replace(/^\(([^()]*)\)\/\d+$/, '$1');
+  // 分數係數 (2/3)√6 也算最簡。
+  const body = s.replace(/^\(([^()]*)\)\/\d+$/, '$1').replace(/\(\d+\/\d+\)/g, 'q');
   if (/[()]/.test(body)) return false;
   const terms = body
     .replace(/^[+-]/, '')
     .split(/[+-]/)
     .filter(Boolean);
   return terms.filter((t) => !t.includes('√')).length <= 1;
+}
+
+/* ───────────── 轉成 LaTeX（讓學生輸入的算式以課本樣式顯示） ───────────── */
+const PREC: Record<string, number> = { '+': 1, '-': 1, '*': 2, '/': 2, '%': 2, '^': 4 };
+function prec(n: Node): number {
+  if (n.k === 'bin') return PREC[n.op] ?? 0;
+  if (n.k === 'un') return 3;
+  if (n.k === 'if') return 0;
+  return 5;
+}
+function texNumber(v: number): string {
+  return String(+v.toFixed(10));
+}
+const unparen = (n: Node): Node => (n.k === 'paren' ? unparen(n.a) : n);
+export function nodeToTex(n: Node): string {
+  const wrap = (x: Node, min: number) => (prec(x) < min ? `\\left(${nodeToTex(x)}\\right)` : nodeToTex(x));
+  switch (n.k) {
+    case 'num':
+      return texNumber(n.v);
+    case 'var':
+      return n.name === 'pi' ? '\\pi' : n.name;
+    case 'paren':
+      return `\\left(${nodeToTex(n.a)}\\right)`;
+    case 'un':
+      return n.op === '-' ? `-${wrap(n.a, 2)}` : wrap(n.a, 3);
+    case 'call':
+      if (n.fn === 'sqrt') return `\\sqrt{${nodeToTex(unparen(n.args[0]))}}`;
+      if (n.fn === 'abs') return `\\left|${nodeToTex(unparen(n.args[0]))}\\right|`;
+      return `\\operatorname{${n.fn}}\\left(${n.args.map(nodeToTex).join(',')}\\right)`;
+    case 'if':
+      return nodeToTex(n.a);
+    case 'bin': {
+      if (n.op === '/' && n.sym === 'div') return `${wrap(n.a, 2)}\\div ${wrap(n.b, 3)}`;
+      if (n.op === '/') return `\\frac{${nodeToTex(unparen(n.a))}}{${nodeToTex(unparen(n.b))}}`;
+      if (n.op === '^') return `${wrap(n.a, 5)}^{${nodeToTex(unparen(n.b))}}`;
+      if (n.op === '+') return `${nodeToTex(n.a)}+${nodeToTex(n.b)}`;
+      if (n.op === '-') return `${nodeToTex(n.a)}-${wrap(n.b, 2)}`;
+      if (n.op === '*') {
+        const left = wrap(n.a, 2),
+          right = wrap(n.b, 3);
+        if (n.sym === 'times') return `${left}\\times ${right}`;
+        // 隱含乘法照原樣並排：2√3、3x、(a+b)(a−b)。
+        return n.b.k === 'num' ? `${left}\\cdot ${right}` : `${left}${right}`;
+      }
+      return `${nodeToTex(n.a)}${n.op}${nodeToTex(n.b)}`;
+    }
+  }
+}
+/** 學生輸入的答案（如 4√6/3+√2）轉 LaTeX；無法解析時回傳 null。 */
+export function answerToTex(input: string): string | null {
+  try {
+    const s = input
+      .trim()
+      .replace(/\s+/g, '')
+      .replace(/[－−]/g, '-')
+      .replace(/[×＊]/g, '*')
+      .replace(/[／]/g, '/')
+      .replace(/＋/g, '+')
+      .replace(/²/g, '^2')
+      .replace(/³/g, '^3')
+      // 前面加空格，避免 a√b 被讀成變數「asqrt」。
+      .replace(/√\(([\d.]+)\)|√([\d.]+|[A-Za-z])/g, (_, a, b) => ` sqrt(${a ?? b})`)
+      .replace(/√\(/g, ' sqrt(');
+    if (!s || s.length > 120) return null;
+    return nodeToTex(parse(s));
+  } catch {
+    return null;
+  }
 }

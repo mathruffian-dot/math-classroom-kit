@@ -27,6 +27,7 @@ import type {
   CanvasAnswer,
 } from '../shared/types';
 import { parseNumberAnswer, type Vars } from '../shared/expr';
+import { md, plain, answerHtml } from './math';
 import QRCode from 'qrcode';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
@@ -162,7 +163,7 @@ function renderDashboard() {
   const body = `${active.length ? `<section class="active-sessions"><span class="live-dot"></span><strong>進行中的課堂</strong>${active.slice(0, 3).map((s) => btn(`${esc(s.className)}・${esc(s.title)}`, 'resume', 'secondary', 'play', `data-id="${esc(s.id)}"`)).join('')}</section>` : ''}<div class="course-grid">${d.lessons
     .map(
       (l) =>
-        `<article class="course-card" data-testid="lesson-card">${lessonThumb(l)}<div class="course-details">${d.catalog?.includes(l.id) ? tag(`${icon('book')}專案教材`, 'green') : ''}<h3>${esc(l.title)}</h3><p>${esc(l.description)}</p><div class="course-meta">${icon('clock')}${l.duration} 分鐘</div><div class="course-actions">${btn('開始上課', 'start', 'primary', 'play', `data-id="${esc(l.id)}"`)}${btn('編輯', 'edit', 'secondary', 'pen', `data-id="${esc(l.id)}"`)}</div></div></article>`,
+        `<article class="course-card" data-testid="lesson-card">${lessonThumb(l)}<div class="course-details">${d.catalog?.includes(l.id) ? tag(`${icon('book')}專案教材`, 'green') : ''}<h3>${md(l.title)}</h3><p>${md(l.description)}</p><div class="course-meta">${icon('clock')}${l.duration} 分鐘</div><div class="course-actions">${btn('開始上課', 'start', 'primary', 'play', `data-id="${esc(l.id)}"`)}${btn('編輯', 'edit', 'secondary', 'pen', `data-id="${esc(l.id)}"`)}</div></div></article>`,
     )
     .join(
       '',
@@ -247,7 +248,7 @@ function editLesson(lesson: Lesson) {
   shell(
     'dashboard',
     '編輯教材',
-    `${dashboard?.catalog?.includes(lesson.id) ? `<div class="soft-notice">${icon('book')}<p><strong>這是專案教材</strong>（content/lessons）。在這裡修改只存在網站；專案檔案更新並部署後會被覆蓋。要長期保留請 agent 改專案檔，或匯出後改 ID 另存。</p></div>` : ''}<div class="editor-grid"><section class="panel editor-main"><div class="editor-head"><label>課程名稱<input id="lesson-title" value="${esc(lesson.title)}" maxlength="200"></label></div><textarea id="lesson-json" class="code-editor" spellcheck="false" aria-label="課程內容 JSON">${esc(JSON.stringify(lesson, null, 2))}</textarea><p class="muted small-text">格式見 docs/AUTHORING.md。保留 schemaVersion 與穩定 ID；畫布題必須附 rubric。</p></section><section class="panel editor-preview"><div class="editor-preview-bar"><select id="preview-slide" aria-label="預覽頁面">${lesson.slides.map((s, i) => `<option value="${i}">${i + 1}. ${esc(s.title)}</option>`).join('')}</select>${btn('更新預覽', 'preview-lesson', 'secondary', 'eye')}</div><div id="preview-stage" class="preview-stage"></div></section></div>`,
+    `${dashboard?.catalog?.includes(lesson.id) ? `<div class="soft-notice">${icon('book')}<p><strong>這是專案教材</strong>（content/lessons）。在這裡修改只存在網站；專案檔案更新並部署後會被覆蓋。要長期保留請 agent 改專案檔，或匯出後改 ID 另存。</p></div>` : ''}<div class="editor-grid"><section class="panel editor-main"><div class="editor-head"><label>課程名稱<input id="lesson-title" value="${esc(lesson.title)}" maxlength="200"></label></div><textarea id="lesson-json" class="code-editor" spellcheck="false" aria-label="課程內容 JSON">${esc(JSON.stringify(lesson, null, 2))}</textarea><p class="muted small-text">格式見 docs/AUTHORING.md。保留 schemaVersion 與穩定 ID；畫布題必須附 rubric。</p></section><section class="panel editor-preview"><div class="editor-preview-bar"><select id="preview-slide" aria-label="預覽頁面">${lesson.slides.map((s, i) => `<option value="${i}">${i + 1}. ${esc(plain(s.title))}</option>`).join('')}</select>${btn('更新預覽', 'preview-lesson', 'secondary', 'eye')}</div><div id="preview-stage" class="preview-stage"></div></section></div>`,
     `${btn('返回', 'dashboard', 'quiet', 'back')}${btn('AI 檢查', 'review-lesson', 'secondary', 'spark', `data-id="${esc(lesson.id)}"`)}${btn('匯出', 'export-lesson', 'secondary', 'download', `data-id="${esc(lesson.id)}"`)}${btn('儲存', 'save-lesson', 'primary', 'save', 'data-testid="save-lesson"')}`,
   );
   previewSlide(lesson, 0);
@@ -260,7 +261,7 @@ function previewSlide(lesson: Lesson, index: number) {
   previewViz = null;
   const slide = lesson.slides[index];
   if (!slide) return;
-  host.innerHTML = `<article class="slide-stage preview">${slideMarkup(slide, index, lesson.slides.length)}</article>${slide.activity ? `<div class="preview-activity">${tag(TYPE_LABEL[slide.activity.type])}<strong>${esc(slide.activity.prompt)}</strong>${slide.activity.rubric ? `<ul>${slide.activity.rubric.criteria.map((c) => `<li>${esc(c.label)}（${c.points} 分）</li>`).join('')}</ul>` : ''}</div>` : '<p class="form-error">這一頁沒有 IRS 提問。</p>'}`;
+  host.innerHTML = `<article class="slide-stage preview">${slideMarkup(slide, index, lesson.slides.length)}</article>${slide.activity ? `<div class="preview-activity">${tag(TYPE_LABEL[slide.activity.type])}<strong>${md(slide.activity.prompt)}</strong>${slide.activity.items ? `<ol>${slide.activity.items.map((it) => `<li>${md(it.prompt)} ＝ ${answerHtml(it.answer)}</li>`).join('')}</ol>` : ''}${slide.activity.rubric ? `<ul>${slide.activity.rubric.criteria.map((c) => `<li>${md(c.label)}（${c.points} 分）</li>`).join('')}</ul>` : ''}</div>` : '<p class="form-error">這一頁沒有 IRS 提問。</p>'}`;
   const v = host.querySelector<HTMLElement>('.viz-host');
   if (v && slide.interactive) previewViz = mountInteractive(v, slide.interactive, undefined, () => {});
 }
@@ -276,23 +277,23 @@ function renderGenerate() {
 function visual(slide: Slide) {
   const items = slide.bullets?.length ? slide.bullets : [];
   if (slide.visual === 'steps')
-    return `<div class="visual steps">${items.map((x, i) => `<div class="step-card"><span>${i + 1}</span><strong>${esc(x)}</strong></div>`).join('')}</div>`;
+    return `<div class="visual steps">${items.map((x, i) => `<div class="step-card"><span>${i + 1}</span><strong>${md(x)}</strong></div>`).join('')}</div>`;
   if (slide.visual === 'bars')
-    return `<div class="visual bars">${items.map((x, i) => `<div class="bar-row"><span>${esc(x)}</span><i style="width:${30 + i * 15}%"></i></div>`).join('')}</div>`;
-  return `<div class="visual cards">${items.map((x, i) => `<div class="idea-card tone-${i % 4}"><span>${String.fromCharCode(65 + i)}</span><strong>${esc(x)}</strong></div>`).join('')}</div>`;
+    return `<div class="visual bars">${items.map((x, i) => `<div class="bar-row"><span>${md(x)}</span><i style="width:${30 + i * 15}%"></i></div>`).join('')}</div>`;
+  return `<div class="visual cards">${items.map((x, i) => `<div class="idea-card tone-${i % 4}"><span>${String.fromCharCode(65 + i)}</span><strong>${md(x)}</strong></div>`).join('')}</div>`;
 }
 function figuresHtml(slide: Slide) {
   if (!slide.figures?.length) return '';
   return `<div class="textbook-figs">${slide.figures
     .map(
       (f) =>
-        `<figure class="textbook-fig"><button type="button" data-action="zoom-figure" data-src="${esc(f.src)}" data-alt="${esc(f.alt)}" aria-label="放大課本截圖：${esc(f.alt)}"><img src="/api/assets/lessons/${esc(f.src)}" alt="${esc(f.alt)}" loading="lazy"></button>${f.caption ? `<figcaption>${esc(f.caption)}</figcaption>` : ''}</figure>`,
+        `<figure class="textbook-fig"><button type="button" data-action="zoom-figure" data-src="${esc(f.src)}" data-alt="${esc(f.alt)}" aria-label="放大課本截圖：${esc(f.alt)}"><img src="/api/assets/lessons/${esc(f.src)}" alt="${esc(f.alt)}" loading="lazy"></button>${f.caption ? `<figcaption>${md(f.caption)}</figcaption>` : ''}</figure>`,
     )
     .join('')}</div>`;
 }
 function slideMarkup(slide: Slide, index: number, total: number) {
   const hasVisual = slide.interactive || slide.customHtml || slide.bullets?.length || slide.figures?.length;
-  return `<div class="slide-head"><p class="slide-eyebrow">${slide.phase ? `<span class="phase-chip">${esc(slide.phase)}</span>` : ''}<span>${esc(slide.eyebrow || `${index + 1} / ${total}`)}</span></p><h1>${esc(slide.title)}</h1>${slide.body ? `<p class="slide-body">${esc(slide.body)}</p>` : ''}</div>${hasVisual ? `<div class="slide-visual ${slide.figures?.length ? 'with-figure' : ''} ${slide.figures?.length && !slide.interactive && !slide.customHtml ? 'figure-only' : ''}">${figuresHtml(slide)}${slide.customHtml ? '<iframe id="custom-activity" class="custom-activity" title="自訂互動教材" sandbox="allow-scripts" referrerpolicy="no-referrer"></iframe>' : slide.interactive ? '<div class="viz-host"></div>' : slide.figures?.length ? '' : visual(slide)}</div>` : ''}${slide.source ? `<p class="slide-source">${icon('book')}${esc(slide.source)}</p>` : ''}`;
+  return `<div class="slide-head"><p class="slide-eyebrow">${slide.phase ? `<span class="phase-chip">${esc(slide.phase)}</span>` : ''}<span>${esc(slide.eyebrow || `${index + 1} / ${total}`)}</span></p><h1>${md(slide.title)}</h1>${slide.body ? `<p class="slide-body">${md(slide.body)}</p>` : ''}</div>${hasVisual ? `<div class="slide-visual ${slide.figures?.length ? 'with-figure' : ''} ${slide.figures?.length && !slide.interactive && !slide.customHtml ? 'figure-only' : ''}">${figuresHtml(slide)}${slide.customHtml ? '<iframe id="custom-activity" class="custom-activity" title="自訂互動教材" sandbox="allow-scripts" referrerpolicy="no-referrer"></iframe>' : slide.interactive ? '<div class="viz-host"></div>' : slide.figures?.length ? '' : visual(slide)}</div>` : ''}${slide.source ? `<p class="slide-source">${icon('book')}${esc(slide.source)}</p>` : ''}`;
 }
 function latestBySeat(v: SessionView, activityId: string): Answer[] {
   const map = new Map<number, Answer>();
@@ -311,6 +312,19 @@ function answerText(value: Answer['value']): string {
   if ('vars' in value) return Object.entries(value.vars).map(([k, n]) => `${k}=${fmt(n)}`).join('，');
   return (value as CanvasAnswer).text || '';
 }
+/** 送出的答案用課本樣式顯示：算式排版、選項字母、操作數值。 */
+function answerDisplay(value: Answer['value']): string {
+  if (typeof value === 'string') return answerHtml(value);
+  if (Array.isArray(value) && typeof value[0] === 'string')
+    return (value as string[]).map((x, i) => `(${i + 1}) ${answerHtml(x)}`).join('　');
+  return esc(answerText(value));
+}
+/** 輸入框下方的即時預覽：讓學生確認系統讀到的算式。 */
+function previewHtml(value: string): string {
+  if (!value.trim()) return '';
+  const html = answerHtml(value);
+  return html === esc(value) ? '<span class="muted">還看不懂這個算式</span>' : `<span class="muted">系統讀到：</span>${html}`;
+}
 function aggregateHtml(v: SessionView) {
   const a = v.lesson.slides[v.session.slideIndex]?.activity;
   if (!a) return '';
@@ -321,32 +335,32 @@ function aggregateHtml(v: SessionView) {
     v.aggregate.correct !== undefined
       ? `<div class="correct-rate"><strong>${v.aggregate.correct}</strong><span>/ ${total} 答對</span><i style="--p:${total ? Math.round((v.aggregate.correct / total) * 100) : 0}%"></i></div>`
       : '';
-  const bars = (rows: { label: string; value: number; ok?: boolean }[]) =>
+  const bars = (rows: { label: string; value: number; ok?: boolean; html?: string }[]) =>
     `<div class="result-bars">${rows
       .map((r) => {
         const percent = total ? Math.round((r.value / total) * 100) : 0;
-        return `<div class="result-row ${r.ok ? 'ok' : ''}"><div><span>${r.ok ? icon('check') : ''}${esc(r.label)}</span><strong>${r.value}<small> ${percent}%</small></strong></div><div class="bar-track"><span style="width:${percent}%"></span></div></div>`;
+        return `<div class="result-row ${r.ok ? 'ok' : ''}"><div><span>${r.ok ? icon('check') : ''}${r.html ?? esc(r.label)}</span><strong>${r.value}<small> ${percent}%</small></strong></div><div class="bar-track"><span style="width:${percent}%"></span></div></div>`;
       })
       .join('')}</div>`;
   const reveal = teacher || v.session.resultsVisible;
   let body = '';
   if (a.type === 'single' || a.type === 'multiple')
-    body = bars(a.options!.map((o, i) => ({ label: `${String.fromCharCode(65 + i)}. ${o}`, value: v.aggregate.counts[String(i)] || 0, ok: reveal && a.correct?.includes(i) })));
+    body = bars(a.options!.map((o, i) => ({ label: o, html: `${String.fromCharCode(65 + i)}. ${md(o)}`, value: v.aggregate.counts[String(i)] || 0, ok: reveal && a.correct?.includes(i) })));
   else if (a.type === 'scale')
     body = bars(Array.from({ length: (a.max || 5) - (a.min || 1) + 1 }, (_, i) => ({ label: String(i + (a.min || 1)), value: v.aggregate.counts[String(i + (a.min || 1))] || 0 })));
   else if (a.type === 'numeric' && a.items)
-    body = `${correctLine}<p class="mini-label">各小題答對人數</p>${bars(a.items.map((it, i) => ({ label: `(${i + 1}) ${it.prompt}`, value: v.aggregate.counts[`item${i}`] || 0, ok: true })))}`;
+    body = `${correctLine}<p class="mini-label">各小題答對人數</p>${bars(a.items.map((it, i) => ({ label: it.prompt, html: `(${i + 1}) ${md(it.prompt)}`, value: v.aggregate.counts[`item${i}`] || 0, ok: true })))}`;
   else if (a.type === 'numeric') {
     const rows = Object.entries(v.aggregate.counts)
       .sort((x, y) => y[1] - x[1])
       .slice(0, 6)
-      .map(([label, value]) => ({ label: label.replace(/^-/, '−'), value, ok: a.answer !== undefined && !label.includes('未化簡') && Math.abs(Number(label) - evalSafe(a.answer)) < 1e-6 }));
+      .map(([label, value]) => ({ label: label.replace(/^-/, '−'), html: label.includes('未化簡') ? `${answerHtml(label.replace('（未化簡）', ''))}（未化簡）` : answerHtml(label), value, ok: a.answer !== undefined && !label.includes('未化簡') && Math.abs(Number(label) - evalSafe(a.answer)) < 1e-6 }));
     body = `${correctLine}${rows.length ? `<p class="mini-label">最多人的答案</p>${bars(rows)}` : ''}`;
   } else if (a.type === 'manipulate')
     body = `${correctLine}${bars([{ label: '達成條件', value: v.aggregate.counts.correct || 0, ok: true }, { label: '尚未達成', value: v.aggregate.counts.incorrect || 0 }])}`;
   else if (a.type === 'short' || a.type === 'canvas')
     body = `<div class="response-total">${total}<span>份作答已收到</span></div>`;
-  const explanation = v.session.resultsVisible && a.explanation ? `<p class="explanation">${icon('spark')}${esc(a.explanation)}</p>` : '';
+  const explanation = v.session.resultsVisible && a.explanation ? `<p class="explanation">${icon('spark')}<span>${md(a.explanation)}</span></p>` : '';
   return `${body}${explanation}`;
 }
 function evalSafe(src: string) {
@@ -362,7 +376,7 @@ function currentStudentAnswer(a: Activity) {
 }
 function canvasValuePreview(value: Answer['value']) {
   const v = value as CanvasAnswer;
-  return `${v.imageId ? `<img class="answer-thumb" src="/api/images/${esc(v.imageId)}" alt="我送出的作答">` : ''}${v.text ? `<p class="answer-note">${esc(v.text)}</p>` : ''}`;
+  return `${v.imageId ? `<img class="answer-thumb" src="/api/images/${esc(v.imageId)}" alt="我送出的作答">` : ''}${v.text ? `<p class="answer-note">${md(v.text)}</p>` : ''}`;
 }
 function answerForm(a: Activity) {
   const answered = currentStudentAnswer(a),
@@ -372,7 +386,7 @@ function answerForm(a: Activity) {
   let fields = '';
   if (a.type === 'single' || a.type === 'multiple') {
     const chosen = (i: number) => draft === i || (Array.isArray(draft) && draft.includes(i));
-    fields = `<div class="answer-options">${a.options!.map((o, i) => `<button class="answer-option ${chosen(i) ? 'chosen' : ''}" data-testid="poll-option-${i}" data-action="choose" data-index="${i}" aria-pressed="${chosen(i)}" ${dis}><span class="option-letter">${String.fromCharCode(65 + i)}</span><span>${esc(o)}</span></button>`).join('')}</div>${a.type === 'multiple' ? '<p class="muted small-text">可以選多個。</p>' : ''}`;
+    fields = `<div class="answer-options">${a.options!.map((o, i) => `<button class="answer-option ${chosen(i) ? 'chosen' : ''}" data-testid="poll-option-${i}" data-action="choose" data-index="${i}" aria-pressed="${chosen(i)}" ${dis}><span class="option-letter">${String.fromCharCode(65 + i)}</span><span>${md(o)}</span></button>`).join('')}</div>${a.type === 'multiple' ? '<p class="muted small-text">可以選多個。</p>' : ''}`;
   }
   if (a.type === 'scale')
     fields = `<div class="scale-options">${Array.from({ length: (a.max || 5) - (a.min || 1) + 1 }, (_, i) => i + (a.min || 1)).map((n) => `<button class="scale-option ${draft === n ? 'chosen' : ''}" data-action="scale" data-value="${n}" aria-pressed="${draft === n}" ${dis}>${n}</button>`).join('')}</div><div class="scale-labels"><span>${esc(a.minLabel)}</span><span>${esc(a.maxLabel)}</span></div>`;
@@ -380,9 +394,9 @@ function answerForm(a: Activity) {
     fields = `<label class="sr-only" for="short-answer">你的回答</label><textarea id="short-answer" maxlength="1000" placeholder="我認為……，因為……" ${dis}>${typeof draft === 'string' ? esc(draft) : ''}</textarea>${a.rubric ? criteriaHint(a) : ''}`;
   if (a.type === 'numeric' && a.items) {
     const values = Array.isArray(draft) ? (draft as string[]) : [];
-    fields = `<ol class="numeric-items">${a.items.map((it, i) => `<li><label for="numeric-item-${i}">${esc(it.prompt)}</label><div class="numeric-field"><input id="numeric-item-${i}" data-item="${i}" class="numeric-input" inputmode="text" autocomplete="off" placeholder="答案" value="${esc(values[i] ?? '')}" ${dis}>${a.unit ? `<span>${esc(a.unit)}</span>` : ''}</div></li>`).join('')}</ol>${mathKeys(dis)}${a.form === 'simplest-radical' ? '<p class="muted small-text">答案請化成最簡根式，例如 2√3、√6/3。</p>' : ''}`;
+    fields = `<ol class="numeric-items">${a.items.map((it, i) => `<li><label for="numeric-item-${i}">${md(it.prompt)}</label><div class="numeric-field"><input id="numeric-item-${i}" data-item="${i}" class="numeric-input" inputmode="text" autocomplete="off" placeholder="答案" value="${esc(values[i] ?? '')}" ${dis}>${a.unit ? `<span>${esc(a.unit)}</span>` : ''}</div><div class="tex-preview" data-preview="numeric-item-${i}" aria-live="polite">${previewHtml(values[i] ?? '')}</div></li>`).join('')}</ol>${mathKeys(dis)}${a.form === 'simplest-radical' ? '<p class="muted small-text">答案請化成最簡根式，例如 2√3、√6/3。</p>' : ''}`;
   } else if (a.type === 'numeric')
-    fields = `<div class="numeric-field"><input id="numeric-answer" class="numeric-input" inputmode="text" autocomplete="off" placeholder="輸入數字、分數或算式" value="${typeof draft === 'string' ? esc(draft) : ''}" ${dis} aria-label="數值答案">${a.unit ? `<span>${esc(a.unit)}</span>` : ''}</div><div class="math-keys" aria-label="數學符號">${['−', '/', '√', '(', ')', '^', '.'].map((k) => `<button type="button" data-action="math-key" data-key="${k === '−' ? '-' : k}" ${dis}>${k}</button>`).join('')}<button type="button" data-action="math-key" data-key="⌫" aria-label="刪除" ${dis}>⌫</button></div><p class="muted small-text">分數寫成 3/4，根號可用 √。</p>`;
+    fields = `<div class="numeric-field"><input id="numeric-answer" class="numeric-input" inputmode="text" autocomplete="off" placeholder="輸入數字、分數或算式" value="${typeof draft === 'string' ? esc(draft) : ''}" ${dis} aria-label="數值答案">${a.unit ? `<span>${esc(a.unit)}</span>` : ''}</div><div class="tex-preview" data-preview="numeric-answer" aria-live="polite">${previewHtml(typeof draft === 'string' ? draft : '')}</div><div class="math-keys" aria-label="數學符號">${['−', '/', '√', '(', ')', '^', '.'].map((k) => `<button type="button" data-action="math-key" data-key="${k === '−' ? '-' : k}" ${dis}>${k}</button>`).join('')}<button type="button" data-action="math-key" data-key="⌫" aria-label="刪除" ${dis}>⌫</button></div><p class="muted small-text">分數寫成 3/4，根號可用 √。</p>`;
   if (a.type === 'manipulate') {
     const vars = viz?.vars() || vizState.get(view!.lesson.slides[view!.session.slideIndex].id) || {};
     const keys = a.record?.length ? a.record : Object.keys(vars).filter((k) => k !== 'step');
@@ -394,17 +408,17 @@ function answerForm(a: Activity) {
     fields = `${criteriaHint(a)}<button type="button" class="canvas-launch ${preview ? 'has-preview' : ''}" data-action="open-sketch" data-testid="open-sketch" ${dis}>${preview ? `<img src="${preview}" alt="畫布預覽">` : `<span>${icon('pen')}<strong>開啟畫布作答</strong><small>手寫、作圖${a.allowPhoto !== false ? '，或寫在紙上拍照' : ''}</small></span>`}</button>${sk?.text ? `<p class="answer-note">${esc(sk.text)}</p>` : ''}${a.allowPhoto !== false ? `<label class="btn secondary full photo-quick ${locked ? 'disabled' : ''}">${icon('camera')}<span>直接拍照作答</span><input type="file" accept="image/*" capture="environment" data-action-input="quick-photo" ${dis}></label>` : ''}`;
   }
   const saved = answered
-    ? `<div class="saved-answer">${icon('check')}<div><strong>已送出</strong>${a.type === 'canvas' ? canvasValuePreview(answered.value) : `<span>${esc(answerText(answered.value))}</span>`}</div>${open && !editing ? `<button class="text-button" data-action="edit-answer">修改</button>` : ''}</div>`
+    ? `<div class="saved-answer">${icon('check')}<div><strong>已送出</strong>${a.type === 'canvas' ? canvasValuePreview(answered.value) : `<span>${answerDisplay(answered.value)}</span>`}</div>${open && !editing ? `<button class="text-button" data-action="edit-answer">修改</button>` : ''}</div>`
     : '';
   const submit = (!answered || editing) ? btn(open ? (a.type === 'manipulate' ? '送出我的操作' : '送出答案') : '等待老師開放', 'submit-answer', 'primary full', 'check', `data-testid="submit-answer" ${!open ? 'disabled' : ''}`) : '';
-  return `<div class="activity-prompt"><span class="tag">${TYPE_LABEL[a.type]}</span><h2>${esc(a.prompt)}</h2></div>${saved}${(!answered || editing) ? fields : ''}<div class="submit-area">${submit}<p id="answer-status" role="status" class="muted small-text">${answered && !editing ? '' : open ? '' : '可以先操作與思考。'}</p></div>`;
+  return `<div class="activity-prompt"><span class="tag">${TYPE_LABEL[a.type]}</span><h2>${md(a.prompt)}</h2></div>${saved}${(!answered || editing) ? fields : ''}<div class="submit-area">${submit}<p id="answer-status" role="status" class="muted small-text">${answered && !editing ? '' : open ? '' : '可以先操作與思考。'}</p></div>`;
 }
 function mathKeys(dis: string) {
   return `<div class="math-keys" aria-label="數學符號">${['−', '/', '√', '(', ')', '^', '.'].map((k) => `<button type="button" data-action="math-key" data-key="${k === '−' ? '-' : k}" ${dis}>${k}</button>`).join('')}<button type="button" data-action="math-key" data-key="⌫" aria-label="刪除" ${dis}>⌫</button></div>`;
 }
 function criteriaHint(a: Activity) {
   if (!a.rubric) return '';
-  return `<details class="criteria-hint"><summary>${icon('target')}成功標準（老師會依這些給分）</summary><ul>${a.rubric.criteria.map((c) => `<li><strong>${esc(c.label)}</strong>（${c.points} 分）：${esc(c.levels.find((l) => l.score === c.points)?.description || '')}</li>`).join('')}</ul></details>`;
+  return `<details class="criteria-hint"><summary>${icon('target')}成功標準（老師會依這些給分）</summary><ul>${a.rubric.criteria.map((c) => `<li><strong>${md(c.label)}</strong>（${c.points} 分）：${md(c.levels.find((l) => l.score === c.points)?.description || '')}</li>`).join('')}</ul></details>`;
 }
 function feedbackHtml(a: Activity) {
   const mine = currentStudentAnswer(a);
@@ -412,7 +426,9 @@ function feedbackHtml(a: Activity) {
   const g = gradeFor(mine.id);
   if (!g) return '';
   const rubric = a.rubric;
-  return `<section class="feedback-card" data-testid="student-feedback"><header><span>${icon('stamp')}老師的回饋</span><strong>${g.total}<small>/ ${g.max}</small></strong></header>${(mine.value as CanvasAnswer).imageId ? `<div class="redpen-host" data-image="${esc((mine.value as CanvasAnswer).imageId!)}"></div>` : ''}<ul class="criteria-scores">${g.scores.map((s) => `<li><span>${esc(rubric?.criteria.find((c) => c.id === s.criterionId)?.label || s.criterionId)}</span><b>${s.score}/${rubric?.criteria.find((c) => c.id === s.criterionId)?.points ?? ''}</b>${s.comment ? `<small>${esc(s.comment)}</small>` : ''}</li>`).join('')}</ul>${g.feedback ? `<p class="feedback-text">${esc(g.feedback)}</p>` : ''}${g.transcript ? `<details><summary>AI 讀到的手寫內容（讀錯請告訴老師）</summary><pre>${esc(g.transcript)}</pre></details>` : ''}</section>`;
+  if (g.depth === 'verdict')
+    return `<section class="feedback-card ${g.correct ? 'right' : 'wrong'}" data-testid="student-feedback"><header><span>${icon('stamp')}老師的回饋</span><strong class="verdict-mark">${g.correct ? '✓ 正確' : '✗ 再檢查'}</strong></header>${(mine.value as CanvasAnswer).imageId ? `<div class="redpen-host" data-image="${esc((mine.value as CanvasAnswer).imageId!)}"></div>` : ''}${g.feedback ? `<p class="feedback-text">${md(g.feedback)}</p>` : ''}${g.transcript ? `<details><summary>AI 讀到的手寫內容（讀錯請告訴老師）</summary><pre>${esc(g.transcript)}</pre></details>` : ''}</section>`;
+  return `<section class="feedback-card" data-testid="student-feedback"><header><span>${icon('stamp')}老師的回饋</span><strong>${g.total}<small>/ ${g.max}</small></strong></header>${(mine.value as CanvasAnswer).imageId ? `<div class="redpen-host" data-image="${esc((mine.value as CanvasAnswer).imageId!)}"></div>` : ''}<ul class="criteria-scores">${g.scores.map((s) => `<li><span>${md(rubric?.criteria.find((c) => c.id === s.criterionId)?.label || s.criterionId)}</span><b>${s.score}/${rubric?.criteria.find((c) => c.id === s.criterionId)?.points ?? ''}</b>${s.comment ? `<small>${md(s.comment)}</small>` : ''}</li>`).join('')}</ul>${g.feedback ? `<p class="feedback-text">${md(g.feedback)}</p>` : ''}${g.transcript ? `<details><summary>AI 讀到的手寫內容（讀錯請告訴老師）</summary><pre>${esc(g.transcript)}</pre></details>` : ''}</section>`;
 }
 function screenMode() {
   return currentRoute.startsWith('/screen/');
@@ -487,13 +503,13 @@ function ownVerdict(a: Activity) {
   const items = mine.itemsCorrect?.length
     ? `<span class="item-verdicts">${mine.itemsCorrect.map((ok, i) => `<b class="${ok ? 'ok' : 'no'}">(${i + 1}) ${ok ? '✓' : '✗'}</b>`).join('')}</span>`
     : '';
-  return `<p class="verdict ${mine.correct ? 'ok' : 'no'}">${icon(mine.correct ? 'check' : 'x')}<span>${mine.correct ? '你答對了！' : '這次沒對，看看解析再想一次。'}${mine.note ? `<small>${esc(mine.note)}</small>` : ''}</span>${items}</p>`;
+  return `<p class="verdict ${mine.correct ? 'ok' : 'no'}">${icon(mine.correct ? 'check' : 'x')}<span>${mine.correct ? '你答對了！' : '這次沒對，看看解析再想一次。'}${mine.note ? `<small>${md(mine.note)}</small>` : ''}</span>${items}</p>`;
 }
 function teacherPanel(a: Activity | undefined, screen: boolean) {
   const s = view!.session;
   const gradable = a && a.rubric && (a.type === 'canvas' || a.type === 'short');
   const activity = a
-    ? `<section class="teacher-activity"><div class="activity-top">${tag(TYPE_LABEL[a.type])}<span id="answer-count" class="count-pill">${view!.aggregate.submitted} / ${view!.aggregate.total}</span></div><h2>${esc(a.prompt)}</h2><div class="activity-actions">${btn(s.activityOpen ? '結束作答' : '開放作答', 'toggle-activity', s.activityOpen ? 'secondary' : 'primary', s.activityOpen ? 'x' : 'play', s.ended ? 'disabled' : 'data-testid="toggle-activity"')}${btn(s.resultsVisible ? '隱藏結果' : '公布結果', 'toggle-results', 'secondary', 'chart')}</div><div id="aggregate">${aggregateHtml(view!)}</div>${screen ? '' : `<div id="responses">${responsesHtml(a)}</div>`}${!screen && a.aiAllowed && ['short', 'numeric', 'canvas'].includes(a.type) ? btn('AI 整理全班迷思', 'summarize', 'quiet full', 'spark') : ''}</section>`
+    ? `<section class="teacher-activity"><div class="activity-top">${tag(TYPE_LABEL[a.type])}<span id="answer-count" class="count-pill">${view!.aggregate.submitted} / ${view!.aggregate.total}</span></div><h2>${md(a.prompt)}</h2><div class="activity-actions">${btn(s.activityOpen ? '結束作答' : '開放作答', 'toggle-activity', s.activityOpen ? 'secondary' : 'primary', s.activityOpen ? 'x' : 'play', s.ended ? 'disabled' : 'data-testid="toggle-activity"')}${btn(s.resultsVisible ? '隱藏結果' : '公布結果', 'toggle-results', 'secondary', 'chart')}</div><div id="aggregate">${aggregateHtml(view!)}</div>${screen ? '' : `<div id="responses">${responsesHtml(a)}</div>`}${!screen && a.aiAllowed && ['short', 'numeric', 'canvas'].includes(a.type) ? btn('AI 整理全班迷思', 'summarize', 'quiet full', 'spark') : ''}</section>`
     : `<div class="quiet-moment">${icon('sigma')}<h2>這一頁沒有題目</h2><p>可以用畫筆在圖上標示，或抽籤請同學說明。</p></div>`;
   return `<div class="panel-scroll">${activity}${gradable && !screen ? gradingBar(a!) : ''}<section class="class-tools"><div class="draw-filter" role="group" aria-label="抽籤範圍">${(
     [
@@ -513,7 +529,7 @@ function responsesHtml(a: Activity) {
       .map((x) => {
         const g = gradeFor(x.id);
         const v = x.value as CanvasAnswer;
-        const state = grading.inFlight.has(x.id) ? '<em class="st busy">批改中</em>' : g ? `<em class="st ${g.released ? 'released' : g.needsReview ? 'review' : 'graded'}">${g.total}/${g.max}${g.needsReview ? ' ⚠' : ''}</em>` : '<em class="st">未批改</em>';
+        const state = grading.inFlight.has(x.id) ? '<em class="st busy">批改中</em>' : g ? `<em class="st ${g.released ? 'released' : g.needsReview ? 'review' : 'graded'} ${g.depth === 'verdict' ? (g.correct ? 'right' : 'wrong') : ''}">${g.depth === 'verdict' ? (g.correct ? '✓ 對' : '✗ 錯') : `${g.total}/${g.max}`}${g.needsReview ? ' ⚠' : ''}</em>` : '<em class="st">未批改</em>';
         return `<button class="submission" data-action="open-grade" data-id="${esc(x.id)}"><span class="seat">${x.seat}</span>${typeof x.value === 'string' ? `<span class="excerpt">${esc(x.value.slice(0, 60))}</span>` : v.imageId ? `<img src="/api/images/${esc(v.imageId)}" alt="${x.seat} 號作答" loading="lazy">` : `<span class="excerpt">${esc(v.text || '')}</span>`}${state}</button>`;
       })
       .join('') || '<p class="muted">等待第一份作答。</p>'}</div>`;
@@ -525,12 +541,14 @@ function responsesHtml(a: Activity) {
 }
 function gradingBar(a: Activity) {
   const answers = latestBySeat(view!, a.id);
-  const ungraded = answers.filter((x) => !gradeFor(x.id) && !grading.inFlight.has(x.id)).length;
+  const ungraded = answers.filter((x) => needsGrading(x.id) && !grading.inFlight.has(x.id)).length;
+  const redpen = prefs.get('redpen', false);
+  const right = answers.filter((x) => gradeFor(x.id)?.correct ?? (gradeFor(x.id) ? gradeFor(x.id)!.total === gradeFor(x.id)!.max : false)).length;
   const graded = answers.filter((x) => gradeFor(x.id));
   const released = graded.filter((x) => gradeFor(x.id)!.released).length;
   const review = graded.filter((x) => gradeFor(x.id)!.needsReview).length;
   const auto = prefs.get('autoGrade', false);
-  return `<section class="grading-bar" id="grading-bar"><div class="grading-status"><strong>${icon('stamp')}依規準批改</strong><span>${graded.length}/${answers.length} 已批改${review ? `・<b class="warn">${review} 需覆核</b>` : ''}${released ? `・${released} 已發回` : ''}</span>${grading.total ? `<span class="grading-progress"><i style="width:${Math.round((grading.done / grading.total) * 100)}%"></i></span>` : ''}</div><div class="tool-row">${btn(`AI 批改${ungraded ? `（${ungraded}）` : ''}`, 'grade-all', 'primary', 'wand', `${ungraded ? '' : 'disabled'} data-testid="grade-all"`)}${btn(released && released === graded.length ? '收回批改' : '發回批改', 'release-grades', 'secondary', 'arrow', graded.length ? '' : 'disabled')}</div><label class="switch"><input type="checkbox" data-pref="autoGrade" ${auto ? 'checked' : ''}><span></span>收件後自動 AI 批改</label>${config.aiConfigured ? '' : '<p class="muted small-text">尚未設定 API key：會產生「模擬批改」供試用流程。</p>'}</section>`;
+  return `<section class="grading-bar" id="grading-bar"><div class="grading-status"><strong>${icon('stamp')}${redpen ? '第 2 層：紅筆批改' : '第 1 層：判斷對錯'}</strong><span>${graded.length}/${answers.length} 已批改${graded.length ? `・答對 ${right}` : ''}${review ? `・<b class="warn">${review} 需覆核</b>` : ''}${released ? `・${released} 已發回` : ''}</span>${grading.total ? `<span class="grading-progress"><i style="width:${Math.round((grading.done / grading.total) * 100)}%"></i></span>` : ''}</div><div class="tool-row">${btn(`${redpen ? 'AI 紅筆批改' : 'AI 判斷對錯'}${ungraded ? `（${ungraded}）` : ''}`, 'grade-all', 'primary', 'wand', `${ungraded ? '' : 'disabled'} data-testid="grade-all"`)}${btn(released && released === graded.length ? '收回批改' : '發回批改', 'release-grades', 'secondary', 'arrow', graded.length ? '' : 'disabled')}</div><label class="switch"><input type="checkbox" data-pref="redpen" ${redpen ? 'checked' : ''} data-testid="toggle-redpen"><span></span>第 2 層：依規準給分＋紅筆批註</label><label class="switch"><input type="checkbox" data-pref="autoGrade" ${auto ? 'checked' : ''}><span></span>收件後自動 AI 批改</label>${config.aiConfigured ? '' : '<p class="muted small-text">尚未設定 API key：會產生「模擬批改」供試用流程。</p>'}</section>`;
 }
 function toolbar() {
   return `<div class="teaching-toolbar" role="toolbar" aria-label="白板工具">${[
@@ -554,17 +572,25 @@ function eventsHtml() {
 
 /* ───────────── 批改佇列（教師端並行） ───────────── */
 const grading = {
-  queue: [] as { sessionId: string; answerId: string }[],
+  queue: [] as { sessionId: string; answerId: string; depth: 'verdict' | 'full' }[],
   inFlight: new Set<string>(),
   running: 0,
   done: 0,
   total: 0,
 };
-function enqueueGrades(answerIds: string[]) {
+/** 第 2 層（紅筆批改）預設關閉，只做第 1 層「判斷對錯」。 */
+const gradeDepth = (): 'verdict' | 'full' => (prefs.get('redpen', false) ? 'full' : 'verdict');
+function needsGrading(answerId: string) {
+  const g = gradeFor(answerId);
+  if (!g) return true;
+  // 開啟第 2 層時，只有 AI 判過對錯的作答要補紅筆；教師已親自判定的不覆蓋。
+  return gradeDepth() === 'full' && g.depth === 'verdict' && g.mode !== 'teacher';
+}
+function enqueueGrades(answerIds: string[], depth = gradeDepth()) {
   if (!view) return;
   for (const answerId of answerIds) {
     if (grading.inFlight.has(answerId) || grading.queue.some((q) => q.answerId === answerId)) continue;
-    grading.queue.push({ sessionId: view.session.id, answerId });
+    grading.queue.push({ sessionId: view.session.id, answerId, depth });
     grading.total++;
   }
   pumpGrades();
@@ -581,6 +607,7 @@ function pumpGrades() {
       sessionId: job.sessionId,
       answerId: job.answerId,
       votes: prefs.get('votes', 1),
+      depth: job.depth,
     })
       .then((r) => {
         if (r.grade && view?.session.id === job.sessionId) {
@@ -606,7 +633,7 @@ function autoGradeCheck() {
   const a = view.lesson.slides[view.session.slideIndex]?.activity;
   if (!a?.rubric) return;
   const ids = latestBySeat(view, a.id)
-    .filter((x) => !gradeFor(x.id))
+    .filter((x) => needsGrading(x.id))
     .map((x) => x.id);
   if (ids.length) enqueueGrades(ids);
 }
@@ -631,16 +658,16 @@ function openGrade(answerId: string) {
   const pos = list.findIndex((x) => x.id === answerId);
   modal(
     `${answer.seat} 號作答`,
-    `<div class="grade-layout"><div class="grade-work">${v.imageId ? `<div class="redpen-host big" data-image="${esc(v.imageId)}"></div>` : ''}${text ? `<blockquote class="student-text">${esc(text)}</blockquote>` : ''}${g?.transcript ? `<details><summary>AI 轉寫的手寫內容</summary><pre>${esc(g.transcript)}</pre></details>` : ''}</div><form id="grade-form" class="grade-form" data-answer="${esc(answerId)}">${g ? `<p class="grade-meta">${tag(g.mode === 'live' ? 'AI 初評' : g.mode === 'mock' ? '模擬批改' : '教師批改', g.mode === 'teacher' ? 'green' : '')}${g.confidence !== undefined ? tag(`信心 ${g.confidence}`, g.needsReview ? 'warn' : '') : ''}${g.votes && g.votes.length > 1 ? tag(`投票 ${g.votes.join('、')}`) : ''}${g.released ? tag('已發回', 'green') : ''}</p>` : '<p class="muted">尚未批改，可直接依規準給分或按「AI 批改」。</p>'}${a.rubric.criteria
+    `<div class="grade-layout"><div class="grade-work">${v.imageId ? `<div class="redpen-host big" data-image="${esc(v.imageId)}"></div>` : ''}${text ? `<blockquote class="student-text">${md(text)}</blockquote>` : ''}${g?.transcript ? `<details><summary>AI 轉寫的手寫內容</summary><pre>${esc(g.transcript)}</pre></details>` : ''}</div><form id="grade-form" class="grade-form" data-answer="${esc(answerId)}">${g ? `<p class="grade-meta">${tag(g.depth === 'verdict' ? '第 1 層・對錯' : '第 2 層・紅筆')}${tag(g.mode === 'live' ? 'AI 初評' : g.mode === 'mock' ? '模擬批改' : '教師批改', g.mode === 'teacher' ? 'green' : '')}${g.confidence !== undefined ? tag(`信心 ${g.confidence}`, g.needsReview ? 'warn' : '') : ''}${g.votes && g.votes.length > 1 ? tag(`投票 ${g.votes.join('、')}`) : ''}${g.released ? tag('已發回', 'green') : ''}</p>` : '<p class="muted">尚未批改。</p>'}<section class="layer1"><h3>第 1 層：判斷對錯</h3>${g?.depth === 'verdict' ? `<p class="verdict ${g.correct ? 'ok' : 'no'}">${icon(g.correct ? 'check' : 'x')}<span>${g.correct ? '判定：正確' : '判定：不正確'}</span></p>` : ''}<label>給學生的一句話<textarea name="feedback" rows="2" maxlength="600">${esc(g?.feedback || '')}</textarea></label><div class="grade-actions"><button type="submit" class="btn primary" name="mode" value="right" data-testid="judge-right">${icon('check')}<span>判對</span></button><button type="submit" class="btn secondary" name="mode" value="wrong" data-testid="judge-wrong">${icon('x')}<span>判錯</span></button>${btn('AI 判斷', 'regrade', 'quiet', 'wand', `data-id="${esc(answerId)}" data-depth="verdict"`)}</div></section><details class="layer2" ${g?.depth === 'full' || prefs.get('redpen', false) ? 'open' : ''}><summary>第 2 層：依規準給分＋紅筆批註</summary>${a.rubric.criteria
       .map((c) => {
         const s = g?.scores.find((x) => x.criterionId === c.id);
-        return `<fieldset class="criterion"><legend>${esc(c.label)}<small>${c.points} 分</small></legend>${c.levels
+        return `<fieldset class="criterion"><legend>${md(c.label)}<small>${c.points} 分</small></legend>${c.levels
           .slice()
           .sort((x, y) => y.score - x.score)
-          .map((l) => `<label class="level"><input type="radio" name="c-${esc(c.id)}" value="${l.score}" ${s?.score === l.score ? 'checked' : ''}><b>${l.score}</b><span>${esc(l.description)}</span></label>`)
+          .map((l) => `<label class="level"><input type="radio" name="c-${esc(c.id)}" value="${l.score}" ${s?.score === l.score ? 'checked' : ''}><b>${l.score}</b><span>${md(l.description)}</span></label>`)
           .join('')}<input name="m-${esc(c.id)}" placeholder="評語（選填）" value="${esc(s?.comment || '')}"></fieldset>`;
       })
-      .join('')}<label>給學生的回饋<textarea name="feedback" rows="3" maxlength="600">${esc(g?.feedback || '')}</textarea></label>${a.rubric.reference ? `<details><summary>參考解答</summary><p>${esc(a.rubric.reference)}</p></details>` : ''}<div class="grade-actions">${btn('AI 批改', 'regrade', 'secondary', 'wand', `data-id="${esc(answerId)}"`)}${v.imageId && g ? btn('紅筆圖', 'download-redpen', 'quiet', 'download', `data-id="${esc(answerId)}"`) : ''}<button type="submit" class="btn secondary" name="mode" value="save">${icon('save')}<span>儲存</span></button><button type="submit" class="btn primary" name="mode" value="release">${icon('arrow')}<span>儲存並發回</span></button></div><div class="grade-nav">${btn('上一位', 'open-grade', 'quiet', 'prev', `data-id="${esc(list[pos - 1]?.id || '')}" ${pos > 0 ? '' : 'disabled'}`)}${btn('下一位', 'open-grade', 'quiet', 'next', `data-id="${esc(list[pos + 1]?.id || '')}" ${pos < list.length - 1 ? '' : 'disabled'}`)}</div></form></div>`,
+      .join('')}<div class="grade-actions">${btn('AI 紅筆批改', 'regrade', 'secondary', 'wand', `data-id="${esc(answerId)}" data-depth="full"`)}${v.imageId && g?.depth === 'full' ? btn('紅筆圖', 'download-redpen', 'quiet', 'download', `data-id="${esc(answerId)}"`) : ''}<button type="submit" class="btn secondary" name="mode" value="save">${icon('save')}<span>儲存分數</span></button><button type="submit" class="btn primary" name="mode" value="release">${icon('arrow')}<span>儲存並發回</span></button></div></details>${a.rubric.reference ? `<details><summary>參考解答</summary><p>${md(a.rubric.reference)}</p></details>` : ''}<div class="grade-nav">${btn('上一位', 'open-grade', 'quiet', 'prev', `data-id="${esc(list[pos - 1]?.id || '')}" ${pos > 0 ? '' : 'disabled'}`)}${btn('下一位', 'open-grade', 'quiet', 'next', `data-id="${esc(list[pos + 1]?.id || '')}" ${pos < list.length - 1 ? '' : 'disabled'}`)}</div></form></div>`,
     'full',
   );
   mountRedpens();
@@ -993,7 +1020,7 @@ async function action(el: HTMLElement) {
         const l = JSON.parse(document.querySelector<HTMLTextAreaElement>('#lesson-json')!.value) as Lesson;
         const select = document.querySelector<HTMLSelectElement>('#preview-slide')!;
         const i = Math.min(Number(select.value) || 0, l.slides.length - 1);
-        select.innerHTML = l.slides.map((s, k) => `<option value="${k}" ${k === i ? 'selected' : ''}>${k + 1}. ${esc(s.title)}</option>`).join('');
+        select.innerHTML = l.slides.map((s, k) => `<option value="${k}" ${k === i ? 'selected' : ''}>${k + 1}. ${esc(plain(s.title))}</option>`).join('');
         previewSlide(l, i);
       } catch (e) {
         toast(`JSON 格式錯誤：${(e as Error).message}`, true);
@@ -1219,12 +1246,12 @@ async function action(el: HTMLElement) {
       return analyze('response-summary');
     case 'grade-all':
       if (!a) return;
-      enqueueGrades(latestBySeat(view, a.id).filter((x) => !gradeFor(x.id)).map((x) => x.id));
+      enqueueGrades(latestBySeat(view, a.id).filter((x) => needsGrading(x.id)).map((x) => x.id));
       return;
     case 'regrade':
       closeModal();
-      enqueueGrades([id!]);
-      toast('已加入批改佇列');
+      enqueueGrades([id!], (el.dataset.depth as 'verdict' | 'full') || gradeDepth());
+      toast(el.dataset.depth === 'full' ? '已加入紅筆批改佇列' : '已加入批改佇列');
       return;
     case 'release-grades': {
       if (!a) return;
@@ -1306,6 +1333,8 @@ document.addEventListener('pointerup', (e) => {
 document.addEventListener('input', (e) => {
   const el = e.target as HTMLInputElement;
   if (el.id === 'short-answer' || el.id === 'numeric-answer') draft = el.value;
+  const preview = document.querySelector<HTMLElement>(`[data-preview="${el.id}"]`);
+  if (preview) preview.innerHTML = previewHtml(el.value);
   if (el.dataset.item !== undefined) {
     const values = Array.isArray(draft) ? [...(draft as string[])] : [];
     values[Number(el.dataset.item)] = el.value;
@@ -1320,6 +1349,7 @@ document.addEventListener('change', async (e) => {
   const el = e.target as HTMLInputElement | HTMLSelectElement;
   if (el instanceof HTMLInputElement && el.dataset.pref) {
     prefs.set(el.dataset.pref, el.checked);
+    refreshPanelParts();
     if (el.checked) autoGradeCheck();
   }
   if (el.id === 'pref-concurrency') prefs.set('concurrency', Number(el.value));
@@ -1402,6 +1432,20 @@ document.addEventListener('submit', (e) => {
       const answerId = form.dataset.answer!;
       const answer = view.answers.find((x) => x.id === answerId)!;
       const a = view.lesson.slides.find((s) => s.activity?.id === answer.activityId)!.activity!;
+      if (submitter?.value === 'right' || submitter?.value === 'wrong') {
+        const r = await api<{ grade: Grade }>(`/sessions/${view.session.id}/grades/${answerId}`, 'PUT', {
+          verdict: submitter.value === 'right',
+          feedback: data.get('feedback'),
+        });
+        view.grades = view.grades.filter((g) => g.answerId !== answerId).concat(r.grade);
+        toast(submitter.value === 'right' ? `${answer.seat} 號：判對` : `${answer.seat} 號：判錯`);
+        const list = latestBySeat(view, a.id);
+        const next = list[list.findIndex((x) => x.id === answerId) + 1];
+        if (next) openGrade(next.id);
+        else closeModal();
+        refreshPanelParts();
+        return;
+      }
       const scores = a.rubric!.criteria.map((c) => {
         const v = data.get(`c-${c.id}`);
         if (v === null) throw new Error(`請為「${c.label}」選擇等級`);

@@ -23,6 +23,7 @@
     "wrangler": "4.150.0"
   },
   "dependencies": {
+    "katex": "^0.16.22",
     "qrcode": "1.5.4"
   }
 }

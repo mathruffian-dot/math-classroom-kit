@@ -1,6 +1,7 @@
 import type { Activity, Annotation, Grade } from '../shared/types';
 import { escape as esc } from './api';
 import { icon } from './icons';
+import { md } from './math';
 
 /* ───────────── 學生作答畫布 ───────────── */
 interface SPoint {
@@ -175,10 +176,10 @@ export function openSketch(opts: {
     root.setAttribute('role', 'dialog');
     root.setAttribute('aria-modal', 'true');
     root.setAttribute('aria-label', '作答畫布');
-    root.innerHTML = `<header class="sketch-top"><div class="sketch-title"><strong>${esc(opts.title)}</strong><span>${esc(opts.prompt)}</span></div><div class="sketch-top-actions"><button type="button" class="btn quiet" data-sk="cancel">${icon('x')}<span>取消</span></button><button type="button" class="btn primary" data-sk="done" data-testid="sketch-done">${icon('check')}<span>完成</span></button></div></header>
+    root.innerHTML = `<header class="sketch-top"><div class="sketch-title"><strong>${esc(opts.title)}</strong><span>${md(opts.prompt)}</span></div><div class="sketch-top-actions"><button type="button" class="btn quiet" data-sk="cancel">${icon('x')}<span>取消</span></button><button type="button" class="btn primary" data-sk="done" data-testid="sketch-done">${icon('check')}<span>完成</span></button></div></header>
 <div class="sketch-body"><div class="sketch-tools" role="toolbar" aria-label="畫布工具">${PENS.map(([c, n], i) => `<button type="button" class="sk-tool sk-color ${i === 0 ? 'selected' : ''}" data-sk="color" data-color="${c}" aria-label="${n}色筆" style="--pen:${c}"><i></i></button>`).join('')}<button type="button" class="sk-tool" data-sk="width" aria-label="筆畫粗細">${icon('pen')}<small>中</small></button><button type="button" class="sk-tool" data-sk="erase" aria-label="橡皮擦">${icon('erase')}</button><span class="sk-sep"></span><button type="button" class="sk-tool" data-sk="undo" aria-label="復原">${icon('undo')}</button><button type="button" class="sk-tool" data-sk="redo" aria-label="重做">${icon('redo')}</button><button type="button" class="sk-tool" data-sk="clear" aria-label="清空筆跡">${icon('trash')}</button>${opts.allowPhoto ? `<span class="sk-sep"></span><label class="sk-tool sk-file" aria-label="拍照作答">${icon('camera')}<small>拍照</small><input type="file" accept="image/*" capture="environment" data-sk="photo" data-testid="sketch-photo"></label><label class="sk-tool sk-file" aria-label="從相簿選照片">${icon('image')}<small>相簿</small><input type="file" accept="image/*" data-sk="photo"></label><button type="button" class="sk-tool" data-sk="unphoto" aria-label="移除照片" hidden>${icon('x')}<small>去背景</small></button>` : ''}</div>
 <div class="sketch-stage"><canvas class="sketch-canvas" data-testid="sketch-canvas" aria-label="手寫作答區"></canvas></div>
-<aside class="sketch-side">${opts.criteria?.length ? `<div class="sketch-criteria"><strong>${icon('target')}成功標準</strong><ul>${opts.criteria.map((c) => `<li>${esc(c)}</li>`).join('')}</ul></div>` : ''}<label class="sketch-note">文字說明（選填）<textarea maxlength="1000" data-sk="text" placeholder="寫下你的想法或理由">${esc(state.text)}</textarea></label><p class="muted small-text">可以手寫，也可以寫在紙上按「拍照」，再用筆在照片上補充。</p></aside></div>`;
+<aside class="sketch-side">${opts.criteria?.length ? `<div class="sketch-criteria"><strong>${icon('target')}成功標準</strong><ul>${opts.criteria.map((c) => `<li>${md(c)}</li>`).join('')}</ul></div>` : ''}<label class="sketch-note">文字說明（選填）<textarea maxlength="1000" data-sk="text" placeholder="寫下你的想法或理由">${esc(state.text)}</textarea></label><p class="muted small-text">可以手寫，也可以寫在紙上按「拍照」，再用筆在照片上補充。</p></aside></div>`;
     document.body.append(root);
     const canvas = root.querySelector<HTMLCanvasElement>('canvas')!;
     const stage = root.querySelector<HTMLElement>('.sketch-stage')!;
@@ -376,7 +377,11 @@ function wrap(text: string, max = 11): string[] {
   return out.slice(0, 4);
 }
 /** 產生紅筆疊圖 SVG：W×H 為圖片比例座標（寬 1000）。 */
-export function redpenSvg(annotations: Annotation[], grade: Pick<Grade, 'total' | 'max'> | null, ratio: number): string {
+export function redpenSvg(
+  annotations: Annotation[],
+  grade: Pick<Grade, 'total' | 'max' | 'depth' | 'correct'> | null,
+  ratio: number,
+): string {
   const W = 1000,
     H = Math.round(W / ratio),
     u = W / 1000;
@@ -429,7 +434,14 @@ export function redpenSvg(annotations: Annotation[], grade: Pick<Grade, 'total' 
         return `${label(Math.min(x, W - 300), y, a.text || '', 28)}<circle cx="${x - 12}" cy="${y + 10}" r="5" fill="${RED}"/>`;
     }
   });
-  const stamp = grade
+  // 第 1 層只蓋對錯章；第 2 層蓋分數章。
+  const verdictStamp =
+    grade?.depth === 'verdict'
+      ? `<g transform="translate(${W - 110} ${Math.min(110, H * 0.18)}) rotate(-9)"><circle r="78" ${pen} stroke-width="${6 * u}"/><text y="30" font-size="96" text-anchor="middle" class="redpen-text redpen-score">${grade.correct ? '✓' : '✗'}</text></g>`
+      : '';
+  const stamp = verdictStamp
+    ? verdictStamp
+    : grade
     ? `<g transform="translate(${W - 110} ${Math.min(110, H * 0.18)}) rotate(-9)"><circle r="78" ${pen} stroke-width="${6 * u}"/><circle r="66" fill="none" stroke="${RED}" stroke-width="${2 * u}" opacity=".7"/><text y="16" font-size="52" text-anchor="middle" class="redpen-text redpen-score">${grade.total}/${grade.max}</text></g>`
     : '';
   return `<svg class="redpen" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">${parts.join('')}${stamp}</svg>`;

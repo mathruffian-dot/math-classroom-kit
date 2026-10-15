@@ -261,6 +261,13 @@ export interface Grade {
   activityId: string;
   seat: number;
   mode: 'mock' | 'live' | 'teacher';
+  /**
+   * 批改層級：'verdict' 第 1 層，只判斷對錯（預設，快又省）；
+   * 'full' 第 2 層，依規準逐項給分並加紅筆批註。
+   */
+  depth?: 'verdict' | 'full';
+  /** 第 1 層的對錯判定；第 2 層以滿分視為答對。 */
+  correct?: boolean;
   scores: { criterionId: string; score: number; comment: string }[];
   total: number;
   max: number;

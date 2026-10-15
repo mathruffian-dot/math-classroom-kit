@@ -187,7 +187,9 @@ export function validateInteractive(input: unknown): Interactive {
       if (s[k] !== undefined) shape[k] = expr(s[k], k, known);
     if (s.text !== undefined) {
       shape.text = str(s.text, '圖形文字', 200);
-      for (const m of shape.text.matchAll(/\{([^}]+)\}/g)) expression(m[1], '文字運算式', known);
+      // $…$ 內是 LaTeX，大括號不一定是運算式；只檢查 $ 外的 {運算式}。
+      const outside = shape.text.replace(/\$[^$]+\$/g, '');
+      for (const m of outside.matchAll(/\{([^}]+)\}/g)) expression(m[1], '文字運算式', known);
     }
     for (const k of ['color', 'fill'] as const)
       if (s[k] !== undefined) {
