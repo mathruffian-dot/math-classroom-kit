@@ -63,7 +63,7 @@ v0.1 的正式資料存於 `classroom_state` JSON payload，透過 atomic compar
 
 HTML 擴充只經 [bridge](HTML-BRIDGE.md) 提交現有答案格式。AI 供應商設定位於 Worker，不放教材。現有 adapter 使用 OpenAI 相容的 chat/completions 格式；新增不同協議的供應商時，必須修改與測試 adapter，不能假設換 URL 即可。
 
-AI 文字輸入視為待分析資料，不是系統指令。分析結果只提供教師參考；不直接修改標準答案、正式成績或學生健康分類。
+AI 文字輸入視為待分析資料，不是系統指令。分析結果只提供教師參考；不直接修改標準答案或正式成績；AI 批改的分數需教師覆核後才發回。
 
 ## v0.1 實作限制
 

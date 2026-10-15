@@ -1,107 +1,29 @@
-# 可以直接貼給其他 agent 的提示詞
+# 可複製的 agent 提示詞
 
-先下載或 clone 本專案並讓 agent 開啟專案資料夾。填教材、部署、新增互動各有提示詞；填教材不需要雲端權限，部署不需要重新製作教材。
-
-## 提示詞一：填入自己的教材
+## 提示詞一：把課本單元做成課程
 
 ```text
-請以這個 Health Classroom Kit 專案為基礎，製作可匯入框架的繁體中文互動課程。
-
-我的課程資料：
-- 年級／領域：[填入]
-- 單元名稱：[填入]
-- 上課時間：[例如 45 分鐘]
-- 學習目標：[填入 2–4 項]
-- 可以使用的教材：[本機檔案或公開來源]
-- 必須保留的重點／限制：[填入]
-- 使用裝置：教師觸控大螢幕、學生 iPad Safari
-
-先讀 AGENTS.md、README.md、docs/AUTHORING.md、docs/HTML-BRIDGE.md、
-docs/VALIDATION.md、shared/types.ts、schemas/lesson.schema.json 及 content/ 範例。
-先確認來源、年級、版本和範圍。教材不足時先完成不依賴缺漏內容的部分，
-把無法核實的健康資訊標為「待教師確認」，不要猜測醫療事實、來源或頁碼。
-
-請交付：
-1. 一份可以由教師介面匯入的課程 JSON，採 schemaVersion 1。
-2. 以目標→情境→探索→形成性評量→反思安排投影片，文字適合國中學生。
-3. 依內容搭配內建視覺化及 IRS；單選、多選、量尺、短答只在有教學目的時使用。
-4. 每頁保留來源說明與教師備註；選擇題答案索引從 0 開始，檢查答案與解說一致。
-5. 每個 ID 穩定且唯一；敏感題敏感標記為 true、AI 傳送允許為 false。
-6. 健康情境優先虛構，不要求學生公開真實疾病、家庭或私密經驗。
-7. 若需 customHtml，只使用文件所述的 sandbox 與 postMessage bridge，
-   不放 API key、不讀 cookie、不直接連線 Supabase、不載入遠端腳本。
-
-優先修改 content/，保留框架登入、權限及儲存機制；不要自行建立雲端服務。
-完成後執行 npm run check；以教師與獨立學生瀏覽器確認課程匯入、開題、
-提交、揭露統計及匯出。檢查桌面、平板和手機尺寸，不把教師預覽當學生驗證。
-最後提供課程檔、使用方式、來源清單、測試結果與待教師確認項目。
+請依 math-classroom-kit/AGENTS.md 與 docs/AUTHORING.md，把〈八上 2-3 畢氏定理〉做成數感課堂課程。
+1. 先盤點課本每個例題與隨堂練習：頁碼、題目、教用版官方答案，存成 content/sources/<id>-inventory.json。
+2. 每個例題與隨堂只截最重要的課本圖，放到 public/lesson-assets/<id>/（不進 git）。
+3. 依認知科學流程排頁（提取→預測→具體操作→圖式連結→工作範例→半完成範例→隨堂→錯誤分析→出場券／自評），
+   每頁都有對應的可操作視覺化與 IRS；隨堂改成 numeric items（課本題＋換數字題，最多 3 題）；
+   錯誤分析用 canvas＋評量規準（附參考解答）。
+4. 數學式用 $LaTeX$ 或課本純文字寫法；換數字題的答案要自己算過。
+5. 執行 npm run lessons、npm run check，必要時 PW_CHANNEL=msedge npm run test:e2e，回報頁數、提醒與未驗證項目。
 ```
 
-## 提示詞二：設定並部署到自己的帳號
+## 提示詞二：修改既有課程
 
 ```text
-請協助將這個 Health Classroom Kit 專案部署到我自己的 Cloudflare 和 Supabase。
-授權範圍是本專案的服務設定、必要資料表建立、部署及驗證。
-採用「我登入授權，你接手建置」；請完成可以自動處理的工作，不要把 SQL 和設定作業交回給我。
-Supabase 專案：[已有專案名稱／網址；或請協助建立]
-教師信箱：[填入]
-AI 功能：[先不啟用／使用我指定的供應商與模型]
-公開站名：[填入]
-正式使用範圍：[例如一位教師與一個 40 人班級]
-
-先讀 AGENTS.md、docs/SUPABASE-AGENT-SETUP.md、docs/DEPLOYMENT.md、docs/SECURITY.md、docs/BACKUP.md、
-docs/ARCHITECTURE.md、docs/VALIDATION.md 及目前 wrangler.jsonc、worker/、supabase/。
-依實際程式確認設定名稱，不憑舊版本文件猜測。
-
-先在本機執行 npm ci、npm run check 及 npm run test:e2e，修正阻礙部署的問題。
-優先使用現有 Supabase MCP／connector，引導我在官方頁面完成 OAuth；
-帳密與 MFA 由我本人輸入，不要要求 PAT 或從客戶端擷取 OAuth token。
-確認我指定的專案後，將 MCP 限制在該專案；不要任選帳號內第一個專案。
-如果要建立新專案，先讓我選擇組織、區域並完成平台要求的費用確認。
-已授權的例行建置請繼續執行；如平台強制確認，說明確切原因與要操作的項目。
-確認使用我的雲端專案，為正式環境明確選擇 supabase 模式，停用 public demo。
-先核對 migrations 與既有結構，再套用提供的遠端 migration；已完成則略過並驗證，
-不要重設資料庫、覆寫既有表或因 advisor 提醒而開放學生直接存取私密資料表。
-設定教師 Auth 帳號與 TEACHER_EMAILS，兩者都要存在；OAuth 管理帳號不是課堂帳號。
-MCP 沒有 Auth 帳號管理工具時，使用已授權的 Dashboard／Admin API，
-否則只引導我完成帳號建立及安全密碼設定，不直接改寫 auth.users。
-若採用邀請建立帳號，我允許寄送啟用／邀請信到上面指定的教師信箱，
-請確認啟用連結可完成設定密碼；本版課堂沒有自製的密碼重設頁。
-自動取得專案 URL、publishable key 並填入設定。
-MCP 不提供 server secret；優先沿用已設定 Secret，若有已授權且可安全傳遞金鑰的工具，
-在封閉本機程序直接送入 Cloudflare Secrets、不輸出值，否則讓我在安全介面輸入一次。
-新部署才生成 SESSION_SECRET，既有部署不要輪替。
-金鑰透過 Cloudflare Secrets／受保護的本機設定輸入，不寫入程式、Git、聊天或日誌。
-若要 AI，只設定相容 provider、模型與伺服器端 key；先用虛構資料做一次有界測試。
-
-部署後請真的以不同瀏覽器驗證：
-- 教師登入、建班、發識別碼、開課及重新登入後讀取資料。
-- 兩位測試學生分開登入、跟隨頁面、作答、重新整理復原、搶答只出現一位贏家。
-- 學生無法讀取教師資料、別人答案或其他班場次；答案未揭露前不可取得標準答案。
-- 課程匯入／匯出、作答匯出、白板保存、備份及測試環境還原。
-- AI 關閉或失敗時，授課與作答仍正常；傳送內容不含識別資料。
-- 平板／手機能操作，並記錄真實裝置與模擬尺寸的差別。
-- 教師觸控大螢幕可用手指／觸控筆寫白板；學生 iPad 可旋轉、切換背景後恢復。
-
-不要把本機測試說成雲端驗證，不要把 40 人目標說成已通過負載測試。
-最後依「已授權／已建表／已設定秘密／已建立教師登入／已部署／已通過雲端驗收」
-逐項報告實際狀態，交付站點連結、服務設定清單（不含秘密）、實測證據、費用／配額注意項目、
-剩餘限制與回復方式，更新 docs/VALIDATION.md。若服務設定缺漏，保留可用示範，
-列出確切缺漏與已完成項目，不要自動降級成公開 demo。
+請修改 content/lessons/<檔名>.json（或產生器 scripts/lessons-src/<檔名>.mjs）的〈第 N 頁〉：
+<要改的內容>。維持每頁都有 IRS 與 source；改完執行 npm run lessons 與 npm run check。
 ```
 
-## 提示詞三：新增互動元件
+## 提示詞三：部署到我的 Cloudflare
 
 ```text
-請依這個專案的 AGENTS.md 與 docs/HTML-BRIDGE.md 新增一個互動教學頁。
-教學目標：[填入]
-學生應做的操作：[填入]
-保存的答案：[字串／數字／選項索引陣列]
-
-先判斷現有 Activity 型別與 customHtml bridge 能否表達；可表達時沿用契約。
-若需要新增 Activity 型別，先列出型別、schema、伺服器驗證、統計、匯出、
-鍵盤／觸控替代操作及測試的變更，再完整實作，不能只做視覺樣稿。
-保留 sandbox、教師控制開題、身分驗證及 submissionId 去重機制。
-所有 AI 請求由教師功能發起，元件不得持有 key 或自行傳送學生文字。
-完成後驗證教師與學生兩種角色、重送、關題及跨班權限。
+請依 docs/DEPLOYMENT.md 部署數感課堂到我的 Cloudflare（APP_MODE=cloudflare，不用 Supabase）。
+教師帳號用我的 Cloudflare 帳號信箱（以 wrangler secret 設定），部署前先執行 npm run check。
+不要把 API key 貼到聊天或檔案；部署後提供網址並提醒我修改預設密碼。
 ```

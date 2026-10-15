@@ -1,113 +1,106 @@
-# 青禾課堂 Health Classroom Kit
+# 數感課堂 Math Classroom Kit
 
-**給老師與 AI agent 的互動教學框架。** 教師控場、學生作答、HTML 簡報、白板與 AI 分析共用一套資料接口。先在本機試玩，再接上自己的 Cloudflare、Supabase 和 AI API key。
+**國中數學的觸控互動課堂。** 教師大屏授課、學生 iPad／手機作答，一個畫面就能完成所有操作。
 
-![青禾課堂教師工作台](docs/images/workspace.png)
+- **可操作的數學圖**：拖拉滑桿、拖曳點、點擊切換，步驟揭示時目前步驟會發光、其他部分反暗。
+- **每頁一題 IRS**：單選、多選、量尺、短答、數值（可一次出 3 題換數字題、檢查最簡根式）、操作題、手寫畫布。
+- **手寫與拍照作答**：學生在畫布寫、或寫在紙上拍照，再用筆加註。
+- **依評量規準 AI 批改**：
+  - 第 1 層（預設開啟）：只判斷對錯。
+  - 第 2 層：逐項給分並加紅筆批註。
+  - 兩層都可平行批改、多次投票、轉寫手寫內容，信心不足的作答會提醒教師覆核。
+- **數學排版**：根號、分數、指數以 KaTeX 排成課本樣式；學生輸入的答案也會即時顯示成數學式。
+- **課本截圖**：例題與隨堂可附上課本截圖（只截重點），只提供給已登入的師生。
 
-_本機功能示範畫面；課程、班級與學生資料均為虛構。_
+本專案從 [health-classroom-kit](https://github.com/mathruffian-dot/health-classroom-kit) 延伸而來，沿用它的安全設計：同網域 API、Durable Object 序列化、學生資料不外流。
 
-為 **教師觸控大螢幕＋學生 iPad** 設計，以柔和色彩、清楚層級與大觸控工具列呈現課程。
+## 五分鐘開始（本機）
 
-這個專案提供可運作的功能示範與可擴充程式，不包含正式健康課程。範例情境、班級與學生皆為虛構。AI 分析可關閉，核心授課功能不依賴 AI。
-
-## 五分鐘開始
-
-需要 Node.js 22.12+ 與 npm。下載 ZIP 解壓縮或 clone 專案，在專案資料夾執行：
+需要 Node.js 22.12+。
 
 ```sh
 npm ci
 npm run dev
 ```
 
-打開 **http://127.0.0.1:8787**。首次啟動會建置前端，再啟動本機 Worker；修改前端後重新啟動以重新建置。
+打開 http://127.0.0.1:8787：
 
-| 角色       | 示範登入                                  |
-| ---------- | ----------------------------------------- |
-| 教師       | 選擇「我是教師」，按「教師示範」          |
-| 學生       | 班級 `DEMO801`、座號 `1`、識別碼 `DEMO01` |
-| 另一位學生 | 班級 `DEMO801`、座號 `2`、識別碼 `DEMO02` |
+| 角色 | 登入方式 |
+| ---- | -------- |
+| 教師 | 帳號 `teacher`，密碼 `11235813`（本機示範） |
+| 學生 | 班級 `DEMO801`、座號 `1`–`40`、識別碼 `DEMO01`–`DEMO40` |
 
-示範班提供 1–40 號，識別碼為 `DEMO01`–`DEMO40`。使用不同瀏覽器或不同無痕工作階段扮演師生；同一瀏覽器的分頁共用登入 cookie。
+請用不同瀏覽器或無痕視窗分別扮演教師與學生。
 
-班級頁可以顯示學生入口 QR Code。`127.0.0.1` 的本機網址只能在開發電腦使用；部署到自己的 HTTPS 網站後，QR Code 才會使用可讓 iPad 連入的正式網址。
+## 正式部署（Cloudflare，免 Supabase）
 
-**本機 demo 使用模擬資料與示範身分，不能接收真實學生資料。** 雲端模式需要另外設定，且設定失敗不會自動降級成 demo。[完整部署指南](docs/DEPLOYMENT.md)
+1. 登入 Cloudflare：
 
-## 先試這堂課
+   ```sh
+   npx wrangler login
+   ```
 
-1. 教師登入，選擇內建課程與示範班級，開始上課。
-2. 用另一個瀏覽器登入學生，等待教師開放題目後送出答案。
-3. 教師切換投影片、公布統計，試用畫筆、雷射筆、聚光燈、抽籤與搶答。
-4. 在教師端匯出作答 JSON／CSV，再下載課程 JSON，確認兩種檔案各自的用途。
-5. 試用 AI 課程檢視／回答摘要。未設定金鑰時顯示模擬結果，畫面會標示模式。
+2. 設定教師帳號（填你的 Cloudflare 帳號信箱）：
 
-## 框架已提供什麼
+   ```sh
+   npx wrangler secret put TEACHER_ACCOUNT --env production
+   ```
 
-| 項目       | 內容                                                                         |
-| ---------- | ---------------------------------------------------------------------------- |
-| 課程與場次 | 課程 JSON 編輯、匯入／匯出；每次上課保留教材快照                             |
-| 教師與學生 | 分開的操作介面；班級 QR Code；學生以班級＋座號＋識別碼登入，教師可重發識別碼 |
-| IRS        | 單選、多選、量尺、短答；教師控制開放與結果揭露                               |
-| 教學簡報   | 四種視覺化版型，可加上隔離執行的自訂 HTML                                    |
-| 課堂工具   | 白板與筆跡保存、雷射筆、聚光燈、不重複抽籤、後端裁決搶答                     |
-| 資料保存   | 課程、場次、作答；課程分享檔與教師備份分開                                   |
-| AI         | 教師發起的課程邏輯檢視及回答整理；秘密金鑰只留在 Worker                      |
-| 接手文件   | 課程 schema、HTML bridge、API 契約、可複製的 agent 提示詞                    |
+3. 部署：
 
-v0.1 使用 **每 2 秒輪詢**同步課堂，不宣稱已接好 Supabase 原生 Realtime。JSON 課程編輯器是第一版教材製作介面；自由拖曳排版、多人共同編輯、影音上傳、真正匿名問卷與自動健康診斷不在本版範圍。詳細證據與尚未驗證項目見 [驗收紀錄](docs/VALIDATION.md)。
+   ```sh
+   npm run deploy
+   ```
 
-## 架構
+4. 用「帳號＝你的 Cloudflare 信箱、密碼＝11235813」登入。**第一次登入後立刻修改密碼**（設定 → 教師密碼）。
 
-```mermaid
-flowchart LR
-  T[教師介面] --> W[Cloudflare Worker /api]
-  S[學生介面] --> W
-  P[教師投影介面] --> W
-  W --> A[Supabase Auth]
-  W --> D[Supabase Postgres]
-  W --> I[選用 AI 供應商]
-  F[Cloudflare 靜態資產] --> T
-  F --> S
-```
+5. 在「設定 → AI 批改」輸入 API key。預設為 OpenAI `gpt-6-luna`，也可改用 Gemini、Claude 或其他 OpenAI 相容 API。
 
-Cloudflare 同時提供前端資產及 API；Supabase 保存正式環境資料。瀏覽器透過同網域 API 操作，AI key 和資料庫管理金鑰不會打包到前端。每位老師／學校自行部署，管理自己的資料與費用。
+**資料存放位置**：課堂資料、作答照片與 API key 都存在 Cloudflare Durable Object。詳見 [部署指南](docs/DEPLOYMENT.md)，含免費額度與費用估算。
 
-## 請把這些文件交給你的 agent
+## 教材怎麼做
 
-- **登入授權後讓 agent 接手：** [Supabase 最簡設定流程](docs/SUPABASE-AGENT-SETUP.md)。你負責帳號登入與選定專案，agent 負責建表、權限、設定及驗證；不用手動貼 SQL。
-- **只想填教材：** [教材接手提示詞](docs/AGENT-PROMPTS.md#提示詞一填入自己的教材)
-- **準備正式部署：** [部署接手提示詞](docs/AGENT-PROMPTS.md#提示詞二設定並部署到自己的帳號)、[部署指南](docs/DEPLOYMENT.md)
-- **新增互動頁：** [教材格式](docs/AUTHORING.md)、[HTML 擴充接口](docs/HTML-BRIDGE.md)
-- **維護與備份：** [架構與 API](docs/ARCHITECTURE.md)、[備份／還原](docs/BACKUP.md)、[隱私與安全](docs/SECURITY.md)
-- **上課前：** [老師一頁指南](docs/TEACHER-QUICKSTART.md)、[大觸控螢幕與 iPad 驗收](docs/DEVICE-CHECKLIST.md)
-- **看程式前：** [AGENTS.md](AGENTS.md)
+**正式教材由 agent 在專案裡製作與修改：**
 
-### 想直接交給 agent？貼這段就好
+1. 依 [docs/AUTHORING.md](docs/AUTHORING.md) 在 `content/lessons/` 新增或修改 JSON。重複使用的視覺化可寫成產生器，例如 `scripts/lessons-src/g8-2-2.mjs`。
+2. 執行 `npm run lessons` 驗證格式，並取得認知科學檢查提醒。
+3. 啟動或部署後，教師登入就會在「我的課程」看到標示「專案教材」的課程。
 
-```text
-請依這個專案的 AGENTS.md 和 docs/SUPABASE-AGENT-SETUP.md，
-引導我完成 Supabase 官方 OAuth 授權，接著接手本專案的資料庫設定與驗證。
-請先確認我的目標專案與教師信箱；沒有專案時，協助我選擇組織、區域並確認費用。
-我授權你在指定專案建立此框架必要的資料表、權限及設定，
-並在我登入 Cloudflare 後，完成本專案部署與師生流程驗收。
-優先沿用已連線的工具，不要要求我手動貼 SQL 或把金鑰貼到聊天。
-如有只能由我完成的登入、密碼或 Secret 安全輸入，帶我到對應介面，完成後繼續。
-AI 先不啟用。保留現有資料，不重設或刪除其他專案內容。
-最後提供網站連結、已完成項目及尚未驗證項目。
-```
+網站上的「AI 快速草稿」只是實驗功能，產出的草稿存在網站上，不會回寫到專案。
 
-Supabase 管理帳號的 OAuth 是授權 agent 建置服務；課堂教師帳號另外使用 Supabase Auth。現有 MCP 不提供伺服器 secret key，若沒有可安全傳遞金鑰的已授權工具，你只需在 Cloudflare Secret 介面輸入一次。詳細步驟與替代方式見上方指南。
+目前內建的課程：
+
+| 課程 | 頁數 | 檔案 |
+| ---- | ---- | ---- |
+| 八上 1-1 和的平方公式 | 10 | `content/lessons/g8-1-1-sum-square.json` |
+| 八上 2-2 根式的運算（1）根式的乘除 | 12 | `content/lessons/g8-2-2a.json` |
+| 八上 2-2 根式的運算（2）最簡根式與分母有理化 | 13 | `content/lessons/g8-2-2b.json` |
+| 八上 2-2 根式的運算（3）根式的加減與混合運算 | 13 | `content/lessons/g8-2-2c.json` |
+| 八上 2-2 根式的運算（4）乘法公式與根式 | 12 | `content/lessons/g8-2-2d.json` |
+
+**課本截圖**：放在 `public/lesson-assets/`。截圖有著作權，所以**不進 git**，只放在專案資料夾，部署時會一起上傳。重製方式見 `scripts/textbook-crops/`。
 
 ## 開發與測試
 
 ```sh
 npm run check
-npx playwright install chromium
-npm run test:e2e
+PW_CHANNEL=msedge npm run test:e2e
 ```
 
-`check` 執行 TypeScript 檢查、Node 測試及正式建置。端對端測試啟動本機示範環境，檢查真實瀏覽器流程；不需要雲端帳號或 AI 額度。測試結果不能替代部署後的跨裝置與雲端權限驗收。
+- `npm run check`：課程驗證、TypeScript 型別檢查、單元測試與建置。
+- `npm run test:e2e`：用獨立的師生瀏覽器跑完整課堂流程，並檢查每份課程在投影機、iPad、手機上都不用捲動頁面。若已安裝 Edge，加上 `PW_CHANNEL=msedge` 就不必另外下載瀏覽器。
+
+## 文件
+
+- [教材格式與認知科學設計](docs/AUTHORING.md)
+- [部署](docs/DEPLOYMENT.md)
+- [架構](docs/ARCHITECTURE.md)
+- [安全](docs/SECURITY.md)
+- [驗收紀錄](docs/VALIDATION.md)
+- [教師一頁指南](docs/TEACHER-QUICKSTART.md)
+- [HTML 擴充](docs/HTML-BRIDGE.md)
+- [給 agent 的規則](AGENTS.md)
 
 ## 授權
 
-程式及本專案自行撰寫的虛構示範內容採 [MIT](LICENSE)。使用者自行加入的教材、圖片、影片及引用來源需另外確認授權；請勿把學生資料、憑證或沒有再散布權限的教材放進公開 GitHub。
+程式採 [MIT](LICENSE)。課本截圖與教材內容的著作權屬原出版社。請勿把含課本截圖或學生資料的版本放到公開的 GitHub repository 或公開網站。

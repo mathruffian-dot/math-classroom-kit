@@ -1,75 +1,188 @@
-# 教材格式與填課方式
+# 教材格式與認知科學設計
 
-格式來源是 [`shared/types.ts`](../shared/types.ts) 與 [`lesson.schema.json`](../schemas/lesson.schema.json)。課程匯入後仍由後端驗證，不能靠前端 JSON 編輯器繞過限制。
+教材是 `content/lessons/*.json`（`schemaVersion: 1`）。最終驗證依據是 `worker/validation.ts`，執行 `npm run lessons` 即可檢查。
 
-## 最小可用課程
+## 一、認知科學設計流程
+
+每份課程依下列順序排頁。每頁的 `phase` 填寫該頁的階段名稱：
+
+| 階段（phase） | 目的 | 常用 IRS |
+| --- | --- | --- |
+| 提取練習 | 先喚起需要的舊知識（retrieval practice） | `numeric` 多小題 |
+| 預測 | 講解前先猜，讓迷思浮現（pretesting） | `single`，先公布統計、暫不公布答案 |
+| 具體操作 | 拖拉、切割、移動圖形（CRA 的具體階段） | `manipulate` |
+| 圖式連結 | 圖和式用同色對應；逐步揭示，目前步驟發光 | `numeric`／`single` |
+| 工作範例 | 先讓學生試算，再逐步講解 | `numeric`（就是例題本身） |
+| 半完成範例 | 只留關鍵步驟讓學生完成（fading） | `numeric` |
+| 隨堂練習 | 課本隨堂，加上換數字的同類題，共 1–3 小題 | `numeric` + `items` |
+| 錯誤分析 | 找錯、更正並說明理由（自我解釋） | `canvas` + `rubric` |
+| 交錯練習 | 混合不同類型的題目 | `multiple` |
+| 出場券／後設認知 | 用自己的話說明、自評 | `short` + `rubric`、`scale` |
+
+**檢查表**（`npm run lessons` 會自動提醒）：
+
+- 每頁一個重點，內文 90 字以內。
+- 每頁都有 IRS。
+- 有步驟揭示的頁面，要設定 `step`／`focus`，讓目前步驟發光。
+- `canvas`、`short` 題要附評量規準（rubric），並寫好參考解答。
+- 每頁標示 `source`（課本頁碼）；自編題目也要註明是自編。
+
+## 二、頁面（slide）欄位
 
 ```json
 {
-  "schemaVersion": 1,
-  "id": "my-health-lesson",
-  "title": "資訊判讀練習",
-  "description": "以虛構情境練習閱讀資訊與說明理由。",
-  "subject": "健康教育",
-  "duration": 45,
-  "objectives": ["能說明判讀資訊前要確認的線索"],
-  "slides": [
-    {
-      "id": "observe",
-      "title": "先觀察，再判斷",
-      "eyebrow": "情境練習",
-      "body": "小禾看到一則沒有標明出處的健康貼文。他可以先做什麼？",
-      "bullets": ["看看作者與出處", "確認發布時間", "比較可靠來源"],
-      "visual": "cards",
-      "source": "本專案虛構示範；正式內容請由教師依教材核對。",
-      "notes": "這是資訊判讀示範，不評估學生個人健康狀況。",
-      "activity": {
-        "id": "observe-choice",
-        "type": "single",
-        "prompt": "哪個行動最能幫助小禾確認資訊來源？",
-        "options": ["追查原始出處", "只看按讚數", "先轉傳給全班"],
-        "correct": [0],
-        "explanation": "原始出處能提供後續核對的線索。",
-        "sensitive": false,
-        "aiAllowed": false
-      }
-    }
-  ]
+  "id": "a-ex1",
+  "phase": "工作範例",
+  "eyebrow": "04 / 例 1 根式的乘法",
+  "title": "√a × √b ＝ √(a×b)",
+  "body": "長 √a、寬 √b 的長方形，面積是 √(ab)。",
+  "source": "對應課本 2-2 p.74",
+  "notes": "教師備註，學生看不到",
+  "figures": [{ "src": "g8-2-2/ex1.png", "alt": "課本 p.74 例 1 題目" }],
+  "interactive": { "...": "見第三節" },
+  "activity": { "...": "見第四節" }
 }
 ```
 
-## 欄位對照
+**數學式寫法**
 
-| 層級 | 必填 | 選填 |
+- 用 `$…$` 包住 LaTeX，例如 `$\frac{4\sqrt{5}}{15}$`。
+- 純文字也會自動排版成課本樣式：`√3 × (−2√5)`、`4/(3√5)`、`(√5+√3)/2`、`(a+b)²`。
+- 自動排版會保留原本寫的括號、×、÷。若要精準控制（例如分數係數），請寫 LaTeX。
+- 在 JS 產生器裡寫 LaTeX 時用 ``String.raw`…` ``，避免反斜線被轉義。
+
+**課本截圖**
+
+- `figures` 最多 3 張，路徑格式是「課程資料夾/檔名.png」，檔案放在 `public/lesson-assets/`。
+- 截圖會排成一列顯示在頁面上方，點一下可以放大。
+- 只截最重要的區塊（題目框與附圖），不要截整頁。
+- 只有已登入的師生看得到截圖，而且截圖不進 git。
+
+## 三、可操作視覺化（interactive）
+
+**座標**：使用數學座標（y 向上）。幾何圖形請加上 `aspect: "equal"`。
+
+```json
+{
+  "view": { "xMin": -1, "xMax": 12, "yMin": -1, "yMax": 12, "grid": 1, "axes": false, "aspect": "equal" },
+  "params": [
+    { "id": "a", "label": "$a$", "min": 1, "max": 8, "step": 1, "value": 5 },
+    { "id": "cut", "label": "切割線", "kind": "toggle", "value": 0 }
+  ],
+  "points": [{ "id": "P", "x": 2, "y": 3, "snap": 1, "label": "P" }],
+  "shapes": [
+    { "type": "rect", "x": 0, "y": 0, "w": "a", "h": "a", "fill": "rgba(123,97,255,.25)", "color": "#7b61ff", "toggle": "cut" },
+    { "type": "text", "x": "a/2", "y": "a/2", "text": "$a^2={a^2}$", "show": "cut" },
+    { "type": "brace", "points": [[0, "a"], ["a", "a"]], "text": "$\\sqrt{a*2}$" },
+    { "type": "segment", "points": [[0, 0], ["Px", "Py"]], "step": 1 },
+    { "type": "function", "expr": "a*x+1" }
+  ],
+  "readouts": [{ "label": "面積 $a^2$", "expr": "a^2", "digits": 2 }],
+  "steps": ["第 0 步說明", "第 1 步說明"],
+  "caption": "圖說"
+}
+```
+
+**圖形類型（type）**
+
+| type | 用途 |
+| --- | --- |
+| `function` | 函數圖形，`expr` 是 y 關於 x 的式子 |
+| `segment` | 線段 |
+| `line` | 直線 |
+| `polygon` | 多邊形 |
+| `circle` | 圓 |
+| `rect` | 長方形 |
+| `text` | 文字 |
+| `point` | 點 |
+| `angle` | 角（三個點，中間是頂點） |
+| `brace` | 尺寸標示線，畫在 p1→p2 方向的左側（外側） |
+
+**運算式**
+
+- 可用：`+ - * / ^`、比較運算、`&& || !`、`? :`。
+- 函數：`sqrt abs round min max floor ceil sin cos tan`（角度制）、`gcd mod`。
+- 點 P 的座標變數是 `Px`、`Py`。
+- 步驟揭示的變數是 `step`，從 0 開始。
+
+**文字樣板**
+
+- `{運算式}` 會代入即時數值。
+- 在 `$…$` 裡也可以用，例如 `$\sqrt{a*b}$` 會變成 `√21`。
+- 不能解析的大括號（例如 `\text{…}`）會原樣保留。
+
+**步驟聚焦**
+
+- 有 `steps` 時，目前步驟相關的圖形發光，其他圖形反暗。
+- 圖形預設在自己出現的那一步（`step`）發光。
+- 要在其他步驟也發光，加上 `"focus": [0, 4]`。
+
+**其他屬性**
+
+| 屬性 | 作用 |
+| --- | --- |
+| `show` | 條件為假時隱藏圖形 |
+| `toggle` | 點擊圖形可切換某個開關參數 |
+| `step` | 第幾步之後才出現 |
+
+**重複使用的樣板**：見 `scripts/lessons-src/viz.mjs`，包括：
+
+- 根式長度積木
+- 長方形面積乘法
+- 數線比較大小
+- 正方形切割化簡
+- 對角線上數線
+- 分母有理化
+- 同類方根積木
+- 分配律面積
+- 和的平方
+- 平方差
+- 逐步解題
+
+## 四、IRS 題型（activity）
+
+| type | 必要欄位 | 說明 |
 | --- | --- | --- |
-| 課程 | `schemaVersion`、`id`、`title`、`description`、`subject`、`duration`、`objectives`、`slides` | `updatedAt` |
-| 投影片 | `id`、`title`、`body` | `eyebrow`、`bullets`、`visual`、`activity`、`notes`、`source`、`customHtml` |
-| 活動 | `id`、`type`、`prompt` | `options`、`correct`、`min`、`max`、`minLabel`、`maxLabel`、`explanation`、`sensitive`、`aiAllowed` |
+| `single`／`multiple` | `options`（可加 `correct`） | 選擇題 |
+| `scale` | `min`、`max` | 自評量尺 |
+| `numeric` | `answer`，或 `items`（1–3 題） | 答案可寫分數或根式。加上 `form: "simplest-radical"` 時，數值對但沒化簡會判錯，並提示「還沒化成最簡根式」 |
+| `manipulate` | `check`（例如 `"a==6 && b==2"`），可加 `record` | 學生操作同一頁的圖後送出，伺服器依 `check` 判定對錯 |
+| `canvas` | `rubric`（必填），可加 `canvas: "grid"／"axes"／"dots"／"blank"`、`allowPhoto` | 手寫、作圖或拍照作答 |
+| `short` | 可加 `rubric` | 短答 |
 
-`visual` 接受 `balance`、`steps`、`cards`、`bars`，選擇適合教學結構的樣式。`duration` 為分鐘。`source` 可記錄書名、版次、頁碼或公開網址；網頁只顯示引用文字，不保證已查核來源。
+**評量規準（rubric）**
 
-| 活動型別 | 設定 | 提交值 |
-| --- | --- | --- |
-| `single` | `options`；需要標準答案時設 `correct: [索引]` | 單一數字，例如 `0` |
-| `multiple` | `options`；需要標準答案時設 `correct: [索引, 索引]` | 索引陣列，例如 `[0, 2]` |
-| `scale` | `min`、`max`；可設 `minLabel`、`maxLabel` | 範圍內數字 |
-| `short` | 開放式 `prompt` | 字串 |
+```json
+{
+  "criteria": [
+    {
+      "id": "find",
+      "label": "找出錯誤",
+      "points": 2,
+      "levels": [
+        { "score": 0, "description": "未指出錯誤" },
+        { "score": 1, "description": "只說錯了" },
+        { "score": 2, "description": "明確指出漏了 2ab" }
+      ]
+    }
+  ],
+  "reference": "參考解答（公布前不會給學生）",
+  "graderNotes": "可接受的替代做法"
+}
+```
 
-選項索引從 **0** 開始。單選與多選也可作為沒有標準答案的意見調查；量尺不應把個人態度自動判成對錯。`sensitive` 用於敏感題提示與 AI 排除，`aiAllowed` 只表示此活動是否允許納入教師 AI 摘要，仍受後端限制。
+**批改分兩層**
 
-## 設計與版本
+- **第 1 層（預設）**：只判斷對錯，快又省。
+- **第 2 層**：教師開啟「依規準給分＋紅筆批註」後，AI 依規準逐項給分，並在學生作答圖上用紅筆批註（向量疊圖，原圖不更動）。
 
-1. 一頁聚焦一個操作或一個討論問題；內容多時拆頁。
-2. 用虛構角色、情境和答案展示功能；正式健康知識需教師核對教材與來源。
-3. 短答避免誘導學生填姓名、電話、疾病或其他私密資料。敏感題保留跳過方式。
-4. 教師備註與正解放在對應欄位，不藏在 `body`、`customHtml` 或公開素材中。
-5. 同一課程中投影片 ID 與活動 ID 不重複。修改既有題意時換活動 ID。
-6. 開課時建立課程快照；修改課程後，既有場次使用原版本，新場次才使用新版。
+兩層的結果都要經教師覆核後再發回學生。
 
-## 匯入與分享
+## 五、交給 agent 的提示詞
 
-教師介面匯入課程 JSON；檢查標題、目標、各頁內容、選項及答案後儲存。匯出課程 JSON 適合分享教材，**不包含學生作答**。作答匯出與教師完整備份是另一種資料，詳見 [備份說明](BACKUP.md)。
-
-課程匯入檔案約以 1 MiB 為限，且受各欄位與最多 60 頁的限制。大量內嵌圖片／HTML 可能超限；將教材拆成適合一堂課的單元。`bars` 的內建數字是版型示意，不能當作健康統計或學生真實數據；真實作答分布使用 IRS 統計。
-
-自訂圖像、影片及可執行視覺化可透過擴充框架加入。本版沒有完整素材上傳／Storage 管理介面；`customHtml` 預設禁止網路，可使用內嵌 SVG、Canvas 或 data URL 圖片。[HTML bridge 規格](HTML-BRIDGE.md)
+```text
+請依 math-classroom-kit/AGENTS.md 與 docs/AUTHORING.md，把〈年級 單元〉做成數感課堂課程：
+先盤點課本每個例題與隨堂（頁碼、題目、教用版答案），截取重點課本圖到 public/lesson-assets/，
+依認知科學流程排頁，每頁都有對應的 IRS，隨堂改成 numeric items（課本題＋換數字題，最多 3 題），
+錯誤分析用 canvas＋評量規準。完成後執行 npm run lessons 與 npm run check，並回報頁數與提醒。
+```

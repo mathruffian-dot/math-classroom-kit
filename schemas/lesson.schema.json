@@ -1,64 +1,416 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Health Classroom Kit lesson v1",
-  "description": "教材交換格式。活動 ID 與投影片 ID 的跨項目唯一性、答案索引上限及量尺 max > min 由 Worker 額外驗證。",
+  "title": "Math Classroom Kit lesson v1",
+  "description": "教材交換格式（摘要版）。完整規則與跨欄位檢查以 worker/validation.ts 為準，請執行 npm run lessons 驗證。",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "id", "title", "description", "subject", "duration", "objectives", "slides"],
+  "required": [
+    "schemaVersion",
+    "id",
+    "title",
+    "description",
+    "subject",
+    "duration",
+    "objectives",
+    "slides"
+  ],
   "properties": {
-    "schemaVersion": { "const": 1 },
-    "id": { "$ref": "#/$defs/id" },
-    "title": { "type": "string", "minLength": 1, "maxLength": 200 },
-    "description": { "type": "string", "maxLength": 3000 },
-    "subject": { "type": "string", "maxLength": 100 },
-    "duration": { "type": "integer", "minimum": 1, "maximum": 600 },
-    "objectives": { "$ref": "#/$defs/texts" },
-    "slides": { "type": "array", "minItems": 1, "maxItems": 60, "items": { "$ref": "#/$defs/slide" } },
-    "updatedAt": { "type": "string", "format": "date-time", "description": "儲存時由後端重設。" }
+    "schemaVersion": {
+      "const": 1
+    },
+    "id": {
+      "$ref": "#/$defs/id"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 3000
+    },
+    "subject": {
+      "type": "string",
+      "maxLength": 100
+    },
+    "duration": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 600
+    },
+    "objectives": {
+      "$ref": "#/$defs/texts"
+    },
+    "slides": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 60,
+      "items": {
+        "$ref": "#/$defs/slide"
+      }
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "儲存時由後端重設。"
+    }
   },
   "$defs": {
     "id": {
-      "type": "string", "minLength": 1, "maxLength": 100,
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
       "pattern": "^[a-zA-Z0-9_-]+$",
-      "not": { "enum": ["__proto__", "constructor", "prototype"] }
+      "not": {
+        "enum": [
+          "__proto__",
+          "constructor",
+          "prototype"
+        ]
+      }
     },
-    "texts": { "type": "array", "maxItems": 20, "items": { "type": "string", "maxLength": 3000 } },
+    "texts": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {
+        "type": "string",
+        "maxLength": 3000
+      }
+    },
     "slide": {
-      "type": "object", "additionalProperties": false,
-      "required": ["id", "title", "body"],
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "body"
+      ],
       "properties": {
-        "id": { "$ref": "#/$defs/id" },
-        "title": { "type": "string", "minLength": 1, "maxLength": 300 },
-        "eyebrow": { "type": "string", "maxLength": 5000 },
-        "body": { "type": "string", "maxLength": 10000 },
-        "bullets": { "$ref": "#/$defs/texts" },
-        "visual": { "enum": ["balance", "steps", "cards", "bars"] },
-        "activity": { "$ref": "#/$defs/activity" },
-        "notes": { "type": "string", "maxLength": 5000 },
-        "source": { "type": "string", "maxLength": 5000 },
-        "customHtml": { "type": "string", "maxLength": 40000 }
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300
+        },
+        "eyebrow": {
+          "type": "string",
+          "maxLength": 5000
+        },
+        "body": {
+          "type": "string",
+          "maxLength": 10000
+        },
+        "bullets": {
+          "$ref": "#/$defs/texts"
+        },
+        "visual": {
+          "enum": [
+            "balance",
+            "steps",
+            "cards",
+            "bars"
+          ]
+        },
+        "activity": {
+          "$ref": "#/$defs/activity"
+        },
+        "notes": {
+          "type": "string",
+          "maxLength": 5000
+        },
+        "source": {
+          "type": "string",
+          "maxLength": 5000
+        },
+        "customHtml": {
+          "type": "string",
+          "maxLength": 40000
+        },
+        "phase": {
+          "type": "string",
+          "maxLength": 40,
+          "description": "認知設計階段，例如 提取練習、工作範例、隨堂練習"
+        },
+        "interactive": {
+          "type": "object",
+          "description": "可操作視覺化，格式見 docs/AUTHORING.md 第三節"
+        },
+        "figures": {
+          "type": "array",
+          "maxItems": 3,
+          "items": {
+            "type": "object",
+            "required": [
+              "src",
+              "alt"
+            ],
+            "properties": {
+              "src": {
+                "type": "string",
+                "pattern": "^[a-z0-9][a-z0-9-]*/[A-Za-z0-9._-]+\\.(png|jpe?g|webp)$"
+              },
+              "alt": {
+                "type": "string"
+              },
+              "caption": {
+                "type": "string"
+              }
+            }
+          }
+        }
       }
     },
     "activity": {
-      "type": "object", "additionalProperties": false,
-      "required": ["id", "type", "prompt"],
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "prompt"
+      ],
       "properties": {
-        "id": { "$ref": "#/$defs/id" },
-        "type": { "enum": ["single", "multiple", "scale", "short"] },
-        "prompt": { "type": "string", "minLength": 1, "maxLength": 3000 },
-        "options": { "type": "array", "minItems": 2, "maxItems": 12, "items": { "type": "string", "maxLength": 3000 } },
-        "correct": { "type": "array", "uniqueItems": true, "items": { "type": "integer", "minimum": 0, "maximum": 11 } },
-        "min": { "type": "integer", "minimum": 0, "maximum": 99, "default": 1 },
-        "max": { "type": "integer", "minimum": 1, "maximum": 100, "default": 5 },
-        "minLabel": { "type": "string", "maxLength": 100 },
-        "maxLabel": { "type": "string", "maxLength": 100 },
-        "explanation": { "type": "string", "maxLength": 4000 },
-        "sensitive": { "type": "boolean", "default": false },
-        "aiAllowed": { "type": "boolean", "default": false }
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "type": {
+          "enum": [
+            "single",
+            "multiple",
+            "scale",
+            "short",
+            "numeric",
+            "canvas",
+            "manipulate"
+          ]
+        },
+        "prompt": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 3000
+        },
+        "options": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 12,
+          "items": {
+            "type": "string",
+            "maxLength": 3000
+          }
+        },
+        "correct": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 11
+          }
+        },
+        "min": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 99,
+          "default": 1
+        },
+        "max": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 5
+        },
+        "minLabel": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "maxLabel": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "explanation": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "sensitive": {
+          "type": "boolean",
+          "default": false
+        },
+        "aiAllowed": {
+          "type": "boolean",
+          "default": false
+        },
+        "answer": {
+          "type": "string",
+          "description": "numeric 標準答案，可寫分數或根式，如 2√3、√6/3"
+        },
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 3,
+          "items": {
+            "type": "object",
+            "required": [
+              "prompt",
+              "answer"
+            ],
+            "properties": {
+              "prompt": {
+                "type": "string"
+              },
+              "answer": {
+                "type": "string"
+              },
+              "tolerance": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        "form": {
+          "enum": [
+            "simplest-radical"
+          ]
+        },
+        "tolerance": {
+          "type": "number",
+          "minimum": 0
+        },
+        "unit": {
+          "type": "string",
+          "maxLength": 20
+        },
+        "check": {
+          "type": "string",
+          "description": "manipulate 判斷式，例如 a==6 && b==2"
+        },
+        "record": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "canvas": {
+          "enum": [
+            "blank",
+            "grid",
+            "axes",
+            "dots"
+          ]
+        },
+        "allowPhoto": {
+          "type": "boolean"
+        },
+        "rubric": {
+          "type": "object",
+          "required": [
+            "criteria"
+          ],
+          "properties": {
+            "criteria": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 8,
+              "items": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "label",
+                  "points",
+                  "levels"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "label": {
+                    "type": "string"
+                  },
+                  "points": {
+                    "type": "integer"
+                  },
+                  "levels": {
+                    "type": "array",
+                    "minItems": 2,
+                    "maxItems": 6,
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "score",
+                        "description"
+                      ],
+                      "properties": {
+                        "score": {
+                          "type": "integer"
+                        },
+                        "description": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "reference": {
+              "type": "string"
+            },
+            "graderNotes": {
+              "type": "string"
+            }
+          }
+        }
       },
       "allOf": [
-        { "if": { "properties": { "type": { "enum": ["single", "multiple"] } } }, "then": { "required": ["options"] } },
-        { "if": { "properties": { "type": { "const": "single" } } }, "then": { "properties": { "correct": { "minItems": 1, "maxItems": 1 } } } }
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "enum": [
+                  "single",
+                  "multiple"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "options"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "single"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "correct": {
+                "minItems": 1,
+                "maxItems": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "canvas"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "rubric"
+            ]
+          }
+        }
       ]
     }
   }
