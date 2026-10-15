@@ -416,6 +416,54 @@ async function cookieSessionId(request: Request, state: State): Promise<string |
   if (!id || !signature || (await hash(id, state.secret)) !== signature) return null;
   return id;
 }
+/* ───────────── 即時連線（WebSocket） ───────────── */
+/** 每條即時連線記住的身分；存在 WebSocket 附件中，DO 休眠後仍可還原。 */
+export interface LiveTicket {
+  token: string;
+  userId: string;
+  role: User['role'];
+  classId?: string;
+  sessionId?: string;
+  /** 上次送出內容的雜湊，內容沒變就不重送。 */
+  sent?: string;
+}
+function activeSessionFor(state: State, classId: string | undefined): StoredSession | undefined {
+  return Object.values(state.sessions)
+    .filter((s) => s.session.classId === classId && !s.session.ended)
+    .sort((a, b) => b.session.createdAt.localeCompare(a.session.createdAt))[0];
+}
+/** 建立連線前驗證 cookie 與課堂權限（只讀，不改狀態）。 */
+export async function liveTicket(request: Request, state: State): Promise<LiveTicket> {
+  const token = await cookieSessionId(request, state);
+  const login = token ? state.logins[token] : undefined;
+  assert(token && login && login.expires > Date.now(), '請先登入', 401);
+  const user = login.user;
+  const ticket: LiveTicket = { token, userId: user.id, role: user.role, classId: user.classId };
+  if (user.role === 'teacher') {
+    ticket.sessionId = identifier(new URL(request.url).searchParams.get('sessionId'));
+    const s = state.sessions[ticket.sessionId];
+    assert(s && s.ownerId === user.id, '找不到課堂', 404);
+  }
+  return ticket;
+}
+/**
+ * 依連線身分算出要推送的內容：教師是指定課堂的完整檢視，學生是自己班級目前課堂的學生檢視。
+ * 回傳 null 表示登入已失效，應關閉連線。
+ */
+export function liveView(state: State, t: LiveTicket): SessionView | { session: null } | null {
+  const login = state.logins[t.token];
+  if (!login || login.expires < Date.now() || login.user.id !== t.userId) return null;
+  if (t.role === 'teacher') {
+    const s = state.sessions[t.sessionId || ''];
+    if (!s || s.ownerId !== login.user.id) return null;
+    s.grades ||= {};
+    return sessionView(state, s, login.user);
+  }
+  const s = activeSessionFor(state, login.user.classId);
+  if (!s) return { session: null };
+  s.grades ||= {};
+  return sessionView(state, s, login.user);
+}
 async function authenticate(
   request: Request,
   state: State,

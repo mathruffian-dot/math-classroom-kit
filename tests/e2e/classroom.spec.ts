@@ -95,6 +95,18 @@ test('teacher and students complete numeric, manipulate and handwritten answers 
   await fitsViewport(ipad.page);
   await fitsViewport(phone.page);
 
+  // 即時連線：學生不再每 2 秒輪詢；老師翻頁後由伺服器推送。
+  await expect(ipad.page.locator('#sync-status.live')).toBeVisible();
+  await expect(teacher.page.locator('#sync-status.live')).toBeVisible();
+  const polls: string[] = [];
+  ipad.page.on('request', (r) => {
+    if (/\/api\/(student\/session|sessions\/[\w-]+)$/.test(new URL(r.url()).pathname)) polls.push(r.url());
+  });
+  await goSlide(teacher.page, 2);
+  await expect(ipad.page.locator('.room-progress span').first()).toHaveText('2');
+  await ipad.page.waitForTimeout(5000);
+  expect(polls.length, 'student should get slide changes by push, not polling').toBe(0);
+
   // 操作題：拖滑桿到 a=6、b=2 後送出。
   await goSlide(teacher.page, 3);
   await openActivity(teacher.page);

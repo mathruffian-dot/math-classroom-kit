@@ -8,7 +8,7 @@ import { pathToFileURL } from 'node:url';
 
 const dir=await mkdtemp(join(tmpdir(),'classroom-backend-'));
 await build({entryPoints:[resolve('worker/app.ts'),resolve('worker/storage.ts'),resolve('worker/index.ts'),resolve('worker/ai.ts'),resolve('shared/expr.ts')],outdir:dir,bundle:true,platform:'node',format:'esm',outExtension:{'.js':'.mjs'},logLevel:'silent'});
-const {handleApi}=await import(pathToFileURL(join(dir,'worker','app.mjs')).href);
+const {handleApi,liveTicket,liveView}=await import(pathToFileURL(join(dir,'worker','app.mjs')).href);
 const {SupabaseStore,DurableStore,MAX_SNAPSHOT_BYTES}=await import(pathToFileURL(join(dir,'worker','storage.mjs')).href);
 const {ClassroomDurableObject}=await import(pathToFileURL(join(dir,'worker','index.mjs')).href);
 const {aggregateVotes,normalizeGrade,extractJson,isReasoning}=await import(pathToFileURL(join(dir,'worker','ai.mjs')).href);
@@ -31,7 +31,7 @@ function fixture(env={APP_MODE:'demo'}) {
   const store={async read(){return data&&structuredClone(data);},async write(next){data=structuredClone(next);}};
   const cookies=new Map();
   return {
-    get data(){return data;},vaultMap,
+    get data(){return data;},vaultMap,cookie(user){return cookies.get(user);},
     async call(path,method='GET',body,user='teacher',origin='http://localhost') {
       const headers={'Origin':origin};
       if(cookies.has(user))headers.Cookie=cookies.get(user);
@@ -426,4 +426,26 @@ test('plain textbook notation converts to LaTeX that keeps radicals, fractions, 
   for(const [input,want] of Object.entries(cases))assert.equal(expr.answerToTex(input),want,input);
   assert.equal(expr.answerToTex('不是算式'),null);
   assert.equal(expr.evaluate('(2+3)÷5'),1,'÷ still evaluates as division');
+});
+
+test('live push views are scoped per user and stop after logout or wrong origin data',async()=>{
+  const {f,lesson,session}=await setup();
+  await f.call('/api/login','POST',{role:'student',classCode:'DEMO801',seat:2,code:'DEMO02'},'second');
+  await openSlide(f,session,lesson,'worked-41');
+  await f.call(`/api/sessions/${session.id}/answers`,'POST',{submissionId:'lv1',activityId:'worked-41',value:'1681'},'student');
+  const req=(who,query='')=>new Request(`http://localhost/api/live${query}`,{headers:{Cookie:f.cookie(who),Origin:'http://localhost'}});
+  const tTeacher=await liveTicket(req('teacher',`?sessionId=${session.id}`),f.data);
+  const tStudent=await liveTicket(req('student'),f.data);
+  const tSecond=await liveTicket(req('second'),f.data);
+  assert.equal(liveView(f.data,tTeacher).answers.length,1);
+  assert.equal(liveView(f.data,tStudent).answers.length,1,'student sees own answer');
+  const other=liveView(f.data,tSecond);
+  assert.equal(other.answers.length,0,'other students never receive it');
+  assert(!JSON.stringify(other).includes('"answer":"1681"'),'reference answer hidden before results');
+  await assert.rejects(()=>liveTicket(new Request('http://localhost/api/live'),f.data),/請先登入/,'no cookie, no connection');
+  await assert.rejects(()=>liveTicket(req('teacher','?sessionId=nope'),f.data),/找不到課堂/);
+  await f.call('/api/logout','POST',{},'second');
+  assert.equal(liveView(f.data,tSecond),null,'logged-out sockets get closed');
+  await f.call(`/api/sessions/${session.id}/control`,'POST',{action:'end'});
+  assert.deepEqual(liveView(f.data,tStudent),{session:null},'students return to the waiting room when class ends');
 });

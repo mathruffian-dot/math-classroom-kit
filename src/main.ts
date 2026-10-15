@@ -208,7 +208,7 @@ async function renderSettings() {
   shell(
     'settings',
     '設定',
-    `<div class="settings-grid"><section class="panel settings-panel"><h2>${icon('key')}AI 批改與轉課程</h2><p class="muted">API key 只存在伺服器端（Cloudflare Durable Object），不會傳到學生裝置、不進備份。</p><form id="ai-form"><label>供應商<select name="provider">${providers.map(([v, n]) => `<option value="${v}" ${ai?.provider === v ? 'selected' : ''}>${n}</option>`).join('')}</select></label><label>API 網址<input name="baseUrl" value="${esc(ai?.baseUrl || '')}" required></label><label>模型名稱<input name="model" value="${esc(ai?.model || '')}" required placeholder="需支援讀圖（vision）"></label><label>API key<input name="apiKey" type="password" autocomplete="off" placeholder="${ai?.keyHint ? `已設定 ${esc(ai.keyHint)}，留空則不變更` : '貼上你的 API key'}"></label><label>每日呼叫上限<input name="dailyLimit" type="number" min="1" max="5000" value="${ai?.dailyLimit || 200}"></label><p class="setting-status">${ai?.configured ? tag(`已啟用・${ai.source === 'env' ? '部署環境變數' : '教師設定'}・今日已用 ${ai.usedToday} 次`, 'green') : tag('尚未設定：批改與轉課程會使用模擬結果', 'warn')}</p><div class="actions"><button type="submit" class="btn primary">${icon('save')}<span>儲存 AI 設定</span></button>${ai?.source === 'teacher' ? btn('移除金鑰', 'clear-ai', 'quiet danger', 'trash') : ''}</div></form></section><section class="panel settings-panel"><h2>${icon('stamp')}批改節奏</h2><label>同時批改份數<select id="pref-concurrency">${[2, 4, 6, 8].map((n) => `<option ${n === concurrency ? 'selected' : ''}>${n}</option>`).join('')}</select></label><label>每份投票次數<select id="pref-votes"><option value="1" ${votes === 1 ? 'selected' : ''}>1 次（最快）</option><option value="3" ${votes === 3 ? 'selected' : ''}>3 次取共識（較準、費用 ×3）</option></select></label><p class="muted small-text">一班 30 份、同時 6 份時，單次投票約 1.5–3 分鐘可改完（視模型速度與供應商速率限制）。信心低於 0.7 或多次投票不一致的作答會標示「需覆核」。</p></section><section class="panel settings-panel"><h2>${icon('shield')}教師密碼</h2>${config.mode === 'supabase' ? '<p>Supabase 模式請在 Supabase Auth 修改密碼。</p>' : `<form id="password-form"><label>目前密碼<input name="current" type="password" autocomplete="current-password" required></label><label>新密碼（至少 8 字元）<input name="next" type="password" autocomplete="new-password" minlength="8" required></label><button type="submit" class="btn primary">${icon('save')}<span>修改密碼</span></button></form>`}</section><section class="panel settings-panel"><h2>${icon('screen')}部署資訊</h2><dl class="setting-list"><div><dt>模式</dt><dd>${modeBadge()}</dd></div><div><dt>教師帳號</dt><dd>${esc(user?.name || '')}</dd></div><div><dt>課堂同步</dt><dd>輪詢（作答中 2 秒、閒置 5 秒）</dd></div><div><dt>版本</dt><dd>${esc(config.version)}</dd></div></dl></section></div>`,
+    `<div class="settings-grid"><section class="panel settings-panel"><h2>${icon('key')}AI 批改與轉課程</h2><p class="muted">API key 只存在伺服器端（Cloudflare Durable Object），不會傳到學生裝置、不進備份。</p><form id="ai-form"><label>供應商<select name="provider">${providers.map(([v, n]) => `<option value="${v}" ${ai?.provider === v ? 'selected' : ''}>${n}</option>`).join('')}</select></label><label>API 網址<input name="baseUrl" value="${esc(ai?.baseUrl || '')}" required></label><label>模型名稱<input name="model" value="${esc(ai?.model || '')}" required placeholder="需支援讀圖（vision）"></label><label>API key<input name="apiKey" type="password" autocomplete="off" placeholder="${ai?.keyHint ? `已設定 ${esc(ai.keyHint)}，留空則不變更` : '貼上你的 API key'}"></label><label>每日呼叫上限<input name="dailyLimit" type="number" min="1" max="5000" value="${ai?.dailyLimit || 200}"></label><p class="setting-status">${ai?.configured ? tag(`已啟用・${ai.source === 'env' ? '部署環境變數' : '教師設定'}・今日已用 ${ai.usedToday} 次`, 'green') : tag('尚未設定：批改與轉課程會使用模擬結果', 'warn')}</p><div class="actions"><button type="submit" class="btn primary">${icon('save')}<span>儲存 AI 設定</span></button>${ai?.source === 'teacher' ? btn('移除金鑰', 'clear-ai', 'quiet danger', 'trash') : ''}</div></form></section><section class="panel settings-panel"><h2>${icon('stamp')}批改節奏</h2><label>同時批改份數<select id="pref-concurrency">${[2, 4, 6, 8].map((n) => `<option ${n === concurrency ? 'selected' : ''}>${n}</option>`).join('')}</select></label><label>每份投票次數<select id="pref-votes"><option value="1" ${votes === 1 ? 'selected' : ''}>1 次（最快）</option><option value="3" ${votes === 3 ? 'selected' : ''}>3 次取共識（較準、費用 ×3）</option></select></label><p class="muted small-text">一班 30 份、同時 6 份時，單次投票約 1.5–3 分鐘可改完（視模型速度與供應商速率限制）。信心低於 0.7 或多次投票不一致的作答會標示「需覆核」。</p></section><section class="panel settings-panel"><h2>${icon('shield')}教師密碼</h2>${config.mode === 'supabase' ? '<p>Supabase 模式請在 Supabase Auth 修改密碼。</p>' : `<form id="password-form"><label>目前密碼<input name="current" type="password" autocomplete="current-password" required></label><label>新密碼（至少 8 字元）<input name="next" type="password" autocomplete="new-password" minlength="8" required></label><button type="submit" class="btn primary">${icon('save')}<span>修改密碼</span></button></form>`}</section><section class="panel settings-panel"><h2>${icon('screen')}部署資訊</h2><dl class="setting-list"><div><dt>模式</dt><dd>${modeBadge()}</dd></div><div><dt>教師帳號</dt><dd>${esc(user?.name || '')}</dd></div><div><dt>課堂同步</dt><dd>即時連線（WebSocket），中斷時自動改用輪詢備援</dd></div><div><dt>版本</dt><dd>${esc(config.version)}</dd></div></dl></section></div>`,
   );
 }
 const NEW_LESSON = (): Lesson => ({
@@ -687,13 +687,81 @@ function pollDelay() {
   if (!s) return 4000;
   return s.activityOpen || s.buzzOpen || grading.running ? 2000 : 5000;
 }
+/** 備援輪詢：只在即時連線（WebSocket）中斷時才真的發出請求。 */
 function schedulePoll(fn: () => Promise<void>) {
   clearTimeout(poll);
   const tick = async () => {
-    await fn().catch(() => {});
+    if (!liveOpen) await fn().catch(() => {});
     poll = setTimeout(tick, pollDelay());
   };
   poll = setTimeout(tick, pollDelay());
+}
+
+/* ───────────── 即時連線：伺服器有變化才推送，取代每 2 秒輪詢 ───────────── */
+let live: WebSocket | null = null,
+  liveKey = '',
+  liveOpen = false,
+  liveRetry = 0,
+  liveTimer: ReturnType<typeof setTimeout> | undefined,
+  liveHeartbeat: ReturnType<typeof setInterval> | undefined;
+function disconnectLive() {
+  clearTimeout(liveTimer);
+  clearInterval(liveHeartbeat);
+  liveOpen = false;
+  liveKey = '';
+  if (live) {
+    const ws = live;
+    live = null;
+    ws.onclose = null;
+    ws.close(1000);
+  }
+}
+function connectLive() {
+  if (!user || typeof WebSocket === 'undefined') return;
+  const key = user.role === 'student' ? 'student' : view?.session.id;
+  if (!key) return;
+  if (live && liveKey === key && live.readyState <= WebSocket.OPEN) return;
+  disconnectLive();
+  liveKey = key;
+  const url = new URL('/api/live', location.href);
+  url.protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+  url.hash = '';
+  url.search = '';
+  if (user.role === 'teacher') url.searchParams.set('sessionId', key);
+  const ws = new WebSocket(url);
+  live = ws;
+  ws.onopen = () => {
+    liveRetry = 0;
+    liveOpen = true;
+    updateSync(true);
+    // 心跳由伺服器自動回覆，不會喚醒 Durable Object；只用來讓手機網路保持連線。
+    liveHeartbeat = setInterval(() => ws.readyState === WebSocket.OPEN && ws.send('ping'), 45000);
+  };
+  ws.onmessage = (e) => {
+    if (e.data === 'pong' || typeof e.data !== 'string') return;
+    try {
+      const msg = JSON.parse(e.data) as { type: string; view: SessionView | { session: null } };
+      if (msg.type === 'view') void applyView(msg.view, currentRoute);
+    } catch {}
+  };
+  ws.onclose = () => {
+    clearInterval(liveHeartbeat);
+    if (live !== ws) return;
+    live = null;
+    liveOpen = false;
+    updateSync(false);
+    // 斷線期間改用輪詢備援，並以 1、2、4…最多 30 秒的間隔重連。
+    const wanted = liveKey;
+    liveTimer = setTimeout(
+      () => {
+        if (liveKey === wanted) {
+          liveKey = '';
+          connectLive();
+        }
+      },
+      Math.min(30000, 1000 * 2 ** liveRetry++),
+    );
+  };
 }
 async function refreshSession() {
   if (pollBusy || !user || !view) return;
@@ -703,13 +771,44 @@ async function refreshSession() {
     const next = await api<SessionView | { session: null }>(
       user.role === 'student' ? '/student/session' : `/sessions/${view.session.id}`,
     );
-    if (route !== currentRoute) return;
-    if (!next.session) {
+    await applyView(next, route);
+  } catch (e) {
+    if ((e as { status?: number }).status === 401) {
+      clearTimeout(poll);
+      disconnectLive();
+      user = null;
       view = null;
-      studentWaiting();
+      board?.destroy();
+      board = null;
+      toast('登入已到期，請重新登入。', true);
+      landing(currentRoute.startsWith('/student') ? 'student' : 'teacher');
+    } else updateSync(false);
+  } finally {
+    pollBusy = false;
+  }
+}
+/** 套用伺服器送來的最新畫面（輪詢或即時推送共用）。 */
+async function applyView(next: SessionView | { session: null }, route: string) {
+  if (!user || route !== currentRoute) return;
+  {
+    if (!next.session) {
+      if (user.role === 'student') {
+        view = null;
+        studentWaiting();
+      }
       return;
     }
     const n = next as SessionView;
+    if (!view) {
+      // 學生在等待畫面時，老師開始上課：直接進入課堂。
+      view = n;
+      studentSlide = n.session.slideIndex;
+      draft = [];
+      if (n.session.activityOpen) studentTab = 'answer';
+      renderSession();
+      updateSync(true);
+      return;
+    }
     const busy = document.querySelector('.sketch-overlay') || document.querySelector('.modal');
     if (viewSignature(n) !== viewSignature(view)) {
       await board?.flush();
@@ -751,25 +850,14 @@ async function refreshSession() {
     autoGradeCheck();
     await retryPending();
     updateSync(true);
-  } catch (e) {
-    if ((e as { status?: number }).status === 401) {
-      clearTimeout(poll);
-      user = null;
-      view = null;
-      board?.destroy();
-      board = null;
-      toast('登入已到期，請重新登入。', true);
-      landing(currentRoute.startsWith('/student') ? 'student' : 'teacher');
-    } else updateSync(false);
-  } finally {
-    pollBusy = false;
   }
 }
 function updateSync(online: boolean) {
   const el = document.querySelector<HTMLElement>('#sync-status');
   if (el) {
-    el.className = `sync-status ${online ? '' : 'offline'}`;
-    el.innerHTML = `<i></i>${online ? '已連線' : '重新連線中'}`;
+    el.className = `sync-status ${online ? (liveOpen ? 'live' : '') : 'offline'}`;
+    el.title = liveOpen ? '即時連線：有變化才更新' : online ? '輪詢備援中' : '連線中斷';
+    el.innerHTML = `<i></i>${online ? (liveOpen ? '即時連線' : '已連線') : '重新連線中'}`;
   }
 }
 function studentWaiting() {
@@ -784,15 +872,19 @@ async function loadStudent() {
     draft = [];
     renderSession();
   } else studentWaiting();
+  connectLive();
   schedulePoll(async () => {
     if (view) await refreshSession();
-    else await loadStudent().catch(() => {});
+    else await applyView(await api<SessionView | { session: null }>('/student/session'), currentRoute);
   });
 }
 async function renderRoute() {
   const version = ++routeVersion;
   currentRoute = location.hash.slice(1) || '/dashboard';
   clearTimeout(poll);
+  // 離開課堂畫面就關閉即時連線；同一堂課切換一般／大屏則沿用。
+  const sessionId = /^\/(?:session|screen)\/([\w-]+)/.exec(currentRoute)?.[1];
+  if (!(user?.role === 'student' || (sessionId && sessionId === liveKey))) disconnectLive();
   await board?.flush().catch((e) => toast(e.message, true));
   board?.destroy();
   board = null;
@@ -813,6 +905,7 @@ async function renderRoute() {
       view = await api<SessionView>(`/sessions/${currentRoute.split('/')[2]}`);
       if (version !== routeVersion) return;
       renderSession();
+      connectLive();
       schedulePoll(refreshSession);
       return;
     }
@@ -996,6 +1089,7 @@ async function action(el: HTMLElement) {
     case 'login-tab':
       return landing(el.dataset.role);
     case 'logout':
+      disconnectLive();
       await board?.flush();
       await api('/logout', 'POST', {});
       for (const key of Object.keys(localStorage).filter((k) => k.startsWith(pendingPrefix))) localStorage.removeItem(key);
@@ -1517,7 +1611,10 @@ window.addEventListener('online', () => {
   void retryPending();
 });
 document.addEventListener('visibilitychange', () => {
-  if (!document.hidden && view) void refreshSession();
+  if (document.hidden || !view) return;
+  if (liveOpen) return;
+  void refreshSession();
+  connectLive();
 });
 window.addEventListener('message', (e) => {
   const frame = document.querySelector<HTMLIFrameElement>('#custom-activity');

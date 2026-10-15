@@ -871,6 +871,10 @@ td small {
   white-space: nowrap;
   margin-right: 4px;
 }
+.sync-status.live i {
+  background: var(--green);
+  box-shadow: 0 0 0 3px #1f9d6333;
+}
 .sync-status.offline i {
   background: var(--red);
 }
