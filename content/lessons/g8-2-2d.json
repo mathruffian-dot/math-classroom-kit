@@ -202,7 +202,7 @@
       "phase": "工作範例",
       "eyebrow": "02 / 例 11 和的平方",
       "title": "(3 + 2√5)²：中間的 2ab 不能漏",
-      "body": "a＝3、b＝2√5。拖拉滑桿看四塊面積，再自己算例 11。",
+      "body": "a ＝ 3、b ＝ 2√5。按「下一步」把正方形切成四塊：a²、兩塊 ab、b²。先自己算例 11 再對照。",
       "source": "對應課本 2-2 p.86（題目數字同課本）",
       "figures": [
         {
@@ -216,161 +216,233 @@
       ],
       "interactive": {
         "view": {
-          "xMin": -1.6,
-          "xMax": 15.2,
-          "yMin": -1.2,
-          "yMax": 16.4,
+          "xMin": -1.4,
+          "xMax": 15.07,
+          "yMin": -0.8,
+          "yMax": 8.77,
           "aspect": "equal"
         },
-        "params": [
-          {
-            "id": "p",
-            "label": "$a$（整數）",
-            "min": 1,
-            "max": 5,
-            "step": 1,
-            "value": 3
-          },
-          {
-            "id": "c",
-            "label": "$b=c\\sqrt{q}$ 的 $c$",
-            "min": 1,
-            "max": 3,
-            "step": 1,
-            "value": 2
-          },
-          {
-            "id": "q",
-            "label": "$b=c\\sqrt{q}$ 的 $q$",
-            "min": 2,
-            "max": 7,
-            "step": 1,
-            "value": 5
-          }
-        ],
         "shapes": [
           {
             "type": "rect",
             "x": 0,
-            "y": "c*sqrt(q)",
-            "w": "p",
-            "h": "p",
-            "fill": "rgba(123,97,255,.26)",
-            "color": "#7b61ff"
-          },
-          {
-            "type": "rect",
-            "x": "p",
-            "y": "c*sqrt(q)",
-            "w": "c*sqrt(q)",
-            "h": "p",
-            "fill": "rgba(47,128,237,.26)",
-            "color": "#2f80ed"
-          },
-          {
-            "type": "rect",
-            "x": 0,
             "y": 0,
-            "w": "p",
-            "h": "c*sqrt(q)",
-            "fill": "rgba(47,128,237,.26)",
-            "color": "#2f80ed"
-          },
-          {
-            "type": "rect",
-            "x": "p",
-            "y": 0,
-            "w": "c*sqrt(q)",
-            "h": "c*sqrt(q)",
-            "fill": "rgba(255,138,61,.32)",
-            "color": "#ff8a3d"
-          },
-          {
-            "type": "text",
-            "x": "p/2",
-            "y": "c*sqrt(q)+p/2",
-            "text": "$a^2={p^2}$",
-            "color": "#5a3fd6",
-            "size": 15
-          },
-          {
-            "type": "text",
-            "x": "p+c*sqrt(q)/2",
-            "y": "c*sqrt(q)+p/2",
-            "text": "${p*c}\\sqrt{q}$",
-            "color": "#1d4fa3",
-            "size": 15
-          },
-          {
-            "type": "text",
-            "x": "p/2",
-            "y": "c*sqrt(q)/2",
-            "text": "${p*c}\\sqrt{q}$",
-            "color": "#1d4fa3",
-            "size": 15
-          },
-          {
-            "type": "text",
-            "x": "p+c*sqrt(q)/2",
-            "y": "c*sqrt(q)/2",
-            "text": "$b^2={c^2*q}$",
-            "color": "#b4541a",
-            "size": 15
+            "w": 7.47,
+            "h": 7.47,
+            "color": "#1f2a56",
+            "width": 2,
+            "step": 0,
+            "focus": [
+              0,
+              4
+            ]
           },
           {
             "type": "brace",
             "points": [
               [
                 0,
-                "p+c*sqrt(q)"
+                7.47
               ],
               [
-                "p",
-                "p+c*sqrt(q)"
+                3,
+                7.47
               ]
             ],
-            "text": "$a={p}$"
+            "text": "3",
+            "step": 0,
+            "focus": [
+              0,
+              4
+            ]
           },
           {
             "type": "brace",
             "points": [
               [
-                "p",
-                "p+c*sqrt(q)"
+                3,
+                7.47
               ],
               [
-                "p+c*sqrt(q)",
-                "p+c*sqrt(q)"
+                7.47,
+                7.47
               ]
             ],
-            "text": "$b={c}\\sqrt{q}$"
+            "text": "2√5",
+            "step": 0,
+            "focus": [
+              0,
+              4
+            ]
+          },
+          {
+            "type": "rect",
+            "x": 0,
+            "y": 4.47,
+            "w": 3,
+            "h": 3,
+            "fill": "rgba(123,97,255,.26)",
+            "color": "#7b61ff",
+            "step": 1,
+            "focus": [
+              1,
+              4
+            ]
           },
           {
             "type": "text",
-            "x": "(p+c*sqrt(q))/2",
-            "y": "p+c*sqrt(q)+1.7",
-            "text": "$(a+b)^2 = {p^2+c^2*q} + {2*p*c}\\sqrt{q}$",
+            "x": 1.5,
+            "y": 5.97,
+            "text": "9",
             "size": 17,
-            "color": "#1f2a56"
-          }
-        ],
-        "readouts": [
-          {
-            "label": "$(a+b)^2 \\approx$",
-            "expr": "(p+c*sqrt(q))^2",
-            "digits": 3
+            "color": "#5a3fd6",
+            "step": 1,
+            "focus": [
+              1,
+              4
+            ]
           },
           {
-            "label": "$a^2+b^2$",
-            "expr": "p^2+c^2*q"
+            "type": "rect",
+            "x": 3,
+            "y": 4.47,
+            "w": 4.47,
+            "h": 3,
+            "fill": "rgba(47,128,237,.26)",
+            "color": "#2f80ed",
+            "step": 2,
+            "focus": [
+              2,
+              4
+            ]
           },
           {
-            "label": "中間兩塊 $2ab \\approx$",
-            "expr": "2*p*c*sqrt(q)",
-            "digits": 3
+            "type": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 3,
+            "h": 4.47,
+            "fill": "rgba(47,128,237,.26)",
+            "color": "#2f80ed",
+            "step": 2,
+            "focus": [
+              2,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 5.234999999999999,
+            "y": 5.97,
+            "text": "6√5",
+            "size": 16,
+            "color": "#1d4fa3",
+            "step": 2,
+            "focus": [
+              2,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 1.5,
+            "y": 2.235,
+            "text": "6√5",
+            "size": 16,
+            "color": "#1d4fa3",
+            "step": 2,
+            "focus": [
+              2,
+              4
+            ]
+          },
+          {
+            "type": "rect",
+            "x": 3,
+            "y": 0,
+            "w": 4.47,
+            "h": 4.47,
+            "fill": "rgba(255,138,61,.32)",
+            "color": "#ff8a3d",
+            "step": 3,
+            "focus": [
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 5.234999999999999,
+            "y": 2.235,
+            "text": "20",
+            "size": 17,
+            "color": "#b4541a",
+            "step": 3,
+            "focus": [
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 11.27,
+            "y": 5.8266,
+            "text": "a² ＝ 9",
+            "size": 17,
+            "color": "#5a3fd6",
+            "step": 1,
+            "focus": [
+              1,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 11.27,
+            "y": 4.1832,
+            "text": "2ab ＝ 2 × 6√5 ＝ 12√5",
+            "size": 17,
+            "color": "#1d4fa3",
+            "step": 2,
+            "focus": [
+              2,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 11.27,
+            "y": 2.5398,
+            "text": "b² ＝ 20",
+            "size": 17,
+            "color": "#b4541a",
+            "step": 3,
+            "focus": [
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 11.27,
+            "y": 0.747,
+            "text": "(3＋2√5)² ＝ 29 ＋ 12√5",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 4,
+            "focus": [
+              4
+            ]
           }
         ],
-        "caption": "根式也能用和的平方公式：中間兩塊 $2ab$ 不能漏"
+        "steps": [
+          "邊長 3 ＋ 2√5 的正方形，面積就是 (3＋2√5)²",
+          "切成四塊：左上 a² ＝ 9",
+          "兩塊長方形，各是 ab ＝ 6√5：中間項 2ab 不能漏",
+          "右下 b² ＝ 20",
+          "四塊加起來：29 ＋ 12√5"
+        ],
+        "caption": "和的平方公式 (a＋b)² ＝ a² ＋ 2ab ＋ b²，a、b 可以是根式"
       },
       "activity": {
         "id": "d-ex11-q",
@@ -384,6 +456,12 @@
           }
         ],
         "explanation": "3²＋2×3×2√5＋(2√5)²＝9＋12√5＋20＝29＋12√5。"
+      },
+      "animation": {
+        "src": "g8-2-2/anim-d-ex11.mp4",
+        "poster": "g8-2-2/anim-d-ex11.png",
+        "caption": "例 11：(3 ＋ 2√5)² 四塊面積",
+        "seconds": 27.3
       }
     },
     {
@@ -391,7 +469,7 @@
       "phase": "隨堂練習",
       "eyebrow": "03 / 例 11 隨堂",
       "title": "換你：平方公式",
-      "body": "第 1 題是課本隨堂，後兩題換數字。",
+      "body": "第 1 題是課本隨堂，後兩題換數字。左圖用另一組數字示範公式代入。",
       "source": "對應課本 2-2 p.86；第 1 題為課本隨堂，其餘為換數字題（自編）",
       "figures": [
         {
@@ -401,161 +479,71 @@
       ],
       "interactive": {
         "view": {
-          "xMin": -1.6,
-          "xMax": 15.2,
-          "yMin": -1.2,
-          "yMax": 16.4,
-          "aspect": "equal"
+          "xMin": 0,
+          "xMax": 12,
+          "yMin": 0,
+          "yMax": 4.6,
+          "aspect": "fill"
         },
-        "params": [
-          {
-            "id": "p",
-            "label": "$a$（整數）",
-            "min": 1,
-            "max": 5,
-            "step": 1,
-            "value": 2
-          },
-          {
-            "id": "c",
-            "label": "$b=c\\sqrt{q}$ 的 $c$",
-            "min": 1,
-            "max": 3,
-            "step": 1,
-            "value": 1
-          },
-          {
-            "id": "q",
-            "label": "$b=c\\sqrt{q}$ 的 $q$",
-            "min": 2,
-            "max": 7,
-            "step": 1,
-            "value": 3
-          }
-        ],
         "shapes": [
           {
-            "type": "rect",
-            "x": 0,
-            "y": "c*sqrt(q)",
-            "w": "p",
-            "h": "p",
-            "fill": "rgba(123,97,255,.26)",
-            "color": "#7b61ff"
-          },
-          {
-            "type": "rect",
-            "x": "p",
-            "y": "c*sqrt(q)",
-            "w": "c*sqrt(q)",
-            "h": "p",
-            "fill": "rgba(47,128,237,.26)",
-            "color": "#2f80ed"
-          },
-          {
-            "type": "rect",
-            "x": 0,
-            "y": 0,
-            "w": "p",
-            "h": "c*sqrt(q)",
-            "fill": "rgba(47,128,237,.26)",
-            "color": "#2f80ed"
-          },
-          {
-            "type": "rect",
-            "x": "p",
-            "y": 0,
-            "w": "c*sqrt(q)",
-            "h": "c*sqrt(q)",
-            "fill": "rgba(255,138,61,.32)",
-            "color": "#ff8a3d"
+            "type": "text",
+            "x": 6,
+            "y": 4,
+            "text": "(√6 − √2)²",
+            "size": 27,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              3
+            ]
           },
           {
             "type": "text",
-            "x": "p/2",
-            "y": "c*sqrt(q)+p/2",
-            "text": "$a^2={p^2}$",
+            "x": 6,
+            "y": 3,
+            "text": "＝ (√6)² − 2 × √6 × √2 + (√2)²",
+            "size": 25,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6,
+            "y": 2,
+            "text": "＝ 6 − 2√12 + 2",
+            "size": 25,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6,
+            "y": 1,
+            "text": "＝ 8 − 4√3",
+            "size": 25,
             "color": "#5a3fd6",
-            "size": 15
-          },
-          {
-            "type": "text",
-            "x": "p+c*sqrt(q)/2",
-            "y": "c*sqrt(q)+p/2",
-            "text": "${p*c}\\sqrt{q}$",
-            "color": "#1d4fa3",
-            "size": 15
-          },
-          {
-            "type": "text",
-            "x": "p/2",
-            "y": "c*sqrt(q)/2",
-            "text": "${p*c}\\sqrt{q}$",
-            "color": "#1d4fa3",
-            "size": 15
-          },
-          {
-            "type": "text",
-            "x": "p+c*sqrt(q)/2",
-            "y": "c*sqrt(q)/2",
-            "text": "$b^2={c^2*q}$",
-            "color": "#b4541a",
-            "size": 15
-          },
-          {
-            "type": "brace",
-            "points": [
-              [
-                0,
-                "p+c*sqrt(q)"
-              ],
-              [
-                "p",
-                "p+c*sqrt(q)"
-              ]
-            ],
-            "text": "$a={p}$"
-          },
-          {
-            "type": "brace",
-            "points": [
-              [
-                "p",
-                "p+c*sqrt(q)"
-              ],
-              [
-                "p+c*sqrt(q)",
-                "p+c*sqrt(q)"
-              ]
-            ],
-            "text": "$b={c}\\sqrt{q}$"
-          },
-          {
-            "type": "text",
-            "x": "(p+c*sqrt(q))/2",
-            "y": "p+c*sqrt(q)+1.7",
-            "text": "$(a+b)^2 = {p^2+c^2*q} + {2*p*c}\\sqrt{q}$",
-            "size": 17,
-            "color": "#1f2a56"
+            "step": 3,
+            "focus": [
+              3
+            ]
           }
         ],
-        "readouts": [
-          {
-            "label": "$(a+b)^2 \\approx$",
-            "expr": "(p+c*sqrt(q))^2",
-            "digits": 3
-          },
-          {
-            "label": "$a^2+b^2$",
-            "expr": "p^2+c^2*q"
-          },
-          {
-            "label": "中間兩塊 $2ab \\approx$",
-            "expr": "2*p*c*sqrt(q)",
-            "digits": 3
-          }
-        ],
-        "caption": "根式也能用和的平方公式：中間兩塊 $2ab$ 不能漏"
+        "steps": [
+          "示範（另一組數字）：差的平方",
+          "(a − b)² ＝ a² − 2ab ＋ b²",
+          "√6 × √2 ＝ √12",
+          "√12 ＝ 2√3，化成最簡根式"
+        ]
       },
       "activity": {
         "id": "d-ex11-practice-q",
@@ -584,7 +572,7 @@
       "phase": "預測",
       "eyebrow": "04 / Thinking",
       "title": "(√3 + √2)² 會等於 (√5)² 嗎？",
-      "body": "先猜，再用面積模型檢查：中間兩塊是多少？",
+      "body": "先猜，再按「下一步」用面積模型檢查：中間兩塊 ab 是多少？",
       "source": "對應課本 2-2 p.86（題目數字同課本）",
       "figures": [
         {
@@ -594,161 +582,233 @@
       ],
       "interactive": {
         "view": {
-          "xMin": -1.6,
-          "xMax": 15.2,
-          "yMin": -1.2,
-          "yMax": 16.4,
+          "xMin": -1.4,
+          "xMax": 10.745999999999999,
+          "yMin": -0.8,
+          "yMax": 4.446,
           "aspect": "equal"
         },
-        "params": [
-          {
-            "id": "p",
-            "label": "$a$（整數）",
-            "min": 1,
-            "max": 5,
-            "step": 1,
-            "value": 2
-          },
-          {
-            "id": "c",
-            "label": "$b=c\\sqrt{q}$ 的 $c$",
-            "min": 1,
-            "max": 3,
-            "step": 1,
-            "value": 1
-          },
-          {
-            "id": "q",
-            "label": "$b=c\\sqrt{q}$ 的 $q$",
-            "min": 2,
-            "max": 7,
-            "step": 1,
-            "value": 2
-          }
-        ],
         "shapes": [
           {
             "type": "rect",
             "x": 0,
-            "y": "c*sqrt(q)",
-            "w": "p",
-            "h": "p",
-            "fill": "rgba(123,97,255,.26)",
-            "color": "#7b61ff"
-          },
-          {
-            "type": "rect",
-            "x": "p",
-            "y": "c*sqrt(q)",
-            "w": "c*sqrt(q)",
-            "h": "p",
-            "fill": "rgba(47,128,237,.26)",
-            "color": "#2f80ed"
-          },
-          {
-            "type": "rect",
-            "x": 0,
             "y": 0,
-            "w": "p",
-            "h": "c*sqrt(q)",
-            "fill": "rgba(47,128,237,.26)",
-            "color": "#2f80ed"
-          },
-          {
-            "type": "rect",
-            "x": "p",
-            "y": 0,
-            "w": "c*sqrt(q)",
-            "h": "c*sqrt(q)",
-            "fill": "rgba(255,138,61,.32)",
-            "color": "#ff8a3d"
-          },
-          {
-            "type": "text",
-            "x": "p/2",
-            "y": "c*sqrt(q)+p/2",
-            "text": "$a^2={p^2}$",
-            "color": "#5a3fd6",
-            "size": 15
-          },
-          {
-            "type": "text",
-            "x": "p+c*sqrt(q)/2",
-            "y": "c*sqrt(q)+p/2",
-            "text": "${p*c}\\sqrt{q}$",
-            "color": "#1d4fa3",
-            "size": 15
-          },
-          {
-            "type": "text",
-            "x": "p/2",
-            "y": "c*sqrt(q)/2",
-            "text": "${p*c}\\sqrt{q}$",
-            "color": "#1d4fa3",
-            "size": 15
-          },
-          {
-            "type": "text",
-            "x": "p+c*sqrt(q)/2",
-            "y": "c*sqrt(q)/2",
-            "text": "$b^2={c^2*q}$",
-            "color": "#b4541a",
-            "size": 15
+            "w": 3.146,
+            "h": 3.146,
+            "color": "#1f2a56",
+            "width": 2,
+            "step": 0,
+            "focus": [
+              0,
+              4
+            ]
           },
           {
             "type": "brace",
             "points": [
               [
                 0,
-                "p+c*sqrt(q)"
+                3.146
               ],
               [
-                "p",
-                "p+c*sqrt(q)"
+                1.732,
+                3.146
               ]
             ],
-            "text": "$a={p}$"
+            "text": "√3",
+            "step": 0,
+            "focus": [
+              0,
+              4
+            ]
           },
           {
             "type": "brace",
             "points": [
               [
-                "p",
-                "p+c*sqrt(q)"
+                1.732,
+                3.146
               ],
               [
-                "p+c*sqrt(q)",
-                "p+c*sqrt(q)"
+                3.146,
+                3.146
               ]
             ],
-            "text": "$b={c}\\sqrt{q}$"
+            "text": "√2",
+            "step": 0,
+            "focus": [
+              0,
+              4
+            ]
+          },
+          {
+            "type": "rect",
+            "x": 0,
+            "y": 1.414,
+            "w": 1.732,
+            "h": 1.732,
+            "fill": "rgba(123,97,255,.26)",
+            "color": "#7b61ff",
+            "step": 1,
+            "focus": [
+              1,
+              4
+            ]
           },
           {
             "type": "text",
-            "x": "(p+c*sqrt(q))/2",
-            "y": "p+c*sqrt(q)+1.7",
-            "text": "$(a+b)^2 = {p^2+c^2*q} + {2*p*c}\\sqrt{q}$",
+            "x": 0.866,
+            "y": 2.28,
+            "text": "3",
             "size": 17,
-            "color": "#1f2a56"
-          }
-        ],
-        "readouts": [
-          {
-            "label": "$(a+b)^2 \\approx$",
-            "expr": "(p+c*sqrt(q))^2",
-            "digits": 3
+            "color": "#5a3fd6",
+            "step": 1,
+            "focus": [
+              1,
+              4
+            ]
           },
           {
-            "label": "$a^2+b^2$",
-            "expr": "p^2+c^2*q"
+            "type": "rect",
+            "x": 1.732,
+            "y": 1.414,
+            "w": 1.414,
+            "h": 1.732,
+            "fill": "rgba(47,128,237,.26)",
+            "color": "#2f80ed",
+            "step": 2,
+            "focus": [
+              2,
+              4
+            ]
           },
           {
-            "label": "中間兩塊 $2ab \\approx$",
-            "expr": "2*p*c*sqrt(q)",
-            "digits": 3
+            "type": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1.732,
+            "h": 1.414,
+            "fill": "rgba(47,128,237,.26)",
+            "color": "#2f80ed",
+            "step": 2,
+            "focus": [
+              2,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 2.439,
+            "y": 2.28,
+            "text": "√6",
+            "size": 16,
+            "color": "#1d4fa3",
+            "step": 2,
+            "focus": [
+              2,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 0.866,
+            "y": 0.707,
+            "text": "√6",
+            "size": 16,
+            "color": "#1d4fa3",
+            "step": 2,
+            "focus": [
+              2,
+              4
+            ]
+          },
+          {
+            "type": "rect",
+            "x": 1.732,
+            "y": 0,
+            "w": 1.414,
+            "h": 1.414,
+            "fill": "rgba(255,138,61,.32)",
+            "color": "#ff8a3d",
+            "step": 3,
+            "focus": [
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 2.439,
+            "y": 0.707,
+            "text": "2",
+            "size": 17,
+            "color": "#b4541a",
+            "step": 3,
+            "focus": [
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6.946,
+            "y": 2.45388,
+            "text": "a² ＝ 3",
+            "size": 17,
+            "color": "#5a3fd6",
+            "step": 1,
+            "focus": [
+              1,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6.946,
+            "y": 1.7617600000000002,
+            "text": "2ab ＝ 2 × √6 ＝ 2√6",
+            "size": 17,
+            "color": "#1d4fa3",
+            "step": 2,
+            "focus": [
+              2,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6.946,
+            "y": 1.0696400000000001,
+            "text": "b² ＝ 2",
+            "size": 17,
+            "color": "#b4541a",
+            "step": 3,
+            "focus": [
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6.946,
+            "y": 0.3146,
+            "text": "(√3＋√2)² ＝ 5 ＋ 2√6",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 4,
+            "focus": [
+              4
+            ]
           }
         ],
-        "caption": "根式也能用和的平方公式：中間兩塊 $2ab$ 不能漏"
+        "steps": [
+          "邊長 √3 ＋ √2 的正方形，面積就是 (√3＋√2)²",
+          "切成四塊：左上 a² ＝ 3",
+          "兩塊長方形，各是 ab ＝ √6：中間項 2ab 不能漏",
+          "右下 b² ＝ 2",
+          "四塊加起來：5 ＋ 2√6"
+        ],
+        "caption": "和的平方公式 (a＋b)² ＝ a² ＋ 2ab ＋ b²，a、b 可以是根式"
       },
       "activity": {
         "id": "d-thinking-q",
@@ -763,6 +823,12 @@
           1
         ],
         "explanation": "(√3+√2)²＝3＋2√6＋2＝5＋2√6，比 (√5)²＝5 多了 2√6。"
+      },
+      "animation": {
+        "src": "g8-2-2/anim-d-thinking.mp4",
+        "poster": "g8-2-2/anim-d-thinking.png",
+        "caption": "Thinking 揭曉：中間項 2ab 不能漏",
+        "seconds": 16
       }
     },
     {
@@ -770,7 +836,7 @@
       "phase": "工作範例",
       "eyebrow": "05 / 例 12 平方差",
       "title": "(a+b)(a−b)＝a²−b²：根號不見了",
-      "body": "點綠色長條把它移過去，L 形拼成長方形。a＝3、b＝√5 時面積是多少？",
+      "body": "a ＝ 3、b ＝ √5，代入平方差公式。先自己算，再按「下一步」對照；🎬 動畫逐步演示。",
       "source": "對應課本 2-2 p.87（題目數字同課本）",
       "figures": [
         {
@@ -780,164 +846,71 @@
       ],
       "interactive": {
         "view": {
-          "xMin": -1.4,
-          "xMax": 9.6,
-          "yMin": -1.6,
-          "yMax": 6.8,
-          "aspect": "equal"
+          "xMin": 0,
+          "xMax": 12,
+          "yMin": 0,
+          "yMax": 4.6,
+          "aspect": "fill"
         },
-        "params": [
-          {
-            "id": "p",
-            "label": "$a$（整數）",
-            "min": 2,
-            "max": 5,
-            "step": 1,
-            "value": 3
-          },
-          {
-            "id": "q",
-            "label": "$b=\\sqrt{q}$ 的 $q$",
-            "min": 1,
-            "max": 15,
-            "step": 1,
-            "value": 5
-          },
-          {
-            "id": "move",
-            "label": "把長條移到右邊",
-            "kind": "toggle",
-            "value": 0
-          }
-        ],
         "shapes": [
           {
-            "type": "rect",
-            "x": 0,
-            "y": 0,
-            "w": "p",
-            "h": "p-sqrt(q)",
-            "fill": "rgba(47,128,237,.26)",
-            "color": "#2f80ed",
-            "show": "q<p^2"
-          },
-          {
-            "type": "rect",
-            "x": 0,
-            "y": "p-sqrt(q)",
-            "w": "p-sqrt(q)",
-            "h": "sqrt(q)",
-            "fill": "rgba(18,163,154,.26)",
-            "color": "#12a39a",
-            "show": "q<p^2 && !move",
-            "toggle": "move"
-          },
-          {
-            "type": "rect",
-            "x": "p-sqrt(q)",
-            "y": "p-sqrt(q)",
-            "w": "sqrt(q)",
-            "h": "sqrt(q)",
-            "color": "#e5484d",
-            "dash": true,
-            "show": "q<p^2 && !move"
+            "type": "text",
+            "x": 6,
+            "y": 4,
+            "text": "(3 + √5)(3 − √5)",
+            "size": 27,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              3
+            ]
           },
           {
             "type": "text",
-            "x": "p-sqrt(q)/2",
-            "y": "p-sqrt(q)/2+sqrt(q)",
-            "text": "挖掉 $b^2$",
-            "size": 13,
-            "color": "#e5484d",
-            "show": "q<p^2 && !move"
-          },
-          {
-            "type": "rect",
-            "x": "p",
-            "y": 0,
-            "w": "sqrt(q)",
-            "h": "p-sqrt(q)",
-            "fill": "rgba(18,163,154,.26)",
-            "color": "#12a39a",
-            "show": "q<p^2 && move",
-            "toggle": "move"
-          },
-          {
-            "type": "brace",
-            "points": [
-              [
-                0,
-                "p"
-              ],
-              [
-                "p",
-                "p"
-              ]
-            ],
-            "text": "$a={p}$",
-            "show": "!move"
-          },
-          {
-            "type": "brace",
-            "points": [
-              [
-                0,
-                "p-sqrt(q)"
-              ],
-              [
-                "p+sqrt(q)",
-                "p-sqrt(q)"
-              ]
-            ],
-            "text": "$a+b={p}+\\sqrt{q}$",
-            "show": "move"
-          },
-          {
-            "type": "brace",
-            "points": [
-              [
-                0,
-                0
-              ],
-              [
-                0,
-                "p-sqrt(q)"
-              ]
-            ],
-            "text": "$a-b$",
-            "show": "move"
-          },
-          {
-            "type": "text",
-            "x": 4,
-            "y": -1,
-            "text": "面積 $= a^2-b^2 = {p^2}-{q} = {p^2-q}$",
-            "size": 16,
-            "color": "#5a3fd6",
-            "show": "q<p^2"
-          },
-          {
-            "type": "text",
-            "x": 4,
+            "x": 6,
             "y": 3,
-            "text": "請讓 $b^2$ 小於 $a^2$（$q < {p^2}$）",
-            "size": 15,
-            "color": "#e5484d",
-            "show": "q>=p^2"
-          }
-        ],
-        "readouts": [
-          {
-            "label": "$(a+b)(a-b) \\approx$",
-            "expr": "(p+sqrt(q))*(p-sqrt(q))",
-            "digits": 3
+            "text": "＝ 3² − (√5)²",
+            "size": 25,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
           },
           {
-            "label": "$a^2-b^2$",
-            "expr": "p^2-q"
+            "type": "text",
+            "x": 6,
+            "y": 2,
+            "text": "＝ 9 − 5",
+            "size": 25,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6,
+            "y": 1,
+            "text": "＝ 4",
+            "size": 25,
+            "color": "#5a3fd6",
+            "step": 3,
+            "focus": [
+              3
+            ]
           }
         ],
-        "caption": "點綠色長條或開關，把它移過去拼成長方形"
+        "steps": [
+          "看成 (a＋b)(a−b)：a ＝ 3、b ＝ √5",
+          "平方差公式：(a＋b)(a−b) ＝ a² − b²",
+          "(√5)² ＝ 5",
+          "根號不見了：答案是整數 4"
+        ]
       },
       "activity": {
         "id": "d-ex12-q",
@@ -951,6 +924,12 @@
           }
         ],
         "explanation": "3²−(√5)²＝9−5＝4。"
+      },
+      "animation": {
+        "src": "g8-2-2/anim-d-ex12.mp4",
+        "poster": "g8-2-2/anim-d-ex12.png",
+        "caption": "例 12：平方差，根號不見了",
+        "seconds": 12.5
       }
     },
     {
@@ -958,7 +937,7 @@
       "phase": "隨堂練習",
       "eyebrow": "06 / 例 12 隨堂",
       "title": "換你：平方差公式",
-      "body": "第 1 題是課本隨堂，後兩題換數字。",
+      "body": "第 1 題是課本隨堂，後兩題換數字。左圖用另一組數字示範。",
       "source": "對應課本 2-2 p.87；第 1 題為課本隨堂，其餘為換數字題（自編）",
       "figures": [
         {
@@ -968,164 +947,71 @@
       ],
       "interactive": {
         "view": {
-          "xMin": -1.4,
-          "xMax": 9.6,
-          "yMin": -1.6,
-          "yMax": 6.8,
-          "aspect": "equal"
+          "xMin": 0,
+          "xMax": 12,
+          "yMin": 0,
+          "yMax": 4.6,
+          "aspect": "fill"
         },
-        "params": [
-          {
-            "id": "p",
-            "label": "$a$（整數）",
-            "min": 2,
-            "max": 5,
-            "step": 1,
-            "value": 4
-          },
-          {
-            "id": "q",
-            "label": "$b=\\sqrt{q}$ 的 $q$",
-            "min": 1,
-            "max": 15,
-            "step": 1,
-            "value": 7
-          },
-          {
-            "id": "move",
-            "label": "把長條移到右邊",
-            "kind": "toggle",
-            "value": 0
-          }
-        ],
         "shapes": [
           {
-            "type": "rect",
-            "x": 0,
-            "y": 0,
-            "w": "p",
-            "h": "p-sqrt(q)",
-            "fill": "rgba(47,128,237,.26)",
-            "color": "#2f80ed",
-            "show": "q<p^2"
-          },
-          {
-            "type": "rect",
-            "x": 0,
-            "y": "p-sqrt(q)",
-            "w": "p-sqrt(q)",
-            "h": "sqrt(q)",
-            "fill": "rgba(18,163,154,.26)",
-            "color": "#12a39a",
-            "show": "q<p^2 && !move",
-            "toggle": "move"
-          },
-          {
-            "type": "rect",
-            "x": "p-sqrt(q)",
-            "y": "p-sqrt(q)",
-            "w": "sqrt(q)",
-            "h": "sqrt(q)",
-            "color": "#e5484d",
-            "dash": true,
-            "show": "q<p^2 && !move"
+            "type": "text",
+            "x": 6,
+            "y": 4,
+            "text": "(√6 + 2)(√6 − 2)",
+            "size": 27,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              3
+            ]
           },
           {
             "type": "text",
-            "x": "p-sqrt(q)/2",
-            "y": "p-sqrt(q)/2+sqrt(q)",
-            "text": "挖掉 $b^2$",
-            "size": 13,
-            "color": "#e5484d",
-            "show": "q<p^2 && !move"
-          },
-          {
-            "type": "rect",
-            "x": "p",
-            "y": 0,
-            "w": "sqrt(q)",
-            "h": "p-sqrt(q)",
-            "fill": "rgba(18,163,154,.26)",
-            "color": "#12a39a",
-            "show": "q<p^2 && move",
-            "toggle": "move"
-          },
-          {
-            "type": "brace",
-            "points": [
-              [
-                0,
-                "p"
-              ],
-              [
-                "p",
-                "p"
-              ]
-            ],
-            "text": "$a={p}$",
-            "show": "!move"
-          },
-          {
-            "type": "brace",
-            "points": [
-              [
-                0,
-                "p-sqrt(q)"
-              ],
-              [
-                "p+sqrt(q)",
-                "p-sqrt(q)"
-              ]
-            ],
-            "text": "$a+b={p}+\\sqrt{q}$",
-            "show": "move"
-          },
-          {
-            "type": "brace",
-            "points": [
-              [
-                0,
-                0
-              ],
-              [
-                0,
-                "p-sqrt(q)"
-              ]
-            ],
-            "text": "$a-b$",
-            "show": "move"
-          },
-          {
-            "type": "text",
-            "x": 4,
-            "y": -1,
-            "text": "面積 $= a^2-b^2 = {p^2}-{q} = {p^2-q}$",
-            "size": 16,
-            "color": "#5a3fd6",
-            "show": "q<p^2"
-          },
-          {
-            "type": "text",
-            "x": 4,
+            "x": 6,
             "y": 3,
-            "text": "請讓 $b^2$ 小於 $a^2$（$q < {p^2}$）",
-            "size": 15,
-            "color": "#e5484d",
-            "show": "q>=p^2"
-          }
-        ],
-        "readouts": [
-          {
-            "label": "$(a+b)(a-b) \\approx$",
-            "expr": "(p+sqrt(q))*(p-sqrt(q))",
-            "digits": 3
+            "text": "＝ (√6)² − 2²",
+            "size": 25,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
           },
           {
-            "label": "$a^2-b^2$",
-            "expr": "p^2-q"
+            "type": "text",
+            "x": 6,
+            "y": 2,
+            "text": "＝ 6 − 4",
+            "size": 25,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6,
+            "y": 1,
+            "text": "＝ 2",
+            "size": 25,
+            "color": "#5a3fd6",
+            "step": 3,
+            "focus": [
+              3
+            ]
           }
         ],
-        "caption": "點綠色長條或開關，把它移過去拼成長方形"
+        "steps": [
+          "示範（另一組數字）",
+          "(a＋b)(a−b) ＝ a² − b²",
+          "(√6)² ＝ 6",
+          "根號不見了"
+        ]
       },
       "activity": {
         "id": "d-ex12-practice-q",
@@ -1176,36 +1062,51 @@
             "x": 6,
             "y": 4,
             "text": "1 ／ (√5 − √3)",
-            "size": 23,
+            "size": 27,
             "color": "#1f2a56",
-            "step": 0
+            "step": 0,
+            "focus": [
+              0,
+              3
+            ]
           },
           {
             "type": "text",
             "x": 6,
             "y": 3,
             "text": "＝ (√5 + √3) ／ [(√5 − √3)(√5 + √3)]",
-            "size": 21,
+            "size": 25,
             "color": "#1f2a56",
-            "step": 1
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
           },
           {
             "type": "text",
             "x": 6,
             "y": 2,
             "text": "＝ (√5 + √3) ／ (5 − 3)",
-            "size": 21,
+            "size": 25,
             "color": "#1f2a56",
-            "step": 2
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
           },
           {
             "type": "text",
             "x": 6,
             "y": 1,
             "text": "＝ (√5 + √3) ／ 2",
-            "size": 21,
+            "size": 25,
             "color": "#5a3fd6",
-            "step": 3
+            "step": 3,
+            "focus": [
+              3
+            ]
           }
         ],
         "steps": [
@@ -1227,6 +1128,12 @@
           }
         ],
         "explanation": "分子分母同乘 √5＋√3，分母 5−3＝2。"
+      },
+      "animation": {
+        "src": "g8-2-2/anim-d-conjugate.mp4",
+        "poster": "g8-2-2/anim-d-conjugate.png",
+        "caption": "分母 √5 − √3：乘上 √5 ＋ √3",
+        "seconds": 18.8
       }
     },
     {
@@ -1256,36 +1163,51 @@
             "x": 6,
             "y": 4,
             "text": "3 ／ (√7 − 2)",
-            "size": 23,
+            "size": 27,
             "color": "#1f2a56",
-            "step": 0
+            "step": 0,
+            "focus": [
+              0,
+              3
+            ]
           },
           {
             "type": "text",
             "x": 6,
             "y": 3,
             "text": "＝ 3(√7 + 2) ／ [(√7 − 2)(√7 + 2)]",
-            "size": 21,
+            "size": 25,
             "color": "#1f2a56",
-            "step": 1
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
           },
           {
             "type": "text",
             "x": 6,
             "y": 2,
             "text": "＝ 3(√7 + 2) ／ (7 − 4)",
-            "size": 21,
+            "size": 25,
             "color": "#1f2a56",
-            "step": 2
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
           },
           {
             "type": "text",
             "x": 6,
             "y": 1,
             "text": "＝ √7 + 2",
-            "size": 21,
+            "size": 25,
             "color": "#5a3fd6",
-            "step": 3
+            "step": 3,
+            "focus": [
+              3
+            ]
           }
         ],
         "steps": [
@@ -1318,7 +1240,7 @@
       "phase": "隨堂練習",
       "eyebrow": "09 / 例 13 隨堂",
       "title": "換你：用平方差有理化",
-      "body": "前兩題是課本隨堂，第 3 題換數字。",
+      "body": "前兩題是課本隨堂，第 3 題換數字。左圖用另一組數字示範。",
       "source": "對應課本 2-2 p.88；第 1 題為課本隨堂，其餘為換數字題（自編）",
       "figures": [
         {
@@ -1328,164 +1250,71 @@
       ],
       "interactive": {
         "view": {
-          "xMin": -1.4,
-          "xMax": 9.6,
-          "yMin": -1.6,
-          "yMax": 6.8,
-          "aspect": "equal"
+          "xMin": 0,
+          "xMax": 12,
+          "yMin": 0,
+          "yMax": 4.6,
+          "aspect": "fill"
         },
-        "params": [
-          {
-            "id": "p",
-            "label": "$a$（整數）",
-            "min": 2,
-            "max": 5,
-            "step": 1,
-            "value": 2
-          },
-          {
-            "id": "q",
-            "label": "$b=\\sqrt{q}$ 的 $q$",
-            "min": 1,
-            "max": 15,
-            "step": 1,
-            "value": 3
-          },
-          {
-            "id": "move",
-            "label": "把長條移到右邊",
-            "kind": "toggle",
-            "value": 0
-          }
-        ],
         "shapes": [
           {
-            "type": "rect",
-            "x": 0,
-            "y": 0,
-            "w": "p",
-            "h": "p-sqrt(q)",
-            "fill": "rgba(47,128,237,.26)",
-            "color": "#2f80ed",
-            "show": "q<p^2"
-          },
-          {
-            "type": "rect",
-            "x": 0,
-            "y": "p-sqrt(q)",
-            "w": "p-sqrt(q)",
-            "h": "sqrt(q)",
-            "fill": "rgba(18,163,154,.26)",
-            "color": "#12a39a",
-            "show": "q<p^2 && !move",
-            "toggle": "move"
-          },
-          {
-            "type": "rect",
-            "x": "p-sqrt(q)",
-            "y": "p-sqrt(q)",
-            "w": "sqrt(q)",
-            "h": "sqrt(q)",
-            "color": "#e5484d",
-            "dash": true,
-            "show": "q<p^2 && !move"
+            "type": "text",
+            "x": 6,
+            "y": 4,
+            "text": "4/(√7 − √3)",
+            "size": 27,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              3
+            ]
           },
           {
             "type": "text",
-            "x": "p-sqrt(q)/2",
-            "y": "p-sqrt(q)/2+sqrt(q)",
-            "text": "挖掉 $b^2$",
-            "size": 13,
-            "color": "#e5484d",
-            "show": "q<p^2 && !move"
-          },
-          {
-            "type": "rect",
-            "x": "p",
-            "y": 0,
-            "w": "sqrt(q)",
-            "h": "p-sqrt(q)",
-            "fill": "rgba(18,163,154,.26)",
-            "color": "#12a39a",
-            "show": "q<p^2 && move",
-            "toggle": "move"
-          },
-          {
-            "type": "brace",
-            "points": [
-              [
-                0,
-                "p"
-              ],
-              [
-                "p",
-                "p"
-              ]
-            ],
-            "text": "$a={p}$",
-            "show": "!move"
-          },
-          {
-            "type": "brace",
-            "points": [
-              [
-                0,
-                "p-sqrt(q)"
-              ],
-              [
-                "p+sqrt(q)",
-                "p-sqrt(q)"
-              ]
-            ],
-            "text": "$a+b={p}+\\sqrt{q}$",
-            "show": "move"
-          },
-          {
-            "type": "brace",
-            "points": [
-              [
-                0,
-                0
-              ],
-              [
-                0,
-                "p-sqrt(q)"
-              ]
-            ],
-            "text": "$a-b$",
-            "show": "move"
-          },
-          {
-            "type": "text",
-            "x": 4,
-            "y": -1,
-            "text": "面積 $= a^2-b^2 = {p^2}-{q} = {p^2-q}$",
-            "size": 16,
-            "color": "#5a3fd6",
-            "show": "q<p^2"
-          },
-          {
-            "type": "text",
-            "x": 4,
+            "x": 6,
             "y": 3,
-            "text": "請讓 $b^2$ 小於 $a^2$（$q < {p^2}$）",
-            "size": 15,
-            "color": "#e5484d",
-            "show": "q>=p^2"
-          }
-        ],
-        "readouts": [
-          {
-            "label": "$(a+b)(a-b) \\approx$",
-            "expr": "(p+sqrt(q))*(p-sqrt(q))",
-            "digits": 3
+            "text": "＝ 4(√7 + √3)/((√7 − √3)(√7 + √3))",
+            "size": 25,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
           },
           {
-            "label": "$a^2-b^2$",
-            "expr": "p^2-q"
+            "type": "text",
+            "x": 6,
+            "y": 2,
+            "text": "＝ 4(√7 + √3)/(7 − 3)",
+            "size": 25,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6,
+            "y": 1,
+            "text": "＝ √7 + √3",
+            "size": 25,
+            "color": "#5a3fd6",
+            "step": 3,
+            "focus": [
+              3
+            ]
           }
         ],
-        "caption": "點綠色長條或開關，把它移過去拼成長方形"
+        "steps": [
+          "示範（另一組數字）",
+          "分子、分母同乘 √7 ＋ √3（和差相反）",
+          "分母用平方差：7 − 3 ＝ 4",
+          "約分"
+        ]
       },
       "activity": {
         "id": "d-ex13-practice-q",
@@ -1518,164 +1347,71 @@
       "source": "對應課本 2-2 p.88（題目數字同課本）",
       "interactive": {
         "view": {
-          "xMin": -1.4,
-          "xMax": 9.6,
-          "yMin": -1.6,
-          "yMax": 6.8,
-          "aspect": "equal"
+          "xMin": 0,
+          "xMax": 12,
+          "yMin": 0,
+          "yMax": 4.6,
+          "aspect": "fill"
         },
-        "params": [
-          {
-            "id": "p",
-            "label": "$a$（整數）",
-            "min": 2,
-            "max": 5,
-            "step": 1,
-            "value": 2
-          },
-          {
-            "id": "q",
-            "label": "$b=\\sqrt{q}$ 的 $q$",
-            "min": 1,
-            "max": 15,
-            "step": 1,
-            "value": 3
-          },
-          {
-            "id": "move",
-            "label": "把長條移到右邊",
-            "kind": "toggle",
-            "value": 0
-          }
-        ],
         "shapes": [
           {
-            "type": "rect",
-            "x": 0,
-            "y": 0,
-            "w": "p",
-            "h": "p-sqrt(q)",
-            "fill": "rgba(47,128,237,.26)",
-            "color": "#2f80ed",
-            "show": "q<p^2"
-          },
-          {
-            "type": "rect",
-            "x": 0,
-            "y": "p-sqrt(q)",
-            "w": "p-sqrt(q)",
-            "h": "sqrt(q)",
-            "fill": "rgba(18,163,154,.26)",
-            "color": "#12a39a",
-            "show": "q<p^2 && !move",
-            "toggle": "move"
-          },
-          {
-            "type": "rect",
-            "x": "p-sqrt(q)",
-            "y": "p-sqrt(q)",
-            "w": "sqrt(q)",
-            "h": "sqrt(q)",
-            "color": "#e5484d",
-            "dash": true,
-            "show": "q<p^2 && !move"
+            "type": "text",
+            "x": 6,
+            "y": 4,
+            "text": "2/(√3 + 1)",
+            "size": 27,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              3
+            ]
           },
           {
             "type": "text",
-            "x": "p-sqrt(q)/2",
-            "y": "p-sqrt(q)/2+sqrt(q)",
-            "text": "挖掉 $b^2$",
-            "size": 13,
-            "color": "#e5484d",
-            "show": "q<p^2 && !move"
-          },
-          {
-            "type": "rect",
-            "x": "p",
-            "y": 0,
-            "w": "sqrt(q)",
-            "h": "p-sqrt(q)",
-            "fill": "rgba(18,163,154,.26)",
-            "color": "#12a39a",
-            "show": "q<p^2 && move",
-            "toggle": "move"
-          },
-          {
-            "type": "brace",
-            "points": [
-              [
-                0,
-                "p"
-              ],
-              [
-                "p",
-                "p"
-              ]
-            ],
-            "text": "$a={p}$",
-            "show": "!move"
-          },
-          {
-            "type": "brace",
-            "points": [
-              [
-                0,
-                "p-sqrt(q)"
-              ],
-              [
-                "p+sqrt(q)",
-                "p-sqrt(q)"
-              ]
-            ],
-            "text": "$a+b={p}+\\sqrt{q}$",
-            "show": "move"
-          },
-          {
-            "type": "brace",
-            "points": [
-              [
-                0,
-                0
-              ],
-              [
-                0,
-                "p-sqrt(q)"
-              ]
-            ],
-            "text": "$a-b$",
-            "show": "move"
-          },
-          {
-            "type": "text",
-            "x": 4,
-            "y": -1,
-            "text": "面積 $= a^2-b^2 = {p^2}-{q} = {p^2-q}$",
-            "size": 16,
-            "color": "#5a3fd6",
-            "show": "q<p^2"
-          },
-          {
-            "type": "text",
-            "x": 4,
+            "x": 6,
             "y": 3,
-            "text": "請讓 $b^2$ 小於 $a^2$（$q < {p^2}$）",
-            "size": 15,
-            "color": "#e5484d",
-            "show": "q>=p^2"
-          }
-        ],
-        "readouts": [
-          {
-            "label": "$(a+b)(a-b) \\approx$",
-            "expr": "(p+sqrt(q))*(p-sqrt(q))",
-            "digits": 3
+            "text": "＝ 2(？)/((√3 + 1)(？))",
+            "size": 25,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
           },
           {
-            "label": "$a^2-b^2$",
-            "expr": "p^2-q"
+            "type": "text",
+            "x": 6,
+            "y": 2,
+            "text": "＝ 2(？)/(3 − 1)",
+            "size": 25,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6,
+            "y": 1,
+            "text": "＝ ？",
+            "size": 25,
+            "color": "#5a3fd6",
+            "step": 3,
+            "focus": [
+              3
+            ]
           }
         ],
-        "caption": "點綠色長條或開關，把它移過去拼成長方形"
+        "steps": [
+          "小華的題目",
+          "分子、分母要同乘什麼？",
+          "分母用平方差",
+          "約分後是多少？"
+        ]
       },
       "activity": {
         "id": "d-error-q",

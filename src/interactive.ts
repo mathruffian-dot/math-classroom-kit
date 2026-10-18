@@ -268,7 +268,8 @@ export function mountInteractive(
           : `<g class="viz-dim">${html}</g>`;
       })
       .join('');
-    svg.innerHTML = `<defs><marker id="viz-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="${INK}"/></marker><filter id="${glowId}" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur in="SourceAlpha" stdDeviation="${5 * k}" result="blur"/><feFlood flood-color="#ffc93c" flood-opacity="1"/><feComposite in2="blur" operator="in" result="halo"/><feComposite in="halo" in2="SourceAlpha" operator="out" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>${grid()}${body}${handles()}`;
+    // 發光濾鏡用整張圖的座標（userSpaceOnUse）：水平／垂直線的外框高度或寬度是 0，用物件外框會讓線整條消失。
+    svg.innerHTML = `<defs><marker id="viz-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="${INK}"/></marker><filter id="${glowId}" filterUnits="userSpaceOnUse" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur in="SourceAlpha" stdDeviation="${5 * k}" result="blur"/><feFlood flood-color="#ffc93c" flood-opacity="1"/><feComposite in2="blur" operator="in" result="halo"/><feComposite in="halo" in2="SourceAlpha" operator="out" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>${grid()}${body}${handles()}`;
     for (const r of spec.readouts || []) {
       const el = controls.querySelector<HTMLElement>(`[data-readout="${CSS.escape(r.label)}"]`);
       if (el) el.textContent = fmt(tryEval(r.expr, vars), r.digits);

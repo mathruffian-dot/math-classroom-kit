@@ -171,6 +171,19 @@ export interface Figure {
   alt: string;
   caption?: string;
 }
+/**
+ * 動畫片段：靜音 mp4＋封面圖，放在 public/lesson-assets/，檔名以 anim- 開頭。
+ * 頁面有 IRS 時，學生端要等老師「公布結果」才解鎖（動畫通常演示答案）；reveal: 'always' 則一律可看。
+ */
+export interface Animation {
+  src: string;
+  poster?: string;
+  caption: string;
+  seconds?: number;
+  reveal?: 'after-results' | 'always';
+  /** 只由伺服器設定：學生端尚未解鎖時，src／poster 會被移除。 */
+  locked?: boolean;
+}
 export interface Slide {
   id: string;
   title: string;
@@ -182,6 +195,7 @@ export interface Slide {
   visual?: 'balance' | 'steps' | 'cards' | 'bars';
   interactive?: Interactive;
   figures?: Figure[];
+  animation?: Animation;
   activity?: Activity;
   notes?: string;
   source?: string;
@@ -204,6 +218,8 @@ export interface Classroom {
   code: string;
   seats: number;
   createdAt: string;
+  /** 學生登入是否需要個人識別碼。預設 false（測試階段）：只要班級代碼＋座號。 */
+  requireCode?: boolean;
 }
 export interface Credential {
   seat: number;

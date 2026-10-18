@@ -41,6 +41,7 @@ v0.1 的正式資料存於 `classroom_state` JSON payload，透過 atomic compar
 | `DELETE /api/lessons/:id` | 教師 | 刪除課程 |
 | `POST /api/classes` | 教師 | 建班 `{name,seats}`，回傳識別碼 |
 | `POST /api/classes/:id/credentials` | 該班教師 | `{seat}` 重發該座號識別碼，撤銷舊登入 |
+| `PATCH /api/classes/:id` | 該班教師 | `{requireCode}` 開關個人識別碼（預設停用）；開啟時撤銷該班既有登入 |
 | `POST /api/sessions` | 教師 | `{lessonId,classId}` 開課 |
 | `GET /api/sessions/:id` | 場次教師／該班學生 | 角色過濾後的場次 |
 | `GET /api/student/session` | 學生 | 所屬班級目前場次 |

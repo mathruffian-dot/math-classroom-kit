@@ -1,7 +1,7 @@
 // 八上 2-2 根式的運算：由 agent 依課本與教用版答案製作的 4 堂課。
 // 來源清單：content/sources/g8-2-2-inventory.json（每題頁碼、題目、官方答案、截圖檔）。
 // 產生：node scripts/lessons-src/g8-2-2.mjs  → content/lessons/g8-2-2*.json，再執行 npm run lessons 驗證。
-import { writeFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as V from './viz.mjs';
@@ -107,10 +107,10 @@ const lessonA = {
       phase: '工作範例',
       eyebrow: '04 / 例 1 根式的乘法',
       title: '√a × √b ＝ √(a×b)',
-      body: '長 √a、寬 √b 的長方形，面積是 √(ab)。拖拉滑桿比較兩個讀數，再自己算例 1。',
+      body: '例 1 的做法：係數乘係數、根號乘根號。先自己算，再按「下一步」對照；🎬 動畫說明為什麼 √2 × √3 ＝ √(2×3)。',
       source: src(74),
       figures: [fig('keybox-mult.png', '課本 p.74 根式的乘法運算'), fig('ex1.png', '課本 p.74 例 1 題目')],
-      interactive: V.rectMult({ a: 3, b: 7 }),
+      interactive: V.multSteps({ p: 3, m: 3, q: -2, n: 5 }),
       activity: radical(
         'a-ex1-q',
         '先自己算例 1，再看老師講解',
@@ -127,10 +127,10 @@ const lessonA = {
       phase: '隨堂練習',
       eyebrow: '05 / 例 1 隨堂',
       title: '換你算：根式的乘法',
-      body: '第 3 小題是課本的長方形面積題，用左邊的圖想一想。',
+      body: '左圖用另一組數字示範同樣的步驟。第 3 小題是課本的長方形面積題：面積＝長 × 寬。',
       source: src(75),
       figures: [fig('ex1-practice.png', '課本 p.75 例 1 隨堂練習')],
-      interactive: V.rectMult({ a: 13, b: 5 }),
+      interactive: V.multSteps({ p: -3, m: 2, q: 4, n: 7 }),
       activity: radical(
         'a-ex1-practice-q',
         '課本 p.75 隨堂：寫成最簡根式',
@@ -147,10 +147,10 @@ const lessonA = {
       phase: '工作範例',
       eyebrow: '06 / 例 2 比較大小',
       title: '3√2 和 2√3，哪個大？',
-      body: '把係數平方後移進根號：3√2＝√18、2√3＝√12。在數線上比一比。',
+      body: '照課本例 2 的方法：把係數平方後移進根號，再比根號內的數。先自己判斷，再按「下一步」看每一步。',
       source: src(75),
       figures: [fig('ex2.png', '課本 p.75 例 2 題目')],
-      interactive: V.compareRadicals({ a: 3, b: 2, c: 2, d: 3 }),
+      interactive: V.compareSteps({ a: 3, b: 2, c: 2, d: 3 }),
       activity: {
         id: 'a-ex2-q',
         type: 'single',
@@ -165,10 +165,10 @@ const lessonA = {
       phase: '隨堂練習',
       eyebrow: '07 / 例 2 隨堂',
       title: '比較大小：哪些敘述正確？',
-      body: '第一個敘述是課本隨堂，其餘是換數字題。先把係數移進根號再比。',
+      body: '第一個敘述是課本隨堂，其餘是換數字題。左圖用另一組數字（2√6 和 3√2）示範同樣的步驟，再自己判斷四個敘述。',
       source: srcVar(75),
       figures: [fig('ex2-practice.png', '課本 p.75 例 2 隨堂練習')],
-      interactive: V.compareRadicals({ a: 6, b: 2, c: 5, d: 3 }),
+      interactive: V.compareSteps({ a: 2, b: 6, c: 3, d: 2 }),
       activity: {
         id: 'a-ex2-practice-q',
         type: 'multiple',
@@ -183,10 +183,13 @@ const lessonA = {
       phase: '工作範例',
       eyebrow: '08 / 例 3 根式的除法',
       title: '√a ÷ √b ＝ √(a÷b)',
-      body: '先除再開根號，在數線上會落在同一點。拖拉 a、b 驗證，再算例 3。',
+      body: '例 3 的做法：寫成分數，再合成一個根號。注意除數不能是 0：a ≥ 0，b > 0。先自己算，再按「下一步」對照。',
       source: src(76),
       figures: [fig('keybox-div.png', '課本 p.76 根式的除法運算'), fig('ex3.png', '課本 p.76 例 3 題目')],
-      interactive: V.divideLine({ a: 35, b: 7 }),
+      interactive: V.stepsViz(
+        ['√35 ÷ √7', '＝ √35/√7', '＝ √(35/7)', '＝ √5'],
+        ['題目：√35 ÷ √7', '除法寫成分數', '合成一個根號：√a/√b ＝ √(a/b)（a ≥ 0，b > 0）', '35 ÷ 7 ＝ 5，答案 √5'],
+      ),
       activity: radical(
         'a-ex3-q',
         '先自己算例 3',
@@ -202,10 +205,13 @@ const lessonA = {
       phase: '隨堂練習',
       eyebrow: '09 / 例 3 隨堂',
       title: '換你算：根式的除法',
-      body: '前兩題是課本隨堂，第 3 題換數字。答案要化成最簡根式。',
+      body: '前兩題是課本隨堂，第 3 題換數字。左圖用另一組數字示範步驟；答案要化成最簡根式。',
       source: srcVar(76),
       figures: [fig('ex3-practice.png', '課本 p.76 例 3 隨堂練習')],
-      interactive: V.divideLine({ a: 48, b: 8 }),
+      interactive: V.stepsViz(
+        ['√60 ÷ √12', '＝ √60/√12', '＝ √(60/12)', '＝ √5'],
+        ['示範（另一組數字）：√60 ÷ √12', '寫成分數', '合成一個根號', '60 ÷ 12 ＝ 5'],
+      ),
       activity: radical(
         'a-ex3-practice-q',
         '寫成最簡根式',
@@ -224,7 +230,7 @@ const lessonA = {
       title: '小華寫：2√3 × 3√2 ＝ 6√5',
       body: '在畫布圈出錯誤、寫出正確算法，並說明「根號乘根號」該怎麼算。也可以寫在紙上拍照。',
       source: src(74),
-      interactive: V.rectMult({ a: 3, b: 2 }),
+      interactive: V.multSteps({ p: 2, m: 3, q: 3, n: 2, blank: true }),
       activity: {
         id: 'a-error-q',
         type: 'canvas',
@@ -340,10 +346,13 @@ const lessonB = {
       phase: '工作範例',
       eyebrow: '04 / 例 4 化成最簡根式',
       title: '找出最大的平方因數，搬到根號外',
-      body: '√(k²m)＝k√m。先把根號內分解，找出平方數，再開出來。',
+      body: '例 4 的做法：分解根號內的數，找出最大的平方因數，搬到根號外。先自己化簡，再按「下一步」對照。',
       source: src(78),
       figures: [fig('ex4.png', '課本 p.78 例 4 題目')],
-      interactive: V.squareGrid({ k: 2, m: 6 }),
+      interactive: V.stepsViz(
+        ['√24', '＝ √(2² × 6)', '＝ √(2²) × √6', '＝ 2√6'],
+        ['題目：√24', '分解：24 ＝ 4 × 6，4 ＝ 2² 是最大的平方因數', '根號拆開：√(a×b) ＝ √a × √b', '2² 搬出根號變成 2：2√6'],
+      ),
       activity: radical(
         'b-ex4-q',
         '先自己化簡例 4',
@@ -359,10 +368,13 @@ const lessonB = {
       phase: '隨堂練習',
       eyebrow: '05 / 例 4 隨堂',
       title: '換你化簡',
-      body: '前兩題是課本隨堂，第 3 題換數字。數值對但沒化簡會被判錯並提醒。',
+      body: '前兩題是課本隨堂，第 3 題換數字。左圖用另一組數字示範；數值對但沒化簡會被判錯並提醒。',
       source: srcVar(78),
       figures: [fig('ex4-practice.png', '課本 p.78 例 4 隨堂練習')],
-      interactive: V.squareGrid({ k: 3, m: 6 }),
+      interactive: V.stepsViz(
+        ['√50', '＝ √(5² × 2)', '＝ √(5²) × √2', '＝ 5√2'],
+        ['示範（另一組數字）：√50', '50 ＝ 25 × 2，25 ＝ 5²', '根號拆開', '5² 搬出根號：5√2'],
+      ),
       activity: radical(
         'b-ex4-practice-q',
         '化成最簡根式',
@@ -390,10 +402,13 @@ const lessonB = {
       phase: '預測',
       eyebrow: '07 / 為什麼要有理化？',
       title: '1/√2 和 √2/2，哪個大？',
-      body: '先猜，再按「下一步」看分子分母同乘 √2 的過程；數線上兩者是同一點。',
+      body: '先猜，再按「下一步」看分子、分母同乘 √2 的過程。🎬 動畫用邊長、面積兩種算法說明。',
       source: src(79),
       figures: [fig('explore-rationalize.png', '課本 p.79 根式的有理化'), fig('keybox-rationalize.png', '課本 p.79 有理化分母')],
-      interactive: V.rationalize({ a: 1, b: 2 }),
+      interactive: V.stepsViz(
+        ['1/√2', '＝ (1 × √2)/(√2 × √2)', '＝ √2/2'],
+        ['題目：1/√2（分母有根號）', '分子、分母同乘 √2（√2/√2 ＝ 1，值不變）', '√2 × √2 ＝ 2：1/√2 和 √2/2 一樣大'],
+      ),
       activity: {
         id: 'b-rationalize-q',
         type: 'single',
@@ -408,10 +423,13 @@ const lessonB = {
       phase: '工作範例',
       eyebrow: '08 / 例 5 分母有理化',
       title: '分子分母同乘分母的根號',
-      body: '分母是 a√b 時，只要同乘 √b。根號內是分數或小數，先改成分數再有理化。',
+      body: '分母是 a√b 時，只要同乘 √b。根號內是分數或小數，先改成分數再有理化。先自己做，再按「下一步」對照。',
       source: src(80),
       figures: [fig('keybox-rationalize-sqrt3.png', '課本 p.80 √2/√3 有理化'), fig('ex5.png', '課本 p.80 例 5 題目')],
-      interactive: V.rationalize({ a: 4, b: 5 }),
+      interactive: V.stepsViz(
+        ['4/(3√5)', '＝ (4 × √5)/(3√5 × √5)', '＝ 4√5/(3 × 5)', '＝ 4√5/15'],
+        ['題目：分母是 3√5', '只要同乘 √5（不用乘 3√5）', '√5 × √5 ＝ 5', '分母沒有根號了：4√5/15'],
+      ),
       activity: radical(
         'b-ex5-q',
         '先自己做例 5（最簡根式）',
@@ -428,10 +446,13 @@ const lessonB = {
       phase: '隨堂練習',
       eyebrow: '09 / 例 5 隨堂',
       title: '換你有理化',
-      body: '三題都是課本隨堂。分母不能有根號，答案化成最簡根式。',
+      body: '三題都是課本隨堂。左圖用另一組數字示範；分母不能有根號，答案化成最簡根式。',
       source: src(80),
       figures: [fig('ex5-practice.png', '課本 p.80 例 5 隨堂練習')],
-      interactive: V.rationalize({ a: 3, b: 2 }),
+      interactive: V.stepsViz(
+        ['5/√10', '＝ (5 × √10)/(√10 × √10)', '＝ 5√10/10', '＝ √10/2'],
+        ['示範（另一組數字）：5/√10', '分子、分母同乘 √10', '√10 × √10 ＝ 10', '約分：5 和 10 約掉 5'],
+      ),
       activity: radical(
         'b-ex5-practice-q',
         '課本 p.80 隨堂：化成最簡根式',
@@ -470,10 +491,13 @@ const lessonB = {
       phase: '隨堂練習',
       eyebrow: '11 / 例 6 隨堂',
       title: '換你算：乘除與有理化',
-      body: '前兩題是課本隨堂，第 3 題換數字。',
+      body: '前兩題是課本隨堂，第 3 題換數字。左圖用另一組數字示範步驟。',
       source: srcVar(81),
       figures: [fig('ex6-practice.png', '課本 p.81 例 6 隨堂練習')],
-      interactive: V.rationalize({ a: 1, b: 7 }),
+      interactive: V.stepsViz(
+        ['√5 ÷ √3', '＝ √5/√3', '＝ (√5 × √3)/(√3 × √3)', '＝ √15/3'],
+        ['示範（另一組數字）：√5 ÷ √3', '寫成分數', '分子、分母同乘 √3', '分母有理化完成'],
+      ),
       activity: radical(
         'b-ex6-practice-q',
         '化成最簡根式',
@@ -492,7 +516,10 @@ const lessonB = {
       title: '小明寫：2/√6 ＝ 2√6/6，做完了',
       body: '他的答案是最簡根式嗎？在畫布寫出判斷、正確答案與理由，也可以拍照上傳。',
       source: src(80),
-      interactive: V.rationalize({ a: 2, b: 6 }),
+      interactive: V.stepsViz(
+        ['2/√6', '＝ 2√6/6', '＝ ？'],
+        ['小明的題目', '有理化：分子、分母同乘 √6', '這樣就是最簡了嗎？'],
+      ),
       activity: {
         id: 'b-error-q',
         type: 'canvas',
@@ -583,10 +610,13 @@ const lessonC = {
       phase: '工作範例',
       eyebrow: '04 / 例 7 同類方根的加減',
       title: '只合併同類方根',
-      body: '係數相加減，根號不變；不同類的留著。先自己做例 7。',
+      body: '係數相加減，根號不變；不同類的留著。先自己做例 7，再按「下一步」對照。',
       source: src(82),
       figures: [fig('ex7.png', '課本 p.82 例 7 題目')],
-      interactive: V.likeRods({ a: 4, b: 3, m: 3, n: 2 }),
+      interactive: V.stepsViz(
+        ['√2 − 5√2 + √3', '＝ (1 − 5)√2 + √3', '＝ −4√2 + √3'],
+        ['例 7(2)：先找同類方根（√2 和 −5√2）', '同類方根：係數相加減，根號不變', '√3 不同類，留著'],
+      ),
       activity: radical(
         'c-ex7-q',
         '例 7（最簡根式，例：-4√2+√3）',
@@ -602,10 +632,13 @@ const lessonC = {
       phase: '隨堂練習',
       eyebrow: '05 / 例 7 隨堂',
       title: '換你合併',
-      body: '前兩題是課本隨堂，第 3 題換數字。',
+      body: '前兩題是課本隨堂，第 3 題換數字。左圖用另一組數字示範。',
       source: srcVar(82),
       figures: [fig('ex7-practice.png', '課本 p.82 例 7 隨堂練習')],
-      interactive: V.likeRods({ a: 3, b: 5, m: 5, n: 7 }),
+      interactive: V.stepsViz(
+        ['4√6 + √5 − 6√6', '＝ (4 − 6)√6 + √5', '＝ −2√6 + √5'],
+        ['示範（另一組數字）：找同類方根 4√6、−6√6', '係數相加減', '√5 不同類，留著'],
+      ),
       activity: radical(
         'c-ex7-practice-q',
         '化成最簡根式',
@@ -644,10 +677,13 @@ const lessonC = {
       phase: '隨堂練習',
       eyebrow: '07 / 例 8 隨堂',
       title: '換你：化簡後合併',
-      body: '前兩題是課本隨堂，第 3 題換數字。',
+      body: '前兩題是課本隨堂，第 3 題換數字。左圖用另一組數字示範：先化簡，再合併。',
       source: srcVar(83),
       figures: [fig('ex8-practice.png', '課本 p.83 例 8 隨堂練習')],
-      interactive: V.squareGrid({ k: 4, m: 2 }),
+      interactive: V.stepsViz(
+        ['√20 − √45 + √12', '＝ 2√5 − 3√5 + 2√3', '＝ (2 − 3)√5 + 2√3', '＝ −√5 + 2√3'],
+        ['示範（另一組數字）', '先把每一項化成最簡根式', '同類方根合併', '√3 不同類，留著'],
+      ),
       activity: radical(
         'c-ex8-practice-q',
         '化成最簡根式（結果是 0 就寫 0）',
@@ -770,7 +806,10 @@ const lessonC = {
       title: '小明寫：√2 ＋ √8 ＝ √10',
       body: '在畫布圈出錯誤、寫出正確答案，並用「積木」或同類方根說明。也可以拍照上傳。',
       source: src(82),
-      interactive: V.likeRods({ a: 1, b: 2, m: 2, n: 8 }),
+      interactive: V.stepsViz(
+        ['√2 + √8', '＝ √2 + √(2² × 2)', '＝ √2 + ？√2', '＝ ？'],
+        ['小明的題目', '先把 √8 化成最簡根式', '是同類方根嗎？', '合併後是多少？'],
+      ),
       activity: {
         id: 'c-error-q',
         type: 'canvas',
@@ -827,10 +866,10 @@ const lessonD = {
       phase: '工作範例',
       eyebrow: '02 / 例 11 和的平方',
       title: '(3 + 2√5)²：中間的 2ab 不能漏',
-      body: 'a＝3、b＝2√5。拖拉滑桿看四塊面積，再自己算例 11。',
+      body: 'a ＝ 3、b ＝ 2√5。按「下一步」把正方形切成四塊：a²、兩塊 ab、b²。先自己算例 11 再對照。',
       source: src(86),
       figures: [fig('keybox-formulas.png', '課本 p.86 乘法公式與根式'), fig('ex11.png', '課本 p.86 例 11 題目')],
-      interactive: V.binomialSquare({ p: 3, c: 2, q: 5 }),
+      interactive: V.binomialSteps({ aLen: 3, bLen: 4.47, aLab: '3', bLab: '2√5', a2: '9', ab: '6√5', ab2: '12√5', b2: '20', total: '29 ＋ 12√5', expr: '(3＋2√5)²' }),
       activity: radical('d-ex11-q', '例 11（最簡根式）', [['(3 + 2√5)²', '29+12√5']], '3²＋2×3×2√5＋(2√5)²＝9＋12√5＋20＝29＋12√5。'),
     },
     {
@@ -838,10 +877,13 @@ const lessonD = {
       phase: '隨堂練習',
       eyebrow: '03 / 例 11 隨堂',
       title: '換你：平方公式',
-      body: '第 1 題是課本隨堂，後兩題換數字。',
+      body: '第 1 題是課本隨堂，後兩題換數字。左圖用另一組數字示範公式代入。',
       source: srcVar(86),
       figures: [fig('ex11-practice.png', '課本 p.86 例 11 隨堂練習')],
-      interactive: V.binomialSquare({ p: 2, c: 1, q: 3 }),
+      interactive: V.stepsViz(
+        ['(√6 − √2)²', '＝ (√6)² − 2 × √6 × √2 + (√2)²', '＝ 6 − 2√12 + 2', '＝ 8 − 4√3'],
+        ['示範（另一組數字）：差的平方', '(a − b)² ＝ a² − 2ab ＋ b²', '√6 × √2 ＝ √12', '√12 ＝ 2√3，化成最簡根式'],
+      ),
       activity: radical(
         'd-ex11-practice-q',
         '化成最簡根式',
@@ -858,10 +900,10 @@ const lessonD = {
       phase: '預測',
       eyebrow: '04 / Thinking',
       title: '(√3 + √2)² 會等於 (√5)² 嗎？',
-      body: '先猜，再用面積模型檢查：中間兩塊是多少？',
+      body: '先猜，再按「下一步」用面積模型檢查：中間兩塊 ab 是多少？',
       source: src(86),
       figures: [fig('thinking.png', '課本 p.86 Thinking')],
-      interactive: V.binomialSquare({ p: 2, c: 1, q: 2 }),
+      interactive: V.binomialSteps({ aLen: 1.732, bLen: 1.414, aLab: '√3', bLab: '√2', a2: '3', ab: '√6', ab2: '2√6', b2: '2', total: '5 ＋ 2√6', expr: '(√3＋√2)²' }),
       activity: {
         id: 'd-thinking-q',
         type: 'single',
@@ -876,10 +918,13 @@ const lessonD = {
       phase: '工作範例',
       eyebrow: '05 / 例 12 平方差',
       title: '(a+b)(a−b)＝a²−b²：根號不見了',
-      body: '點綠色長條把它移過去，L 形拼成長方形。a＝3、b＝√5 時面積是多少？',
+      body: 'a ＝ 3、b ＝ √5，代入平方差公式。先自己算，再按「下一步」對照；🎬 動畫逐步演示。',
       source: src(87),
       figures: [fig('ex12.png', '課本 p.87 例 12 題目')],
-      interactive: V.diffSquares({ p: 3, q: 5 }),
+      interactive: V.stepsViz(
+        ['(3 + √5)(3 − √5)', '＝ 3² − (√5)²', '＝ 9 − 5', '＝ 4'],
+        ['看成 (a＋b)(a−b)：a ＝ 3、b ＝ √5', '平方差公式：(a＋b)(a−b) ＝ a² − b²', '(√5)² ＝ 5', '根號不見了：答案是整數 4'],
+      ),
       activity: radical('d-ex12-q', '例 12', [['(3 + √5)(3 − √5)', '4']], '3²−(√5)²＝9−5＝4。'),
     },
     {
@@ -887,10 +932,13 @@ const lessonD = {
       phase: '隨堂練習',
       eyebrow: '06 / 例 12 隨堂',
       title: '換你：平方差公式',
-      body: '第 1 題是課本隨堂，後兩題換數字。',
+      body: '第 1 題是課本隨堂，後兩題換數字。左圖用另一組數字示範。',
       source: srcVar(87),
       figures: [fig('ex12-practice.png', '課本 p.87 例 12 隨堂練習')],
-      interactive: V.diffSquares({ p: 4, q: 7 }),
+      interactive: V.stepsViz(
+        ['(√6 + 2)(√6 − 2)', '＝ (√6)² − 2²', '＝ 6 − 4', '＝ 2'],
+        ['示範（另一組數字）', '(a＋b)(a−b) ＝ a² − b²', '(√6)² ＝ 6', '根號不見了'],
+      ),
       activity: radical(
         'd-ex12-practice-q',
         '計算',
@@ -943,10 +991,13 @@ const lessonD = {
       phase: '隨堂練習',
       eyebrow: '09 / 例 13 隨堂',
       title: '換你：用平方差有理化',
-      body: '前兩題是課本隨堂，第 3 題換數字。',
+      body: '前兩題是課本隨堂，第 3 題換數字。左圖用另一組數字示範。',
       source: srcVar(88),
       figures: [fig('ex13-practice.png', '課本 p.88 例 13 隨堂練習')],
-      interactive: V.diffSquares({ p: 2, q: 3 }),
+      interactive: V.stepsViz(
+        ['4/(√7 − √3)', '＝ 4(√7 + √3)/((√7 − √3)(√7 + √3))', '＝ 4(√7 + √3)/(7 − 3)', '＝ √7 + √3'],
+        ['示範（另一組數字）', '分子、分母同乘 √7 ＋ √3（和差相反）', '分母用平方差：7 − 3 ＝ 4', '約分'],
+      ),
       activity: radical(
         'd-ex13-practice-q',
         '把分母有理化（最簡根式）',
@@ -965,7 +1016,10 @@ const lessonD = {
       title: '小華寫：2/(√3 + 1) ＝ 2(√3 + 1)/2 ＝ √3 + 1',
       body: '在畫布圈出錯誤、寫出正確過程，並說明為什麼要乘 √3 − 1。也可以拍照上傳。',
       source: src(88),
-      interactive: V.diffSquares({ p: 2, q: 3 }),
+      interactive: V.stepsViz(
+        ['2/(√3 + 1)', '＝ 2(？)/((√3 + 1)(？))', '＝ 2(？)/(3 − 1)', '＝ ？'],
+        ['小華的題目', '分子、分母要同乘什麼？', '分母用平方差', '約分後是多少？'],
+      ),
       activity: {
         id: 'd-error-q',
         type: 'canvas',
@@ -1008,6 +1062,20 @@ const lessonD = {
     reflect('d-reflect', '我能用乘法公式計算根式並將分母有理化'),
   ],
 };
+
+// 動畫片段（八年級/影片/根式的運算_動畫簡報_v1 的 tools/export_classroom.py 產生）：依頁 ID 掛上。
+// 有 IRS 的頁面，學生端要等老師「公布結果」才看得到（伺服器端鎖定）。
+const animations = JSON.parse(await readFile(join(root, 'scripts/lessons-src/g8-2-2-animations.json'), 'utf8'));
+const used = new Set();
+for (const lesson of [lessonA, lessonB, lessonC, lessonD])
+  for (const slide of lesson.slides) {
+    const a = animations[slide.id];
+    if (!a) continue;
+    slide.animation = { src: a.src, poster: a.poster, caption: a.caption, seconds: a.seconds };
+    used.add(slide.id);
+  }
+const unused = Object.keys(animations).filter((id) => !used.has(id));
+if (unused.length) throw new Error(`動畫對照表有找不到的頁 ID：${unused.join('、')}`);
 
 for (const lesson of [lessonA, lessonB, lessonC, lessonD]) {
   const file = join(root, 'content/lessons', `${lesson.id}.json`);

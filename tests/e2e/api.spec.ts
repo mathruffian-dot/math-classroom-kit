@@ -75,10 +75,16 @@ test('demo is explicit; unauthenticated, invalid and cross-origin requests canno
   expect(config.mode).toBe('demo');
   expect(config.aiConfigured).toBe(false);
   expect((await c.get('/api/dashboard')).status()).toBe(401);
-  expect((await c.post('/api/login', { data: { role: 'student', classCode: 'DEMO801', seat: 1, code: 'wrong' } })).ok()).toBe(false);
+  // 不存在的座號一律拒絕；錯的識別碼只有在班級開啟「個人識別碼」時才拒絕（預設停用）
+  expect((await c.post('/api/login', { data: { role: 'student', classCode: 'DEMO801', seat: 99 } })).ok()).toBe(false);
   const hostile = await c.post('/api/login', { headers: { Origin: 'https://untrusted.invalid' }, data: { role: 'teacher' } });
   expect(hostile.ok()).toBe(false);
   const t = await teacher();
+  const demo = (await (await t.get('/api/dashboard')).json()).classes.find((x: any) => x.code === 'DEMO801');
+  await t.patch(`/api/classes/${demo.id}`, { data: { requireCode: true } });
+  expect((await c.post('/api/login', { data: { role: 'student', classCode: 'DEMO801', seat: 1, code: 'wrong' } })).ok()).toBe(false);
+  await t.patch(`/api/classes/${demo.id}`, { data: { requireCode: false } });
+  expect((await c.post('/api/login', { data: { role: 'student', classCode: 'DEMO801', seat: 1 } })).ok()).toBe(true);
   const cookie = (await t.storageState()).cookies.find(c => c.httpOnly);
   expect(cookie).toBeTruthy();
   expect(cookie?.sameSite).not.toBe('None');

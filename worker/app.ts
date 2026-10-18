@@ -235,6 +235,22 @@ function hideKeys(activity: Activity) {
     delete activity.rubric.graderNotes;
   }
 }
+/** 動畫通常演示答案：有 IRS 的頁面，學生要等老師在這一頁「公布結果」才看得到。 */
+function animationUnlocked(session: Session, slide: Lesson['slides'][number], index: number) {
+  return slide.animation?.reveal === 'always' || !slide.activity || (session.resultsVisible && index === session.slideIndex);
+}
+/** 學生讀取 anim- 檔案：必須是自己班上進行中的課堂、而且該頁已解鎖。 */
+function studentMayLoadAnimation(state: State, user: User, file: string) {
+  return Object.values(state.sessions).some(
+    ({ session, lesson }) =>
+      session.classId === user.classId &&
+      !session.ended &&
+      lesson.slides.some(
+        (slide, i) =>
+          (slide.animation?.src === file || slide.animation?.poster === file) && animationUnlocked(session, slide, i),
+      ),
+  );
+}
 export function sessionView(state: State, stored: StoredSession, user: User): SessionView {
   const { session } = stored,
     lesson = cleanLesson(clone(stored.lesson)),
@@ -244,6 +260,10 @@ export function sessionView(state: State, stored: StoredSession, user: User): Se
       delete slide.notes;
       if (slide.activity && (!session.resultsVisible || i !== session.slideIndex))
         hideKeys(slide.activity);
+      if (slide.animation && !animationUnlocked(session, slide, i)) {
+        const { caption, seconds } = slide.animation;
+        slide.animation = { src: '', caption, ...(seconds ? { seconds } : {}), locked: true };
+      }
     }
   }
   const a = lesson.slides[session.slideIndex]?.activity;
@@ -377,16 +397,19 @@ async function login(
     assert(body.role === 'student', '請選擇角色');
     const code = str(body.classCode, '班級代碼', 30, 1).trim().toUpperCase(),
       seat = integer(Number(body.seat), 1, 100),
-      credential = str(body.code, '識別碼', 50, 1).trim().toUpperCase();
+      credential = body.code ? str(body.code, '識別碼', 50).trim().toUpperCase() : '';
     const cl = Object.values(state.classes).find((c) => c.classroom.code === code);
     const student = cl?.students.find((s) => s.seat === seat);
-    assert(
-      cl &&
-        student &&
+    assert(cl && student, '班級代碼或座號不正確', 401);
+    // 班級可關閉個人識別碼（預設關閉，測試階段只要班級代碼＋座號）
+    if (cl.classroom.requireCode) {
+      assert(credential, '這個班級需要輸入個人識別碼', 401);
+      assert(
         student.codeHash === (await hash(`${cl.classroom.id}:${seat}:${credential}`, state.secret)),
-      '班級、座號或識別碼不正確',
-      401,
-    );
+        '班級、座號或識別碼不正確',
+        401,
+      );
+    }
     user = {
       id: `${cl.classroom.id}-${seat}`,
       role: 'student',
@@ -600,18 +623,42 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
         return json(await aiSettings(env, vault, usedToday));
       }
     }
-    const assetGet = path.match(/^\/api\/assets\/lessons\/([a-z0-9][a-z0-9-]*\/[A-Za-z0-9._-]+\.(?:png|jpe?g|webp))$/);
+    const assetGet = path.match(/^\/api\/assets\/lessons\/([a-z0-9][a-z0-9-]*\/[A-Za-z0-9._-]+\.(?:png|jpe?g|webp|mp4))$/);
     if (assetGet && method === 'GET') {
       // 課本截圖有著作權：只提供給已登入的師生，不公開在網站根目錄。
       assert(ctx.assets, '此環境無法讀取課本截圖', 404);
-      const r = await ctx.assets.fetch(new Request(new URL(`/lesson-assets/${assetGet[1]}`, url)));
+      const file = assetGet[1];
+      if (user.role !== 'teacher' && /\/anim-/.test(file))
+        assert(studentMayLoadAnimation(state, user, file), '老師公布結果後才能看動畫', 403);
+      // 影片要轉送 Range（iPad Safari 播放影片一定要 206 分段回應）
+      const range = request.headers.get('Range');
+      const r = await ctx.assets.fetch(
+        new Request(new URL(`/lesson-assets/${file}`, url), range ? { headers: { Range: range } } : undefined),
+      );
       assert(r.ok, '找不到課本截圖', 404);
-      return new Response(r.body, {
-        headers: {
-          'Content-Type': r.headers.get('Content-Type') || 'image/png',
-          'Cache-Control': 'private, max-age=86400',
-        },
-      });
+      const headers: Record<string, string> = {
+        'Content-Type': r.headers.get('Content-Type') || (file.endsWith('.mp4') ? 'video/mp4' : 'image/png'),
+        'Cache-Control': /\/anim-/.test(file) ? 'private, no-store' : 'private, max-age=86400',
+        'Accept-Ranges': 'bytes',
+      };
+      for (const h of ['Content-Range', 'Content-Length']) {
+        const v = r.headers.get(h);
+        if (v) headers[h] = v;
+      }
+      // 靜態資產沒有處理 Range 時（回 200），自己切出分段（動畫片段只有幾百 KB）
+      const want = range?.match(/^bytes=(\d*)-(\d*)$/);
+      if (want && r.status === 200 && (want[1] || want[2])) {
+        const all = new Uint8Array(await r.arrayBuffer()),
+          size = all.byteLength;
+        const start = want[1] ? Number(want[1]) : Math.max(0, size - Number(want[2])),
+          end = want[1] && want[2] ? Math.min(Number(want[2]), size - 1) : size - 1;
+        if (start >= size || start > end)
+          return new Response(null, { status: 416, headers: { 'Content-Range': `bytes */${size}` } });
+        headers['Content-Range'] = `bytes ${start}-${end}/${size}`;
+        headers['Content-Length'] = String(end - start + 1);
+        return new Response(all.slice(start, end + 1), { status: 206, headers });
+      }
+      return new Response(r.body, { status: r.status, headers });
     }
     const imageGet = path.match(/^\/api\/images\/([\w-]+)$/);
     if (imageGet && method === 'GET') {
@@ -722,6 +769,18 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
       return save({ credential: { seat, code } });
     }
     const classDelete = path.match(/^\/api\/classes\/([\w-]+)$/);
+    if (classDelete && method === 'PATCH') {
+      requireTeacher(user);
+      const cl = state.classes[classDelete[1]];
+      assert(cl && cl.ownerId === user.id, '找不到班級', 404);
+      assert(typeof body.requireCode === 'boolean', 'requireCode 必須是 true 或 false');
+      cl.classroom.requireCode = body.requireCode;
+      // 開啟後，沒用識別碼登入的學生要重新登入
+      if (body.requireCode)
+        for (const [key, login] of Object.entries(state.logins))
+          if (login.user.classId === cl.classroom.id) delete state.logins[key];
+      return save({ classroom: cl.classroom });
+    }
     if (classDelete && method === 'DELETE') {
       requireTeacher(user);
       const cl = state.classes[classDelete[1]];
@@ -1043,8 +1102,13 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
       if (action === 'whiteboard' && method === 'PUT') {
         requireTeacher(user);
         const id = identifier(body.slideId);
+        // 「頁ID--fig序號」「頁ID--anim」是放大課本截圖、播放動畫時的筆跡（另存，縮小後不蓋到原版面）
+        const fig = id.match(/^(.+)--(?:fig([0-2])|anim)$/);
+        const host = fig && s.lesson.slides.find((sl) => sl.id === fig[1]);
         assert(
-          s.lesson.slides.some((sl) => sl.id === id),
+          fig
+            ? !!(fig[2] === undefined ? host?.animation : host?.figures?.[Number(fig[2])])
+            : s.lesson.slides.some((sl) => sl.id === id),
           '找不到頁面',
           404,
         );

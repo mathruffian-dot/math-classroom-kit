@@ -72,56 +72,6 @@ export function rectMult({ a = 3, b = 7 } = {}) {
   };
 }
 
-/** 比較 a√b 與 c√d：把係數平方移進根號，在數線上比位置。 */
-export function compareRadicals({ a = 3, b = 2, c = 2, d = 3 } = {}) {
-  return {
-    view: { xMin: -0.5, xMax: 12.5, yMin: -2.6, yMax: 2.6, aspect: 'fill' },
-    params: [
-      { id: 'a', label: '$a$', min: 1, max: 5, step: 1, value: a },
-      { id: 'b', label: '$\\sqrt{b}$ 的 $b$', min: 2, max: 7, step: 1, value: b },
-      { id: 'c', label: '$c$', min: 1, max: 5, step: 1, value: c },
-      { id: 'd', label: '$\\sqrt{d}$ 的 $d$', min: 2, max: 7, step: 1, value: d },
-    ],
-    shapes: [
-      ...numberLine(0, 12, 1),
-      { type: 'point', x: 'a*sqrt(b)', y: 0, color: C.violet },
-      { type: 'segment', points: [['a*sqrt(b)', 0.15], ['a*sqrt(b)', 1.1]], color: C.violet, dash: true },
-      { type: 'text', x: 'a*sqrt(b)', y: 1.5, text: '${a}\\sqrt{b} = \\sqrt{a^2*b}$', color: '#5a3fd6', size: 16 },
-      { type: 'point', x: 'c*sqrt(d)', y: 0, color: C.orange },
-      { type: 'segment', points: [['c*sqrt(d)', -0.9], ['c*sqrt(d)', -1.5]], color: C.orange, dash: true },
-      { type: 'text', x: 'c*sqrt(d)', y: -1.95, text: '${c}\\sqrt{d} = \\sqrt{c^2*d}$', color: '#b4541a', size: 16 },
-    ],
-    readouts: [
-      { label: '$a^2\\times b$', expr: 'a^2*b' },
-      { label: '$c^2\\times d$', expr: 'c^2*d' },
-    ],
-    caption: '根號內的數越大，平方根越大',
-  };
-}
-
-/** √a ÷ √b 與 √(a÷b) 在數線上落在同一點。 */
-export function divideLine({ a = 35, b = 7 } = {}) {
-  return {
-    view: { xMin: -0.5, xMax: 8.5, yMin: -2.4, yMax: 2.8, aspect: 'fill' },
-    params: [
-      { id: 'a', label: '$\\sqrt{a}$ 的 $a$', min: 1, max: 60, step: 1, value: a },
-      { id: 'b', label: '$\\sqrt{b}$ 的 $b$', min: 1, max: 12, step: 1, value: b },
-    ],
-    shapes: [
-      ...numberLine(0, 8, 1),
-      { type: 'point', x: 'sqrt(a)', y: 0, color: C.blue, text: '$\\sqrt{a}$' },
-      { type: 'point', x: 'sqrt(b)', y: 0, color: C.orange, text: '$\\sqrt{b}$' },
-      { type: 'segment', points: [['sqrt(a)/sqrt(b)', -0.2], ['sqrt(a)/sqrt(b)', -1.2]], color: C.violet, width: 3 },
-      { type: 'text', x: 'sqrt(a)/sqrt(b)', y: -1.7, text: '$\\sqrt{a}\\div\\sqrt{b} = \\sqrt{\\frac{a}{b}}$', color: '#5a3fd6', size: 16 },
-    ],
-    readouts: [
-      { label: '$\\sqrt{a}\\div\\sqrt{b} \\approx$', expr: 'sqrt(a)/sqrt(b)', digits: 3 },
-      { label: '$\\sqrt{\\frac{a}{b}} \\approx$', expr: 'sqrt(a/b)', digits: 3 },
-    ],
-    caption: '先除再開根號，結果相同',
-  };
-}
-
 /** 面積 k²m 的正方形切成 k×k 個面積 m 的小正方形：√(k²m) = k√m（課本 p.77 探索）。 */
 export function squareGrid({ k = 3, m = 2 } = {}) {
   const shapes = [
@@ -172,43 +122,143 @@ export function diagonal({ s = 1 } = {}) {
   };
 }
 
-/** a/√b 乘以 √b/√b（等於 1）變成 a√b/b，數線上是同一點。 */
-export function rationalize({ a = 1, b = 2 } = {}) {
-  return {
-    view: { xMin: -0.4, xMax: 6.4, yMin: -2.2, yMax: 4.2, aspect: 'fill' },
-    params: [
-      { id: 'a', label: '分子 $a$', min: 1, max: 6, step: 1, value: a },
-      { id: 'b', label: '分母 $\\sqrt{b}$ 的 $b$', min: 2, max: 7, step: 1, value: b },
-    ],
+/** 最後一步把所有步驟都點亮：完整的解題過程一次看清楚（其餘步驟仍是目前步驟發光、其他反暗）。 */
+function litAtEnd(spec) {
+  const last = spec.steps.length - 1;
+  for (const s of spec.shapes) if (s.step !== undefined && !s.focus) s.focus = s.step === last ? [last] : [s.step, last];
+  return spec;
+}
+
+/**
+ * 比大小（課本例 2 的解法，步驟化）：左右兩欄把係數平方移進根號，
+ * 再比根號內的數，最後在數線上確認。沒有滑桿；按「下一步」逐步揭示，目前步驟發光。
+ */
+export function compareSteps({ a = 3, b = 2, c = 2, d = 3 } = {}) {
+  const L = a * a * b,
+    R = c * c * d,
+    sign = L > R ? '＞' : L < R ? '＜' : '＝';
+  const lo = Math.floor(Math.sqrt(Math.min(L, R))),
+    hi = Math.ceil(Math.sqrt(Math.max(L, R))) + (Math.sqrt(Math.max(L, R)) % 1 === 0 ? 1 : 0),
+    X = (v) => 1.5 + ((v - lo) / (hi - lo)) * 9; // 數線 1.5～10.5
+  const col = (x, coef, rad, sq, color, s1, s2) => [
+    { type: 'text', x, y: 4.15, text: `${coef} ＝ √${coef * coef}`, size: 17, color: C.orange, step: s1 },
+    { type: 'text', x, y: 3.25, text: `${coef}√${rad} ＝ √${coef * coef} × √${rad}`, size: 19, color: C.ink, step: s1 },
+    { type: 'text', x, y: 2.35, text: `＝ √${sq}`, size: 22, color, step: s2 },
+  ];
+  const ticks = [];
+  for (let v = lo; v <= hi; v++) {
+    ticks.push({ type: 'segment', points: [[X(v), 0.05], [X(v), 0.35]], color: C.ink, width: 1.6, step: 4 });
+    ticks.push({ type: 'text', x: X(v), y: -0.35, text: String(v), size: 13, color: C.ink, step: 4 });
+  }
+  return litAtEnd({
+    view: { xMin: 0, xMax: 12, yMin: -0.8, yMax: 5.9, aspect: 'fill' },
     shapes: [
-      ...numberLine(0, 6, 1),
-      { type: 'point', x: 'a/sqrt(b)', y: 0, color: C.violet, text: '≈ {round(a/sqrt(b),3)}' },
-      { type: 'text', x: 3.2, y: 3.5, text: '$\\dfrac{a}{\\sqrt{b}}$', size: 22, color: C.ink, focus: [0] },
-      { type: 'text', x: 3.2, y: 2.5, text: '$= \\dfrac{a\\times\\sqrt{b}}{\\sqrt{b}\\times\\sqrt{b}}$', size: 19, color: '#1d4fa3', step: 1 },
-      { type: 'text', x: 3.2, y: 1.5, text: '$= \\dfrac{a\\sqrt{b}}{b}$', size: 22, color: '#5a3fd6', step: 2 },
+      { type: 'text', x: 3, y: 5.2, text: `${a}√${b}`, size: 26, color: C.violet, step: 0 },
+      { type: 'text', x: 9, y: 5.2, text: `${c}√${d}`, size: 26, color: C.blue, step: 0 },
+      { type: 'segment', points: [[6, 1.9], [6, 5.6]], color: '#c9d0ea', width: 1.2, dash: true, step: 0 },
+      ...col(3, a, b, L, C.violet, 1, 2),
+      ...col(9, c, d, R, C.blue, 3, 3),
+      { type: 'text', x: 6, y: 1.55, text: `${L} ${sign} ${R}，所以 √${L} ${sign} √${R}`, size: 18, color: C.ink, step: 4, show: 'step < 5' },
+      { type: 'segment', points: [[1.2, 0.2], [10.8, 0.2]], color: C.ink, width: 2.2, step: 4 },
+      ...ticks,
+      { type: 'point', x: X(Math.sqrt(L)), y: 0.2, color: C.violet, step: 4 },
+      { type: 'text', x: X(Math.sqrt(L)), y: 0.75, text: `√${L}`, size: 15, color: C.violet, step: 4 },
+      { type: 'point', x: X(Math.sqrt(R)), y: 0.2, color: C.blue, step: 4 },
+      { type: 'text', x: X(Math.sqrt(R)), y: 0.75, text: `√${R}`, size: 15, color: C.blue, step: 4 },
+      { type: 'text', x: 6, y: 1.55, text: `結論：${a}√${b} ${sign} ${c}√${d}`, size: 24, color: '#5a3fd6', step: 5 },
     ],
     steps: [
-      '分母有根號，不容易估算大小',
-      '分子、分母同乘 $\\sqrt{b}$（$\\frac{\\sqrt{b}}{\\sqrt{b}}=1$，值不變）',
-      '$\\sqrt{b}\\times\\sqrt{b}=b$，分母變成整數：完成有理化',
+      `比較 ${a}√${b} 與 ${c}√${d}：係數不同，不能直接比`,
+      `左邊：係數 ${a} 寫成 √${a * a}，移進根號`,
+      `左邊：√${a * a} × √${b} ＝ √${L}`,
+      `右邊照做：${c} ＝ √${c * c}，所以 ${c}√${d} ＝ √${R}`,
+      `比根號內的數：${L} ${sign} ${R}，數線上也看得到`,
+      `結論：${a}√${b} ${sign} ${c}√${d}`,
     ],
-    readouts: [
-      { label: '$\\frac{a}{\\sqrt{b}} \\approx$', expr: 'a/sqrt(b)', digits: 4 },
-      { label: '$\\frac{a\\sqrt{b}}{b} \\approx$', expr: 'a*sqrt(b)/b', digits: 4 },
+    caption: '課本例 2 的方法：係數平方後移進根號，再比根號內的數',
+  });
+}
+
+/**
+ * 根式乘法（課本例 1 的解法，結構化）：係數一欄、根號一欄，最後合起來。
+ * p√m × q√n；blank 為 true 時結果留「？」（錯誤分析頁的鷹架，不洩漏答案）。
+ */
+export function multSteps({ p, m, q, n, blank = false }) {
+  const num = (v) => (v < 0 ? `(−${-v})` : String(v)),
+    term = (c, r) => `${c === 1 ? '' : c === -1 ? '−' : String(c).replace('-', '−')}√${r}`,
+    first = term(p, m),
+    second = q < 0 ? `(${term(q, n)})` : term(q, n),
+    coef = p * q,
+    res = `${String(coef).replace('-', '−')}√${m * n}`;
+  return litAtEnd({
+    view: { xMin: 0, xMax: 12, yMin: 0, yMax: 5.6, aspect: 'fill' },
+    shapes: [
+      { type: 'text', x: 6, y: 4.9, text: `${first} × ${second}`, size: 26, color: C.ink, step: 0 },
+      { type: 'text', x: 3, y: 3.85, text: '係數 × 係數', size: 15, color: C.teal, step: 1 },
+      { type: 'text', x: 3, y: 2.95, text: `${num(p)} × ${num(q)}`, size: 21, color: C.ink, step: 1 },
+      { type: 'text', x: 3, y: 2.05, text: `＝ ${blank ? '？' : String(coef).replace('-', '−')}`, size: 22, color: C.teal, step: 1 },
+      { type: 'segment', points: [[6, 1.7], [6, 4.1]], color: '#c9d0ea', width: 1.2, dash: true, step: 1 },
+      { type: 'text', x: 9, y: 3.85, text: '根號 × 根號', size: 15, color: C.violet, step: 2 },
+      { type: 'text', x: 9, y: 2.95, text: `√${m} × √${n}`, size: 21, color: C.ink, step: 2 },
+      { type: 'text', x: 9, y: 2.05, text: `＝ ${blank ? '？' : `√${m * n}`}`, size: 22, color: C.violet, step: 2 },
+      { type: 'text', x: 6, y: 0.85, text: `${first} × ${second} ＝ ${blank ? '？' : res}`, size: 24, color: '#5a3fd6', step: 3 },
     ],
-  };
+    steps: [
+      `題目：${first} × ${second}`,
+      '係數和係數相乘（注意正負號）',
+      `根號和根號相乘：根號內相乘（a ≥ 0、b ≥ 0）`,
+      blank ? '兩欄的結果合起來，是多少？' : `合起來：${res}`,
+    ],
+    caption: '課本例 1 的方法：係數乘係數，根號乘根號',
+  });
+}
+
+/**
+ * (a+b)² 的面積模型（靜態，按「下一步」逐塊揭示）：a、b 可以是根式。
+ * aLen、bLen 是畫圖用的長度；其餘是標籤文字（純文字寫法，會自動排版）。
+ */
+export function binomialSteps({ aLen, bLen, aLab, bLab, a2, ab, ab2, b2, total, expr }) {
+  const S = aLen + bLen;
+  return litAtEnd({
+    view: { xMin: -1.4, xMax: S + 7.6, yMin: -0.8, yMax: S + 1.3, aspect: 'equal' },
+    shapes: [
+      { type: 'rect', x: 0, y: 0, w: S, h: S, color: C.ink, width: 2, step: 0 },
+      { type: 'brace', points: [[0, S], [aLen, S]], text: aLab, step: 0 },
+      { type: 'brace', points: [[aLen, S], [S, S]], text: bLab, step: 0 },
+      { type: 'rect', x: 0, y: bLen, w: aLen, h: aLen, fill: C.fViolet, color: C.violet, step: 1 },
+      { type: 'text', x: aLen / 2, y: bLen + aLen / 2, text: a2, size: 17, color: '#5a3fd6', step: 1 },
+      { type: 'rect', x: aLen, y: bLen, w: bLen, h: aLen, fill: C.fBlue, color: C.blue, step: 2 },
+      { type: 'rect', x: 0, y: 0, w: aLen, h: bLen, fill: C.fBlue, color: C.blue, step: 2 },
+      { type: 'text', x: aLen + bLen / 2, y: bLen + aLen / 2, text: ab, size: 16, color: '#1d4fa3', step: 2 },
+      { type: 'text', x: aLen / 2, y: bLen / 2, text: ab, size: 16, color: '#1d4fa3', step: 2 },
+      { type: 'rect', x: aLen, y: 0, w: bLen, h: bLen, fill: C.fOrange, color: C.orange, step: 3 },
+      { type: 'text', x: aLen + bLen / 2, y: bLen / 2, text: b2, size: 17, color: '#b4541a', step: 3 },
+      { type: 'text', x: S + 3.8, y: S * 0.78, text: `a² ＝ ${a2}`, size: 17, color: '#5a3fd6', step: 1 },
+      { type: 'text', x: S + 3.8, y: S * 0.56, text: `2ab ＝ 2 × ${ab} ＝ ${ab2}`, size: 17, color: '#1d4fa3', step: 2 },
+      { type: 'text', x: S + 3.8, y: S * 0.34, text: `b² ＝ ${b2}`, size: 17, color: '#b4541a', step: 3 },
+      { type: 'text', x: S + 3.8, y: S * 0.1, text: `${expr} ＝ ${total}`, size: 19, color: C.ink, step: 4 },
+    ],
+    steps: [
+      `邊長 ${aLab} ＋ ${bLab} 的正方形，面積就是 ${expr}`,
+      `切成四塊：左上 a² ＝ ${a2}`,
+      `兩塊長方形，各是 ab ＝ ${ab}：中間項 2ab 不能漏`,
+      `右下 b² ＝ ${b2}`,
+      `四塊加起來：${total}`,
+    ],
+    caption: '和的平方公式 (a＋b)² ＝ a² ＋ 2ab ＋ b²，a、b 可以是根式',
+  });
 }
 
 /** 逐步解題：每一行在自己的步驟發光，前面的步驟反暗。 */
-export function stepsViz(lines, captions, { size = 21 } = {}) {
+export function stepsViz(lines, captions, { size = 25 } = {}) {
   const n = lines.length;
-  return {
+  return litAtEnd({
     view: { xMin: 0, xMax: 12, yMin: 0, yMax: n + 0.6, aspect: 'fill' },
     shapes: lines.map((text, i) => ({
       type: 'text', x: 6, y: n - i, text, size: i === 0 ? size + 2 : size, color: i === n - 1 ? '#5a3fd6' : C.ink, step: i,
     })),
     steps: captions,
-  };
+  });
 }
 
 /** 同類方根：a 個 √m ＋ b 個 √m＝(a+b)√m；切換「不同類」看 √m＋√n 為何不能合併。 */
@@ -293,32 +343,3 @@ export function binomialSquare({ p = 3, c = 2, q = 5 } = {}) {
   };
 }
 
-/** (a+b)(a−b) = a² − b²：把切下的長條移過去拼成長方形。 */
-export function diffSquares({ p = 3, q = 5 } = {}) {
-  const b = 'sqrt(q)';
-  return {
-    view: { xMin: -1.4, xMax: 9.6, yMin: -1.6, yMax: 6.8, aspect: 'equal' },
-    params: [
-      { id: 'p', label: '$a$（整數）', min: 2, max: 5, step: 1, value: p },
-      { id: 'q', label: '$b=\\sqrt{q}$ 的 $q$', min: 1, max: 15, step: 1, value: q },
-      { id: 'move', label: '把長條移到右邊', kind: 'toggle', value: 0 },
-    ],
-    shapes: [
-      { type: 'rect', x: 0, y: 0, w: 'p', h: `p-${b}`, fill: C.fBlue, color: C.blue, show: `q<p^2` },
-      { type: 'rect', x: 0, y: `p-${b}`, w: `p-${b}`, h: b, fill: C.fTeal, color: C.teal, show: `q<p^2 && !move`, toggle: 'move' },
-      { type: 'rect', x: `p-${b}`, y: `p-${b}`, w: b, h: b, color: C.red, dash: true, show: `q<p^2 && !move` },
-      { type: 'text', x: `p-${b}/2`, y: `p-${b}/2+${b}`, text: '挖掉 $b^2$', size: 13, color: C.red, show: `q<p^2 && !move` },
-      { type: 'rect', x: 'p', y: 0, w: b, h: `p-${b}`, fill: C.fTeal, color: C.teal, show: `q<p^2 && move`, toggle: 'move' },
-      { type: 'brace', points: [[0, 'p'], ['p', 'p']], text: '$a={p}$', show: '!move' },
-      { type: 'brace', points: [[0, `p-${b}`], [`p+${b}`, `p-${b}`]], text: '$a+b={p}+\\sqrt{q}$', show: 'move' },
-      { type: 'brace', points: [[0, 0], [0, `p-${b}`]], text: '$a-b$', show: 'move' },
-      { type: 'text', x: 4, y: -1, text: '面積 $= a^2-b^2 = {p^2}-{q} = {p^2-q}$', size: 16, color: '#5a3fd6', show: 'q<p^2' },
-      { type: 'text', x: 4, y: 3, text: '請讓 $b^2$ 小於 $a^2$（$q < {p^2}$）', size: 15, color: C.red, show: 'q>=p^2' },
-    ],
-    readouts: [
-      { label: '$(a+b)(a-b) \\approx$', expr: `(p+${b})*(p-${b})`, digits: 3 },
-      { label: '$a^2-b^2$', expr: 'p^2-q' },
-    ],
-    caption: '點綠色長條或開關，把它移過去拼成長方形',
-  };
-}

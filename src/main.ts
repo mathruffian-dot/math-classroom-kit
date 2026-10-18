@@ -25,6 +25,7 @@ import type {
   Answer,
   Grade,
   CanvasAnswer,
+  Classroom,
 } from '../shared/types';
 import { parseNumberAnswer, type Vars } from '../shared/expr';
 import { md, plain, answerHtml } from './math';
@@ -142,8 +143,8 @@ function landing(role = 'teacher') {
   app.className = 'landing';
   const demo = config.mode === 'demo';
   const teacherFields = `<label>帳號<input name="account" autocomplete="username" required value="${demo ? esc(config.teacherHint || '') : ''}" placeholder="${config.mode === 'supabase' ? 'teacher@example.edu' : '你的 Cloudflare 帳號信箱'}"></label><label>密碼<input name="password" type="password" autocomplete="current-password" required ${demo ? 'value="11235813"' : ''}></label>`;
-  const studentFields = `<label>班級代碼<input name="classCode" autocomplete="off" value="${demo ? 'DEMO801' : ''}" required placeholder="由老師提供"></label><div class="field-row"><label>座號<input name="seat" type="number" inputmode="numeric" min="1" max="100" value="1" required></label><label>識別碼<input name="code" autocomplete="off" autocapitalize="characters" value="${demo ? 'DEMO01' : ''}" required placeholder="個人識別碼"></label></div>`;
-  app.innerHTML = `<section class="landing-art" aria-hidden="true"><div class="landing-brand">${brand()}</div><div class="hero-graph"><svg viewBox="0 0 400 300"><defs><pattern id="g" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" fill="none" stroke="#ffffff1c"/></pattern></defs><rect width="400" height="300" fill="url(#g)"/><rect x="60" y="70" width="150" height="150" fill="#7b61ff55" stroke="#b9a9ff" stroke-width="2"/><rect x="210" y="70" width="60" height="150" fill="#2f80ed55" stroke="#8fc0ff" stroke-width="2"/><rect x="60" y="220" width="150" height="60" fill="#2f80ed55" stroke="#8fc0ff" stroke-width="2"/><rect x="210" y="220" width="60" height="60" fill="#ff8a3d66" stroke="#ffc08f" stroke-width="2"/><text x="135" y="152" fill="#fff" font-size="26" text-anchor="middle">a²</text><text x="240" y="152" fill="#fff" font-size="20" text-anchor="middle">ab</text><text x="135" y="256" fill="#fff" font-size="20" text-anchor="middle">ab</text><text x="240" y="256" fill="#fff" font-size="20" text-anchor="middle">b²</text><circle cx="270" cy="70" r="9" fill="#ffc93c"/></svg></div><h1>看得見的數學，<br><span>摸得到的思考。</span></h1><p>拖拉滑桿、切開圖形、逐頁提問；學生手寫或拍照作答，依評量規準即時批改與紅筆回饋。</p><ul class="hero-points"><li>${icon('sliders')}可操作視覺化</li><li>${icon('chart')}每頁 IRS</li><li>${icon('stamp')}規準批改</li></ul></section><section class="login-card"><h2>進入課堂</h2><div class="segmented" role="group" aria-label="登入身分"><button class="${role === 'teacher' ? 'selected' : ''}" data-action="login-tab" data-role="teacher" aria-pressed="${role === 'teacher'}">${icon('book')}教師</button><button class="${role === 'student' ? 'selected' : ''}" data-action="login-tab" data-role="student" aria-pressed="${role === 'student'}">${icon('users')}學生</button></div><form id="login-form" data-role="${role}">${role === 'teacher' ? teacherFields : studentFields}<button type="submit" class="btn primary full">${icon('arrow')}<span>登入</span></button><p id="login-error" class="form-error" role="alert"></p></form><p class="login-foot">${icon('shield')}${demo ? (role === 'teacher' ? `示範帳號 ${esc(config.teacherHint || 'teacher')}・預設密碼 11235813` : '示範班 DEMO801・座號 1–40・識別碼 DEMO01–DEMO40') : role === 'teacher' ? '首次登入使用部署時設定的帳號與預設密碼，登入後請立即修改。' : '班級代碼、座號與識別碼由老師提供。'}</p></section>`;
+  const studentFields = `<label>班級代碼<input name="classCode" autocomplete="off" value="${demo ? 'DEMO801' : ''}" required placeholder="由老師提供"></label><div class="field-row"><label>座號<input name="seat" type="number" inputmode="numeric" min="1" max="100" value="1" required></label><label>識別碼<input name="code" autocomplete="off" autocapitalize="characters" value="" placeholder="老師有要求才填"></label></div>`;
+  app.innerHTML = `<section class="landing-art" aria-hidden="true"><div class="landing-brand">${brand()}</div><div class="hero-graph"><svg viewBox="0 0 400 300"><defs><pattern id="g" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" fill="none" stroke="#ffffff1c"/></pattern></defs><rect width="400" height="300" fill="url(#g)"/><rect x="60" y="70" width="150" height="150" fill="#7b61ff55" stroke="#b9a9ff" stroke-width="2"/><rect x="210" y="70" width="60" height="150" fill="#2f80ed55" stroke="#8fc0ff" stroke-width="2"/><rect x="60" y="220" width="150" height="60" fill="#2f80ed55" stroke="#8fc0ff" stroke-width="2"/><rect x="210" y="220" width="60" height="60" fill="#ff8a3d66" stroke="#ffc08f" stroke-width="2"/><text x="135" y="152" fill="#fff" font-size="26" text-anchor="middle">a²</text><text x="240" y="152" fill="#fff" font-size="20" text-anchor="middle">ab</text><text x="135" y="256" fill="#fff" font-size="20" text-anchor="middle">ab</text><text x="240" y="256" fill="#fff" font-size="20" text-anchor="middle">b²</text><circle cx="270" cy="70" r="9" fill="#ffc93c"/></svg></div><h1>看得見的數學，<br><span>摸得到的思考。</span></h1><p>拖拉滑桿、切開圖形、逐頁提問；學生手寫或拍照作答，依評量規準即時批改與紅筆回饋。</p><ul class="hero-points"><li>${icon('sliders')}可操作視覺化</li><li>${icon('chart')}每頁 IRS</li><li>${icon('stamp')}規準批改</li></ul></section><section class="login-card"><h2>進入課堂</h2><div class="segmented" role="group" aria-label="登入身分"><button class="${role === 'teacher' ? 'selected' : ''}" data-action="login-tab" data-role="teacher" aria-pressed="${role === 'teacher'}">${icon('book')}教師</button><button class="${role === 'student' ? 'selected' : ''}" data-action="login-tab" data-role="student" aria-pressed="${role === 'student'}">${icon('users')}學生</button></div><form id="login-form" data-role="${role}">${role === 'teacher' ? teacherFields : studentFields}<button type="submit" class="btn primary full">${icon('arrow')}<span>登入</span></button><p id="login-error" class="form-error" role="alert"></p></form><p class="login-foot">${icon('shield')}${demo ? (role === 'teacher' ? `示範帳號 ${esc(config.teacherHint || 'teacher')}・預設密碼 11235813` : '示範班 DEMO801・座號 1–40（老師開啟識別碼時：DEMO01–DEMO40）') : role === 'teacher' ? '首次登入使用部署時設定的帳號與預設密碼，登入後請立即修改。' : '班級代碼、座號由老師提供；老師開啟驗證時才需要識別碼。'}</p></section>`;
 }
 async function loadDashboard() {
   dashboard = await api<Dashboard>('/dashboard');
@@ -179,7 +180,7 @@ function renderClasses() {
   shell(
     'classes',
     '班級與學生',
-    `<p class="page-description">學生以班級代碼、座號與個人識別碼登入，不需要姓名。</p><div class="class-grid">${dashboard!.classes.map((c) => `<article class="class-card"><h2>${esc(c.name)}</h2><p>${c.seats} 位學生</p><code class="class-code">${esc(c.code)}</code><p class="muted small-text">${config.mode === 'demo' && c.code === 'DEMO801' ? '示範識別碼：DEMO01–DEMO40' : '個人識別碼只在建立時提供一次，請妥善保存。'}</p><div class="actions">${btn('學生入口', 'join-code', 'secondary', 'users', `data-code="${esc(c.code)}"`)}${btn('重發識別碼', 'reset-code', 'quiet', 'shield', `data-id="${esc(c.id)}" data-seats="${c.seats}"`)}</div></article>`).join('') || '<p class="empty-state">還沒有班級。</p>'}</div>`,
+    `<p class="page-description">學生以班級代碼、座號登入，不需要姓名；每個班級可另外開啟「個人識別碼」驗證。</p><div class="class-grid">${dashboard!.classes.map((c) => `<article class="class-card"><h2>${esc(c.name)}</h2><p>${c.seats} 位學生</p><code class="class-code">${esc(c.code)}</code><label class="switch"><input type="checkbox" data-require-code="${esc(c.id)}" ${c.requireCode ? 'checked' : ''} data-testid="toggle-require-code"><span></span>學生登入需要個人識別碼</label><p class="muted small-text">${c.requireCode ? (config.mode === 'demo' && c.code === 'DEMO801' ? '示範識別碼：DEMO01–DEMO40' : '個人識別碼只在建立時提供一次，請妥善保存。') : '目前停用（測試用）：知道班級代碼的人都能用任一座號登入。正式上課前請開啟。'}</p><div class="actions">${btn('學生入口', 'join-code', 'secondary', 'users', `data-code="${esc(c.code)}"`)}${btn('重發識別碼', 'reset-code', 'quiet', 'shield', `data-id="${esc(c.id)}" data-seats="${c.seats}"`)}</div></article>`).join('') || '<p class="empty-state">還沒有班級。</p>'}</div>`,
     btn('建立班級', 'new-class', 'primary', 'plus'),
   );
 }
@@ -282,18 +283,48 @@ function visual(slide: Slide) {
     return `<div class="visual bars">${items.map((x, i) => `<div class="bar-row"><span>${md(x)}</span><i style="width:${30 + i * 15}%"></i></div>`).join('')}</div>`;
   return `<div class="visual cards">${items.map((x, i) => `<div class="idea-card tone-${i % 4}"><span>${String.fromCharCode(65 + i)}</span><strong>${md(x)}</strong></div>`).join('')}</div>`;
 }
+// 動畫卡：放在課本截圖那一排，點一下用大視窗播放（靜音動畫，老師邊播邊講）
+function animationHtml(slide: Slide) {
+  const a = slide.animation;
+  if (!a) return '';
+  const len = a.seconds ? `<span class="anim-len">${Math.round(a.seconds)} 秒</span>` : '';
+  if (a.locked || !a.src)
+    return `<figure class="anim-card locked" data-testid="animation-locked"><div class="anim-thumb"><span class="anim-lock">${icon('clock')}<span>老師公布結果後<br>可以看動畫</span></span>${len}</div><figcaption>${md(a.caption)}</figcaption></figure>`;
+  const poster = a.poster ? `<img src="/api/assets/lessons/${esc(a.poster)}" alt="" loading="lazy">` : '';
+  return `<figure class="anim-card"><button type="button" class="anim-thumb" data-action="play-animation" data-src="${esc(a.src)}" data-poster="${esc(a.poster || '')}" data-caption="${esc(a.caption)}" aria-label="播放動畫：${esc(a.caption)}" data-testid="play-animation">${poster}<span class="anim-play">${icon('play')}</span>${len}</button><figcaption>${md(a.caption)}</figcaption></figure>`;
+}
+// 授課畫面裡放大課本截圖：疊在投影片區內、白板畫布之下，畫筆、雷射、聚光、翻頁、IRS 都照常可用。
+// 放大時的筆跡另存在「頁ID--fig序號」，縮小後不會蓋到原本的版面。
+// 動畫也一樣在投影片區內播放（index = -1），暫停後可以直接在畫面上畫，筆跡存在「頁ID--anim」。
+let figZoom: { slideId: string; index: number } | null = null;
+const boardKey = (slideId: string) =>
+  figZoom?.slideId === slideId ? `${slideId}--${figZoom.index < 0 ? 'anim' : `fig${figZoom.index}`}` : slideId;
+function figureFocusHtml(slide: Slide) {
+  const close = (label: string) =>
+    btn('縮小', 'close-figure', 'secondary fig-focus-close', 'close', `data-testid="close-figure" title="${label}（Esc）"`);
+  if (figZoom?.index === -1) {
+    const a = slide.animation;
+    if (!a?.src) return '';
+    const poster = a.poster ? ` poster="/api/assets/lessons/${esc(a.poster)}"` : '';
+    return `<div class="fig-focus anim-focus" data-testid="animation-focus"><figure><video class="anim-player" src="/api/assets/lessons/${esc(a.src)}"${poster} controls autoplay muted playsinline preload="auto" data-testid="animation-player"></video><figcaption>🎬 ${md(a.caption)}</figcaption></figure></div>${close('關閉動畫')}`;
+  }
+  const f = figZoom && slide.figures?.[figZoom.index];
+  if (!f) return '';
+  return `<div class="fig-focus" data-testid="figure-focus"><figure><img src="/api/assets/lessons/${esc(f.src)}" alt="${esc(f.alt)}"><figcaption>${esc(f.alt)}</figcaption></figure></div>${close('縮小課本截圖')}`;
+}
 function figuresHtml(slide: Slide) {
-  if (!slide.figures?.length) return '';
-  return `<div class="textbook-figs">${slide.figures
+  if (!slide.figures?.length && !slide.animation) return '';
+  return `<div class="textbook-figs">${animationHtml(slide)}${(slide.figures || [])
     .map(
-      (f) =>
-        `<figure class="textbook-fig"><button type="button" data-action="zoom-figure" data-src="${esc(f.src)}" data-alt="${esc(f.alt)}" aria-label="放大課本截圖：${esc(f.alt)}"><img src="/api/assets/lessons/${esc(f.src)}" alt="${esc(f.alt)}" loading="lazy"></button>${f.caption ? `<figcaption>${md(f.caption)}</figcaption>` : ''}</figure>`,
+      (f, i) =>
+        `<figure class="textbook-fig"><button type="button" data-action="zoom-figure" data-index="${i}" data-src="${esc(f.src)}" data-alt="${esc(f.alt)}" aria-label="放大課本截圖：${esc(f.alt)}"><img src="/api/assets/lessons/${esc(f.src)}" alt="${esc(f.alt)}" loading="lazy"></button>${f.caption ? `<figcaption>${md(f.caption)}</figcaption>` : ''}</figure>`,
     )
     .join('')}</div>`;
 }
 function slideMarkup(slide: Slide, index: number, total: number) {
-  const hasVisual = slide.interactive || slide.customHtml || slide.bullets?.length || slide.figures?.length;
-  return `<div class="slide-head"><p class="slide-eyebrow">${slide.phase ? `<span class="phase-chip">${esc(slide.phase)}</span>` : ''}<span>${esc(slide.eyebrow || `${index + 1} / ${total}`)}</span></p><h1>${md(slide.title)}</h1>${slide.body ? `<p class="slide-body">${md(slide.body)}</p>` : ''}</div>${hasVisual ? `<div class="slide-visual ${slide.figures?.length ? 'with-figure' : ''} ${slide.figures?.length && !slide.interactive && !slide.customHtml ? 'figure-only' : ''}">${figuresHtml(slide)}${slide.customHtml ? '<iframe id="custom-activity" class="custom-activity" title="自訂互動教材" sandbox="allow-scripts" referrerpolicy="no-referrer"></iframe>' : slide.interactive ? '<div class="viz-host"></div>' : slide.figures?.length ? '' : visual(slide)}</div>` : ''}${slide.source ? `<p class="slide-source">${icon('book')}${esc(slide.source)}</p>` : ''}`;
+  const figs = !!(slide.figures?.length || slide.animation);
+  const hasVisual = slide.interactive || slide.customHtml || slide.bullets?.length || figs;
+  return `<div class="slide-head"><p class="slide-eyebrow">${slide.phase ? `<span class="phase-chip">${esc(slide.phase)}</span>` : ''}<span>${esc(slide.eyebrow || `${index + 1} / ${total}`)}</span></p><h1>${md(slide.title)}</h1>${slide.body ? `<p class="slide-body">${md(slide.body)}</p>` : ''}</div>${hasVisual ? `<div class="slide-visual ${figs ? 'with-figure' : ''} ${figs && !slide.interactive && !slide.customHtml ? 'figure-only' : ''}">${figuresHtml(slide)}${slide.customHtml ? '<iframe id="custom-activity" class="custom-activity" title="自訂互動教材" sandbox="allow-scripts" referrerpolicy="no-referrer"></iframe>' : slide.interactive ? '<div class="viz-host"></div>' : figs ? '' : visual(slide)}</div>` : ''}${slide.source ? `<p class="slide-source">${icon('book')}${esc(slide.source)}</p>` : ''}`;
 }
 function latestBySeat(v: SessionView, activityId: string): Answer[] {
   const map = new Map<number, Answer>();
@@ -453,8 +484,22 @@ function renderSession() {
   const total = view.lesson.slides.length;
   app.className = `classroom ${teacher ? 'teacher-room' : 'student-room'} ${screen ? 'big-screen' : ''} ${needsPanelFocus() ? 'show-panel' : ''}`;
   const panel = teacher ? teacherPanel(a, screen) : studentPanel(a, index);
+  // 重畫時（例如按「公布結果」）保留動畫的播放位置
+  const oldVideo = document.querySelector<HTMLVideoElement>('.anim-focus video');
+  const resume = oldVideo ? { t: oldVideo.currentTime, paused: oldVideo.paused } : null;
   app.innerHTML = `<header class="room-bar"><div class="room-identity">${teacher ? btn('返回', 'dashboard', 'icon-btn', 'back', 'aria-label="返回課程"') : `<span class="brand-mark small">${icon('sigma')}</span>`}<div><strong>${esc(teacher ? s.title : `${s.className}・${user.seat} 號`)}</strong><small>${teacher ? esc(s.className) : esc(view.lesson.title)}</small></div></div><div class="room-progress" aria-label="第 ${index + 1} 頁，共 ${total} 頁"><span>${index + 1}</span>/<span>${total}</span></div><div class="room-actions"><span id="sync-status" class="sync-status"><i></i>已連線</span>${teacher ? `${btn(screen ? '一般' : '大屏', 'screen', 'quiet', 'screen', 'title="切換大屏授課"')}` : ''}${btn('', 'fullscreen', 'icon-btn', 'expand', 'aria-label="全螢幕" title="全螢幕"')}${teacher ? '' : btn('', 'logout', 'icon-btn', 'logout', 'aria-label="登出" title="登出"')}</div></header><div class="room-main"><main class="stage-col"><article class="slide-stage" data-testid="session-slide" id="slide-stage">${slideMarkup(slide, index, total)}</article><nav class="slide-nav" aria-label="翻頁與白板工具">${btn('', 'prev-slide', 'icon-btn nav-btn', 'prev', `aria-label="上一頁" ${index === 0 || (!teacher && s.followTeacher) ? 'disabled' : ''}`)}${teacher ? toolbar() : ''}<div class="slide-dots">${view.lesson.slides.map((sl, i) => `<button class="${i === index ? 'active' : ''} ${sl.activity ? 'has-q' : ''} ${i === s.slideIndex && !teacher ? 'live' : ''}" data-action="go-slide" data-index="${i}" aria-label="第 ${i + 1} 頁${sl.phase ? `・${esc(sl.phase)}` : ''}" title="${esc(sl.phase || sl.title)}" ${!teacher && s.followTeacher ? 'disabled' : ''}><span></span></button>`).join('')}</div>${btn('', 'next-slide', 'icon-btn nav-btn primary', 'next', `aria-label="下一頁" data-testid="next-slide" ${index === total - 1 || (!teacher && s.followTeacher) ? 'disabled' : ''}`)}</nav></main><aside class="panel-col" aria-label="${teacher ? '課堂互動' : '作答區'}">${panel}</aside></div>${teacher ? '' : `<nav class="phone-tabs" aria-label="切換"><button class="${studentTab === 'slide' ? 'selected' : ''}" data-action="student-tab" data-tab="slide">${icon('book')}教材</button><button class="${studentTab === 'answer' ? 'selected' : ''}" data-action="student-tab" data-tab="answer">${icon('pen')}作答${a && s.activityOpen && (!own || editing) ? '<i class="badge-dot"></i>' : ''}</button></nav>`}`;
   const stage = document.querySelector<HTMLElement>('#slide-stage')!;
+  if (
+    figZoom &&
+    (figZoom.slideId !== slide.id || (figZoom.index < 0 ? !slide.animation?.src : !slide.figures?.[figZoom.index]))
+  )
+    figZoom = null;
+  if (figZoom) stage.insertAdjacentHTML('beforeend', figureFocusHtml(slide));
+  const video = stage.querySelector<HTMLVideoElement>('.anim-focus video');
+  if (video && resume) {
+    video.autoplay = !resume.paused;
+    video.addEventListener('loadedmetadata', () => (video.currentTime = resume.t), { once: true });
+  }
   const vizHost = stage.querySelector<HTMLElement>('.viz-host');
   if (vizHost && slide.interactive)
     viz = mountInteractive(vizHost, slide.interactive, vizState.get(slide.id), (vars) => {
@@ -465,11 +510,12 @@ function renderSession() {
         out.textContent = keys.map((k) => `${k} = ${fmt(vars[k])}`).join('　');
       }
     });
+  const inkKey = boardKey(slide.id);
   board = new Whiteboard(
     stage,
-    view.whiteboard[slide.id] || [],
+    view.whiteboard[inkKey] || [],
     async (strokes) => {
-      await api(`/sessions/${s.id}/whiteboard`, 'PUT', { slideId: slide.id, strokes });
+      await api(`/sessions/${s.id}/whiteboard`, 'PUT', { slideId: inkKey, strokes });
     },
     (m) => toast(m, true),
   );
@@ -845,7 +891,8 @@ async function applyView(next: SessionView | { session: null }, route: string) {
         }
       }
       const idx = user.role === 'teacher' || n.session.followTeacher ? n.session.slideIndex : studentSlide;
-      board?.setRemote(n.whiteboard[n.lesson.slides[idx]?.id] || []);
+      const sid = n.lesson.slides[idx]?.id;
+      board?.setRemote((sid && n.whiteboard[boardKey(sid)]) || []);
     }
     autoGradeCheck();
     await retryPending();
@@ -1211,7 +1258,39 @@ async function action(el: HTMLElement) {
       closeModal();
       await renderRoute();
       return toast('課堂紀錄已刪除');
+    case 'play-animation': {
+      // 授課中：在投影片區內播放，工具照常可用
+      if (view && document.querySelector('#slide-stage')) {
+        const t = user?.role === 'teacher' || view.session.followTeacher ? view.session.slideIndex : studentSlide;
+        const sl = view.lesson.slides[t];
+        if (sl?.animation?.src) {
+          await board?.flush().catch((e) => toast(e.message, true));
+          figZoom = { slideId: sl.id, index: -1 };
+          return renderSession();
+        }
+      }
+      const poster = el.dataset.poster ? ` poster="/api/assets/lessons/${esc(el.dataset.poster)}"` : '';
+      return modal(
+        `🎬 ${esc(el.dataset.caption || '動畫')}`,
+        `<video class="anim-player" src="/api/assets/lessons/${esc(el.dataset.src!)}"${poster} controls autoplay muted playsinline preload="auto" data-testid="animation-player"></video>`,
+        'wide',
+      );
+    }
+    case 'close-figure':
+      await board?.flush().catch((e) => toast(e.message, true));
+      figZoom = null;
+      return renderSession();
     case 'zoom-figure':
+      // 授課中：在投影片區內放大，工具照常可用；課程編輯預覽：沿用對話框
+      if (view && document.querySelector('#slide-stage') && el.dataset.index) {
+        const t = user?.role === 'teacher' || view.session.followTeacher ? view.session.slideIndex : studentSlide;
+        const sl = view.lesson.slides[t];
+        if (sl) {
+          await board?.flush().catch((e) => toast(e.message, true));
+          figZoom = { slideId: sl.id, index: Number(el.dataset.index) };
+          return renderSession();
+        }
+      }
       return modal(
         '課本截圖',
         `<img class="figure-zoom" src="/api/assets/lessons/${esc(el.dataset.src!)}" alt="${esc(el.dataset.alt || '')}">`,
@@ -1446,6 +1525,18 @@ document.addEventListener('change', async (e) => {
     refreshPanelParts();
     if (el.checked) autoGradeCheck();
   }
+  if (el instanceof HTMLInputElement && el.dataset.requireCode) {
+    try {
+      const result = await api<{ classroom: Classroom }>(`/classes/${el.dataset.requireCode}`, 'PATCH', { requireCode: el.checked });
+      const c = dashboard?.classes.find((x) => x.id === result.classroom.id);
+      if (c) c.requireCode = result.classroom.requireCode;
+      toast(el.checked ? '已開啟：學生要輸入個人識別碼，原本的登入需重新登入。' : '已停用：學生只要班級代碼＋座號就能登入。');
+      renderClasses();
+    } catch (err) {
+      el.checked = !el.checked;
+      toast((err as Error).message, true);
+    }
+  }
   if (el.id === 'pref-concurrency') prefs.set('concurrency', Number(el.value));
   if (el.id === 'pref-votes') prefs.set('votes', Number(el.value));
   if (el.id === 'preview-slide') document.querySelector<HTMLElement>('[data-action="preview-lesson"]')?.click();
@@ -1659,6 +1750,10 @@ document.addEventListener('keydown', (e) => {
     return;
   }
   if ((e.target as HTMLElement).matches('input,textarea,select,[data-point]') || !view) return;
+  if (e.key === 'Escape' && figZoom) {
+    document.querySelector<HTMLElement>('[data-action="close-figure"]')?.click();
+    return;
+  }
   if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
     const next = document.querySelector<HTMLElement>(`[data-action="${e.key === 'ArrowRight' ? 'next-slide' : 'prev-slide'}"]`);
     if (next && !next.hasAttribute('disabled')) {

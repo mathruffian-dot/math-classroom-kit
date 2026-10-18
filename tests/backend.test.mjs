@@ -25,18 +25,18 @@ function memoryStorage(values=new Map(),failKey=()=>false) {
   return {...methods(values),async transaction(operation){const copy=structuredClone(values);const result=await operation(methods(copy));values.clear();for(const [key,value]of copy)values.set(key,value);return result;}};
 }
 
-function fixture(env={APP_MODE:'demo'}) {
+function fixture(env={APP_MODE:'demo'},assets) {
   let data;const vaultMap=new Map();
   const vault={async get(k){const v=vaultMap.get(k);return v===undefined?undefined:structuredClone(v);},async put(k,v){vaultMap.set(k,structuredClone(v));},async delete(k){return vaultMap.delete(k);}};
   const store={async read(){return data&&structuredClone(data);},async write(next){data=structuredClone(next);}};
   const cookies=new Map();
   return {
     get data(){return data;},vaultMap,cookie(user){return cookies.get(user);},
-    async call(path,method='GET',body,user='teacher',origin='http://localhost') {
-      const headers={'Origin':origin};
+    async call(path,method='GET',body,user='teacher',origin='http://localhost',extra={}) {
+      const headers={'Origin':origin,...extra};
       if(cookies.has(user))headers.Cookie=cookies.get(user);
       if(method!=='GET')headers['Content-Type']='application/json';
-      const response=await handleApi(new Request(`http://localhost${path}`,{method,headers,body:method!=='GET'?JSON.stringify(body??{}):undefined}),{store,env,vault});
+      const response=await handleApi(new Request(`http://localhost${path}`,{method,headers,body:method!=='GET'?JSON.stringify(body??{}):undefined}),{store,env,vault,assets});
       if(response.headers.has('Set-Cookie'))cookies.set(user,response.headers.get('Set-Cookie').split(';')[0]);
       const type=response.headers.get('Content-Type')||'';
       return {status:response.status,body:type.includes('json')?await response.json():await response.arrayBuffer(),headers:response.headers};
@@ -75,6 +75,57 @@ test('student scope, hidden keys, activity gating, deduplication, and snapshot i
   assert.equal(after.aggregate.submitted,1);
 });
 
+test('animations stay locked for students until results are shown on that slide; video ranges pass through',async()=>{
+  const seen=[];
+  // 和正式的靜態資產綁定一樣：忽略 Range，一律回整個檔案（200）；伺服器要自己切成 206。
+  const assets={async fetch(req){seen.push(req.headers.get('Range'));
+    return new Response(Uint8Array.from({length:10},(_,i)=>i),{status:200,headers:{'Content-Type':'video/mp4','Content-Length':'10'}});}};
+  const f=fixture({APP_MODE:'demo'},assets);assert.equal((await f.call('/api/login','POST',TEACHER)).status,200);
+  const dashboard=(await f.call('/api/dashboard')).body;
+  const lesson=dashboard.lessons.find(l=>l.slides.some(s=>s.animation&&s.activity));assert(lesson,'需要一份含動畫的課程');
+  const index=lesson.slides.findIndex(s=>s.animation&&s.activity),anim=lesson.slides[index].animation;
+  const session=(await f.call('/api/sessions','POST',{lessonId:lesson.id,classId:dashboard.classes[0].id})).body.session;
+  await f.call('/api/login','POST',{role:'student',classCode:'DEMO801',seat:1,code:'DEMO01'},'student');
+  const url=`/api/assets/lessons/${anim.src}`;
+  let view=(await f.call(`/api/sessions/${session.id}`,'GET',null,'student')).body;
+  assert.deepEqual(Object.keys(view.lesson.slides[index].animation).sort(),['caption','locked','seconds','src'].filter(k=>k!=='seconds'||anim.seconds).sort());
+  assert.equal(view.lesson.slides[index].animation.src,'');
+  assert.equal((await f.call(url,'GET',null,'student')).status,403);
+  assert.equal((await f.call(`/api/assets/lessons/${anim.poster}`,'GET',null,'student')).status,403);
+  const teacher=await f.call(url,'GET',null,'teacher','http://localhost',{Range:'bytes=3-5'});
+  assert.equal(teacher.status,206);assert.equal(teacher.headers.get('Content-Range'),'bytes 3-5/10');assert.equal(seen.at(-1),'bytes=3-5');
+  assert.deepEqual([...new Uint8Array(teacher.body)],[3,4,5]);
+  assert.equal((await f.call(url,'GET',null,'teacher','http://localhost',{Range:'bytes=8-'})).headers.get('Content-Range'),'bytes 8-9/10');
+  assert.equal((await f.call(url,'GET',null,'teacher','http://localhost',{Range:'bytes=20-'})).status,416);
+  assert.equal((await f.call(url,'GET',null,'teacher')).status,200);
+  await f.call(`/api/sessions/${session.id}/control`,'POST',{action:'slide',index});
+  await f.call(`/api/sessions/${session.id}/control`,'POST',{action:'results',value:true});
+  view=(await f.call(`/api/sessions/${session.id}`,'GET',null,'student')).body;
+  assert.equal(view.lesson.slides[index].animation.src,anim.src);assert(!view.lesson.slides[index].animation.locked);
+  assert.equal((await f.call(url,'GET',null,'student')).status,200);
+  await f.call(`/api/sessions/${session.id}/control`,'POST',{action:'results',value:false});
+  assert.equal((await f.call(url,'GET',null,'student')).status,403);
+  const bad={...lesson,id:'anim-bad',slides:[{...lesson.slides[index],animation:{...anim,src:'g8-2-2/ex1.mp4'}}]};
+  assert.equal((await f.call('/api/lessons/anim-bad','PUT',{lesson:bad})).status,400);
+});
+
+test('per-class student code switch: off by default, teacher-only, enabling revokes code-less logins',async()=>{
+  const f=fixture();assert.equal((await f.call('/api/login','POST',TEACHER)).status,200);
+  const cl=(await f.call('/api/dashboard')).body.classes.find(c=>c.code==='DEMO801');
+  assert.ok(!cl.requireCode);
+  assert.equal((await f.call('/api/login','POST',{role:'student',classCode:'DEMO801',seat:5},'student')).status,200);
+  assert.equal((await f.call('/api/login','POST',{role:'student',classCode:'DEMO801',seat:99},'nobody')).status,401);
+  assert.equal((await f.call(`/api/classes/${cl.id}`,'PATCH',{requireCode:true},'student')).status,403);
+  assert.equal((await f.call(`/api/classes/${cl.id}`,'PATCH',{requireCode:'yes'})).status,400);
+  assert.equal((await f.call(`/api/classes/${cl.id}`,'PATCH',{requireCode:true})).body.classroom.requireCode,true);
+  assert.equal((await f.call('/api/me','GET',null,'student')).body.user,null);
+  assert.equal((await f.call('/api/login','POST',{role:'student',classCode:'DEMO801',seat:5},'student')).status,401);
+  assert.equal((await f.call('/api/login','POST',{role:'student',classCode:'DEMO801',seat:5,code:'DEMO04'},'student')).status,401);
+  assert.equal((await f.call('/api/login','POST',{role:'student',classCode:'DEMO801',seat:5,code:'DEMO05'},'student')).status,200);
+  await f.call(`/api/classes/${cl.id}`,'PATCH',{requireCode:false});
+  assert.equal((await f.call('/api/login','POST',{role:'student',classCode:'DEMO801',seat:6},'third')).status,200);
+});
+
 test('backup excludes secrets; valid restore works; malformed input cannot commit; class reset revokes student session',async()=>{
   const {f,session}=await setup();
   const backup=(await f.call('/api/backup')).body;
@@ -84,6 +135,7 @@ test('backup excludes secrets; valid restore works; malformed input cannot commi
   const malformed={...backup,lessons:[{...backup.lessons[0],title:'Bad'},{}]};
   assert.equal((await f.call('/api/restore','POST',{backup:malformed})).status,400);
   assert.equal(JSON.stringify(f.data.lessons),snapshot);
+  assert.equal((await f.call(`/api/classes/${session.classId}`,'PATCH',{requireCode:true})).status,200);
   const reset=await f.call(`/api/classes/${session.classId}/credentials`,'POST',{seat:1});assert.equal(reset.status,200);
   assert.equal((await f.call('/api/me','GET',null,'student')).body.user,null);
   assert.equal((await f.call('/api/login','POST',{role:'student',classCode:'DEMO801',seat:1,code:'DEMO01'},'student')).status,401);

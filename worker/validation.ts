@@ -422,6 +422,31 @@ export function validateLesson(input: unknown): Lesson {
             return fig;
           });
         }
+        if (s.animation !== undefined) {
+          const a = record(s.animation);
+          const asset = (v: unknown, label: string, ext: RegExp) => {
+            const p = str(v, label, 160, 5);
+            assert(
+              /^[a-z0-9][a-z0-9-]*\/anim-[A-Za-z0-9._-]+$/.test(p) && ext.test(p) && !p.includes('..'),
+              `${label}「${p}」格式應為 課程資料夾/anim-檔名`,
+            );
+            return p;
+          };
+          const anim: NonNullable<Lesson['slides'][number]['animation']> = {
+            src: asset(a.src, '動畫路徑', /\.mp4$/),
+            caption: str(a.caption, '動畫說明', 200, 1),
+          };
+          if (a.poster !== undefined) anim.poster = asset(a.poster, '動畫封面', /\.(png|jpe?g|webp)$/);
+          if (a.seconds !== undefined) {
+            assert(typeof a.seconds === 'number' && a.seconds > 0 && a.seconds <= 600, '動畫秒數不正確');
+            anim.seconds = a.seconds;
+          }
+          if (a.reveal !== undefined) {
+            assert(a.reveal === 'after-results' || a.reveal === 'always', '動畫 reveal 只能是 after-results 或 always');
+            anim.reveal = a.reveal;
+          }
+          slide.animation = anim;
+        }
         if (s.activity) {
           slide.activity = validateActivity(s.activity, slide.interactive);
           assert(!activityIds.has(slide.activity.id), '活動 ID 不可重複');

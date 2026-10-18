@@ -1359,6 +1359,12 @@
           3
         ],
         "explanation": "√8＝2√2；√18/3＝3√2/3＝√2；√12＝2√3、√20＝2√5 不是。"
+      },
+      "animation": {
+        "src": "g8-2-2/anim-c-like.mp4",
+        "poster": "g8-2-2/anim-c-like.png",
+        "caption": "補充（非課本）：把 √2 想成積木",
+        "seconds": 19.8
       }
     },
     {
@@ -1366,7 +1372,7 @@
       "phase": "工作範例",
       "eyebrow": "04 / 例 7 同類方根的加減",
       "title": "只合併同類方根",
-      "body": "係數相加減，根號不變；不同類的留著。先自己做例 7。",
+      "body": "係數相加減，根號不變；不同類的留著。先自己做例 7，再按「下一步」對照。",
       "source": "對應課本 2-2 p.82（題目數字同課本）",
       "figures": [
         {
@@ -1376,518 +1382,57 @@
       ],
       "interactive": {
         "view": {
-          "xMin": -0.6,
-          "xMax": 16.6,
-          "yMin": -1.4,
-          "yMax": 3.4,
-          "aspect": "equal"
+          "xMin": 0,
+          "xMax": 12,
+          "yMin": 0,
+          "yMax": 3.6,
+          "aspect": "fill"
         },
-        "params": [
-          {
-            "id": "a",
-            "label": "藍色個數 $a$",
-            "min": 1,
-            "max": 5,
-            "step": 1,
-            "value": 4
-          },
-          {
-            "id": "b",
-            "label": "橘色個數 $b$",
-            "min": 1,
-            "max": 5,
-            "step": 1,
-            "value": 3
-          },
-          {
-            "id": "m",
-            "label": "$\\sqrt{m}$ 的 $m$",
-            "min": 2,
-            "max": 7,
-            "step": 1,
-            "value": 3
-          },
-          {
-            "id": "unlike",
-            "label": "橘色換成 $\\sqrt{n}$（不同類）",
-            "kind": "toggle",
-            "value": 0
-          },
-          {
-            "id": "n",
-            "label": "$\\sqrt{n}$ 的 $n$",
-            "min": 2,
-            "max": 7,
-            "step": 1,
-            "value": 2
-          }
-        ],
         "shapes": [
           {
-            "type": "segment",
-            "points": [
-              [
-                -0.3,
-                0
-              ],
-              [
-                16.3,
-                0
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.6
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                0,
-                -0.12
-              ],
-              [
-                0,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
             "type": "text",
-            "x": 0,
-            "y": -0.5,
-            "text": "0",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                2,
-                -0.12
-              ],
-              [
-                2,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 2,
-            "y": -0.5,
-            "text": "2",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                4,
-                -0.12
-              ],
-              [
-                4,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 4,
-            "y": -0.5,
-            "text": "4",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                6,
-                -0.12
-              ],
-              [
-                6,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
+            "x": 6,
+            "y": 3,
+            "text": "√2 − 5√2 + √3",
+            "size": 27,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              2
+            ]
           },
           {
             "type": "text",
             "x": 6,
-            "y": -0.5,
-            "text": "6",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                8,
-                -0.12
-              ],
-              [
-                8,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
+            "y": 2,
+            "text": "＝ (1 − 5)√2 + √3",
+            "size": 25,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              2
+            ]
           },
           {
             "type": "text",
-            "x": 8,
-            "y": -0.5,
-            "text": "8",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                10,
-                -0.12
-              ],
-              [
-                10,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 10,
-            "y": -0.5,
-            "text": "10",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                12,
-                -0.12
-              ],
-              [
-                12,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 12,
-            "y": -0.5,
-            "text": "12",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                14,
-                -0.12
-              ],
-              [
-                14,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 14,
-            "y": -0.5,
-            "text": "14",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                16,
-                -0.12
-              ],
-              [
-                16,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 16,
-            "y": -0.5,
-            "text": "16",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "rect",
-            "x": "0*sqrt(m)",
-            "y": 0.25,
-            "w": "sqrt(m)",
-            "h": 0.7,
-            "fill": "rgba(47,128,237,.26)",
-            "color": "#2f80ed",
-            "show": "a>0"
-          },
-          {
-            "type": "text",
-            "x": "(0+0.5)*sqrt(m)",
-            "y": 0.6,
-            "text": "$\\sqrt{m}$",
-            "size": 12,
-            "show": "a>0"
-          },
-          {
-            "type": "rect",
-            "x": "a*sqrt(m)+0*(unlike ? sqrt(n) : sqrt(m))",
-            "y": 0.25,
-            "w": "(unlike ? sqrt(n) : sqrt(m))",
-            "h": 0.7,
-            "fill": "rgba(255,138,61,.32)",
-            "color": "#ff8a3d",
-            "show": "b>0"
-          },
-          {
-            "type": "text",
-            "x": "a*sqrt(m)+(0+0.5)*(unlike ? sqrt(n) : sqrt(m))",
-            "y": 0.6,
-            "text": "$\\sqrt{unlike ? n : m}$",
-            "size": 12,
-            "show": "b>0"
-          },
-          {
-            "type": "rect",
-            "x": "1*sqrt(m)",
-            "y": 0.25,
-            "w": "sqrt(m)",
-            "h": 0.7,
-            "fill": "rgba(47,128,237,.26)",
-            "color": "#2f80ed",
-            "show": "a>1"
-          },
-          {
-            "type": "text",
-            "x": "(1+0.5)*sqrt(m)",
-            "y": 0.6,
-            "text": "$\\sqrt{m}$",
-            "size": 12,
-            "show": "a>1"
-          },
-          {
-            "type": "rect",
-            "x": "a*sqrt(m)+1*(unlike ? sqrt(n) : sqrt(m))",
-            "y": 0.25,
-            "w": "(unlike ? sqrt(n) : sqrt(m))",
-            "h": 0.7,
-            "fill": "rgba(255,138,61,.32)",
-            "color": "#ff8a3d",
-            "show": "b>1"
-          },
-          {
-            "type": "text",
-            "x": "a*sqrt(m)+(1+0.5)*(unlike ? sqrt(n) : sqrt(m))",
-            "y": 0.6,
-            "text": "$\\sqrt{unlike ? n : m}$",
-            "size": 12,
-            "show": "b>1"
-          },
-          {
-            "type": "rect",
-            "x": "2*sqrt(m)",
-            "y": 0.25,
-            "w": "sqrt(m)",
-            "h": 0.7,
-            "fill": "rgba(47,128,237,.26)",
-            "color": "#2f80ed",
-            "show": "a>2"
-          },
-          {
-            "type": "text",
-            "x": "(2+0.5)*sqrt(m)",
-            "y": 0.6,
-            "text": "$\\sqrt{m}$",
-            "size": 12,
-            "show": "a>2"
-          },
-          {
-            "type": "rect",
-            "x": "a*sqrt(m)+2*(unlike ? sqrt(n) : sqrt(m))",
-            "y": 0.25,
-            "w": "(unlike ? sqrt(n) : sqrt(m))",
-            "h": 0.7,
-            "fill": "rgba(255,138,61,.32)",
-            "color": "#ff8a3d",
-            "show": "b>2"
-          },
-          {
-            "type": "text",
-            "x": "a*sqrt(m)+(2+0.5)*(unlike ? sqrt(n) : sqrt(m))",
-            "y": 0.6,
-            "text": "$\\sqrt{unlike ? n : m}$",
-            "size": 12,
-            "show": "b>2"
-          },
-          {
-            "type": "rect",
-            "x": "3*sqrt(m)",
-            "y": 0.25,
-            "w": "sqrt(m)",
-            "h": 0.7,
-            "fill": "rgba(47,128,237,.26)",
-            "color": "#2f80ed",
-            "show": "a>3"
-          },
-          {
-            "type": "text",
-            "x": "(3+0.5)*sqrt(m)",
-            "y": 0.6,
-            "text": "$\\sqrt{m}$",
-            "size": 12,
-            "show": "a>3"
-          },
-          {
-            "type": "rect",
-            "x": "a*sqrt(m)+3*(unlike ? sqrt(n) : sqrt(m))",
-            "y": 0.25,
-            "w": "(unlike ? sqrt(n) : sqrt(m))",
-            "h": 0.7,
-            "fill": "rgba(255,138,61,.32)",
-            "color": "#ff8a3d",
-            "show": "b>3"
-          },
-          {
-            "type": "text",
-            "x": "a*sqrt(m)+(3+0.5)*(unlike ? sqrt(n) : sqrt(m))",
-            "y": 0.6,
-            "text": "$\\sqrt{unlike ? n : m}$",
-            "size": 12,
-            "show": "b>3"
-          },
-          {
-            "type": "rect",
-            "x": "4*sqrt(m)",
-            "y": 0.25,
-            "w": "sqrt(m)",
-            "h": 0.7,
-            "fill": "rgba(47,128,237,.26)",
-            "color": "#2f80ed",
-            "show": "a>4"
-          },
-          {
-            "type": "text",
-            "x": "(4+0.5)*sqrt(m)",
-            "y": 0.6,
-            "text": "$\\sqrt{m}$",
-            "size": 12,
-            "show": "a>4"
-          },
-          {
-            "type": "rect",
-            "x": "a*sqrt(m)+4*(unlike ? sqrt(n) : sqrt(m))",
-            "y": 0.25,
-            "w": "(unlike ? sqrt(n) : sqrt(m))",
-            "h": 0.7,
-            "fill": "rgba(255,138,61,.32)",
-            "color": "#ff8a3d",
-            "show": "b>4"
-          },
-          {
-            "type": "text",
-            "x": "a*sqrt(m)+(4+0.5)*(unlike ? sqrt(n) : sqrt(m))",
-            "y": 0.6,
-            "text": "$\\sqrt{unlike ? n : m}$",
-            "size": 12,
-            "show": "b>4"
-          },
-          {
-            "type": "brace",
-            "points": [
-              [
-                0,
-                1.05
-              ],
-              [
-                "(a+b)*sqrt(m)",
-                1.05
-              ]
-            ],
-            "text": "${a}\\sqrt{m} + {b}\\sqrt{m} = {a+b}\\sqrt{m}$",
-            "show": "!unlike"
-          },
-          {
-            "type": "brace",
-            "points": [
-              [
-                0,
-                1.05
-              ],
-              [
-                "a*sqrt(m)",
-                1.05
-              ]
-            ],
-            "text": "${a}\\sqrt{m}$",
-            "show": "unlike"
-          },
-          {
-            "type": "brace",
-            "points": [
-              [
-                "a*sqrt(m)",
-                1.05
-              ],
-              [
-                "a*sqrt(m)+b*sqrt(n)",
-                1.05
-              ]
-            ],
-            "text": "${b}\\sqrt{n}$",
-            "show": "unlike"
-          },
-          {
-            "type": "text",
-            "x": 8,
-            "y": 2.9,
-            "text": "長度不同的「單位」不能合併成一種",
-            "size": 15,
-            "color": "#e5484d",
-            "show": "unlike"
+            "x": 6,
+            "y": 1,
+            "text": "＝ −4√2 + √3",
+            "size": 25,
+            "color": "#5a3fd6",
+            "step": 2,
+            "focus": [
+              2
+            ]
           }
         ],
-        "readouts": [
-          {
-            "label": "總長 ≈",
-            "expr": "a*sqrt(m) + b*(unlike ? sqrt(n) : sqrt(m))",
-            "digits": 3
-          }
-        ],
-        "caption": "同類方根像同樣長的積木，可以數個數合併"
+        "steps": [
+          "例 7(2)：先找同類方根（√2 和 −5√2）",
+          "同類方根：係數相加減，根號不變",
+          "√3 不同類，留著"
+        ]
       },
       "activity": {
         "id": "c-ex7-q",
@@ -1912,7 +1457,7 @@
       "phase": "隨堂練習",
       "eyebrow": "05 / 例 7 隨堂",
       "title": "換你合併",
-      "body": "前兩題是課本隨堂，第 3 題換數字。",
+      "body": "前兩題是課本隨堂，第 3 題換數字。左圖用另一組數字示範。",
       "source": "對應課本 2-2 p.82；第 1 題為課本隨堂，其餘為換數字題（自編）",
       "figures": [
         {
@@ -1922,518 +1467,57 @@
       ],
       "interactive": {
         "view": {
-          "xMin": -0.6,
-          "xMax": 16.6,
-          "yMin": -1.4,
-          "yMax": 3.4,
-          "aspect": "equal"
+          "xMin": 0,
+          "xMax": 12,
+          "yMin": 0,
+          "yMax": 3.6,
+          "aspect": "fill"
         },
-        "params": [
-          {
-            "id": "a",
-            "label": "藍色個數 $a$",
-            "min": 1,
-            "max": 5,
-            "step": 1,
-            "value": 3
-          },
-          {
-            "id": "b",
-            "label": "橘色個數 $b$",
-            "min": 1,
-            "max": 5,
-            "step": 1,
-            "value": 5
-          },
-          {
-            "id": "m",
-            "label": "$\\sqrt{m}$ 的 $m$",
-            "min": 2,
-            "max": 7,
-            "step": 1,
-            "value": 5
-          },
-          {
-            "id": "unlike",
-            "label": "橘色換成 $\\sqrt{n}$（不同類）",
-            "kind": "toggle",
-            "value": 0
-          },
-          {
-            "id": "n",
-            "label": "$\\sqrt{n}$ 的 $n$",
-            "min": 2,
-            "max": 7,
-            "step": 1,
-            "value": 7
-          }
-        ],
         "shapes": [
           {
-            "type": "segment",
-            "points": [
-              [
-                -0.3,
-                0
-              ],
-              [
-                16.3,
-                0
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.6
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                0,
-                -0.12
-              ],
-              [
-                0,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
             "type": "text",
-            "x": 0,
-            "y": -0.5,
-            "text": "0",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                2,
-                -0.12
-              ],
-              [
-                2,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 2,
-            "y": -0.5,
-            "text": "2",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                4,
-                -0.12
-              ],
-              [
-                4,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 4,
-            "y": -0.5,
-            "text": "4",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                6,
-                -0.12
-              ],
-              [
-                6,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
+            "x": 6,
+            "y": 3,
+            "text": "4√6 + √5 − 6√6",
+            "size": 27,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              2
+            ]
           },
           {
             "type": "text",
             "x": 6,
-            "y": -0.5,
-            "text": "6",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                8,
-                -0.12
-              ],
-              [
-                8,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
+            "y": 2,
+            "text": "＝ (4 − 6)√6 + √5",
+            "size": 25,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              2
+            ]
           },
           {
             "type": "text",
-            "x": 8,
-            "y": -0.5,
-            "text": "8",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                10,
-                -0.12
-              ],
-              [
-                10,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 10,
-            "y": -0.5,
-            "text": "10",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                12,
-                -0.12
-              ],
-              [
-                12,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 12,
-            "y": -0.5,
-            "text": "12",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                14,
-                -0.12
-              ],
-              [
-                14,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 14,
-            "y": -0.5,
-            "text": "14",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                16,
-                -0.12
-              ],
-              [
-                16,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 16,
-            "y": -0.5,
-            "text": "16",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "rect",
-            "x": "0*sqrt(m)",
-            "y": 0.25,
-            "w": "sqrt(m)",
-            "h": 0.7,
-            "fill": "rgba(47,128,237,.26)",
-            "color": "#2f80ed",
-            "show": "a>0"
-          },
-          {
-            "type": "text",
-            "x": "(0+0.5)*sqrt(m)",
-            "y": 0.6,
-            "text": "$\\sqrt{m}$",
-            "size": 12,
-            "show": "a>0"
-          },
-          {
-            "type": "rect",
-            "x": "a*sqrt(m)+0*(unlike ? sqrt(n) : sqrt(m))",
-            "y": 0.25,
-            "w": "(unlike ? sqrt(n) : sqrt(m))",
-            "h": 0.7,
-            "fill": "rgba(255,138,61,.32)",
-            "color": "#ff8a3d",
-            "show": "b>0"
-          },
-          {
-            "type": "text",
-            "x": "a*sqrt(m)+(0+0.5)*(unlike ? sqrt(n) : sqrt(m))",
-            "y": 0.6,
-            "text": "$\\sqrt{unlike ? n : m}$",
-            "size": 12,
-            "show": "b>0"
-          },
-          {
-            "type": "rect",
-            "x": "1*sqrt(m)",
-            "y": 0.25,
-            "w": "sqrt(m)",
-            "h": 0.7,
-            "fill": "rgba(47,128,237,.26)",
-            "color": "#2f80ed",
-            "show": "a>1"
-          },
-          {
-            "type": "text",
-            "x": "(1+0.5)*sqrt(m)",
-            "y": 0.6,
-            "text": "$\\sqrt{m}$",
-            "size": 12,
-            "show": "a>1"
-          },
-          {
-            "type": "rect",
-            "x": "a*sqrt(m)+1*(unlike ? sqrt(n) : sqrt(m))",
-            "y": 0.25,
-            "w": "(unlike ? sqrt(n) : sqrt(m))",
-            "h": 0.7,
-            "fill": "rgba(255,138,61,.32)",
-            "color": "#ff8a3d",
-            "show": "b>1"
-          },
-          {
-            "type": "text",
-            "x": "a*sqrt(m)+(1+0.5)*(unlike ? sqrt(n) : sqrt(m))",
-            "y": 0.6,
-            "text": "$\\sqrt{unlike ? n : m}$",
-            "size": 12,
-            "show": "b>1"
-          },
-          {
-            "type": "rect",
-            "x": "2*sqrt(m)",
-            "y": 0.25,
-            "w": "sqrt(m)",
-            "h": 0.7,
-            "fill": "rgba(47,128,237,.26)",
-            "color": "#2f80ed",
-            "show": "a>2"
-          },
-          {
-            "type": "text",
-            "x": "(2+0.5)*sqrt(m)",
-            "y": 0.6,
-            "text": "$\\sqrt{m}$",
-            "size": 12,
-            "show": "a>2"
-          },
-          {
-            "type": "rect",
-            "x": "a*sqrt(m)+2*(unlike ? sqrt(n) : sqrt(m))",
-            "y": 0.25,
-            "w": "(unlike ? sqrt(n) : sqrt(m))",
-            "h": 0.7,
-            "fill": "rgba(255,138,61,.32)",
-            "color": "#ff8a3d",
-            "show": "b>2"
-          },
-          {
-            "type": "text",
-            "x": "a*sqrt(m)+(2+0.5)*(unlike ? sqrt(n) : sqrt(m))",
-            "y": 0.6,
-            "text": "$\\sqrt{unlike ? n : m}$",
-            "size": 12,
-            "show": "b>2"
-          },
-          {
-            "type": "rect",
-            "x": "3*sqrt(m)",
-            "y": 0.25,
-            "w": "sqrt(m)",
-            "h": 0.7,
-            "fill": "rgba(47,128,237,.26)",
-            "color": "#2f80ed",
-            "show": "a>3"
-          },
-          {
-            "type": "text",
-            "x": "(3+0.5)*sqrt(m)",
-            "y": 0.6,
-            "text": "$\\sqrt{m}$",
-            "size": 12,
-            "show": "a>3"
-          },
-          {
-            "type": "rect",
-            "x": "a*sqrt(m)+3*(unlike ? sqrt(n) : sqrt(m))",
-            "y": 0.25,
-            "w": "(unlike ? sqrt(n) : sqrt(m))",
-            "h": 0.7,
-            "fill": "rgba(255,138,61,.32)",
-            "color": "#ff8a3d",
-            "show": "b>3"
-          },
-          {
-            "type": "text",
-            "x": "a*sqrt(m)+(3+0.5)*(unlike ? sqrt(n) : sqrt(m))",
-            "y": 0.6,
-            "text": "$\\sqrt{unlike ? n : m}$",
-            "size": 12,
-            "show": "b>3"
-          },
-          {
-            "type": "rect",
-            "x": "4*sqrt(m)",
-            "y": 0.25,
-            "w": "sqrt(m)",
-            "h": 0.7,
-            "fill": "rgba(47,128,237,.26)",
-            "color": "#2f80ed",
-            "show": "a>4"
-          },
-          {
-            "type": "text",
-            "x": "(4+0.5)*sqrt(m)",
-            "y": 0.6,
-            "text": "$\\sqrt{m}$",
-            "size": 12,
-            "show": "a>4"
-          },
-          {
-            "type": "rect",
-            "x": "a*sqrt(m)+4*(unlike ? sqrt(n) : sqrt(m))",
-            "y": 0.25,
-            "w": "(unlike ? sqrt(n) : sqrt(m))",
-            "h": 0.7,
-            "fill": "rgba(255,138,61,.32)",
-            "color": "#ff8a3d",
-            "show": "b>4"
-          },
-          {
-            "type": "text",
-            "x": "a*sqrt(m)+(4+0.5)*(unlike ? sqrt(n) : sqrt(m))",
-            "y": 0.6,
-            "text": "$\\sqrt{unlike ? n : m}$",
-            "size": 12,
-            "show": "b>4"
-          },
-          {
-            "type": "brace",
-            "points": [
-              [
-                0,
-                1.05
-              ],
-              [
-                "(a+b)*sqrt(m)",
-                1.05
-              ]
-            ],
-            "text": "${a}\\sqrt{m} + {b}\\sqrt{m} = {a+b}\\sqrt{m}$",
-            "show": "!unlike"
-          },
-          {
-            "type": "brace",
-            "points": [
-              [
-                0,
-                1.05
-              ],
-              [
-                "a*sqrt(m)",
-                1.05
-              ]
-            ],
-            "text": "${a}\\sqrt{m}$",
-            "show": "unlike"
-          },
-          {
-            "type": "brace",
-            "points": [
-              [
-                "a*sqrt(m)",
-                1.05
-              ],
-              [
-                "a*sqrt(m)+b*sqrt(n)",
-                1.05
-              ]
-            ],
-            "text": "${b}\\sqrt{n}$",
-            "show": "unlike"
-          },
-          {
-            "type": "text",
-            "x": 8,
-            "y": 2.9,
-            "text": "長度不同的「單位」不能合併成一種",
-            "size": 15,
-            "color": "#e5484d",
-            "show": "unlike"
+            "x": 6,
+            "y": 1,
+            "text": "＝ −2√6 + √5",
+            "size": 25,
+            "color": "#5a3fd6",
+            "step": 2,
+            "focus": [
+              2
+            ]
           }
         ],
-        "readouts": [
-          {
-            "label": "總長 ≈",
-            "expr": "a*sqrt(m) + b*(unlike ? sqrt(n) : sqrt(m))",
-            "digits": 3
-          }
-        ],
-        "caption": "同類方根像同樣長的積木，可以數個數合併"
+        "steps": [
+          "示範（另一組數字）：找同類方根 4√6、−6√6",
+          "係數相加減",
+          "√5 不同類，留著"
+        ]
       },
       "activity": {
         "id": "c-ex7-practice-q",
@@ -2484,36 +1568,51 @@
             "x": 6,
             "y": 4,
             "text": "√48 − 5√12 + √45",
-            "size": 23,
+            "size": 27,
             "color": "#1f2a56",
-            "step": 0
+            "step": 0,
+            "focus": [
+              0,
+              3
+            ]
           },
           {
             "type": "text",
             "x": 6,
             "y": 3,
             "text": "＝ 4√3 − 5×2√3 + 3√5",
-            "size": 21,
+            "size": 25,
             "color": "#1f2a56",
-            "step": 1
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
           },
           {
             "type": "text",
             "x": 6,
             "y": 2,
             "text": "＝ 4√3 − 10√3 + 3√5",
-            "size": 21,
+            "size": 25,
             "color": "#1f2a56",
-            "step": 2
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
           },
           {
             "type": "text",
             "x": 6,
             "y": 1,
             "text": "＝ −6√3 + 3√5",
-            "size": 21,
+            "size": 25,
             "color": "#5a3fd6",
-            "step": 3
+            "step": 3,
+            "focus": [
+              3
+            ]
           }
         ],
         "steps": [
@@ -2539,6 +1638,12 @@
           }
         ],
         "explanation": "(1) 見左圖。(2) 3/√2＝3√2/2，3√2/2＋7√2/2＝10√2/2＝5√2。"
+      },
+      "animation": {
+        "src": "g8-2-2/anim-c-ex8.mp4",
+        "poster": "g8-2-2/anim-c-ex8.png",
+        "caption": "例 8：先化簡，再合併同類方根",
+        "seconds": 25.7
       }
     },
     {
@@ -2546,7 +1651,7 @@
       "phase": "隨堂練習",
       "eyebrow": "07 / 例 8 隨堂",
       "title": "換你：化簡後合併",
-      "body": "前兩題是課本隨堂，第 3 題換數字。",
+      "body": "前兩題是課本隨堂，第 3 題換數字。左圖用另一組數字示範：先化簡，再合併。",
       "source": "對應課本 2-2 p.83；第 1 題為課本隨堂，其餘為換數字題（自編）",
       "figures": [
         {
@@ -2556,241 +1661,71 @@
       ],
       "interactive": {
         "view": {
-          "xMin": -1.4,
-          "xMax": 15.6,
-          "yMin": -1,
-          "yMax": 15.6,
-          "aspect": "equal"
+          "xMin": 0,
+          "xMax": 12,
+          "yMin": 0,
+          "yMax": 4.6,
+          "aspect": "fill"
         },
-        "params": [
-          {
-            "id": "k",
-            "label": "每邊幾個小正方形 $k$",
-            "min": 1,
-            "max": 5,
-            "step": 1,
-            "value": 4
-          },
-          {
-            "id": "m",
-            "label": "小正方形面積 $m$",
-            "min": 2,
-            "max": 7,
-            "step": 1,
-            "value": 2
-          }
-        ],
         "shapes": [
           {
-            "type": "rect",
-            "x": 0,
-            "y": 0,
-            "w": "k*sqrt(m)",
-            "h": "k*sqrt(m)",
-            "fill": "rgba(123,97,255,.12)",
-            "color": "#7b61ff",
-            "width": 2.2
-          },
-          {
-            "type": "rect",
-            "x": 0,
-            "y": 0,
-            "w": "sqrt(m)",
-            "h": "sqrt(m)",
-            "fill": "rgba(255,138,61,.32)",
-            "color": "#ff8a3d"
+            "type": "text",
+            "x": 6,
+            "y": 4,
+            "text": "√20 − √45 + √12",
+            "size": 27,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              3
+            ]
           },
           {
             "type": "text",
-            "x": "sqrt(m)/2",
-            "y": "sqrt(m)/2",
-            "text": "{m}",
-            "size": 14,
-            "color": "#b4541a"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                "1*sqrt(m)",
-                0
-              ],
-              [
-                "1*sqrt(m)",
-                "k*sqrt(m)"
-              ]
-            ],
-            "color": "#7b61ff",
-            "dash": true,
-            "show": "k>1"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                0,
-                "1*sqrt(m)"
-              ],
-              [
-                "k*sqrt(m)",
-                "1*sqrt(m)"
-              ]
-            ],
-            "color": "#7b61ff",
-            "dash": true,
-            "show": "k>1"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                "2*sqrt(m)",
-                0
-              ],
-              [
-                "2*sqrt(m)",
-                "k*sqrt(m)"
-              ]
-            ],
-            "color": "#7b61ff",
-            "dash": true,
-            "show": "k>2"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                0,
-                "2*sqrt(m)"
-              ],
-              [
-                "k*sqrt(m)",
-                "2*sqrt(m)"
-              ]
-            ],
-            "color": "#7b61ff",
-            "dash": true,
-            "show": "k>2"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                "3*sqrt(m)",
-                0
-              ],
-              [
-                "3*sqrt(m)",
-                "k*sqrt(m)"
-              ]
-            ],
-            "color": "#7b61ff",
-            "dash": true,
-            "show": "k>3"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                0,
-                "3*sqrt(m)"
-              ],
-              [
-                "k*sqrt(m)",
-                "3*sqrt(m)"
-              ]
-            ],
-            "color": "#7b61ff",
-            "dash": true,
-            "show": "k>3"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                "4*sqrt(m)",
-                0
-              ],
-              [
-                "4*sqrt(m)",
-                "k*sqrt(m)"
-              ]
-            ],
-            "color": "#7b61ff",
-            "dash": true,
-            "show": "k>4"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                0,
-                "4*sqrt(m)"
-              ],
-              [
-                "k*sqrt(m)",
-                "4*sqrt(m)"
-              ]
-            ],
-            "color": "#7b61ff",
-            "dash": true,
-            "show": "k>4"
-          },
-          {
-            "type": "brace",
-            "points": [
-              [
-                0,
-                "k*sqrt(m)"
-              ],
-              [
-                "k*sqrt(m)",
-                "k*sqrt(m)"
-              ]
-            ],
-            "text": "邊長 ${k}\\sqrt{m}$"
-          },
-          {
-            "type": "brace",
-            "points": [
-              [
-                "k*sqrt(m)",
-                "sqrt(m)"
-              ],
-              [
-                "k*sqrt(m)",
-                0
-              ]
-            ],
-            "text": "$\\sqrt{m}$"
+            "x": 6,
+            "y": 3,
+            "text": "＝ 2√5 − 3√5 + 2√3",
+            "size": 25,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
           },
           {
             "type": "text",
-            "x": "k*sqrt(m)/2",
-            "y": "k*sqrt(m)/2 + 0.2",
-            "text": "面積 {k^2*m}",
-            "size": 18,
+            "x": 6,
+            "y": 2,
+            "text": "＝ (2 − 3)√5 + 2√3",
+            "size": 25,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6,
+            "y": 1,
+            "text": "＝ −√5 + 2√3",
+            "size": 25,
             "color": "#5a3fd6",
-            "show": "k>1"
+            "step": 3,
+            "focus": [
+              3
+            ]
           }
         ],
-        "readouts": [
-          {
-            "label": "大正方形面積 $k^2 m$",
-            "expr": "k^2*m"
-          },
-          {
-            "label": "$\\sqrt{k^2 m} \\approx$",
-            "expr": "sqrt(k^2*m)",
-            "digits": 3
-          },
-          {
-            "label": "$k\\sqrt{m} \\approx$",
-            "expr": "k*sqrt(m)",
-            "digits": 3
-          }
-        ],
-        "caption": "大正方形的邊長：用面積算是 $\\sqrt{k^2 m}$，用小正方形數是 $k\\sqrt{m}$"
+        "steps": [
+          "示範（另一組數字）",
+          "先把每一項化成最簡根式",
+          "同類方根合併",
+          "√3 不同類，留著"
+        ]
       },
       "activity": {
         "id": "c-ex8-practice-q",
@@ -2955,6 +1890,12 @@
           }
         ],
         "explanation": "(1) −2√18＋2√6＝−6√2＋2√6。(2) √18＋√3−√12−√2＝3√2＋√3−2√3−√2＝2√2−√3。"
+      },
+      "animation": {
+        "src": "g8-2-2/anim-c-ex9.mp4",
+        "poster": "g8-2-2/anim-c-ex9.png",
+        "caption": "例 9：分配律，每一項都要乘到",
+        "seconds": 15.5
       }
     },
     {
@@ -3131,36 +2072,51 @@
             "x": 6,
             "y": 4,
             "text": "(4√2 + √6) ÷ √3",
-            "size": 23,
+            "size": 27,
             "color": "#1f2a56",
-            "step": 0
+            "step": 0,
+            "focus": [
+              0,
+              3
+            ]
           },
           {
             "type": "text",
             "x": 6,
             "y": 3,
             "text": "＝ 4√2/√3 + √6/√3",
-            "size": 21,
+            "size": 25,
             "color": "#1f2a56",
-            "step": 1
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
           },
           {
             "type": "text",
             "x": 6,
             "y": 2,
             "text": "＝ 4√6/3 + √2",
-            "size": 21,
+            "size": 25,
             "color": "#1f2a56",
-            "step": 2
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
           },
           {
             "type": "text",
             "x": 6,
             "y": 1,
             "text": "＝ (4√6 + 3√2)/3",
-            "size": 21,
+            "size": 25,
             "color": "#5a3fd6",
-            "step": 3
+            "step": 3,
+            "focus": [
+              3
+            ]
           }
         ],
         "steps": [
@@ -3215,27 +2171,38 @@
             "x": 6,
             "y": 3,
             "text": "(6√3 + √6) ÷ √3",
-            "size": 23,
+            "size": 27,
             "color": "#1f2a56",
-            "step": 0
+            "step": 0,
+            "focus": [
+              0,
+              2
+            ]
           },
           {
             "type": "text",
             "x": 6,
             "y": 2,
             "text": "＝ 6√3/√3 + √6/√3",
-            "size": 21,
+            "size": 25,
             "color": "#1f2a56",
-            "step": 1
+            "step": 1,
+            "focus": [
+              1,
+              2
+            ]
           },
           {
             "type": "text",
             "x": 6,
             "y": 1,
             "text": "＝ 6 + √2",
-            "size": 21,
+            "size": 25,
             "color": "#5a3fd6",
-            "step": 2
+            "step": 2,
+            "focus": [
+              2
+            ]
           }
         ],
         "steps": [
@@ -3275,518 +2242,71 @@
       "source": "對應課本 2-2 p.82（題目數字同課本）",
       "interactive": {
         "view": {
-          "xMin": -0.6,
-          "xMax": 16.6,
-          "yMin": -1.4,
-          "yMax": 3.4,
-          "aspect": "equal"
+          "xMin": 0,
+          "xMax": 12,
+          "yMin": 0,
+          "yMax": 4.6,
+          "aspect": "fill"
         },
-        "params": [
-          {
-            "id": "a",
-            "label": "藍色個數 $a$",
-            "min": 1,
-            "max": 5,
-            "step": 1,
-            "value": 1
-          },
-          {
-            "id": "b",
-            "label": "橘色個數 $b$",
-            "min": 1,
-            "max": 5,
-            "step": 1,
-            "value": 2
-          },
-          {
-            "id": "m",
-            "label": "$\\sqrt{m}$ 的 $m$",
-            "min": 2,
-            "max": 7,
-            "step": 1,
-            "value": 2
-          },
-          {
-            "id": "unlike",
-            "label": "橘色換成 $\\sqrt{n}$（不同類）",
-            "kind": "toggle",
-            "value": 0
-          },
-          {
-            "id": "n",
-            "label": "$\\sqrt{n}$ 的 $n$",
-            "min": 2,
-            "max": 7,
-            "step": 1,
-            "value": 8
-          }
-        ],
         "shapes": [
           {
-            "type": "segment",
-            "points": [
-              [
-                -0.3,
-                0
-              ],
-              [
-                16.3,
-                0
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.6
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                0,
-                -0.12
-              ],
-              [
-                0,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
             "type": "text",
-            "x": 0,
-            "y": -0.5,
-            "text": "0",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                2,
-                -0.12
-              ],
-              [
-                2,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 2,
-            "y": -0.5,
-            "text": "2",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                4,
-                -0.12
-              ],
-              [
-                4,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 4,
-            "y": -0.5,
-            "text": "4",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                6,
-                -0.12
-              ],
-              [
-                6,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
+            "x": 6,
+            "y": 4,
+            "text": "√2 + √8",
+            "size": 27,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              3
+            ]
           },
           {
             "type": "text",
             "x": 6,
-            "y": -0.5,
-            "text": "6",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                8,
-                -0.12
-              ],
-              [
-                8,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
+            "y": 3,
+            "text": "＝ √2 + √(2² × 2)",
+            "size": 25,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
           },
           {
             "type": "text",
-            "x": 8,
-            "y": -0.5,
-            "text": "8",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                10,
-                -0.12
-              ],
-              [
-                10,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
+            "x": 6,
+            "y": 2,
+            "text": "＝ √2 + ？√2",
+            "size": 25,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
           },
           {
             "type": "text",
-            "x": 10,
-            "y": -0.5,
-            "text": "10",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                12,
-                -0.12
-              ],
-              [
-                12,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 12,
-            "y": -0.5,
-            "text": "12",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                14,
-                -0.12
-              ],
-              [
-                14,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 14,
-            "y": -0.5,
-            "text": "14",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                16,
-                -0.12
-              ],
-              [
-                16,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 16,
-            "y": -0.5,
-            "text": "16",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "rect",
-            "x": "0*sqrt(m)",
-            "y": 0.25,
-            "w": "sqrt(m)",
-            "h": 0.7,
-            "fill": "rgba(47,128,237,.26)",
-            "color": "#2f80ed",
-            "show": "a>0"
-          },
-          {
-            "type": "text",
-            "x": "(0+0.5)*sqrt(m)",
-            "y": 0.6,
-            "text": "$\\sqrt{m}$",
-            "size": 12,
-            "show": "a>0"
-          },
-          {
-            "type": "rect",
-            "x": "a*sqrt(m)+0*(unlike ? sqrt(n) : sqrt(m))",
-            "y": 0.25,
-            "w": "(unlike ? sqrt(n) : sqrt(m))",
-            "h": 0.7,
-            "fill": "rgba(255,138,61,.32)",
-            "color": "#ff8a3d",
-            "show": "b>0"
-          },
-          {
-            "type": "text",
-            "x": "a*sqrt(m)+(0+0.5)*(unlike ? sqrt(n) : sqrt(m))",
-            "y": 0.6,
-            "text": "$\\sqrt{unlike ? n : m}$",
-            "size": 12,
-            "show": "b>0"
-          },
-          {
-            "type": "rect",
-            "x": "1*sqrt(m)",
-            "y": 0.25,
-            "w": "sqrt(m)",
-            "h": 0.7,
-            "fill": "rgba(47,128,237,.26)",
-            "color": "#2f80ed",
-            "show": "a>1"
-          },
-          {
-            "type": "text",
-            "x": "(1+0.5)*sqrt(m)",
-            "y": 0.6,
-            "text": "$\\sqrt{m}$",
-            "size": 12,
-            "show": "a>1"
-          },
-          {
-            "type": "rect",
-            "x": "a*sqrt(m)+1*(unlike ? sqrt(n) : sqrt(m))",
-            "y": 0.25,
-            "w": "(unlike ? sqrt(n) : sqrt(m))",
-            "h": 0.7,
-            "fill": "rgba(255,138,61,.32)",
-            "color": "#ff8a3d",
-            "show": "b>1"
-          },
-          {
-            "type": "text",
-            "x": "a*sqrt(m)+(1+0.5)*(unlike ? sqrt(n) : sqrt(m))",
-            "y": 0.6,
-            "text": "$\\sqrt{unlike ? n : m}$",
-            "size": 12,
-            "show": "b>1"
-          },
-          {
-            "type": "rect",
-            "x": "2*sqrt(m)",
-            "y": 0.25,
-            "w": "sqrt(m)",
-            "h": 0.7,
-            "fill": "rgba(47,128,237,.26)",
-            "color": "#2f80ed",
-            "show": "a>2"
-          },
-          {
-            "type": "text",
-            "x": "(2+0.5)*sqrt(m)",
-            "y": 0.6,
-            "text": "$\\sqrt{m}$",
-            "size": 12,
-            "show": "a>2"
-          },
-          {
-            "type": "rect",
-            "x": "a*sqrt(m)+2*(unlike ? sqrt(n) : sqrt(m))",
-            "y": 0.25,
-            "w": "(unlike ? sqrt(n) : sqrt(m))",
-            "h": 0.7,
-            "fill": "rgba(255,138,61,.32)",
-            "color": "#ff8a3d",
-            "show": "b>2"
-          },
-          {
-            "type": "text",
-            "x": "a*sqrt(m)+(2+0.5)*(unlike ? sqrt(n) : sqrt(m))",
-            "y": 0.6,
-            "text": "$\\sqrt{unlike ? n : m}$",
-            "size": 12,
-            "show": "b>2"
-          },
-          {
-            "type": "rect",
-            "x": "3*sqrt(m)",
-            "y": 0.25,
-            "w": "sqrt(m)",
-            "h": 0.7,
-            "fill": "rgba(47,128,237,.26)",
-            "color": "#2f80ed",
-            "show": "a>3"
-          },
-          {
-            "type": "text",
-            "x": "(3+0.5)*sqrt(m)",
-            "y": 0.6,
-            "text": "$\\sqrt{m}$",
-            "size": 12,
-            "show": "a>3"
-          },
-          {
-            "type": "rect",
-            "x": "a*sqrt(m)+3*(unlike ? sqrt(n) : sqrt(m))",
-            "y": 0.25,
-            "w": "(unlike ? sqrt(n) : sqrt(m))",
-            "h": 0.7,
-            "fill": "rgba(255,138,61,.32)",
-            "color": "#ff8a3d",
-            "show": "b>3"
-          },
-          {
-            "type": "text",
-            "x": "a*sqrt(m)+(3+0.5)*(unlike ? sqrt(n) : sqrt(m))",
-            "y": 0.6,
-            "text": "$\\sqrt{unlike ? n : m}$",
-            "size": 12,
-            "show": "b>3"
-          },
-          {
-            "type": "rect",
-            "x": "4*sqrt(m)",
-            "y": 0.25,
-            "w": "sqrt(m)",
-            "h": 0.7,
-            "fill": "rgba(47,128,237,.26)",
-            "color": "#2f80ed",
-            "show": "a>4"
-          },
-          {
-            "type": "text",
-            "x": "(4+0.5)*sqrt(m)",
-            "y": 0.6,
-            "text": "$\\sqrt{m}$",
-            "size": 12,
-            "show": "a>4"
-          },
-          {
-            "type": "rect",
-            "x": "a*sqrt(m)+4*(unlike ? sqrt(n) : sqrt(m))",
-            "y": 0.25,
-            "w": "(unlike ? sqrt(n) : sqrt(m))",
-            "h": 0.7,
-            "fill": "rgba(255,138,61,.32)",
-            "color": "#ff8a3d",
-            "show": "b>4"
-          },
-          {
-            "type": "text",
-            "x": "a*sqrt(m)+(4+0.5)*(unlike ? sqrt(n) : sqrt(m))",
-            "y": 0.6,
-            "text": "$\\sqrt{unlike ? n : m}$",
-            "size": 12,
-            "show": "b>4"
-          },
-          {
-            "type": "brace",
-            "points": [
-              [
-                0,
-                1.05
-              ],
-              [
-                "(a+b)*sqrt(m)",
-                1.05
-              ]
-            ],
-            "text": "${a}\\sqrt{m} + {b}\\sqrt{m} = {a+b}\\sqrt{m}$",
-            "show": "!unlike"
-          },
-          {
-            "type": "brace",
-            "points": [
-              [
-                0,
-                1.05
-              ],
-              [
-                "a*sqrt(m)",
-                1.05
-              ]
-            ],
-            "text": "${a}\\sqrt{m}$",
-            "show": "unlike"
-          },
-          {
-            "type": "brace",
-            "points": [
-              [
-                "a*sqrt(m)",
-                1.05
-              ],
-              [
-                "a*sqrt(m)+b*sqrt(n)",
-                1.05
-              ]
-            ],
-            "text": "${b}\\sqrt{n}$",
-            "show": "unlike"
-          },
-          {
-            "type": "text",
-            "x": 8,
-            "y": 2.9,
-            "text": "長度不同的「單位」不能合併成一種",
-            "size": 15,
-            "color": "#e5484d",
-            "show": "unlike"
+            "x": 6,
+            "y": 1,
+            "text": "＝ ？",
+            "size": 25,
+            "color": "#5a3fd6",
+            "step": 3,
+            "focus": [
+              3
+            ]
           }
         ],
-        "readouts": [
-          {
-            "label": "總長 ≈",
-            "expr": "a*sqrt(m) + b*(unlike ? sqrt(n) : sqrt(m))",
-            "digits": 3
-          }
-        ],
-        "caption": "同類方根像同樣長的積木，可以數個數合併"
+        "steps": [
+          "小明的題目",
+          "先把 √8 化成最簡根式",
+          "是同類方根嗎？",
+          "合併後是多少？"
+        ]
       },
       "activity": {
         "id": "c-error-q",
@@ -3857,6 +2377,12 @@
           ],
           "reference": "√8＝2√2，所以 √2＋√8＝√2＋2√2＝3√2（約 4.24），而 √10 約 3.16，兩者不相等。"
         }
+      },
+      "animation": {
+        "src": "g8-2-2/anim-c-error.mp4",
+        "poster": "g8-2-2/anim-c-error.png",
+        "caption": "錯例（自編）：√2 ＋ √8 不是 √10",
+        "seconds": 12
       }
     },
     {

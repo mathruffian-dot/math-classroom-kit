@@ -389,7 +389,13 @@
         ],
         "explanation": "50＝5²×2，所以 k＝5、m＝2，√50＝5√2。"
       },
-      "notes": "具體操作（CRA）。完成後請學生說：為什麼 √50 可以寫成 5√2？"
+      "notes": "具體操作（CRA）。完成後請學生說：為什麼 √50 可以寫成 5√2？",
+      "animation": {
+        "src": "g8-2-2/anim-b-explore.mp4",
+        "poster": "g8-2-2/anim-b-explore.png",
+        "caption": "面積 18 切成 9 個 2：√18 ＝ 3√2",
+        "seconds": 18.3
+      }
     },
     {
       "id": "b-simplest",
@@ -432,7 +438,7 @@
       "phase": "工作範例",
       "eyebrow": "04 / 例 4 化成最簡根式",
       "title": "找出最大的平方因數，搬到根號外",
-      "body": "√(k²m)＝k√m。先把根號內分解，找出平方數，再開出來。",
+      "body": "例 4 的做法：分解根號內的數，找出最大的平方因數，搬到根號外。先自己化簡，再按「下一步」對照。",
       "source": "對應課本 2-2 p.78（題目數字同課本）",
       "figures": [
         {
@@ -442,241 +448,71 @@
       ],
       "interactive": {
         "view": {
-          "xMin": -1.4,
-          "xMax": 15.6,
-          "yMin": -1,
-          "yMax": 15.6,
-          "aspect": "equal"
+          "xMin": 0,
+          "xMax": 12,
+          "yMin": 0,
+          "yMax": 4.6,
+          "aspect": "fill"
         },
-        "params": [
-          {
-            "id": "k",
-            "label": "每邊幾個小正方形 $k$",
-            "min": 1,
-            "max": 5,
-            "step": 1,
-            "value": 2
-          },
-          {
-            "id": "m",
-            "label": "小正方形面積 $m$",
-            "min": 2,
-            "max": 7,
-            "step": 1,
-            "value": 6
-          }
-        ],
         "shapes": [
           {
-            "type": "rect",
-            "x": 0,
-            "y": 0,
-            "w": "k*sqrt(m)",
-            "h": "k*sqrt(m)",
-            "fill": "rgba(123,97,255,.12)",
-            "color": "#7b61ff",
-            "width": 2.2
-          },
-          {
-            "type": "rect",
-            "x": 0,
-            "y": 0,
-            "w": "sqrt(m)",
-            "h": "sqrt(m)",
-            "fill": "rgba(255,138,61,.32)",
-            "color": "#ff8a3d"
+            "type": "text",
+            "x": 6,
+            "y": 4,
+            "text": "√24",
+            "size": 27,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              3
+            ]
           },
           {
             "type": "text",
-            "x": "sqrt(m)/2",
-            "y": "sqrt(m)/2",
-            "text": "{m}",
-            "size": 14,
-            "color": "#b4541a"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                "1*sqrt(m)",
-                0
-              ],
-              [
-                "1*sqrt(m)",
-                "k*sqrt(m)"
-              ]
-            ],
-            "color": "#7b61ff",
-            "dash": true,
-            "show": "k>1"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                0,
-                "1*sqrt(m)"
-              ],
-              [
-                "k*sqrt(m)",
-                "1*sqrt(m)"
-              ]
-            ],
-            "color": "#7b61ff",
-            "dash": true,
-            "show": "k>1"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                "2*sqrt(m)",
-                0
-              ],
-              [
-                "2*sqrt(m)",
-                "k*sqrt(m)"
-              ]
-            ],
-            "color": "#7b61ff",
-            "dash": true,
-            "show": "k>2"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                0,
-                "2*sqrt(m)"
-              ],
-              [
-                "k*sqrt(m)",
-                "2*sqrt(m)"
-              ]
-            ],
-            "color": "#7b61ff",
-            "dash": true,
-            "show": "k>2"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                "3*sqrt(m)",
-                0
-              ],
-              [
-                "3*sqrt(m)",
-                "k*sqrt(m)"
-              ]
-            ],
-            "color": "#7b61ff",
-            "dash": true,
-            "show": "k>3"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                0,
-                "3*sqrt(m)"
-              ],
-              [
-                "k*sqrt(m)",
-                "3*sqrt(m)"
-              ]
-            ],
-            "color": "#7b61ff",
-            "dash": true,
-            "show": "k>3"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                "4*sqrt(m)",
-                0
-              ],
-              [
-                "4*sqrt(m)",
-                "k*sqrt(m)"
-              ]
-            ],
-            "color": "#7b61ff",
-            "dash": true,
-            "show": "k>4"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                0,
-                "4*sqrt(m)"
-              ],
-              [
-                "k*sqrt(m)",
-                "4*sqrt(m)"
-              ]
-            ],
-            "color": "#7b61ff",
-            "dash": true,
-            "show": "k>4"
-          },
-          {
-            "type": "brace",
-            "points": [
-              [
-                0,
-                "k*sqrt(m)"
-              ],
-              [
-                "k*sqrt(m)",
-                "k*sqrt(m)"
-              ]
-            ],
-            "text": "邊長 ${k}\\sqrt{m}$"
-          },
-          {
-            "type": "brace",
-            "points": [
-              [
-                "k*sqrt(m)",
-                "sqrt(m)"
-              ],
-              [
-                "k*sqrt(m)",
-                0
-              ]
-            ],
-            "text": "$\\sqrt{m}$"
+            "x": 6,
+            "y": 3,
+            "text": "＝ √(2² × 6)",
+            "size": 25,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
           },
           {
             "type": "text",
-            "x": "k*sqrt(m)/2",
-            "y": "k*sqrt(m)/2 + 0.2",
-            "text": "面積 {k^2*m}",
-            "size": 18,
+            "x": 6,
+            "y": 2,
+            "text": "＝ √(2²) × √6",
+            "size": 25,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6,
+            "y": 1,
+            "text": "＝ 2√6",
+            "size": 25,
             "color": "#5a3fd6",
-            "show": "k>1"
+            "step": 3,
+            "focus": [
+              3
+            ]
           }
         ],
-        "readouts": [
-          {
-            "label": "大正方形面積 $k^2 m$",
-            "expr": "k^2*m"
-          },
-          {
-            "label": "$\\sqrt{k^2 m} \\approx$",
-            "expr": "sqrt(k^2*m)",
-            "digits": 3
-          },
-          {
-            "label": "$k\\sqrt{m} \\approx$",
-            "expr": "k*sqrt(m)",
-            "digits": 3
-          }
-        ],
-        "caption": "大正方形的邊長：用面積算是 $\\sqrt{k^2 m}$，用小正方形數是 $k\\sqrt{m}$"
+        "steps": [
+          "題目：√24",
+          "分解：24 ＝ 4 × 6，4 ＝ 2² 是最大的平方因數",
+          "根號拆開：√(a×b) ＝ √a × √b",
+          "2² 搬出根號變成 2：2√6"
+        ]
       },
       "activity": {
         "id": "b-ex4-q",
@@ -694,6 +530,12 @@
           }
         ],
         "explanation": "2⁵＝2⁴×2＝4²×2 → 4√2；24＝2²×6 → 2√6。"
+      },
+      "animation": {
+        "src": "g8-2-2/anim-b-ex4.mp4",
+        "poster": "g8-2-2/anim-b-ex4.png",
+        "caption": "例 4：平方因數搬出根號",
+        "seconds": 11
       }
     },
     {
@@ -701,7 +543,7 @@
       "phase": "隨堂練習",
       "eyebrow": "05 / 例 4 隨堂",
       "title": "換你化簡",
-      "body": "前兩題是課本隨堂，第 3 題換數字。數值對但沒化簡會被判錯並提醒。",
+      "body": "前兩題是課本隨堂，第 3 題換數字。左圖用另一組數字示範；數值對但沒化簡會被判錯並提醒。",
       "source": "對應課本 2-2 p.78；第 1 題為課本隨堂，其餘為換數字題（自編）",
       "figures": [
         {
@@ -711,241 +553,71 @@
       ],
       "interactive": {
         "view": {
-          "xMin": -1.4,
-          "xMax": 15.6,
-          "yMin": -1,
-          "yMax": 15.6,
-          "aspect": "equal"
+          "xMin": 0,
+          "xMax": 12,
+          "yMin": 0,
+          "yMax": 4.6,
+          "aspect": "fill"
         },
-        "params": [
-          {
-            "id": "k",
-            "label": "每邊幾個小正方形 $k$",
-            "min": 1,
-            "max": 5,
-            "step": 1,
-            "value": 3
-          },
-          {
-            "id": "m",
-            "label": "小正方形面積 $m$",
-            "min": 2,
-            "max": 7,
-            "step": 1,
-            "value": 6
-          }
-        ],
         "shapes": [
           {
-            "type": "rect",
-            "x": 0,
-            "y": 0,
-            "w": "k*sqrt(m)",
-            "h": "k*sqrt(m)",
-            "fill": "rgba(123,97,255,.12)",
-            "color": "#7b61ff",
-            "width": 2.2
-          },
-          {
-            "type": "rect",
-            "x": 0,
-            "y": 0,
-            "w": "sqrt(m)",
-            "h": "sqrt(m)",
-            "fill": "rgba(255,138,61,.32)",
-            "color": "#ff8a3d"
+            "type": "text",
+            "x": 6,
+            "y": 4,
+            "text": "√50",
+            "size": 27,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              3
+            ]
           },
           {
             "type": "text",
-            "x": "sqrt(m)/2",
-            "y": "sqrt(m)/2",
-            "text": "{m}",
-            "size": 14,
-            "color": "#b4541a"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                "1*sqrt(m)",
-                0
-              ],
-              [
-                "1*sqrt(m)",
-                "k*sqrt(m)"
-              ]
-            ],
-            "color": "#7b61ff",
-            "dash": true,
-            "show": "k>1"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                0,
-                "1*sqrt(m)"
-              ],
-              [
-                "k*sqrt(m)",
-                "1*sqrt(m)"
-              ]
-            ],
-            "color": "#7b61ff",
-            "dash": true,
-            "show": "k>1"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                "2*sqrt(m)",
-                0
-              ],
-              [
-                "2*sqrt(m)",
-                "k*sqrt(m)"
-              ]
-            ],
-            "color": "#7b61ff",
-            "dash": true,
-            "show": "k>2"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                0,
-                "2*sqrt(m)"
-              ],
-              [
-                "k*sqrt(m)",
-                "2*sqrt(m)"
-              ]
-            ],
-            "color": "#7b61ff",
-            "dash": true,
-            "show": "k>2"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                "3*sqrt(m)",
-                0
-              ],
-              [
-                "3*sqrt(m)",
-                "k*sqrt(m)"
-              ]
-            ],
-            "color": "#7b61ff",
-            "dash": true,
-            "show": "k>3"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                0,
-                "3*sqrt(m)"
-              ],
-              [
-                "k*sqrt(m)",
-                "3*sqrt(m)"
-              ]
-            ],
-            "color": "#7b61ff",
-            "dash": true,
-            "show": "k>3"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                "4*sqrt(m)",
-                0
-              ],
-              [
-                "4*sqrt(m)",
-                "k*sqrt(m)"
-              ]
-            ],
-            "color": "#7b61ff",
-            "dash": true,
-            "show": "k>4"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                0,
-                "4*sqrt(m)"
-              ],
-              [
-                "k*sqrt(m)",
-                "4*sqrt(m)"
-              ]
-            ],
-            "color": "#7b61ff",
-            "dash": true,
-            "show": "k>4"
-          },
-          {
-            "type": "brace",
-            "points": [
-              [
-                0,
-                "k*sqrt(m)"
-              ],
-              [
-                "k*sqrt(m)",
-                "k*sqrt(m)"
-              ]
-            ],
-            "text": "邊長 ${k}\\sqrt{m}$"
-          },
-          {
-            "type": "brace",
-            "points": [
-              [
-                "k*sqrt(m)",
-                "sqrt(m)"
-              ],
-              [
-                "k*sqrt(m)",
-                0
-              ]
-            ],
-            "text": "$\\sqrt{m}$"
+            "x": 6,
+            "y": 3,
+            "text": "＝ √(5² × 2)",
+            "size": 25,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
           },
           {
             "type": "text",
-            "x": "k*sqrt(m)/2",
-            "y": "k*sqrt(m)/2 + 0.2",
-            "text": "面積 {k^2*m}",
-            "size": 18,
+            "x": 6,
+            "y": 2,
+            "text": "＝ √(5²) × √2",
+            "size": 25,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6,
+            "y": 1,
+            "text": "＝ 5√2",
+            "size": 25,
             "color": "#5a3fd6",
-            "show": "k>1"
+            "step": 3,
+            "focus": [
+              3
+            ]
           }
         ],
-        "readouts": [
-          {
-            "label": "大正方形面積 $k^2 m$",
-            "expr": "k^2*m"
-          },
-          {
-            "label": "$\\sqrt{k^2 m} \\approx$",
-            "expr": "sqrt(k^2*m)",
-            "digits": 3
-          },
-          {
-            "label": "$k\\sqrt{m} \\approx$",
-            "expr": "k*sqrt(m)",
-            "digits": 3
-          }
-        ],
-        "caption": "大正方形的邊長：用面積算是 $\\sqrt{k^2 m}$，用小正方形數是 $k\\sqrt{m}$"
+        "steps": [
+          "示範（另一組數字）：√50",
+          "50 ＝ 25 × 2，25 ＝ 5²",
+          "根號拆開",
+          "5² 搬出根號：5√2"
+        ]
       },
       "activity": {
         "id": "b-ex4-practice-q",
@@ -1277,7 +949,7 @@
       "phase": "預測",
       "eyebrow": "07 / 為什麼要有理化？",
       "title": "1/√2 和 √2/2，哪個大？",
-      "body": "先猜，再按「下一步」看分子分母同乘 √2 的過程；數線上兩者是同一點。",
+      "body": "先猜，再按「下一步」看分子、分母同乘 √2 的過程。🎬 動畫用邊長、面積兩種算法說明。",
       "source": "對應課本 2-2 p.79（題目數字同課本）",
       "figures": [
         {
@@ -1291,260 +963,56 @@
       ],
       "interactive": {
         "view": {
-          "xMin": -0.4,
-          "xMax": 6.4,
-          "yMin": -2.2,
-          "yMax": 4.2,
+          "xMin": 0,
+          "xMax": 12,
+          "yMin": 0,
+          "yMax": 3.6,
           "aspect": "fill"
         },
-        "params": [
-          {
-            "id": "a",
-            "label": "分子 $a$",
-            "min": 1,
-            "max": 6,
-            "step": 1,
-            "value": 1
-          },
-          {
-            "id": "b",
-            "label": "分母 $\\sqrt{b}$ 的 $b$",
-            "min": 2,
-            "max": 7,
-            "step": 1,
-            "value": 2
-          }
-        ],
         "shapes": [
-          {
-            "type": "segment",
-            "points": [
-              [
-                -0.3,
-                0
-              ],
-              [
-                6.3,
-                0
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.6
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                0,
-                -0.12
-              ],
-              [
-                0,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 0,
-            "y": -0.5,
-            "text": "0",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                1,
-                -0.12
-              ],
-              [
-                1,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 1,
-            "y": -0.5,
-            "text": "1",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                2,
-                -0.12
-              ],
-              [
-                2,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 2,
-            "y": -0.5,
-            "text": "2",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                3,
-                -0.12
-              ],
-              [
-                3,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 3,
-            "y": -0.5,
-            "text": "3",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                4,
-                -0.12
-              ],
-              [
-                4,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 4,
-            "y": -0.5,
-            "text": "4",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                5,
-                -0.12
-              ],
-              [
-                5,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 5,
-            "y": -0.5,
-            "text": "5",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                6,
-                -0.12
-              ],
-              [
-                6,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
           {
             "type": "text",
             "x": 6,
-            "y": -0.5,
-            "text": "6",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "point",
-            "x": "a/sqrt(b)",
-            "y": 0,
-            "color": "#7b61ff",
-            "text": "≈ {round(a/sqrt(b),3)}"
-          },
-          {
-            "type": "text",
-            "x": 3.2,
-            "y": 3.5,
-            "text": "$\\dfrac{a}{\\sqrt{b}}$",
-            "size": 22,
+            "y": 3,
+            "text": "1/√2",
+            "size": 27,
             "color": "#1f2a56",
+            "step": 0,
             "focus": [
-              0
+              0,
+              2
             ]
           },
           {
             "type": "text",
-            "x": 3.2,
-            "y": 2.5,
-            "text": "$= \\dfrac{a\\times\\sqrt{b}}{\\sqrt{b}\\times\\sqrt{b}}$",
-            "size": 19,
-            "color": "#1d4fa3",
-            "step": 1
+            "x": 6,
+            "y": 2,
+            "text": "＝ (1 × √2)/(√2 × √2)",
+            "size": 25,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              2
+            ]
           },
           {
             "type": "text",
-            "x": 3.2,
-            "y": 1.5,
-            "text": "$= \\dfrac{a\\sqrt{b}}{b}$",
-            "size": 22,
+            "x": 6,
+            "y": 1,
+            "text": "＝ √2/2",
+            "size": 25,
             "color": "#5a3fd6",
-            "step": 2
+            "step": 2,
+            "focus": [
+              2
+            ]
           }
         ],
         "steps": [
-          "分母有根號，不容易估算大小",
-          "分子、分母同乘 $\\sqrt{b}$（$\\frac{\\sqrt{b}}{\\sqrt{b}}=1$，值不變）",
-          "$\\sqrt{b}\\times\\sqrt{b}=b$，分母變成整數：完成有理化"
-        ],
-        "readouts": [
-          {
-            "label": "$\\frac{a}{\\sqrt{b}} \\approx$",
-            "expr": "a/sqrt(b)",
-            "digits": 4
-          },
-          {
-            "label": "$\\frac{a\\sqrt{b}}{b} \\approx$",
-            "expr": "a*sqrt(b)/b",
-            "digits": 4
-          }
+          "題目：1/√2（分母有根號）",
+          "分子、分母同乘 √2（√2/√2 ＝ 1，值不變）",
+          "√2 × √2 ＝ 2：1/√2 和 √2/2 一樣大"
         ]
       },
       "activity": {
@@ -1560,6 +1028,12 @@
           2
         ],
         "explanation": "1/√2 × √2/√2 ＝ √2/2，乘以 1 值不變，所以一樣大（約 0.707）。"
+      },
+      "animation": {
+        "src": "g8-2-2/anim-b-rationalize.mp4",
+        "poster": "g8-2-2/anim-b-rationalize.png",
+        "caption": "用邊長、用面積兩種算法：1/√2 ＝ √2/2",
+        "seconds": 27.3
       }
     },
     {
@@ -1567,7 +1041,7 @@
       "phase": "工作範例",
       "eyebrow": "08 / 例 5 分母有理化",
       "title": "分子分母同乘分母的根號",
-      "body": "分母是 a√b 時，只要同乘 √b。根號內是分數或小數，先改成分數再有理化。",
+      "body": "分母是 a√b 時，只要同乘 √b。根號內是分數或小數，先改成分數再有理化。先自己做，再按「下一步」對照。",
       "source": "對應課本 2-2 p.80（題目數字同課本）",
       "figures": [
         {
@@ -1581,260 +1055,70 @@
       ],
       "interactive": {
         "view": {
-          "xMin": -0.4,
-          "xMax": 6.4,
-          "yMin": -2.2,
-          "yMax": 4.2,
+          "xMin": 0,
+          "xMax": 12,
+          "yMin": 0,
+          "yMax": 4.6,
           "aspect": "fill"
         },
-        "params": [
-          {
-            "id": "a",
-            "label": "分子 $a$",
-            "min": 1,
-            "max": 6,
-            "step": 1,
-            "value": 4
-          },
-          {
-            "id": "b",
-            "label": "分母 $\\sqrt{b}$ 的 $b$",
-            "min": 2,
-            "max": 7,
-            "step": 1,
-            "value": 5
-          }
-        ],
         "shapes": [
-          {
-            "type": "segment",
-            "points": [
-              [
-                -0.3,
-                0
-              ],
-              [
-                6.3,
-                0
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.6
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                0,
-                -0.12
-              ],
-              [
-                0,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 0,
-            "y": -0.5,
-            "text": "0",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                1,
-                -0.12
-              ],
-              [
-                1,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 1,
-            "y": -0.5,
-            "text": "1",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                2,
-                -0.12
-              ],
-              [
-                2,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 2,
-            "y": -0.5,
-            "text": "2",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                3,
-                -0.12
-              ],
-              [
-                3,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 3,
-            "y": -0.5,
-            "text": "3",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                4,
-                -0.12
-              ],
-              [
-                4,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 4,
-            "y": -0.5,
-            "text": "4",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                5,
-                -0.12
-              ],
-              [
-                5,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 5,
-            "y": -0.5,
-            "text": "5",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                6,
-                -0.12
-              ],
-              [
-                6,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
           {
             "type": "text",
             "x": 6,
-            "y": -0.5,
-            "text": "6",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "point",
-            "x": "a/sqrt(b)",
-            "y": 0,
-            "color": "#7b61ff",
-            "text": "≈ {round(a/sqrt(b),3)}"
-          },
-          {
-            "type": "text",
-            "x": 3.2,
-            "y": 3.5,
-            "text": "$\\dfrac{a}{\\sqrt{b}}$",
-            "size": 22,
+            "y": 4,
+            "text": "4/(3√5)",
+            "size": 27,
             "color": "#1f2a56",
+            "step": 0,
             "focus": [
-              0
+              0,
+              3
             ]
           },
           {
             "type": "text",
-            "x": 3.2,
-            "y": 2.5,
-            "text": "$= \\dfrac{a\\times\\sqrt{b}}{\\sqrt{b}\\times\\sqrt{b}}$",
-            "size": 19,
-            "color": "#1d4fa3",
-            "step": 1
+            "x": 6,
+            "y": 3,
+            "text": "＝ (4 × √5)/(3√5 × √5)",
+            "size": 25,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
           },
           {
             "type": "text",
-            "x": 3.2,
-            "y": 1.5,
-            "text": "$= \\dfrac{a\\sqrt{b}}{b}$",
-            "size": 22,
+            "x": 6,
+            "y": 2,
+            "text": "＝ 4√5/(3 × 5)",
+            "size": 25,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6,
+            "y": 1,
+            "text": "＝ 4√5/15",
+            "size": 25,
             "color": "#5a3fd6",
-            "step": 2
+            "step": 3,
+            "focus": [
+              3
+            ]
           }
         ],
         "steps": [
-          "分母有根號，不容易估算大小",
-          "分子、分母同乘 $\\sqrt{b}$（$\\frac{\\sqrt{b}}{\\sqrt{b}}=1$，值不變）",
-          "$\\sqrt{b}\\times\\sqrt{b}=b$，分母變成整數：完成有理化"
-        ],
-        "readouts": [
-          {
-            "label": "$\\frac{a}{\\sqrt{b}} \\approx$",
-            "expr": "a/sqrt(b)",
-            "digits": 4
-          },
-          {
-            "label": "$\\frac{a\\sqrt{b}}{b} \\approx$",
-            "expr": "a*sqrt(b)/b",
-            "digits": 4
-          }
+          "題目：分母是 3√5",
+          "只要同乘 √5（不用乘 3√5）",
+          "√5 × √5 ＝ 5",
+          "分母沒有根號了：4√5/15"
         ]
       },
       "activity": {
@@ -1857,6 +1141,12 @@
           }
         ],
         "explanation": "4/(3√5)＝4√5/15；√(7/18)＝√7/(3√2)＝√14/6；√0.7＝√(7/10)＝√70/10。"
+      },
+      "animation": {
+        "src": "g8-2-2/anim-b-ex5.mp4",
+        "poster": "g8-2-2/anim-b-ex5.png",
+        "caption": "例 5：分子、分母同乘 √5",
+        "seconds": 17.1
       }
     },
     {
@@ -1864,7 +1154,7 @@
       "phase": "隨堂練習",
       "eyebrow": "09 / 例 5 隨堂",
       "title": "換你有理化",
-      "body": "三題都是課本隨堂。分母不能有根號，答案化成最簡根式。",
+      "body": "三題都是課本隨堂。左圖用另一組數字示範；分母不能有根號，答案化成最簡根式。",
       "source": "對應課本 2-2 p.80（題目數字同課本）",
       "figures": [
         {
@@ -1874,260 +1164,70 @@
       ],
       "interactive": {
         "view": {
-          "xMin": -0.4,
-          "xMax": 6.4,
-          "yMin": -2.2,
-          "yMax": 4.2,
+          "xMin": 0,
+          "xMax": 12,
+          "yMin": 0,
+          "yMax": 4.6,
           "aspect": "fill"
         },
-        "params": [
-          {
-            "id": "a",
-            "label": "分子 $a$",
-            "min": 1,
-            "max": 6,
-            "step": 1,
-            "value": 3
-          },
-          {
-            "id": "b",
-            "label": "分母 $\\sqrt{b}$ 的 $b$",
-            "min": 2,
-            "max": 7,
-            "step": 1,
-            "value": 2
-          }
-        ],
         "shapes": [
-          {
-            "type": "segment",
-            "points": [
-              [
-                -0.3,
-                0
-              ],
-              [
-                6.3,
-                0
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.6
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                0,
-                -0.12
-              ],
-              [
-                0,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 0,
-            "y": -0.5,
-            "text": "0",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                1,
-                -0.12
-              ],
-              [
-                1,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 1,
-            "y": -0.5,
-            "text": "1",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                2,
-                -0.12
-              ],
-              [
-                2,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 2,
-            "y": -0.5,
-            "text": "2",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                3,
-                -0.12
-              ],
-              [
-                3,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 3,
-            "y": -0.5,
-            "text": "3",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                4,
-                -0.12
-              ],
-              [
-                4,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 4,
-            "y": -0.5,
-            "text": "4",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                5,
-                -0.12
-              ],
-              [
-                5,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 5,
-            "y": -0.5,
-            "text": "5",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                6,
-                -0.12
-              ],
-              [
-                6,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
           {
             "type": "text",
             "x": 6,
-            "y": -0.5,
-            "text": "6",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "point",
-            "x": "a/sqrt(b)",
-            "y": 0,
-            "color": "#7b61ff",
-            "text": "≈ {round(a/sqrt(b),3)}"
-          },
-          {
-            "type": "text",
-            "x": 3.2,
-            "y": 3.5,
-            "text": "$\\dfrac{a}{\\sqrt{b}}$",
-            "size": 22,
+            "y": 4,
+            "text": "5/√10",
+            "size": 27,
             "color": "#1f2a56",
+            "step": 0,
             "focus": [
-              0
+              0,
+              3
             ]
           },
           {
             "type": "text",
-            "x": 3.2,
-            "y": 2.5,
-            "text": "$= \\dfrac{a\\times\\sqrt{b}}{\\sqrt{b}\\times\\sqrt{b}}$",
-            "size": 19,
-            "color": "#1d4fa3",
-            "step": 1
+            "x": 6,
+            "y": 3,
+            "text": "＝ (5 × √10)/(√10 × √10)",
+            "size": 25,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
           },
           {
             "type": "text",
-            "x": 3.2,
-            "y": 1.5,
-            "text": "$= \\dfrac{a\\sqrt{b}}{b}$",
-            "size": 22,
+            "x": 6,
+            "y": 2,
+            "text": "＝ 5√10/10",
+            "size": 25,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6,
+            "y": 1,
+            "text": "＝ √10/2",
+            "size": 25,
             "color": "#5a3fd6",
-            "step": 2
+            "step": 3,
+            "focus": [
+              3
+            ]
           }
         ],
         "steps": [
-          "分母有根號，不容易估算大小",
-          "分子、分母同乘 $\\sqrt{b}$（$\\frac{\\sqrt{b}}{\\sqrt{b}}=1$，值不變）",
-          "$\\sqrt{b}\\times\\sqrt{b}=b$，分母變成整數：完成有理化"
-        ],
-        "readouts": [
-          {
-            "label": "$\\frac{a}{\\sqrt{b}} \\approx$",
-            "expr": "a/sqrt(b)",
-            "digits": 4
-          },
-          {
-            "label": "$\\frac{a\\sqrt{b}}{b} \\approx$",
-            "expr": "a*sqrt(b)/b",
-            "digits": 4
-          }
+          "示範（另一組數字）：5/√10",
+          "分子、分母同乘 √10",
+          "√10 × √10 ＝ 10",
+          "約分：5 和 10 約掉 5"
         ]
       },
       "activity": {
@@ -2179,45 +1279,64 @@
             "x": 6,
             "y": 5,
             "text": "√(8/3) × √(27/16)",
-            "size": 23,
+            "size": 27,
             "color": "#1f2a56",
-            "step": 0
+            "step": 0,
+            "focus": [
+              0,
+              4
+            ]
           },
           {
             "type": "text",
             "x": 6,
             "y": 4,
             "text": "＝ √(8×27 / (3×16))",
-            "size": 21,
+            "size": 25,
             "color": "#1f2a56",
-            "step": 1
+            "step": 1,
+            "focus": [
+              1,
+              4
+            ]
           },
           {
             "type": "text",
             "x": 6,
             "y": 3,
             "text": "＝ √(9/2)",
-            "size": 21,
+            "size": 25,
             "color": "#1f2a56",
-            "step": 2
+            "step": 2,
+            "focus": [
+              2,
+              4
+            ]
           },
           {
             "type": "text",
             "x": 6,
             "y": 2,
             "text": "＝ 3/√2",
-            "size": 21,
+            "size": 25,
             "color": "#1f2a56",
-            "step": 3
+            "step": 3,
+            "focus": [
+              3,
+              4
+            ]
           },
           {
             "type": "text",
             "x": 6,
             "y": 1,
             "text": "＝ 3√2/2",
-            "size": 21,
+            "size": 25,
             "color": "#5a3fd6",
-            "step": 4
+            "step": 4,
+            "focus": [
+              4
+            ]
           }
         ],
         "steps": [
@@ -2251,7 +1370,7 @@
       "phase": "隨堂練習",
       "eyebrow": "11 / 例 6 隨堂",
       "title": "換你算：乘除與有理化",
-      "body": "前兩題是課本隨堂，第 3 題換數字。",
+      "body": "前兩題是課本隨堂，第 3 題換數字。左圖用另一組數字示範步驟。",
       "source": "對應課本 2-2 p.81；第 1 題為課本隨堂，其餘為換數字題（自編）",
       "figures": [
         {
@@ -2261,260 +1380,70 @@
       ],
       "interactive": {
         "view": {
-          "xMin": -0.4,
-          "xMax": 6.4,
-          "yMin": -2.2,
-          "yMax": 4.2,
+          "xMin": 0,
+          "xMax": 12,
+          "yMin": 0,
+          "yMax": 4.6,
           "aspect": "fill"
         },
-        "params": [
-          {
-            "id": "a",
-            "label": "分子 $a$",
-            "min": 1,
-            "max": 6,
-            "step": 1,
-            "value": 1
-          },
-          {
-            "id": "b",
-            "label": "分母 $\\sqrt{b}$ 的 $b$",
-            "min": 2,
-            "max": 7,
-            "step": 1,
-            "value": 7
-          }
-        ],
         "shapes": [
-          {
-            "type": "segment",
-            "points": [
-              [
-                -0.3,
-                0
-              ],
-              [
-                6.3,
-                0
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.6
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                0,
-                -0.12
-              ],
-              [
-                0,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 0,
-            "y": -0.5,
-            "text": "0",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                1,
-                -0.12
-              ],
-              [
-                1,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 1,
-            "y": -0.5,
-            "text": "1",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                2,
-                -0.12
-              ],
-              [
-                2,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 2,
-            "y": -0.5,
-            "text": "2",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                3,
-                -0.12
-              ],
-              [
-                3,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 3,
-            "y": -0.5,
-            "text": "3",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                4,
-                -0.12
-              ],
-              [
-                4,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 4,
-            "y": -0.5,
-            "text": "4",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                5,
-                -0.12
-              ],
-              [
-                5,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 5,
-            "y": -0.5,
-            "text": "5",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                6,
-                -0.12
-              ],
-              [
-                6,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
           {
             "type": "text",
             "x": 6,
-            "y": -0.5,
-            "text": "6",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "point",
-            "x": "a/sqrt(b)",
-            "y": 0,
-            "color": "#7b61ff",
-            "text": "≈ {round(a/sqrt(b),3)}"
-          },
-          {
-            "type": "text",
-            "x": 3.2,
-            "y": 3.5,
-            "text": "$\\dfrac{a}{\\sqrt{b}}$",
-            "size": 22,
+            "y": 4,
+            "text": "√5 ÷ √3",
+            "size": 27,
             "color": "#1f2a56",
+            "step": 0,
             "focus": [
-              0
+              0,
+              3
             ]
           },
           {
             "type": "text",
-            "x": 3.2,
-            "y": 2.5,
-            "text": "$= \\dfrac{a\\times\\sqrt{b}}{\\sqrt{b}\\times\\sqrt{b}}$",
-            "size": 19,
-            "color": "#1d4fa3",
-            "step": 1
+            "x": 6,
+            "y": 3,
+            "text": "＝ √5/√3",
+            "size": 25,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
           },
           {
             "type": "text",
-            "x": 3.2,
-            "y": 1.5,
-            "text": "$= \\dfrac{a\\sqrt{b}}{b}$",
-            "size": 22,
+            "x": 6,
+            "y": 2,
+            "text": "＝ (√5 × √3)/(√3 × √3)",
+            "size": 25,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6,
+            "y": 1,
+            "text": "＝ √15/3",
+            "size": 25,
             "color": "#5a3fd6",
-            "step": 2
+            "step": 3,
+            "focus": [
+              3
+            ]
           }
         ],
         "steps": [
-          "分母有根號，不容易估算大小",
-          "分子、分母同乘 $\\sqrt{b}$（$\\frac{\\sqrt{b}}{\\sqrt{b}}=1$，值不變）",
-          "$\\sqrt{b}\\times\\sqrt{b}=b$，分母變成整數：完成有理化"
-        ],
-        "readouts": [
-          {
-            "label": "$\\frac{a}{\\sqrt{b}} \\approx$",
-            "expr": "a/sqrt(b)",
-            "digits": 4
-          },
-          {
-            "label": "$\\frac{a\\sqrt{b}}{b} \\approx$",
-            "expr": "a*sqrt(b)/b",
-            "digits": 4
-          }
+          "示範（另一組數字）：√5 ÷ √3",
+          "寫成分數",
+          "分子、分母同乘 √3",
+          "分母有理化完成"
         ]
       },
       "activity": {
@@ -2548,260 +1477,56 @@
       "source": "對應課本 2-2 p.80（題目數字同課本）",
       "interactive": {
         "view": {
-          "xMin": -0.4,
-          "xMax": 6.4,
-          "yMin": -2.2,
-          "yMax": 4.2,
+          "xMin": 0,
+          "xMax": 12,
+          "yMin": 0,
+          "yMax": 3.6,
           "aspect": "fill"
         },
-        "params": [
-          {
-            "id": "a",
-            "label": "分子 $a$",
-            "min": 1,
-            "max": 6,
-            "step": 1,
-            "value": 2
-          },
-          {
-            "id": "b",
-            "label": "分母 $\\sqrt{b}$ 的 $b$",
-            "min": 2,
-            "max": 7,
-            "step": 1,
-            "value": 6
-          }
-        ],
         "shapes": [
-          {
-            "type": "segment",
-            "points": [
-              [
-                -0.3,
-                0
-              ],
-              [
-                6.3,
-                0
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.6
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                0,
-                -0.12
-              ],
-              [
-                0,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 0,
-            "y": -0.5,
-            "text": "0",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                1,
-                -0.12
-              ],
-              [
-                1,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 1,
-            "y": -0.5,
-            "text": "1",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                2,
-                -0.12
-              ],
-              [
-                2,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 2,
-            "y": -0.5,
-            "text": "2",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                3,
-                -0.12
-              ],
-              [
-                3,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 3,
-            "y": -0.5,
-            "text": "3",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                4,
-                -0.12
-              ],
-              [
-                4,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 4,
-            "y": -0.5,
-            "text": "4",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                5,
-                -0.12
-              ],
-              [
-                5,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 5,
-            "y": -0.5,
-            "text": "5",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                6,
-                -0.12
-              ],
-              [
-                6,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
           {
             "type": "text",
             "x": 6,
-            "y": -0.5,
-            "text": "6",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "point",
-            "x": "a/sqrt(b)",
-            "y": 0,
-            "color": "#7b61ff",
-            "text": "≈ {round(a/sqrt(b),3)}"
-          },
-          {
-            "type": "text",
-            "x": 3.2,
-            "y": 3.5,
-            "text": "$\\dfrac{a}{\\sqrt{b}}$",
-            "size": 22,
+            "y": 3,
+            "text": "2/√6",
+            "size": 27,
             "color": "#1f2a56",
+            "step": 0,
             "focus": [
-              0
+              0,
+              2
             ]
           },
           {
             "type": "text",
-            "x": 3.2,
-            "y": 2.5,
-            "text": "$= \\dfrac{a\\times\\sqrt{b}}{\\sqrt{b}\\times\\sqrt{b}}$",
-            "size": 19,
-            "color": "#1d4fa3",
-            "step": 1
+            "x": 6,
+            "y": 2,
+            "text": "＝ 2√6/6",
+            "size": 25,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              2
+            ]
           },
           {
             "type": "text",
-            "x": 3.2,
-            "y": 1.5,
-            "text": "$= \\dfrac{a\\sqrt{b}}{b}$",
-            "size": 22,
+            "x": 6,
+            "y": 1,
+            "text": "＝ ？",
+            "size": 25,
             "color": "#5a3fd6",
-            "step": 2
+            "step": 2,
+            "focus": [
+              2
+            ]
           }
         ],
         "steps": [
-          "分母有根號，不容易估算大小",
-          "分子、分母同乘 $\\sqrt{b}$（$\\frac{\\sqrt{b}}{\\sqrt{b}}=1$，值不變）",
-          "$\\sqrt{b}\\times\\sqrt{b}=b$，分母變成整數：完成有理化"
-        ],
-        "readouts": [
-          {
-            "label": "$\\frac{a}{\\sqrt{b}} \\approx$",
-            "expr": "a/sqrt(b)",
-            "digits": 4
-          },
-          {
-            "label": "$\\frac{a\\sqrt{b}}{b} \\approx$",
-            "expr": "a*sqrt(b)/b",
-            "digits": 4
-          }
+          "小明的題目",
+          "有理化：分子、分母同乘 √6",
+          "這樣就是最簡了嗎？"
         ]
       },
       "activity": {

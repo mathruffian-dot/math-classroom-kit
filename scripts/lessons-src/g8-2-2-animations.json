@@ -1,0 +1,121 @@
+{
+  "a-ex1": {
+    "src": "g8-2-2/anim-a-ex1.mp4",
+    "poster": "g8-2-2/anim-a-ex1.png",
+    "caption": "為什麼 √2 × √3 ＝ √(2×3)：平方後比較",
+    "seconds": 27.3,
+    "frame": "L1/02-why"
+  },
+  "a-ex1-practice": {
+    "src": "g8-2-2/anim-a-ex1-practice.mp4",
+    "poster": "g8-2-2/anim-a-ex1-practice.png",
+    "caption": "例 1 回顧：係數乘係數，根號乘根號",
+    "seconds": 18.7,
+    "frame": "L1/03-ex1"
+  },
+  "a-ex2": {
+    "src": "g8-2-2/anim-a-ex2.mp4",
+    "poster": "g8-2-2/anim-a-ex2.png",
+    "caption": "例 2：把係數移進根號再比大小",
+    "seconds": 22.0,
+    "frame": "L1/04-compare"
+  },
+  "a-ex3": {
+    "src": "g8-2-2/anim-a-ex3.mp4",
+    "poster": "g8-2-2/anim-a-ex3.png",
+    "caption": "例 3：根式的除法（b > 0）",
+    "seconds": 16.7,
+    "frame": "L1/05-divide"
+  },
+  "a-error": {
+    "src": "g8-2-2/anim-a-error.mp4",
+    "poster": "g8-2-2/anim-a-error.png",
+    "caption": "錯例（自編）：根號內要相乘，不是相加",
+    "seconds": 17.2,
+    "frame": "L1/06-myth"
+  },
+  "b-explore": {
+    "src": "g8-2-2/anim-b-explore.mp4",
+    "poster": "g8-2-2/anim-b-explore.png",
+    "caption": "面積 18 切成 9 個 2：√18 ＝ 3√2",
+    "seconds": 18.3,
+    "frame": "L2/02-split"
+  },
+  "b-ex4": {
+    "src": "g8-2-2/anim-b-ex4.mp4",
+    "poster": "g8-2-2/anim-b-ex4.png",
+    "caption": "例 4：平方因數搬出根號",
+    "seconds": 11.0,
+    "frame": "L2/04-ex4"
+  },
+  "b-rationalize": {
+    "src": "g8-2-2/anim-b-rationalize.mp4",
+    "poster": "g8-2-2/anim-b-rationalize.png",
+    "caption": "用邊長、用面積兩種算法：1/√2 ＝ √2/2",
+    "seconds": 27.3,
+    "frame": "L2/05-halfsquare"
+  },
+  "b-ex5": {
+    "src": "g8-2-2/anim-b-ex5.mp4",
+    "poster": "g8-2-2/anim-b-ex5.png",
+    "caption": "例 5：分子、分母同乘 √5",
+    "seconds": 17.1,
+    "frame": "L2/06-rationalize"
+  },
+  "c-like": {
+    "src": "g8-2-2/anim-c-like.mp4",
+    "poster": "g8-2-2/anim-c-like.png",
+    "caption": "補充（非課本）：把 √2 想成積木",
+    "seconds": 19.8,
+    "frame": "L3/02-like"
+  },
+  "c-ex8": {
+    "src": "g8-2-2/anim-c-ex8.mp4",
+    "poster": "g8-2-2/anim-c-ex8.png",
+    "caption": "例 8：先化簡，再合併同類方根",
+    "seconds": 25.7,
+    "frame": "L3/04-ex8"
+  },
+  "c-ex9": {
+    "src": "g8-2-2/anim-c-ex9.mp4",
+    "poster": "g8-2-2/anim-c-ex9.png",
+    "caption": "例 9：分配律，每一項都要乘到",
+    "seconds": 15.5,
+    "frame": "L3/05-ex9"
+  },
+  "c-error": {
+    "src": "g8-2-2/anim-c-error.mp4",
+    "poster": "g8-2-2/anim-c-error.png",
+    "caption": "錯例（自編）：√2 ＋ √8 不是 √10",
+    "seconds": 12.0,
+    "frame": "L3/06-myth"
+  },
+  "d-ex11": {
+    "src": "g8-2-2/anim-d-ex11.mp4",
+    "poster": "g8-2-2/anim-d-ex11.png",
+    "caption": "例 11：(3 ＋ 2√5)² 四塊面積",
+    "seconds": 27.3,
+    "frame": "L4/03-ex11"
+  },
+  "d-thinking": {
+    "src": "g8-2-2/anim-d-thinking.mp4",
+    "poster": "g8-2-2/anim-d-thinking.png",
+    "caption": "Thinking 揭曉：中間項 2ab 不能漏",
+    "seconds": 16.0,
+    "frame": "L4/04-thinking"
+  },
+  "d-ex12": {
+    "src": "g8-2-2/anim-d-ex12.mp4",
+    "poster": "g8-2-2/anim-d-ex12.png",
+    "caption": "例 12：平方差，根號不見了",
+    "seconds": 12.5,
+    "frame": "L4/05-ex12"
+  },
+  "d-conjugate": {
+    "src": "g8-2-2/anim-d-conjugate.mp4",
+    "poster": "g8-2-2/anim-d-conjugate.png",
+    "caption": "分母 √5 − √3：乘上 √5 ＋ √3",
+    "seconds": 18.8,
+    "frame": "L4/06-conjugate"
+  }
+}

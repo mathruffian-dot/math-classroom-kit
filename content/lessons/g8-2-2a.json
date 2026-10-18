@@ -898,7 +898,7 @@
       "phase": "工作範例",
       "eyebrow": "04 / 例 1 根式的乘法",
       "title": "√a × √b ＝ √(a×b)",
-      "body": "長 √a、寬 √b 的長方形，面積是 √(ab)。拖拉滑桿比較兩個讀數，再自己算例 1。",
+      "body": "例 1 的做法：係數乘係數、根號乘根號。先自己算，再按「下一步」對照；🎬 動畫說明為什麼 √2 × √3 ＝ √(2×3)。",
       "source": "對應課本 2-2 p.74（題目數字同課本）",
       "figures": [
         {
@@ -912,92 +912,145 @@
       ],
       "interactive": {
         "view": {
-          "xMin": -1.4,
-          "xMax": 6,
-          "yMin": -1.2,
-          "yMax": 5.4,
-          "aspect": "equal",
-          "grid": 1
+          "xMin": 0,
+          "xMax": 12,
+          "yMin": 0,
+          "yMax": 5.6,
+          "aspect": "fill"
         },
-        "params": [
-          {
-            "id": "a",
-            "label": "長 $\\sqrt{a}$ 的 $a$",
-            "min": 1,
-            "max": 20,
-            "step": 1,
-            "value": 3
-          },
-          {
-            "id": "b",
-            "label": "寬 $\\sqrt{b}$ 的 $b$",
-            "min": 1,
-            "max": 20,
-            "step": 1,
-            "value": 7
-          }
-        ],
         "shapes": [
           {
-            "type": "rect",
-            "x": 0,
-            "y": 0,
-            "w": "sqrt(a)",
-            "h": "sqrt(b)",
-            "fill": "rgba(47,128,237,.26)",
-            "color": "#2f80ed",
-            "width": 2
-          },
-          {
-            "type": "brace",
-            "points": [
-              [
-                "sqrt(a)",
-                0
-              ],
-              [
-                0,
-                0
-              ]
-            ],
-            "text": "$\\sqrt{a}$"
-          },
-          {
-            "type": "brace",
-            "points": [
-              [
-                0,
-                0
-              ],
-              [
-                0,
-                "sqrt(b)"
-              ]
-            ],
-            "text": "$\\sqrt{b}$"
+            "type": "text",
+            "x": 6,
+            "y": 4.9,
+            "text": "3√3 × (−2√5)",
+            "size": 26,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              3
+            ]
           },
           {
             "type": "text",
-            "x": "sqrt(a)/2",
-            "y": "sqrt(b)/2",
-            "text": "面積 $\\sqrt{a*b}$",
-            "size": 17,
-            "color": "#1d4fa3"
-          }
-        ],
-        "readouts": [
-          {
-            "label": "$\\sqrt{a}\\times\\sqrt{b} \\approx$",
-            "expr": "sqrt(a)*sqrt(b)",
-            "digits": 3
+            "x": 3,
+            "y": 3.85,
+            "text": "係數 × 係數",
+            "size": 15,
+            "color": "#12a39a",
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
           },
           {
-            "label": "$\\sqrt{a\\times b} \\approx$",
-            "expr": "sqrt(a*b)",
-            "digits": 3
+            "type": "text",
+            "x": 3,
+            "y": 2.95,
+            "text": "3 × (−2)",
+            "size": 21,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3,
+            "y": 2.05,
+            "text": "＝ −6",
+            "size": 22,
+            "color": "#12a39a",
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6,
+                1.7
+              ],
+              [
+                6,
+                4.1
+              ]
+            ],
+            "color": "#c9d0ea",
+            "width": 1.2,
+            "dash": true,
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 3.85,
+            "text": "根號 × 根號",
+            "size": 15,
+            "color": "#7b61ff",
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 2.95,
+            "text": "√3 × √5",
+            "size": 21,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 2.05,
+            "text": "＝ √15",
+            "size": 22,
+            "color": "#7b61ff",
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6,
+            "y": 0.85,
+            "text": "3√3 × (−2√5) ＝ −6√15",
+            "size": 24,
+            "color": "#5a3fd6",
+            "step": 3,
+            "focus": [
+              3
+            ]
           }
         ],
-        "caption": "長 $\\sqrt{a}$、寬 $\\sqrt{b}$ 的長方形，面積就是 $\\sqrt{a\\times b}$"
+        "steps": [
+          "題目：3√3 × (−2√5)",
+          "係數和係數相乘（注意正負號）",
+          "根號和根號相乘：根號內相乘（a ≥ 0、b ≥ 0）",
+          "合起來：−6√15"
+        ],
+        "caption": "課本例 1 的方法：係數乘係數，根號乘根號"
       },
       "activity": {
         "id": "a-ex1-q",
@@ -1016,14 +1069,20 @@
         ],
         "explanation": "(1) √3×√7＝√21。(2) 係數相乘 3×(−2)＝−6，根式相乘 √3×√5＝√15，得 −6√15。"
       },
-      "notes": "工作範例：先讓學生試算（生成效應），再逐步講解「係數乘係數、根號乘根號」。"
+      "notes": "工作範例：先讓學生試算（生成效應），再逐步講解「係數乘係數、根號乘根號」。",
+      "animation": {
+        "src": "g8-2-2/anim-a-ex1.mp4",
+        "poster": "g8-2-2/anim-a-ex1.png",
+        "caption": "為什麼 √2 × √3 ＝ √(2×3)：平方後比較",
+        "seconds": 27.3
+      }
     },
     {
       "id": "a-ex1-practice",
       "phase": "隨堂練習",
       "eyebrow": "05 / 例 1 隨堂",
       "title": "換你算：根式的乘法",
-      "body": "第 3 小題是課本的長方形面積題，用左邊的圖想一想。",
+      "body": "左圖用另一組數字示範同樣的步驟。第 3 小題是課本的長方形面積題：面積＝長 × 寬。",
       "source": "對應課本 2-2 p.75（題目數字同課本）",
       "figures": [
         {
@@ -1033,92 +1092,145 @@
       ],
       "interactive": {
         "view": {
-          "xMin": -1.4,
-          "xMax": 6,
-          "yMin": -1.2,
-          "yMax": 5.4,
-          "aspect": "equal",
-          "grid": 1
+          "xMin": 0,
+          "xMax": 12,
+          "yMin": 0,
+          "yMax": 5.6,
+          "aspect": "fill"
         },
-        "params": [
-          {
-            "id": "a",
-            "label": "長 $\\sqrt{a}$ 的 $a$",
-            "min": 1,
-            "max": 20,
-            "step": 1,
-            "value": 13
-          },
-          {
-            "id": "b",
-            "label": "寬 $\\sqrt{b}$ 的 $b$",
-            "min": 1,
-            "max": 20,
-            "step": 1,
-            "value": 5
-          }
-        ],
         "shapes": [
           {
-            "type": "rect",
-            "x": 0,
-            "y": 0,
-            "w": "sqrt(a)",
-            "h": "sqrt(b)",
-            "fill": "rgba(47,128,237,.26)",
-            "color": "#2f80ed",
-            "width": 2
-          },
-          {
-            "type": "brace",
-            "points": [
-              [
-                "sqrt(a)",
-                0
-              ],
-              [
-                0,
-                0
-              ]
-            ],
-            "text": "$\\sqrt{a}$"
-          },
-          {
-            "type": "brace",
-            "points": [
-              [
-                0,
-                0
-              ],
-              [
-                0,
-                "sqrt(b)"
-              ]
-            ],
-            "text": "$\\sqrt{b}$"
+            "type": "text",
+            "x": 6,
+            "y": 4.9,
+            "text": "−3√2 × 4√7",
+            "size": 26,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              3
+            ]
           },
           {
             "type": "text",
-            "x": "sqrt(a)/2",
-            "y": "sqrt(b)/2",
-            "text": "面積 $\\sqrt{a*b}$",
-            "size": 17,
-            "color": "#1d4fa3"
-          }
-        ],
-        "readouts": [
-          {
-            "label": "$\\sqrt{a}\\times\\sqrt{b} \\approx$",
-            "expr": "sqrt(a)*sqrt(b)",
-            "digits": 3
+            "x": 3,
+            "y": 3.85,
+            "text": "係數 × 係數",
+            "size": 15,
+            "color": "#12a39a",
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
           },
           {
-            "label": "$\\sqrt{a\\times b} \\approx$",
-            "expr": "sqrt(a*b)",
-            "digits": 3
+            "type": "text",
+            "x": 3,
+            "y": 2.95,
+            "text": "(−3) × 4",
+            "size": 21,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3,
+            "y": 2.05,
+            "text": "＝ −12",
+            "size": 22,
+            "color": "#12a39a",
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6,
+                1.7
+              ],
+              [
+                6,
+                4.1
+              ]
+            ],
+            "color": "#c9d0ea",
+            "width": 1.2,
+            "dash": true,
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 3.85,
+            "text": "根號 × 根號",
+            "size": 15,
+            "color": "#7b61ff",
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 2.95,
+            "text": "√2 × √7",
+            "size": 21,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 2.05,
+            "text": "＝ √14",
+            "size": 22,
+            "color": "#7b61ff",
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6,
+            "y": 0.85,
+            "text": "−3√2 × 4√7 ＝ −12√14",
+            "size": 24,
+            "color": "#5a3fd6",
+            "step": 3,
+            "focus": [
+              3
+            ]
           }
         ],
-        "caption": "長 $\\sqrt{a}$、寬 $\\sqrt{b}$ 的長方形，面積就是 $\\sqrt{a\\times b}$"
+        "steps": [
+          "題目：−3√2 × 4√7",
+          "係數和係數相乘（注意正負號）",
+          "根號和根號相乘：根號內相乘（a ≥ 0、b ≥ 0）",
+          "合起來：−12√14"
+        ],
+        "caption": "課本例 1 的方法：係數乘係數，根號乘根號"
       },
       "activity": {
         "id": "a-ex1-practice-q",
@@ -1140,6 +1252,12 @@
           }
         ],
         "explanation": "√5×√14＝√70；(−2)×4＝−8，√3×√2＝√6；√13×√5＝√65。"
+      },
+      "animation": {
+        "src": "g8-2-2/anim-a-ex1-practice.mp4",
+        "poster": "g8-2-2/anim-a-ex1-practice.png",
+        "caption": "例 1 回顧：係數乘係數，根號乘根號",
+        "seconds": 18.7
       }
     },
     {
@@ -1147,7 +1265,7 @@
       "phase": "工作範例",
       "eyebrow": "06 / 例 2 比較大小",
       "title": "3√2 和 2√3，哪個大？",
-      "body": "把係數平方後移進根號：3√2＝√18、2√3＝√12。在數線上比一比。",
+      "body": "照課本例 2 的方法：把係數平方後移進根號，再比根號內的數。先自己判斷，再按「下一步」看每一步。",
       "source": "對應課本 2-2 p.75（題目數字同課本）",
       "figures": [
         {
@@ -1157,431 +1275,341 @@
       ],
       "interactive": {
         "view": {
-          "xMin": -0.5,
-          "xMax": 12.5,
-          "yMin": -2.6,
-          "yMax": 2.6,
+          "xMin": 0,
+          "xMax": 12,
+          "yMin": -0.8,
+          "yMax": 5.9,
           "aspect": "fill"
         },
-        "params": [
-          {
-            "id": "a",
-            "label": "$a$",
-            "min": 1,
-            "max": 5,
-            "step": 1,
-            "value": 3
-          },
-          {
-            "id": "b",
-            "label": "$\\sqrt{b}$ 的 $b$",
-            "min": 2,
-            "max": 7,
-            "step": 1,
-            "value": 2
-          },
-          {
-            "id": "c",
-            "label": "$c$",
-            "min": 1,
-            "max": 5,
-            "step": 1,
-            "value": 2
-          },
-          {
-            "id": "d",
-            "label": "$\\sqrt{d}$ 的 $d$",
-            "min": 2,
-            "max": 7,
-            "step": 1,
-            "value": 3
-          }
-        ],
         "shapes": [
-          {
-            "type": "segment",
-            "points": [
-              [
-                -0.3,
-                0
-              ],
-              [
-                12.3,
-                0
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.6
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                0,
-                -0.12
-              ],
-              [
-                0,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 0,
-            "y": -0.5,
-            "text": "0",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                1,
-                -0.12
-              ],
-              [
-                1,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 1,
-            "y": -0.5,
-            "text": "1",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                2,
-                -0.12
-              ],
-              [
-                2,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 2,
-            "y": -0.5,
-            "text": "2",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                3,
-                -0.12
-              ],
-              [
-                3,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
           {
             "type": "text",
             "x": 3,
-            "y": -0.5,
-            "text": "3",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                4,
-                -0.12
-              ],
-              [
-                4,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 4,
-            "y": -0.5,
-            "text": "4",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                5,
-                -0.12
-              ],
-              [
-                5,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 5,
-            "y": -0.5,
-            "text": "5",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                6,
-                -0.12
-              ],
-              [
-                6,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 6,
-            "y": -0.5,
-            "text": "6",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                7,
-                -0.12
-              ],
-              [
-                7,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 7,
-            "y": -0.5,
-            "text": "7",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                8,
-                -0.12
-              ],
-              [
-                8,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 8,
-            "y": -0.5,
-            "text": "8",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                9,
-                -0.12
-              ],
-              [
-                9,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
+            "y": 5.2,
+            "text": "3√2",
+            "size": 26,
+            "color": "#7b61ff",
+            "step": 0,
+            "focus": [
+              0,
+              5
+            ]
           },
           {
             "type": "text",
             "x": 9,
-            "y": -0.5,
-            "text": "9",
-            "size": 12,
-            "color": "#6b7394"
+            "y": 5.2,
+            "text": "2√3",
+            "size": 26,
+            "color": "#2f80ed",
+            "step": 0,
+            "focus": [
+              0,
+              5
+            ]
           },
           {
             "type": "segment",
             "points": [
               [
-                10,
-                -0.12
+                6,
+                1.9
               ],
               [
-                10,
-                0.12
+                6,
+                5.6
               ]
             ],
-            "color": "#6b7394",
-            "width": 1.4
+            "color": "#c9d0ea",
+            "width": 1.2,
+            "dash": true,
+            "step": 0,
+            "focus": [
+              0,
+              5
+            ]
           },
           {
             "type": "text",
-            "x": 10,
-            "y": -0.5,
-            "text": "10",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                11,
-                -0.12
-              ],
-              [
-                11,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 11,
-            "y": -0.5,
-            "text": "11",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                12,
-                -0.12
-              ],
-              [
-                12,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 12,
-            "y": -0.5,
-            "text": "12",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "point",
-            "x": "a*sqrt(b)",
-            "y": 0,
-            "color": "#7b61ff"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                "a*sqrt(b)",
-                0.15
-              ],
-              [
-                "a*sqrt(b)",
-                1.1
-              ]
-            ],
-            "color": "#7b61ff",
-            "dash": true
-          },
-          {
-            "type": "text",
-            "x": "a*sqrt(b)",
-            "y": 1.5,
-            "text": "${a}\\sqrt{b} = \\sqrt{a^2*b}$",
-            "color": "#5a3fd6",
-            "size": 16
-          },
-          {
-            "type": "point",
-            "x": "c*sqrt(d)",
-            "y": 0,
-            "color": "#ff8a3d"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                "c*sqrt(d)",
-                -0.9
-              ],
-              [
-                "c*sqrt(d)",
-                -1.5
-              ]
-            ],
+            "x": 3,
+            "y": 4.15,
+            "text": "3 ＝ √9",
+            "size": 17,
             "color": "#ff8a3d",
-            "dash": true
+            "step": 1,
+            "focus": [
+              1,
+              5
+            ]
           },
           {
             "type": "text",
-            "x": "c*sqrt(d)",
-            "y": -1.95,
-            "text": "${c}\\sqrt{d} = \\sqrt{c^2*d}$",
-            "color": "#b4541a",
-            "size": 16
-          }
-        ],
-        "readouts": [
-          {
-            "label": "$a^2\\times b$",
-            "expr": "a^2*b"
+            "x": 3,
+            "y": 3.25,
+            "text": "3√2 ＝ √9 × √2",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              5
+            ]
           },
           {
-            "label": "$c^2\\times d$",
-            "expr": "c^2*d"
+            "type": "text",
+            "x": 3,
+            "y": 2.35,
+            "text": "＝ √18",
+            "size": 22,
+            "color": "#7b61ff",
+            "step": 2,
+            "focus": [
+              2,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 4.15,
+            "text": "2 ＝ √4",
+            "size": 17,
+            "color": "#ff8a3d",
+            "step": 3,
+            "focus": [
+              3,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 3.25,
+            "text": "2√3 ＝ √4 × √3",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 3,
+            "focus": [
+              3,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 2.35,
+            "text": "＝ √12",
+            "size": 22,
+            "color": "#2f80ed",
+            "step": 3,
+            "focus": [
+              3,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6,
+            "y": 1.55,
+            "text": "18 ＞ 12，所以 √18 ＞ √12",
+            "size": 18,
+            "color": "#1f2a56",
+            "step": 4,
+            "show": "step < 5",
+            "focus": [
+              4,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                1.2,
+                0.2
+              ],
+              [
+                10.8,
+                0.2
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 2.2,
+            "step": 4,
+            "focus": [
+              4,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                1.5,
+                0.05
+              ],
+              [
+                1.5,
+                0.35
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.6,
+            "step": 4,
+            "focus": [
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 1.5,
+            "y": -0.35,
+            "text": "3",
+            "size": 13,
+            "color": "#1f2a56",
+            "step": 4,
+            "focus": [
+              4,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6,
+                0.05
+              ],
+              [
+                6,
+                0.35
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.6,
+            "step": 4,
+            "focus": [
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6,
+            "y": -0.35,
+            "text": "4",
+            "size": 13,
+            "color": "#1f2a56",
+            "step": 4,
+            "focus": [
+              4,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                10.5,
+                0.05
+              ],
+              [
+                10.5,
+                0.35
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.6,
+            "step": 4,
+            "focus": [
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 10.5,
+            "y": -0.35,
+            "text": "5",
+            "size": 13,
+            "color": "#1f2a56",
+            "step": 4,
+            "focus": [
+              4,
+              5
+            ]
+          },
+          {
+            "type": "point",
+            "x": 7.091883092036781,
+            "y": 0.2,
+            "color": "#7b61ff",
+            "step": 4,
+            "focus": [
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 7.091883092036781,
+            "y": 0.75,
+            "text": "√18",
+            "size": 15,
+            "color": "#7b61ff",
+            "step": 4,
+            "focus": [
+              4,
+              5
+            ]
+          },
+          {
+            "type": "point",
+            "x": 3.5884572681198947,
+            "y": 0.2,
+            "color": "#2f80ed",
+            "step": 4,
+            "focus": [
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3.5884572681198947,
+            "y": 0.75,
+            "text": "√12",
+            "size": 15,
+            "color": "#2f80ed",
+            "step": 4,
+            "focus": [
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6,
+            "y": 1.55,
+            "text": "結論：3√2 ＞ 2√3",
+            "size": 24,
+            "color": "#5a3fd6",
+            "step": 5,
+            "focus": [
+              5
+            ]
           }
         ],
-        "caption": "根號內的數越大，平方根越大"
+        "steps": [
+          "比較 3√2 與 2√3：係數不同，不能直接比",
+          "左邊：係數 3 寫成 √9，移進根號",
+          "左邊：√9 × √2 ＝ √18",
+          "右邊照做：2 ＝ √4，所以 2√3 ＝ √12",
+          "比根號內的數：18 ＞ 12，數線上也看得到",
+          "結論：3√2 ＞ 2√3"
+        ],
+        "caption": "課本例 2 的方法：係數平方後移進根號，再比根號內的數"
       },
       "activity": {
         "id": "a-ex2-q",
@@ -1596,6 +1624,12 @@
           0
         ],
         "explanation": "3√2＝√18，2√3＝√12，18 > 12，所以 3√2 > 2√3。"
+      },
+      "animation": {
+        "src": "g8-2-2/anim-a-ex2.mp4",
+        "poster": "g8-2-2/anim-a-ex2.png",
+        "caption": "例 2：把係數移進根號再比大小",
+        "seconds": 22
       }
     },
     {
@@ -1603,7 +1637,7 @@
       "phase": "隨堂練習",
       "eyebrow": "07 / 例 2 隨堂",
       "title": "比較大小：哪些敘述正確？",
-      "body": "第一個敘述是課本隨堂，其餘是換數字題。先把係數移進根號再比。",
+      "body": "第一個敘述是課本隨堂，其餘是換數字題。左圖用另一組數字（2√6 和 3√2）示範同樣的步驟，再自己判斷四個敘述。",
       "source": "對應課本 2-2 p.75；第 1 題為課本隨堂，其餘為換數字題（自編）",
       "figures": [
         {
@@ -1613,431 +1647,308 @@
       ],
       "interactive": {
         "view": {
-          "xMin": -0.5,
-          "xMax": 12.5,
-          "yMin": -2.6,
-          "yMax": 2.6,
+          "xMin": 0,
+          "xMax": 12,
+          "yMin": -0.8,
+          "yMax": 5.9,
           "aspect": "fill"
         },
-        "params": [
-          {
-            "id": "a",
-            "label": "$a$",
-            "min": 1,
-            "max": 5,
-            "step": 1,
-            "value": 6
-          },
-          {
-            "id": "b",
-            "label": "$\\sqrt{b}$ 的 $b$",
-            "min": 2,
-            "max": 7,
-            "step": 1,
-            "value": 2
-          },
-          {
-            "id": "c",
-            "label": "$c$",
-            "min": 1,
-            "max": 5,
-            "step": 1,
-            "value": 5
-          },
-          {
-            "id": "d",
-            "label": "$\\sqrt{d}$ 的 $d$",
-            "min": 2,
-            "max": 7,
-            "step": 1,
-            "value": 3
-          }
-        ],
         "shapes": [
-          {
-            "type": "segment",
-            "points": [
-              [
-                -0.3,
-                0
-              ],
-              [
-                12.3,
-                0
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.6
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                0,
-                -0.12
-              ],
-              [
-                0,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 0,
-            "y": -0.5,
-            "text": "0",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                1,
-                -0.12
-              ],
-              [
-                1,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 1,
-            "y": -0.5,
-            "text": "1",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                2,
-                -0.12
-              ],
-              [
-                2,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 2,
-            "y": -0.5,
-            "text": "2",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                3,
-                -0.12
-              ],
-              [
-                3,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
           {
             "type": "text",
             "x": 3,
-            "y": -0.5,
-            "text": "3",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                4,
-                -0.12
-              ],
-              [
-                4,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 4,
-            "y": -0.5,
-            "text": "4",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                5,
-                -0.12
-              ],
-              [
-                5,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 5,
-            "y": -0.5,
-            "text": "5",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                6,
-                -0.12
-              ],
-              [
-                6,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 6,
-            "y": -0.5,
-            "text": "6",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                7,
-                -0.12
-              ],
-              [
-                7,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 7,
-            "y": -0.5,
-            "text": "7",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                8,
-                -0.12
-              ],
-              [
-                8,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 8,
-            "y": -0.5,
-            "text": "8",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                9,
-                -0.12
-              ],
-              [
-                9,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
+            "y": 5.2,
+            "text": "2√6",
+            "size": 26,
+            "color": "#7b61ff",
+            "step": 0,
+            "focus": [
+              0,
+              5
+            ]
           },
           {
             "type": "text",
             "x": 9,
-            "y": -0.5,
-            "text": "9",
-            "size": 12,
-            "color": "#6b7394"
+            "y": 5.2,
+            "text": "3√2",
+            "size": 26,
+            "color": "#2f80ed",
+            "step": 0,
+            "focus": [
+              0,
+              5
+            ]
           },
           {
             "type": "segment",
             "points": [
               [
-                10,
-                -0.12
+                6,
+                1.9
               ],
               [
-                10,
-                0.12
+                6,
+                5.6
               ]
             ],
-            "color": "#6b7394",
-            "width": 1.4
+            "color": "#c9d0ea",
+            "width": 1.2,
+            "dash": true,
+            "step": 0,
+            "focus": [
+              0,
+              5
+            ]
           },
           {
             "type": "text",
-            "x": 10,
-            "y": -0.5,
-            "text": "10",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                11,
-                -0.12
-              ],
-              [
-                11,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 11,
-            "y": -0.5,
-            "text": "11",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                12,
-                -0.12
-              ],
-              [
-                12,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 12,
-            "y": -0.5,
-            "text": "12",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "point",
-            "x": "a*sqrt(b)",
-            "y": 0,
-            "color": "#7b61ff"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                "a*sqrt(b)",
-                0.15
-              ],
-              [
-                "a*sqrt(b)",
-                1.1
-              ]
-            ],
-            "color": "#7b61ff",
-            "dash": true
-          },
-          {
-            "type": "text",
-            "x": "a*sqrt(b)",
-            "y": 1.5,
-            "text": "${a}\\sqrt{b} = \\sqrt{a^2*b}$",
-            "color": "#5a3fd6",
-            "size": 16
-          },
-          {
-            "type": "point",
-            "x": "c*sqrt(d)",
-            "y": 0,
-            "color": "#ff8a3d"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                "c*sqrt(d)",
-                -0.9
-              ],
-              [
-                "c*sqrt(d)",
-                -1.5
-              ]
-            ],
+            "x": 3,
+            "y": 4.15,
+            "text": "2 ＝ √4",
+            "size": 17,
             "color": "#ff8a3d",
-            "dash": true
+            "step": 1,
+            "focus": [
+              1,
+              5
+            ]
           },
           {
             "type": "text",
-            "x": "c*sqrt(d)",
-            "y": -1.95,
-            "text": "${c}\\sqrt{d} = \\sqrt{c^2*d}$",
-            "color": "#b4541a",
-            "size": 16
-          }
-        ],
-        "readouts": [
-          {
-            "label": "$a^2\\times b$",
-            "expr": "a^2*b"
+            "x": 3,
+            "y": 3.25,
+            "text": "2√6 ＝ √4 × √6",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              5
+            ]
           },
           {
-            "label": "$c^2\\times d$",
-            "expr": "c^2*d"
+            "type": "text",
+            "x": 3,
+            "y": 2.35,
+            "text": "＝ √24",
+            "size": 22,
+            "color": "#7b61ff",
+            "step": 2,
+            "focus": [
+              2,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 4.15,
+            "text": "3 ＝ √9",
+            "size": 17,
+            "color": "#ff8a3d",
+            "step": 3,
+            "focus": [
+              3,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 3.25,
+            "text": "3√2 ＝ √9 × √2",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 3,
+            "focus": [
+              3,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 2.35,
+            "text": "＝ √18",
+            "size": 22,
+            "color": "#2f80ed",
+            "step": 3,
+            "focus": [
+              3,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6,
+            "y": 1.55,
+            "text": "24 ＞ 18，所以 √24 ＞ √18",
+            "size": 18,
+            "color": "#1f2a56",
+            "step": 4,
+            "show": "step < 5",
+            "focus": [
+              4,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                1.2,
+                0.2
+              ],
+              [
+                10.8,
+                0.2
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 2.2,
+            "step": 4,
+            "focus": [
+              4,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                1.5,
+                0.05
+              ],
+              [
+                1.5,
+                0.35
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.6,
+            "step": 4,
+            "focus": [
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 1.5,
+            "y": -0.35,
+            "text": "4",
+            "size": 13,
+            "color": "#1f2a56",
+            "step": 4,
+            "focus": [
+              4,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                10.5,
+                0.05
+              ],
+              [
+                10.5,
+                0.35
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.6,
+            "step": 4,
+            "focus": [
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 10.5,
+            "y": -0.35,
+            "text": "5",
+            "size": 13,
+            "color": "#1f2a56",
+            "step": 4,
+            "focus": [
+              4,
+              5
+            ]
+          },
+          {
+            "type": "point",
+            "x": 9.590815370097202,
+            "y": 0.2,
+            "color": "#7b61ff",
+            "step": 4,
+            "focus": [
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9.590815370097202,
+            "y": 0.75,
+            "text": "√24",
+            "size": 15,
+            "color": "#7b61ff",
+            "step": 4,
+            "focus": [
+              4,
+              5
+            ]
+          },
+          {
+            "type": "point",
+            "x": 3.683766184073563,
+            "y": 0.2,
+            "color": "#2f80ed",
+            "step": 4,
+            "focus": [
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3.683766184073563,
+            "y": 0.75,
+            "text": "√18",
+            "size": 15,
+            "color": "#2f80ed",
+            "step": 4,
+            "focus": [
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6,
+            "y": 1.55,
+            "text": "結論：2√6 ＞ 3√2",
+            "size": 24,
+            "color": "#5a3fd6",
+            "step": 5,
+            "focus": [
+              5
+            ]
           }
         ],
-        "caption": "根號內的數越大，平方根越大"
+        "steps": [
+          "比較 2√6 與 3√2：係數不同，不能直接比",
+          "左邊：係數 2 寫成 √4，移進根號",
+          "左邊：√4 × √6 ＝ √24",
+          "右邊照做：3 ＝ √9，所以 3√2 ＝ √18",
+          "比根號內的數：24 ＞ 18，數線上也看得到",
+          "結論：2√6 ＞ 3√2"
+        ],
+        "caption": "課本例 2 的方法：係數平方後移進根號，再比根號內的數"
       },
       "activity": {
         "id": "a-ex2-practice-q",
@@ -2061,7 +1972,7 @@
       "phase": "工作範例",
       "eyebrow": "08 / 例 3 根式的除法",
       "title": "√a ÷ √b ＝ √(a÷b)",
-      "body": "先除再開根號，在數線上會落在同一點。拖拉 a、b 驗證，再算例 3。",
+      "body": "例 3 的做法：寫成分數，再合成一個根號。注意除數不能是 0：a ≥ 0，b > 0。先自己算，再按「下一步」對照。",
       "source": "對應課本 2-2 p.76（題目數字同課本）",
       "figures": [
         {
@@ -2075,304 +1986,71 @@
       ],
       "interactive": {
         "view": {
-          "xMin": -0.5,
-          "xMax": 8.5,
-          "yMin": -2.4,
-          "yMax": 2.8,
+          "xMin": 0,
+          "xMax": 12,
+          "yMin": 0,
+          "yMax": 4.6,
           "aspect": "fill"
         },
-        "params": [
-          {
-            "id": "a",
-            "label": "$\\sqrt{a}$ 的 $a$",
-            "min": 1,
-            "max": 60,
-            "step": 1,
-            "value": 35
-          },
-          {
-            "id": "b",
-            "label": "$\\sqrt{b}$ 的 $b$",
-            "min": 1,
-            "max": 12,
-            "step": 1,
-            "value": 7
-          }
-        ],
         "shapes": [
           {
-            "type": "segment",
-            "points": [
-              [
-                -0.3,
-                0
-              ],
-              [
-                8.3,
-                0
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.6
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                0,
-                -0.12
-              ],
-              [
-                0,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
             "type": "text",
-            "x": 0,
-            "y": -0.5,
-            "text": "0",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                1,
-                -0.12
-              ],
-              [
-                1,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 1,
-            "y": -0.5,
-            "text": "1",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                2,
-                -0.12
-              ],
-              [
-                2,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 2,
-            "y": -0.5,
-            "text": "2",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                3,
-                -0.12
-              ],
-              [
-                3,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 3,
-            "y": -0.5,
-            "text": "3",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                4,
-                -0.12
-              ],
-              [
-                4,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 4,
-            "y": -0.5,
-            "text": "4",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                5,
-                -0.12
-              ],
-              [
-                5,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 5,
-            "y": -0.5,
-            "text": "5",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                6,
-                -0.12
-              ],
-              [
-                6,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
+            "x": 6,
+            "y": 4,
+            "text": "√35 ÷ √7",
+            "size": 27,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              3
+            ]
           },
           {
             "type": "text",
             "x": 6,
-            "y": -0.5,
-            "text": "6",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                7,
-                -0.12
-              ],
-              [
-                7,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
+            "y": 3,
+            "text": "＝ √35/√7",
+            "size": 25,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
           },
           {
             "type": "text",
-            "x": 7,
-            "y": -0.5,
-            "text": "7",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                8,
-                -0.12
-              ],
-              [
-                8,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
+            "x": 6,
+            "y": 2,
+            "text": "＝ √(35/7)",
+            "size": 25,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
           },
           {
             "type": "text",
-            "x": 8,
-            "y": -0.5,
-            "text": "8",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "point",
-            "x": "sqrt(a)",
-            "y": 0,
-            "color": "#2f80ed",
-            "text": "$\\sqrt{a}$"
-          },
-          {
-            "type": "point",
-            "x": "sqrt(b)",
-            "y": 0,
-            "color": "#ff8a3d",
-            "text": "$\\sqrt{b}$"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                "sqrt(a)/sqrt(b)",
-                -0.2
-              ],
-              [
-                "sqrt(a)/sqrt(b)",
-                -1.2
-              ]
-            ],
-            "color": "#7b61ff",
-            "width": 3
-          },
-          {
-            "type": "text",
-            "x": "sqrt(a)/sqrt(b)",
-            "y": -1.7,
-            "text": "$\\sqrt{a}\\div\\sqrt{b} = \\sqrt{\\frac{a}{b}}$",
+            "x": 6,
+            "y": 1,
+            "text": "＝ √5",
+            "size": 25,
             "color": "#5a3fd6",
-            "size": 16
+            "step": 3,
+            "focus": [
+              3
+            ]
           }
         ],
-        "readouts": [
-          {
-            "label": "$\\sqrt{a}\\div\\sqrt{b} \\approx$",
-            "expr": "sqrt(a)/sqrt(b)",
-            "digits": 3
-          },
-          {
-            "label": "$\\sqrt{\\frac{a}{b}} \\approx$",
-            "expr": "sqrt(a/b)",
-            "digits": 3
-          }
-        ],
-        "caption": "先除再開根號，結果相同"
+        "steps": [
+          "題目：√35 ÷ √7",
+          "除法寫成分數",
+          "合成一個根號：√a/√b ＝ √(a/b)（a ≥ 0，b > 0）",
+          "35 ÷ 7 ＝ 5，答案 √5"
+        ]
       },
       "activity": {
         "id": "a-ex3-q",
@@ -2390,6 +2068,12 @@
           }
         ],
         "explanation": "(1) √(35÷7)＝√5。(2) √3/√6＝√(1/2)，√(7/2)÷√(1/2)＝√7。"
+      },
+      "animation": {
+        "src": "g8-2-2/anim-a-ex3.mp4",
+        "poster": "g8-2-2/anim-a-ex3.png",
+        "caption": "例 3：根式的除法（b > 0）",
+        "seconds": 16.7
       }
     },
     {
@@ -2397,7 +2081,7 @@
       "phase": "隨堂練習",
       "eyebrow": "09 / 例 3 隨堂",
       "title": "換你算：根式的除法",
-      "body": "前兩題是課本隨堂，第 3 題換數字。答案要化成最簡根式。",
+      "body": "前兩題是課本隨堂，第 3 題換數字。左圖用另一組數字示範步驟；答案要化成最簡根式。",
       "source": "對應課本 2-2 p.76；第 1 題為課本隨堂，其餘為換數字題（自編）",
       "figures": [
         {
@@ -2407,304 +2091,71 @@
       ],
       "interactive": {
         "view": {
-          "xMin": -0.5,
-          "xMax": 8.5,
-          "yMin": -2.4,
-          "yMax": 2.8,
+          "xMin": 0,
+          "xMax": 12,
+          "yMin": 0,
+          "yMax": 4.6,
           "aspect": "fill"
         },
-        "params": [
-          {
-            "id": "a",
-            "label": "$\\sqrt{a}$ 的 $a$",
-            "min": 1,
-            "max": 60,
-            "step": 1,
-            "value": 48
-          },
-          {
-            "id": "b",
-            "label": "$\\sqrt{b}$ 的 $b$",
-            "min": 1,
-            "max": 12,
-            "step": 1,
-            "value": 8
-          }
-        ],
         "shapes": [
           {
-            "type": "segment",
-            "points": [
-              [
-                -0.3,
-                0
-              ],
-              [
-                8.3,
-                0
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.6
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                0,
-                -0.12
-              ],
-              [
-                0,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
             "type": "text",
-            "x": 0,
-            "y": -0.5,
-            "text": "0",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                1,
-                -0.12
-              ],
-              [
-                1,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 1,
-            "y": -0.5,
-            "text": "1",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                2,
-                -0.12
-              ],
-              [
-                2,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 2,
-            "y": -0.5,
-            "text": "2",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                3,
-                -0.12
-              ],
-              [
-                3,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 3,
-            "y": -0.5,
-            "text": "3",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                4,
-                -0.12
-              ],
-              [
-                4,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 4,
-            "y": -0.5,
-            "text": "4",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                5,
-                -0.12
-              ],
-              [
-                5,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
-          },
-          {
-            "type": "text",
-            "x": 5,
-            "y": -0.5,
-            "text": "5",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                6,
-                -0.12
-              ],
-              [
-                6,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
+            "x": 6,
+            "y": 4,
+            "text": "√60 ÷ √12",
+            "size": 27,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              3
+            ]
           },
           {
             "type": "text",
             "x": 6,
-            "y": -0.5,
-            "text": "6",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                7,
-                -0.12
-              ],
-              [
-                7,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
+            "y": 3,
+            "text": "＝ √60/√12",
+            "size": 25,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
           },
           {
             "type": "text",
-            "x": 7,
-            "y": -0.5,
-            "text": "7",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                8,
-                -0.12
-              ],
-              [
-                8,
-                0.12
-              ]
-            ],
-            "color": "#6b7394",
-            "width": 1.4
+            "x": 6,
+            "y": 2,
+            "text": "＝ √(60/12)",
+            "size": 25,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
           },
           {
             "type": "text",
-            "x": 8,
-            "y": -0.5,
-            "text": "8",
-            "size": 12,
-            "color": "#6b7394"
-          },
-          {
-            "type": "point",
-            "x": "sqrt(a)",
-            "y": 0,
-            "color": "#2f80ed",
-            "text": "$\\sqrt{a}$"
-          },
-          {
-            "type": "point",
-            "x": "sqrt(b)",
-            "y": 0,
-            "color": "#ff8a3d",
-            "text": "$\\sqrt{b}$"
-          },
-          {
-            "type": "segment",
-            "points": [
-              [
-                "sqrt(a)/sqrt(b)",
-                -0.2
-              ],
-              [
-                "sqrt(a)/sqrt(b)",
-                -1.2
-              ]
-            ],
-            "color": "#7b61ff",
-            "width": 3
-          },
-          {
-            "type": "text",
-            "x": "sqrt(a)/sqrt(b)",
-            "y": -1.7,
-            "text": "$\\sqrt{a}\\div\\sqrt{b} = \\sqrt{\\frac{a}{b}}$",
+            "x": 6,
+            "y": 1,
+            "text": "＝ √5",
+            "size": 25,
             "color": "#5a3fd6",
-            "size": 16
+            "step": 3,
+            "focus": [
+              3
+            ]
           }
         ],
-        "readouts": [
-          {
-            "label": "$\\sqrt{a}\\div\\sqrt{b} \\approx$",
-            "expr": "sqrt(a)/sqrt(b)",
-            "digits": 3
-          },
-          {
-            "label": "$\\sqrt{\\frac{a}{b}} \\approx$",
-            "expr": "sqrt(a/b)",
-            "digits": 3
-          }
-        ],
-        "caption": "先除再開根號，結果相同"
+        "steps": [
+          "示範（另一組數字）：√60 ÷ √12",
+          "寫成分數",
+          "合成一個根號",
+          "60 ÷ 12 ＝ 5"
+        ]
       },
       "activity": {
         "id": "a-ex3-practice-q",
@@ -2737,92 +2188,145 @@
       "source": "對應課本 2-2 p.74（題目數字同課本）",
       "interactive": {
         "view": {
-          "xMin": -1.4,
-          "xMax": 6,
-          "yMin": -1.2,
-          "yMax": 5.4,
-          "aspect": "equal",
-          "grid": 1
+          "xMin": 0,
+          "xMax": 12,
+          "yMin": 0,
+          "yMax": 5.6,
+          "aspect": "fill"
         },
-        "params": [
-          {
-            "id": "a",
-            "label": "長 $\\sqrt{a}$ 的 $a$",
-            "min": 1,
-            "max": 20,
-            "step": 1,
-            "value": 3
-          },
-          {
-            "id": "b",
-            "label": "寬 $\\sqrt{b}$ 的 $b$",
-            "min": 1,
-            "max": 20,
-            "step": 1,
-            "value": 2
-          }
-        ],
         "shapes": [
           {
-            "type": "rect",
-            "x": 0,
-            "y": 0,
-            "w": "sqrt(a)",
-            "h": "sqrt(b)",
-            "fill": "rgba(47,128,237,.26)",
-            "color": "#2f80ed",
-            "width": 2
-          },
-          {
-            "type": "brace",
-            "points": [
-              [
-                "sqrt(a)",
-                0
-              ],
-              [
-                0,
-                0
-              ]
-            ],
-            "text": "$\\sqrt{a}$"
-          },
-          {
-            "type": "brace",
-            "points": [
-              [
-                0,
-                0
-              ],
-              [
-                0,
-                "sqrt(b)"
-              ]
-            ],
-            "text": "$\\sqrt{b}$"
+            "type": "text",
+            "x": 6,
+            "y": 4.9,
+            "text": "2√3 × 3√2",
+            "size": 26,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              3
+            ]
           },
           {
             "type": "text",
-            "x": "sqrt(a)/2",
-            "y": "sqrt(b)/2",
-            "text": "面積 $\\sqrt{a*b}$",
-            "size": 17,
-            "color": "#1d4fa3"
-          }
-        ],
-        "readouts": [
-          {
-            "label": "$\\sqrt{a}\\times\\sqrt{b} \\approx$",
-            "expr": "sqrt(a)*sqrt(b)",
-            "digits": 3
+            "x": 3,
+            "y": 3.85,
+            "text": "係數 × 係數",
+            "size": 15,
+            "color": "#12a39a",
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
           },
           {
-            "label": "$\\sqrt{a\\times b} \\approx$",
-            "expr": "sqrt(a*b)",
-            "digits": 3
+            "type": "text",
+            "x": 3,
+            "y": 2.95,
+            "text": "2 × 3",
+            "size": 21,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3,
+            "y": 2.05,
+            "text": "＝ ？",
+            "size": 22,
+            "color": "#12a39a",
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6,
+                1.7
+              ],
+              [
+                6,
+                4.1
+              ]
+            ],
+            "color": "#c9d0ea",
+            "width": 1.2,
+            "dash": true,
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 3.85,
+            "text": "根號 × 根號",
+            "size": 15,
+            "color": "#7b61ff",
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 2.95,
+            "text": "√3 × √2",
+            "size": 21,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 2.05,
+            "text": "＝ ？",
+            "size": 22,
+            "color": "#7b61ff",
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6,
+            "y": 0.85,
+            "text": "2√3 × 3√2 ＝ ？",
+            "size": 24,
+            "color": "#5a3fd6",
+            "step": 3,
+            "focus": [
+              3
+            ]
           }
         ],
-        "caption": "長 $\\sqrt{a}$、寬 $\\sqrt{b}$ 的長方形，面積就是 $\\sqrt{a\\times b}$"
+        "steps": [
+          "題目：2√3 × 3√2",
+          "係數和係數相乘（注意正負號）",
+          "根號和根號相乘：根號內相乘（a ≥ 0、b ≥ 0）",
+          "兩欄的結果合起來，是多少？"
+        ],
+        "caption": "課本例 1 的方法：係數乘係數，根號乘根號"
       },
       "activity": {
         "id": "a-error-q",
@@ -2895,7 +2399,13 @@
           "graderNotes": "接受先寫成 √12×√18＝√216＝6√6 的做法。"
         }
       },
-      "notes": "收件後按「AI 批改」，覆核後發回；挑兩種不同說明方式投影討論。"
+      "notes": "收件後按「AI 批改」，覆核後發回；挑兩種不同說明方式投影討論。",
+      "animation": {
+        "src": "g8-2-2/anim-a-error.mp4",
+        "poster": "g8-2-2/anim-a-error.png",
+        "caption": "錯例（自編）：根號內要相乘，不是相加",
+        "seconds": 17.2
+      }
     },
     {
       "id": "a-exit",

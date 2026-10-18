@@ -64,3 +64,36 @@ test('example lessons have unique stable IDs and valid activity options', async 
     }
   }
 });
+
+test('step-by-step visualizations: every ＝ chain in a lesson evaluates to the same number', async () => {
+  const { build } = await import('esbuild');
+  const { mkdtemp, rm } = await import('node:fs/promises');
+  const { tmpdir } = await import('node:os');
+  const { pathToFileURL } = await import('node:url');
+  const dir = await mkdtemp(join(tmpdir(), 'classroom-steps-'));
+  await build({ entryPoints: [resolve(root, 'shared/expr.ts')], outdir: dir, bundle: true, platform: 'node', format: 'esm', outExtension: { '.js': '.mjs' }, logLevel: 'silent' });
+  const { parseNumberAnswer } = await import(pathToFileURL(join(dir, 'expr.mjs')).href);
+  await rm(dir, { recursive: true, force: true });
+  const norm = (s) => s.replace(/＝/g, '=').replace(/[−－]/g, '-').replace(/×/g, '*').replace(/÷/g, '/').replace(/＋/g, '+').replace(/²/g, '^2').replace(/\[/g, '(').replace(/\]/g, ')').replace(/\s+/g, '');
+  let chains = 0;
+  for (const f of (await readdir(join(root, 'content/lessons'))).filter((n) => n.endsWith('.json'))) {
+    const lesson = JSON.parse(await readFile(join(root, 'content/lessons', f), 'utf8'));
+    for (const slide of lesson.slides) {
+      const shapes = slide.interactive?.shapes || [];
+      // 只檢查單欄的逐步解題（stepsViz：每一行置中、以 ＝ 接續上一行）
+      if (!slide.interactive?.steps || !shapes.length || !shapes.every((s) => s.type === 'text' && s.x === 6)) continue;
+      const parts = shapes.map((s) => norm(s.text)).join('').split('=').filter(Boolean);
+      if (parts.some((p) => /[？?a-zA-Z$]/.test(p.replace(/sqrt/g, '')))) continue; // 鷹架題（留白）或代數式
+      const values = parts.map((p) => {
+        try {
+          return parseNumberAnswer(p);
+        } catch (e) {
+          throw new Error(`${f} ${slide.id}：無法計算「${p}」（${e.message}）`);
+        }
+      });
+      for (const v of values) assert.ok(Math.abs(v - values[0]) < 1e-9, `${f} ${slide.id}: ${parts.join(' = ')}`);
+      chains++;
+    }
+  }
+  assert.ok(chains >= 15, `只檢查到 ${chains} 條算式鏈`);
+});

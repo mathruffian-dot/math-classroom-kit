@@ -1,0 +1,166 @@
+// 模擬一堂 2-2 根式（1）：老師＋3 位學生（桌機、iPad、手機），各自獨立的瀏覽器 context。
+// 驗證：學生只用班級代碼＋座號登入（識別碼預設停用）、動畫在「公布結果」前鎖住、
+// 步驟化視覺化、課本截圖放大後工具照常可用、個人識別碼開關。
+import { test, expect, type Page, type Browser, type BrowserContext } from '@playwright/test';
+import { mkdir } from 'node:fs/promises';
+import { resolve } from 'node:path';
+
+const baseURL = process.env.E2E_BASE_URL || 'http://127.0.0.1:8787';
+const screenshots = resolve('artifacts/screenshots');
+const contexts: BrowserContext[] = [];
+const cleanup: { context: BrowserContext; id: string }[] = [];
+
+async function surface(browser: Browser, width: number, height: number, touch = false) {
+  const context = await browser.newContext({ baseURL, viewport: { width, height }, hasTouch: touch, deviceScaleFactor: 1 });
+  contexts.push(context);
+  return { context, page: await context.newPage() };
+}
+async function shot(page: Page, name: string) {
+  await mkdir(screenshots, { recursive: true });
+  await page.screenshot({ path: resolve(screenshots, `radicals-${name}.png`) });
+}
+async function loginTeacher(page: Page) {
+  await page.goto('/');
+  await page.getByLabel('帳號').fill('teacher');
+  await page.getByLabel('密碼').fill('11235813');
+  await page.locator('#login-form').getByRole('button', { name: '登入' }).click();
+  await expect(page.getByTestId('lesson-card').first()).toBeVisible();
+}
+async function setRequireCode(page: Page, on: boolean) {
+  const r = await page.request.get('/api/dashboard');
+  const cl = (await r.json()).classes.find((c: { code: string }) => c.code === 'DEMO801');
+  const res = await page.request.patch(`/api/classes/${cl.id}`, { headers: { Origin: baseURL }, data: { requireCode: on } });
+  expect(res.ok(), await res.text()).toBeTruthy();
+}
+/** 學生登入：預設只填班級代碼與座號（識別碼留空）。 */
+async function loginStudent(page: Page, seat: number, code = '') {
+  await page.goto('/#/student');
+  await page.getByLabel('座號').fill(String(seat));
+  await page.getByLabel('識別碼').fill(code);
+  await page.locator('#login-form').getByRole('button', { name: '登入' }).click();
+}
+async function goSlide(page: Page, n: number) {
+  await page.locator('.slide-dots button').nth(n - 1).click();
+  await expect(page.locator('.room-progress span').first()).toHaveText(String(n));
+}
+async function slideTab(page: Page) {
+  const tab = page.locator('.phone-tabs [data-tab="slide"]');
+  if (await tab.isVisible()) await tab.click();
+}
+async function answerTab(page: Page) {
+  const tab = page.locator('.phone-tabs [data-tab="answer"]');
+  if (await tab.isVisible()) await tab.click();
+}
+
+test.afterEach(async () => {
+  for (const r of cleanup.splice(0)) await r.context.request.delete(`/api/sessions/${r.id}`, { headers: { Origin: baseURL }, data: {} });
+  await Promise.all(contexts.splice(0).map((c) => c.close()));
+});
+
+test('2-2 classroom: students join with seat only, animation unlocks after results, zoom keeps every tool working', async ({ browser }) => {
+  test.setTimeout(180_000);
+  const teacher = await surface(browser, 1440, 900);
+  await loginTeacher(teacher.page);
+  await setRequireCode(teacher.page, false);
+
+  // 開課：2-2 根式的運算（1）
+  await teacher.page.getByTestId('lesson-card').filter({ hasText: '根式的乘除' }).getByRole('button', { name: '開始上課' }).click();
+  await teacher.page.locator('#start-form select').selectOption('demo-class');
+  await teacher.page.locator('#start-form').getByRole('button', { name: '開始上課' }).click();
+  await expect(teacher.page.getByTestId('session-slide')).toBeVisible();
+  const sessionId = teacher.page.url().split('/session/')[1];
+  cleanup.push({ context: teacher.context, id: sessionId });
+
+  // 三位學生：只用班級代碼＋座號
+  const desk = await surface(browser, 1280, 800);
+  const ipad = await surface(browser, 820, 1180, true);
+  const phone = await surface(browser, 390, 844, true);
+  for (const [s, seat] of [[desk, 3], [ipad, 4], [phone, 5]] as const) {
+    await loginStudent(s.page, seat);
+    await expect(s.page.getByTestId('session-slide')).toBeVisible();
+  }
+
+  // 第 4 頁：例 1。學生端的動畫鎖住，直接讀檔也被擋
+  await goSlide(teacher.page, 4);
+  for (const s of [desk, ipad, phone]) {
+    await slideTab(s.page);
+    await expect(s.page.getByTestId('animation-locked')).toBeVisible();
+  }
+  expect((await desk.page.request.get('/api/assets/lessons/g8-2-2/anim-a-ex1.mp4')).status()).toBe(403);
+  await expect(teacher.page.getByTestId('play-animation')).toBeVisible();
+  await shot(ipad.page, 'ipad-locked');
+
+  // 老師：放大課本截圖 → 畫筆、雷射、IRS 都能用 → 縮小
+  await teacher.page.locator('[data-action="zoom-figure"]').first().click();
+  await expect(teacher.page.getByTestId('figure-focus')).toBeVisible();
+  await teacher.page.getByTestId('tool-pen').click();
+  const box = (await teacher.page.getByTestId('whiteboard-canvas').boundingBox())!;
+  await teacher.page.mouse.move(box.x + box.width * 0.2, box.y + box.height * 0.5);
+  await teacher.page.mouse.down();
+  await teacher.page.mouse.move(box.x + box.width * 0.6, box.y + box.height * 0.52, { steps: 8 });
+  await teacher.page.mouse.up();
+  await expect
+    .poll(async () => Object.keys((await (await teacher.page.request.get(`/api/sessions/${sessionId}`)).json()).whiteboard))
+    .toContain('a-ex1--fig0');
+  await teacher.page.getByTestId('tool-laser').click();
+  await expect(teacher.page.getByTestId('tool-laser')).toHaveAttribute('aria-pressed', 'true');
+  await expect(teacher.page.getByTestId('figure-focus')).toBeVisible();
+  await teacher.page.getByTestId('toggle-activity').click(); // 放大中也能開放作答
+  await expect(teacher.page.getByRole('button', { name: '結束作答' })).toBeVisible();
+  await shot(teacher.page, 'teacher-zoom-pen');
+  await teacher.page.getByTestId('close-figure').click(); // 雷射模式下也點得到縮小
+  await expect(teacher.page.getByTestId('figure-focus')).toHaveCount(0);
+  await teacher.page.getByTestId('tool-cursor').click();
+
+  // 學生作答例 1：一對一錯
+  for (const [s, answers] of [[desk, ['√21', '-6√15']], [ipad, ['√21', '6√15']]] as const) {
+    await answerTab(s.page);
+    await s.page.locator('#numeric-item-0').fill(answers[0]);
+    await s.page.locator('#numeric-item-1').fill(answers[1]);
+    await s.page.getByTestId('submit-answer').click();
+  }
+  await expect(teacher.page.locator('#answer-count')).toContainText('2 /');
+
+  // 公布結果 → 動畫解鎖，學生可以在投影片區內播放
+  await teacher.page.getByRole('button', { name: '公布結果' }).click();
+  for (const s of [desk, ipad, phone]) {
+    await slideTab(s.page);
+    await expect(s.page.getByTestId('play-animation')).toBeVisible();
+  }
+  expect((await desk.page.request.get('/api/assets/lessons/g8-2-2/anim-a-ex1.mp4', { headers: { Range: 'bytes=0-99' } })).status()).toBe(206);
+  await ipad.page.getByTestId('play-animation').click();
+  await expect(ipad.page.getByTestId('animation-focus')).toBeVisible();
+  await expect.poll(() => ipad.page.locator('[data-testid="animation-player"]').evaluate((v: HTMLVideoElement) => v.readyState)).toBeGreaterThan(0);
+  await shot(ipad.page, 'ipad-animation');
+  await ipad.page.keyboard.press('Escape');
+  await expect(ipad.page.getByTestId('animation-focus')).toHaveCount(0);
+
+  // 學生自己放大課本截圖
+  await phone.page.locator('[data-action="zoom-figure"]').first().click();
+  await expect(phone.page.getByTestId('figure-focus')).toBeVisible();
+  await shot(phone.page, 'phone-zoom');
+  await phone.page.getByTestId('close-figure').click();
+
+  // 第 6 頁：例 2 比大小，步驟化（沒有滑桿）
+  await goSlide(teacher.page, 6);
+  await slideTab(desk.page);
+  await expect(desk.page.locator('.room-progress span').first()).toHaveText('6');
+  await expect(desk.page.locator('.viz-step-count')).toContainText('1 / 6');
+  await expect(desk.page.locator('.viz-host input[type="range"]')).toHaveCount(0);
+  for (let i = 2; i <= 6; i++) {
+    await desk.page.locator('[data-viz="next"]').click();
+    await expect(desk.page.locator('.viz-step-count')).toContainText(`${i} / 6`);
+  }
+  await expect(desk.page.locator('.viz-step-caption')).toContainText('結論');
+  await shot(desk.page, 'desk-compare-steps');
+
+  // 開啟個人識別碼：學生被登出，沒有識別碼登不進來，有就可以
+  await setRequireCode(teacher.page, true);
+  await desk.page.reload();
+  await expect(desk.page.locator('#login-form')).toBeVisible();
+  await loginStudent(desk.page, 3);
+  await expect(desk.page.locator('#login-error')).toContainText('識別碼');
+  await loginStudent(desk.page, 3, 'DEMO03');
+  await expect(desk.page.getByTestId('session-slide')).toBeVisible();
+  await setRequireCode(teacher.page, false); // 測試階段維持停用
+});
