@@ -105,6 +105,54 @@ test('phone keypad: √ and fraction keys type textbook answers without the syst
     .toEqual([true, true, true]);
 });
 
+test('negative fraction typed fraction-key-first is correct; teacher chips show (1)(2)(3) and seat map counts it at once', async ({ browser }) => {
+  test.setTimeout(120_000);
+  const teacher = await surface(browser, 1440, 900);
+  await loginTeacher(teacher.page);
+  await setRequireCode(teacher.page, false);
+  await teacher.page.getByTestId('lesson-card').filter({ hasText: '根式的乘除' }).getByRole('button', { name: '開始上課' }).click();
+  await teacher.page.locator('#start-form select').selectOption('demo-class');
+  await teacher.page.locator('#start-form').getByRole('button', { name: '開始上課' }).click();
+  await expect(teacher.page.getByTestId('session-slide')).toBeVisible();
+  const sessionId = teacher.page.url().split('/session/')[1];
+  cleanup.push({ context: teacher.context, id: sessionId });
+  await goSlide(teacher.page, 2); // 課本 p.73 隨堂：−10√3、8√2、−2√2/3
+  await teacher.page.getByTestId('toggle-activity').click();
+
+  const ipad = await surface(browser, 820, 1180, true);
+  await loginStudent(ipad.page, 1);
+  await expect(ipad.page.getByTestId('session-slide')).toBeVisible();
+  await answerTab(ipad.page);
+  const tap = async (...keys: string[]) => {
+    for (const k of keys) await ipad.page.locator(`.math-keys [data-key="${k}"]`).tap();
+  };
+  await ipad.page.locator('#numeric-item-0').tap();
+  await tap('-', '1', '0', '√', '3');
+  await ipad.page.locator('#numeric-item-1').tap();
+  await tap('8', '√', '2');
+  // 先按「分數」，分子打 −2，▶ 到分母打 3，▶ 跳出，再 √2
+  await ipad.page.locator('#numeric-item-2').tap();
+  await tap('frac', '-', '2', 'right', '3', 'right', '√', '2');
+  await expect(ipad.page.locator('#numeric-item-2')).toHaveValue('(-2)/(3)√(2)');
+  await ipad.page.getByTestId('submit-answer').tap();
+  await expect(ipad.page.locator('.saved-answer')).toContainText('已送出');
+
+  // 老師端（不重新整理）：座位表馬上算到、個別作答逐題 ✓
+  await expect(teacher.page.locator('#seat-map')).toContainText('已作答 1');
+  await expect
+    .poll(async () => {
+      const v = await (await teacher.page.request.get(`/api/sessions/${sessionId}`)).json();
+      return v.answers.find((x: { seat: number }) => x.seat === 1)?.itemsCorrect;
+    })
+    .toEqual([true, true, true]);
+  await teacher.page.locator('.answer-list summary').click();
+  const chip = teacher.page.locator('.seat-chip').first();
+  await expect(chip).toHaveClass(/ok/);
+  await expect(chip.locator('.chip-item')).toHaveCount(3);
+  await expect(chip).not.toContainText('｜');
+  await shot(teacher.page, 'teacher-chips');
+});
+
 test('2-2 classroom: students join with seat only, animation unlocks after results, zoom keeps every tool working', async ({ browser }) => {
   test.setTimeout(180_000);
   const teacher = await surface(browser, 1440, 900);

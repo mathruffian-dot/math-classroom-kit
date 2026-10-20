@@ -356,7 +356,10 @@ const squareFree = (n: number) => {
  * 同類方根已合併、有理數部分最多一項。例如 2√3、3+2√2、√6/3 合格；√12、1/√2、√2+√2 不合格。
  */
 export function isSimplestRadical(input: string): boolean {
-  const s = normalizeRadicals(input);
+  // 負號寫在係數括號裡也算同一種寫法：(−2)/3√2 → −2/3√2、(−2/3)√2 → −(2/3)√2（作答鍵盤先按「分數」再打負號就是這樣）
+  const s = normalizeRadicals(input)
+    .replace(/(?<![\d.)√])\((-?\d+)\)(?=\/)/g, '$1')
+    .replace(/\((-)(\d+\/\d+)\)/g, '$1($2)');
   if (!s || /√[^\d]/.test(s) || /√\d+\.\d/.test(s)) return false;
   // 分母不可有根號：「/√」或「/(…√…)」。
   if (/\/[-]?√/.test(s) || /\/\([^)]*√[^)]*\)/.test(s)) return false;

@@ -471,8 +471,10 @@ test('student input: full-width characters and keypad parentheses are read corre
 });
 
 test('simplest radical form and multi-item numeric questions are judged per item',async()=>{
-  for(const ok of ['2√3','3+2√2','√6/3','-5√2','7','(3+√2)/2','2sqrt(3)','√(15)','4√6/3+√2','(2/3)√6','-2√2/3','√130/10'])assert.equal(expr.isSimplestRadical(ok),true,ok);
-  for(const bad of ['√12','1/√2','√2+√2','4√8','√4','3+1+√2','2√3/√3','3/(√7-2)','√5/√3'])assert.equal(expr.isSimplestRadical(bad),false,bad);
+  for(const ok of ['2√3','3+2√2','√6/3','-5√2','7','(3+√2)/2','2sqrt(3)','√(15)','4√6/3+√2','(2/3)√6','-2√2/3','√130/10',
+    // 作答鍵盤先按「分數」再打負號：負號在係數括號裡
+    '(-2)/(3)√(2)','(-2/3)√(2)','-((2)/(3))√(2)','((-2)/(3))√(2)','(-2√(2))/(3)'])assert.equal(expr.isSimplestRadical(ok),true,ok);
+  for(const bad of ['√12','1/√2','√2+√2','4√8','√4','3+1+√2','2√3/√3','3/(√7-2)','√5/√3','(-2)/3√8','(-2)/√3','(-1)/(√2)'])assert.equal(expr.isSimplestRadical(bad),false,bad);
   const {f,lesson,session}=await setup();
   const item={id:'items-q',type:'numeric',prompt:'化成最簡根式',form:'simplest-radical',items:[{prompt:'√12',answer:'2√3'},{prompt:'√18',answer:'3√2'},{prompt:'1/√2',answer:'√2/2'}]};
   const custom={...lesson,id:'items-lesson',slides:[{id:'s1',title:'化簡',body:'',activity:item}]};

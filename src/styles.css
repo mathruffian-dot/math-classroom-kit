@@ -2409,6 +2409,32 @@ input[type='range']::-moz-range-thumb {
   background: #fff1d6;
   color: #94600a;
 }
+.chip-items {
+  display: grid;
+  gap: 1px;
+  justify-items: start;
+  font-weight: 500;
+  font-size: 12px;
+}
+.chip-item {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+  white-space: nowrap;
+}
+.chip-item b {
+  font-size: 10.5px;
+}
+.chip-item.ok b {
+  color: #12754a;
+}
+.chip-item.no b {
+  color: #a72c30;
+}
+.chip-note {
+  font-weight: 700;
+  font-size: 10.5px;
+}
 .manip-state {
   display: grid;
   grid-template-columns: auto 1fr;

@@ -649,8 +649,18 @@ function responsesHtml(a: Activity) {
   if (a.type === 'short')
     return `<div class="short-responses">${answers.map((x) => `<div><span class="seat-tag">${x.seat}</span><p>${esc(x.value)}</p></div>`).join('') || '<p class="muted">等待第一個想法。</p>'}</div>`;
   if (['numeric', 'manipulate'].includes(a.type) && answers.length)
-    return `<details class="answer-list"><summary>個別作答</summary><div class="seat-chips">${answers.map((x) => `<span class="seat-chip ${x.correct ? 'ok' : x.note ? 'warn' : 'no'}" title="${esc(answerText(x.value))}${x.note ? `（${esc(x.note)}）` : ''}">${x.seat}<small>${esc(answerText(x.value)).slice(0, 14)}</small></span>`).join('')}</div></details>`;
+    return `<details class="answer-list"><summary>個別作答</summary><div class="seat-chips">${answers.map((x) => `<span class="seat-chip ${x.correct ? 'ok' : x.note ? 'warn' : 'no'}" title="${esc(answerText(x.value))}${x.note ? `（${esc(x.note)}）` : ''}">${x.seat}${chipAnswer(x)}</span>`).join('')}</div></details>`;
   return '';
+}
+/** 個別作答小卡：多小題逐題排成 (1) (2) (3)、各自標 ✓／✗，算式照課本樣式顯示（不用「｜」分隔，免得看成絕對值）。 */
+function chipAnswer(x: Answer) {
+  if (Array.isArray(x.value) && typeof x.value[0] === 'string')
+    return `<span class="chip-items">${(x.value as string[]).map((v, i) => {
+      const ok = x.itemsCorrect?.[i];
+      return `<span class="chip-item ${ok === undefined ? '' : ok ? 'ok' : 'no'}"><b>${ok === undefined ? '' : ok ? '✓' : '✗'}(${i + 1})</b>${answerHtml(v)}</span>`;
+    }).join('')}</span>${x.note ? '<small class="chip-note">未化簡</small>' : ''}`;
+  if (typeof x.value === 'string') return `<span class="chip-items"><span class="chip-item">${answerHtml(x.value)}</span></span>${x.note ? '<small class="chip-note">未化簡</small>' : ''}`;
+  return `<small>${esc(answerText(x.value)).slice(0, 14)}</small>`;
 }
 function gradingBar(a: Activity) {
   const answers = latestBySeat(view!, a.id);
@@ -852,7 +862,9 @@ let lastRosterRefresh = 0;
 function schedulePoll(fn: () => Promise<void>) {
   clearTimeout(poll);
   const tick = async () => {
-    const roster = user?.role === 'teacher' && !!view && Date.now() - lastRosterRefresh > 30000;
+    // 開放作答時每 6 秒補一次（即時連線若無聲斷掉，作答名單也不會落後太久）
+    const every = view?.session.activityOpen ? 6000 : 30000;
+    const roster = user?.role === 'teacher' && !!view && Date.now() - lastRosterRefresh > every;
     if (!liveOpen || roster) {
       lastRosterRefresh = Date.now();
       await fn().catch(() => {});
@@ -868,7 +880,8 @@ let live: WebSocket | null = null,
   liveOpen = false,
   liveRetry = 0,
   liveTimer: ReturnType<typeof setTimeout> | undefined,
-  liveHeartbeat: ReturnType<typeof setInterval> | undefined;
+  liveHeartbeat: ReturnType<typeof setInterval> | undefined,
+  liveHeard = 0;
 function disconnectLive() {
   clearTimeout(liveTimer);
   clearInterval(liveHeartbeat);
@@ -900,9 +913,16 @@ function connectLive() {
     liveOpen = true;
     updateSync(true);
     // 心跳由伺服器自動回覆，不會喚醒 Durable Object；只用來讓手機網路保持連線。
-    liveHeartbeat = setInterval(() => ws.readyState === WebSocket.OPEN && ws.send('ping'), 45000);
+    // 兩次心跳都沒有回音（連線無聲斷掉）就主動重連。
+    liveHeard = Date.now();
+    liveHeartbeat = setInterval(() => {
+      if (ws.readyState !== WebSocket.OPEN) return;
+      if (Date.now() - liveHeard > 100000) return ws.close();
+      ws.send('ping');
+    }, 45000);
   };
   ws.onmessage = (e) => {
+    liveHeard = Date.now();
     if (e.data === 'pong' || typeof e.data !== 'string') return;
     try {
       const msg = JSON.parse(e.data) as { type: string; view: SessionView | { session: null } };
@@ -952,8 +972,18 @@ async function refreshSession() {
     pollBusy = false;
   }
 }
-/** 套用伺服器送來的最新畫面（輪詢或即時推送共用）。 */
-async function applyView(next: SessionView | { session: null }, route: string) {
+/**
+ * 套用伺服器送來的最新畫面（輪詢或即時推送共用）。依到達順序一次套用一份，
+ * 而且同一堂課不會用舊版（revision 較小）蓋掉新版：避免全班同時交卷時，
+ * 先到的舊畫面在等待中被後套用，老師端停在「未作答」。
+ */
+let applyChain: Promise<void> = Promise.resolve();
+function applyView(next: SessionView | { session: null }, route: string): Promise<void> {
+  const run = applyChain.then(() => applyViewNow(next, route));
+  applyChain = run.catch(() => {});
+  return run;
+}
+async function applyViewNow(next: SessionView | { session: null }, route: string) {
   if (!user || route !== currentRoute) return;
   {
     if (!next.session) {
@@ -964,6 +994,7 @@ async function applyView(next: SessionView | { session: null }, route: string) {
       return;
     }
     const n = next as SessionView;
+    if (view && n.session.id === view.session.id && n.session.revision < view.session.revision) return;
     if (!view) {
       // 學生在等待畫面時，老師開始上課：直接進入課堂。
       view = n;

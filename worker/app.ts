@@ -200,6 +200,29 @@ function syncCatalog(state: State): void {
     state.catalog[lesson.id] = hash;
   }
 }
+/**
+ * 最簡根式的判定改進後（例如 (−2)/3√2 也算最簡），重新判定先前被標「還沒化成最簡根式」的作答。
+ * 只動有這個提示的數值題，數值本身的對錯不變；教師登入時執行。
+ */
+function rejudgeRadicals(state: State): void {
+  for (const s of Object.values(state.sessions)) {
+    for (const answer of s.answers) {
+      if (!answer.note?.includes('最簡根式')) continue;
+      const activity = s.lesson.slides.find((x) => x.activity?.id === answer.activityId)?.activity;
+      if (!activity) continue;
+      try {
+        const r = judgeNumeric(activity, answer.value);
+        if (!r) continue;
+        answer.correct = r.correct;
+        if (r.itemsCorrect) answer.itemsCorrect = r.itemsCorrect;
+        if (r.note) answer.note = r.note;
+        else delete answer.note;
+      } catch {
+        /* 舊資料解析不了就保持原判定 */
+      }
+    }
+  }
+}
 function requireTeacher(user: User): void {
   assert(user.role === 'teacher', '需要教師權限', 403);
 }
@@ -409,6 +432,7 @@ async function login(
       await vault.delete(TEACHER_FAILS);
       mustChange = !secret;
       syncCatalog(state);
+      rejudgeRadicals(state);
       expires = Date.now() + 12 * 3600_000;
       user = { id: TEACHER_ID, role: 'teacher', name: account };
     }
