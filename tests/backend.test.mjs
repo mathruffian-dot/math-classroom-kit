@@ -7,12 +7,13 @@ import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 const dir=await mkdtemp(join(tmpdir(),'classroom-backend-'));
-await build({entryPoints:[resolve('worker/app.ts'),resolve('worker/storage.ts'),resolve('worker/index.ts'),resolve('worker/ai.ts'),resolve('shared/expr.ts')],outdir:dir,bundle:true,platform:'node',format:'esm',outExtension:{'.js':'.mjs'},logLevel:'silent'});
+await build({entryPoints:[resolve('worker/app.ts'),resolve('worker/storage.ts'),resolve('worker/index.ts'),resolve('worker/ai.ts'),resolve('shared/expr.ts'),resolve('shared/practice.ts')],outdir:dir,bundle:true,platform:'node',format:'esm',outExtension:{'.js':'.mjs'},logLevel:'silent'});
 const {handleApi,liveTicket,liveView}=await import(pathToFileURL(join(dir,'worker','app.mjs')).href);
 const {SupabaseStore,DurableStore,MAX_SNAPSHOT_BYTES}=await import(pathToFileURL(join(dir,'worker','storage.mjs')).href);
 const {ClassroomDurableObject}=await import(pathToFileURL(join(dir,'worker','index.mjs')).href);
 const {aggregateVotes,normalizeGrade,extractJson,isReasoning}=await import(pathToFileURL(join(dir,'worker','ai.mjs')).href);
 const expr=await import(pathToFileURL(join(dir,'shared','expr.mjs')).href);
+const {practiceStatus}=await import(pathToFileURL(join(dir,'shared','practice.mjs')).href);
 const TEACHER={role:'teacher',account:'teacher',password:'11235813'};
 test.after(()=>rm(dir,{recursive:true,force:true}));
 
@@ -546,4 +547,95 @@ test('live push views are scoped per user and stop after logout or wrong origin 
   assert.equal(liveView(f.data,tSecond),null,'logged-out sockets get closed');
   await f.call(`/api/sessions/${session.id}/control`,'POST',{action:'end'});
   assert.deepEqual(liveView(f.data,tStudent),{session:null},'students return to the waiting room when class ends');
+});
+
+test('practice rounds: correct passes, wrong or timeout starts the next round, three misses need help',()=>{
+  const run={activityId:'q',startedAt:0,seconds:60,rounds:3};
+  const at=(subs,now)=>practiceStatus(run,{seat:1,start:0,subs},now);
+  assert.deepEqual([at([],10_000).status,at([],10_000).round],['working',0]);
+  assert.equal(at([{round:0,value:'1',correct:true,at:5_000}],6_000).status,'passed');
+  const w=at([{round:0,value:'1',correct:false,at:5_000}],6_000);
+  assert.deepEqual([w.status,w.round,w.deadline],['working',1,65_000],'a wrong answer starts the next round at once');
+  const t=at([],61_000);
+  assert.deepEqual([t.status,t.round,t.deadline,t.rounds[0].outcome],['working',1,120_000,'timeout']);
+  assert.equal(at([],200_000).status,'help','all rounds timed out');
+  assert.equal(at([{round:0,value:'1',correct:false,at:1},{round:1,value:'1',correct:false,at:2},{round:2,value:'1',correct:false,at:3}],4).status,'help');
+});
+
+test('answer time limit locks submissions; teacher can extend; practice goes to wrong answers only',async()=>{
+  const {f,lesson:base}=await setup();
+  const act={id:'pq',type:'numeric',prompt:'化成最簡根式',form:'simplest-radical',answer:'2√3',explanation:'√12＝2√3',
+    practice:[{prompt:'√18',answer:'3√2',explanation:'√18＝3√2'},{prompt:'√20',answer:'2√5'},{prompt:'√27',answer:'3√3'}]};
+  const lesson={...base,id:'practice-lesson',slides:[{id:'s1',title:'化簡',body:'',activity:act}]};
+  assert.equal((await f.call('/api/lessons/practice-lesson','PUT',{lesson})).status,200);
+  const bad={...lesson,slides:[{...lesson.slides[0],activity:{...act,practice:[{prompt:'√12',answer:'√12'}]}}]};
+  assert.equal((await f.call('/api/lessons/practice-lesson','PUT',{lesson:bad})).status,400,'practice answers follow the simplest-radical form');
+  const s=(await f.call('/api/sessions','POST',{lessonId:'practice-lesson',classId:'demo-class'})).body.session;
+  const ctl=(body)=>f.call(`/api/sessions/${s.id}/control`,'POST',body);
+  await f.call('/api/login','POST',{role:'student',classCode:'DEMO801',seat:2},'seat2');
+  await f.call('/api/login','POST',{role:'student',classCode:'DEMO801',seat:3},'seat3');
+  const opened=(await ctl({action:'activity',value:true,seconds:60})).body.session;
+  assert(opened.activityDeadline>Date.now()+55_000&&opened.activityDeadline<=Date.now()+60_000,'1-minute deadline');
+  const answer=(who,id,value)=>f.call(`/api/sessions/${s.id}/answers`,'POST',{submissionId:id,activityId:'pq',value},who);
+  assert.equal((await answer('student','a1','2√3')).status,200);
+  assert.equal((await answer('seat2','a2','√12')).status,200);
+  // 時間到：鎖住作答
+  f.data.sessions[s.id].session.activityDeadline=Date.now()-5_000;
+  const late=await answer('seat3','a3','2√3');
+  assert.equal(late.status,409);assert.match(late.body.error,/時間到/);
+  // 老師加 1 分鐘：又可以作答
+  const extended=(await ctl({action:'extend',seconds:60})).body.session;
+  assert(extended.activityDeadline>Date.now()+55_000);
+  assert.equal((await answer('seat3','a3','3')).status,200);
+  // 學生端看不到練習題與答案
+  const stu=(await f.call(`/api/sessions/${s.id}`,'GET',null,'student')).body;
+  assert.equal(stu.lesson.slides[0].activity.practice,undefined);assert.equal(typeof stu.serverNow,'number');
+  // 派練習：只給答錯的 2、3 號
+  const started=(await ctl({action:'practice-start'})).body;
+  assert.equal(started.session.activityOpen,false);
+  assert.deepEqual(started.practice.entries.map(e=>e.seat).sort(),[2,3]);
+  assert.equal((await f.call(`/api/sessions/${s.id}`,'GET',null,'student')).body.practice,undefined,'seat 1 answered right: no practice');
+  const mine=(await f.call(`/api/sessions/${s.id}`,'GET',null,'seat2')).body.practice;
+  assert.deepEqual(mine.prompts,['√18','√20','√27']);assert.deepEqual(mine.reveals,[],'no answers before a round ends');
+  assert.deepEqual(mine.entries.map(e=>e.seat),[2]);
+  const practice=(who,round,value)=>f.call(`/api/sessions/${s.id}/practice`,'POST',{round,value},who);
+  assert.equal((await practice('student',0,'3√2')).status,403);
+  assert.equal((await practice('seat2',1,'2√5')).status,409,'only the current round');
+  // 2 號：第 1 輪答錯 → 看到答案、進第 2 輪；第 2 輪答對 → 通過
+  assert.equal((await practice('seat2',0,'√18')).body.correct,false,'not simplest is wrong');
+  assert.equal((await practice('seat2',0,'3√2')).status,409,'one try per round');
+  const after=(await f.call(`/api/sessions/${s.id}`,'GET',null,'seat2')).body.practice;
+  assert.deepEqual(after.reveals.map(r=>[r.round,r.answer]),[[0,'3√2']]);
+  assert.equal((await practice('seat2',1,'2√5')).body.correct,true);
+  // 3 號：第 1 輪逾時 → 第 2 輪
+  f.data.sessions[s.id].practice.pq['3'].start=Date.now()-70_000;
+  assert.equal((await practice('seat3',0,'3√2')).status,409,'timed-out round is closed');
+  assert.equal((await practice('seat3',1,'3')).body.correct,false);
+  const t=(await f.call(`/api/sessions/${s.id}`)).body;
+  const st=Object.fromEntries(t.practice.entries.map(e=>[e.seat,practiceStatus(t.practice.run,e,Date.now())]));
+  assert.deepEqual([st[2].status,st[2].round],['passed',1]);assert.deepEqual([st[3].status,st[3].round],['working',2]);
+  // 換頁或結束：練習關閉
+  await ctl({action:'practice-end'});
+  assert.equal((await f.call(`/api/sessions/${s.id}`,'GET',null,'seat3')).body.practice,undefined);
+  assert.equal((await practice('seat3',2,'3√3')).status,409);
+});
+
+test('danmaku: only while open, rate-limited, anonymous on screen but the teacher log keeps the seat',async()=>{
+  const {f,session}=await setup();
+  const send=(text,anon,who='student')=>f.call(`/api/sessions/${session.id}/danmaku`,'POST',{text,anon},who);
+  assert.equal((await send('哈囉')).status,409,'closed by default');
+  await f.call(`/api/sessions/${session.id}/control`,'POST',{action:'danmaku',value:true});
+  assert.equal((await send('懂了！')).status,200);
+  assert.equal((await send('再一則')).status,429,'3-second rate limit');
+  assert.equal((await send('x'.repeat(31))).status,400,'30 characters max');
+  await f.call('/api/login','POST',{role:'student',classCode:'DEMO801',seat:5},'seat5');
+  assert.equal((await send('我是 5 號',false,'seat5')).status,200);
+  assert.equal((await f.call(`/api/sessions/${session.id}/danmaku`,'POST',{text:'老師'})).status,403,'teacher cannot post');
+  const t=(await f.call(`/api/sessions/${session.id}`)).body;
+  assert.deepEqual(t.danmaku.map(d=>[d.seat,d.text,d.anon]),[[1,'懂了！',true],[5,'我是 5 號',false]]);
+  assert.equal((await f.call(`/api/sessions/${session.id}`,'GET',null,'student')).body.danmaku,undefined,'students never see the list or seats');
+  const cleared=(await f.call(`/api/sessions/${session.id}/control`,'POST',{action:'danmaku-clear'})).body;
+  assert.deepEqual(cleared.danmaku,[]);assert.equal(typeof cleared.session.danmakuClearedAt,'number');
+  await f.call(`/api/sessions/${session.id}/control`,'POST',{action:'danmaku',value:false});
+  assert.equal((await send('關了嗎',true,'seat5')).status,409);
 });

@@ -1,0 +1,37 @@
+{
+  "a-warmup-q": [
+    { "prompt": "△ABC～△DEF，AB＝8、DE＝6、BC＝12，EF＝？", "answer": "9", "explanation": "對應邊成比例：8：6＝12：EF，8EF＝72，EF＝9。" },
+    { "prompt": "△ABC～△DEF，AB：DE＝5：3，BC＝20，EF＝？", "answer": "12", "explanation": "BC 對應 EF：5：3＝20：EF，5EF＝60，EF＝12。" },
+    { "prompt": "x：6 ＝ 10：12，x ＝ ？", "answer": "5", "explanation": "內項乘積＝外項乘積：12x＝60，x＝5。" }
+  ],
+  "a-ex1-q": [
+    { "prompt": "同一時刻，身高 150 公分的人影長 200 公分，一棵樹的影長 6 公尺。樹高是幾公尺？", "answer": "4.5", "explanation": "高對高、影對影（化成公尺）：1.5：x＝2：6，2x＝9，x＝4.5。" },
+    { "prompt": "同一時刻，身高 1.6 公尺的人影長 1.2 公尺，旗桿的影長 9 公尺。旗桿高是幾公尺？", "answer": "12", "explanation": "1.6：x＝1.2：9，1.2x＝14.4，x＝12。" },
+    { "prompt": "同一時刻，一根 2 公尺高的竹竿直立時影長 2.5 公尺，一棟大樓的影長 20 公尺。大樓高是幾公尺？", "answer": "16", "explanation": "2：x＝2.5：20，2.5x＝40，x＝16。" }
+  ],
+  "a-ex1-practice-q": [
+    { "prompt": "同一時刻，身高 160 公分的人影長 80 公分，一棟大樓的影長 12 公尺。大樓高是幾公尺？", "answer": "24", "explanation": "化成公尺：1.6：y＝0.8：12，0.8y＝19.2，y＝24。" },
+    { "prompt": "同一時刻，身高 180 公分的人影長 120 公分，旗桿的影長 6 公尺。旗桿高是幾公尺？", "answer": "9", "explanation": "化成公尺：1.8：y＝1.2：6，1.2y＝10.8，y＝9。" },
+    { "prompt": "同一時刻，一棵 12 公尺高的樹影長 15 公尺，小華的影長 2 公尺。小華身高幾公尺？", "answer": "1.6", "explanation": "高對高、影對影：12：h＝15：2，15h＝24，h＝1.6。" }
+  ],
+  "a-ex2-q": [
+    { "prompt": "A、C、D 依序在河岸的同一直線上，B 在對岸，AB ⊥ AD、DE ⊥ AD（E 和 B 在河岸兩側），且 B、C、E 在同一直線上。AC＝24 公尺、CD＝6 公尺、DE＝3 公尺，河寬 AB 是幾公尺？", "answer": "12", "explanation": "△ABC～△DEC（AA），AB：DE＝AC：DC，AB：3＝24：6，AB＝12。" },
+    { "prompt": "A、C、D 依序在河岸的同一直線上，B 在對岸，AB ⊥ AD、DE ⊥ AD（E 和 B 在河岸兩側），且 B、C、E 在同一直線上。AC＝30 公尺、CD＝6 公尺、DE＝2 公尺，河寬 AB 是幾公尺？", "answer": "10", "explanation": "△ABC～△DEC（AA），AB：2＝30：6，6AB＝60，AB＝10。" },
+    { "prompt": "A、C、D 依序在河岸的同一直線上，B 在對岸，AB ⊥ AD、DE ⊥ AD（E 和 B 在河岸兩側），且 B、C、E 在同一直線上。AC＝15 公尺、CD＝5 公尺、DE＝3 公尺，河寬 AB 是幾公尺？", "answer": "9", "explanation": "△ABC～△DEC（AA），AB：3＝15：5，5AB＝45，AB＝9。" }
+  ],
+  "a-ex2-practice-q": [
+    { "prompt": "B、D、E 依序在同一直線上，AB ⊥ BE、CD ⊥ BE（A、C 在直線同側），且 A、C、E 在同一直線上。AB＝12、CD＝3、BD＝9，求 DE。", "answer": "3", "explanation": "△ABE～△CDE，AB：CD＝BE：DE，12：3＝(9＋x)：x，12x＝27＋3x，x＝3。" },
+    { "prompt": "B、D、E 依序在同一直線上，AB ⊥ BE、CD ⊥ BE（A、C 在直線同側），且 A、C、E 在同一直線上。AB＝6、CD＝4、BD＝5，求 DE。", "answer": "10", "explanation": "6：4＝(5＋x)：x，6x＝20＋4x，2x＝20，x＝10。" },
+    { "prompt": "B、D、E 依序在同一直線上，AB ⊥ BE、CD ⊥ BE（A、C 在直線同側），且 A、C、E 在同一直線上。AB＝14、CD＝6、BD＝12，求 DE。", "answer": "9", "explanation": "14：6＝(12＋x)：x，14x＝72＋6x，8x＝72，x＝9。" }
+  ],
+  "a-ex3-q": [
+    { "prompt": "△ABC～△DEF，AB：DE＝4：3，AP、DQ 分別是 BC、EF 上的高（對應高），AP＝12，求 DQ。", "answer": "9", "explanation": "對應高的比＝對應邊的比：12：DQ＝4：3，4DQ＝36，DQ＝9。" },
+    { "prompt": "△ABC～△DEF，BC＝15、EF＝10，AP、DQ 分別是 BC、EF 上的高（對應高），AP＝9，求 DQ。", "answer": "6", "explanation": "相似比 BC：EF＝15：10＝3：2，9：DQ＝3：2，DQ＝6。" },
+    { "prompt": "△ABC～△DEF，AB：DE＝2：5，AP、DQ 分別是 BC、EF 上的高（對應高），DQ＝15，求 AP。", "answer": "6", "explanation": "對應高的比＝對應邊的比：AP：15＝2：5，5AP＝30，AP＝6。" }
+  ],
+  "a-ex3-practice-q": [
+    { "prompt": "△ABC～△DEF，CM、FN 分別是 AB、DE 上的高（對應高），CM：FN＝5：4，BC＝15，求 EF。", "answer": "12", "explanation": "對應邊的比＝對應高的比：15：EF＝5：4，5EF＝60，EF＝12。" },
+    { "prompt": "△ABC～△DEF，CM、FN 分別是 AB、DE 上的高（對應高），CM＝9、FN＝6，AB＝12，求 DE。", "answer": "8", "explanation": "AB：DE＝CM：FN＝9：6，12：DE＝3：2，DE＝8。" },
+    { "prompt": "△ABC～△DEF，CM、FN 分別是 AB、DE 上的高（對應高），CM：FN＝2：3，EF＝15，求 BC。", "answer": "10", "explanation": "BC：EF＝CM：FN，BC：15＝2：3，3BC＝30，BC＝10。" }
+  ]
+}

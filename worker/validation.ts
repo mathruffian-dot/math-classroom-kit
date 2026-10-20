@@ -4,6 +4,7 @@ import type {
   Interactive,
   InteractiveShape,
   Lesson,
+  PracticeQuestion,
   Rubric,
   Stroke,
 } from '../shared/types';
@@ -329,6 +330,19 @@ export function validateActivity(input: unknown, interactive?: Interactive): Act
     } else out.answer = checkAnswer(a.answer, '數值答案');
     if (a.tolerance !== undefined) out.tolerance = num(a.tolerance, '容許誤差', 0, 1e6);
     if (a.unit !== undefined) out.unit = str(a.unit, '單位', 20);
+    if (a.practice !== undefined) {
+      assert(Array.isArray(a.practice) && a.practice.length >= 1 && a.practice.length <= 5, '補救練習需要 1–5 題');
+      out.practice = a.practice.map((input, i) => {
+        const p = record(input);
+        const q: PracticeQuestion = {
+          prompt: str(p.prompt, `補救練習第 ${i + 1} 輪題目`, 300, 1),
+          answer: checkAnswer(p.answer, `補救練習第 ${i + 1} 輪答案`),
+        };
+        if (p.explanation !== undefined) q.explanation = str(p.explanation, '補救練習說明', 300);
+        if (p.tolerance !== undefined) q.tolerance = num(p.tolerance, '容許誤差', 0, 1e6);
+        return q;
+      });
+    }
   }
   if (out.type === 'manipulate') {
     assert(interactive, '操作題需要同一頁的 interactive 視覺化');
@@ -528,6 +542,16 @@ function numericVerdict(
   if (a.form === 'simplest-radical' && !isSimplestRadical(given))
     return { ok: false, note: '數值正確，但還沒化成最簡根式' };
   return { ok: true };
+}
+/** 補救練習第 round 輪的對錯（沿用這一題的 form、tolerance）。 */
+export function judgePractice(a: Activity, round: number, value: string): boolean {
+  const q = a.practice?.[round];
+  if (!q) return false;
+  try {
+    return numericVerdict(a, value, q.answer, q.tolerance ?? a.tolerance).ok;
+  } catch {
+    return false;
+  }
 }
 /** numeric 的詳細判定（含多小題與最簡根式說明）。 */
 export function judgeNumeric(

@@ -86,19 +86,25 @@ test('iPad student: slide, keypad and canvas fit one screen with large touch tar
   for (const p of pads) {
     const tab = p.page.locator('.phone-tabs [data-tab="answer"]');
     if (await tab.isVisible()) await tab.click();
-    await expect(p.page.locator('.math-keys')).toBeVisible();
     await expect(p.page.locator('#app.answering')).toHaveCount(1);
+    await expect(p.page.getByTestId('keypad')).toBeHidden(); // 點答案框才出現
     await p.page.waitForTimeout(300);
     await fits(p.page, `${p.name} numeric`);
     await inView(p.page, '[data-testid="submit-answer"]', `${p.name} numeric`);
-    // 固定在底部的鍵盤不能蓋住第一題
-    const cover = await p.page.evaluate(() => {
-      const q = document.querySelector('#numeric-item-0')!.getBoundingClientRect(),
-        dock = document.querySelector('.answer-dock')!.getBoundingClientRect();
-      return { q: q.bottom, dock: dock.top, h: q.height };
+    // 點第一格：鍵盤浮在答案框下方（或放不下時在上方），不蓋住任何一格，也不超出畫面
+    await p.page.locator('#numeric-item-0').click();
+    await expect(p.page.getByTestId('keypad')).toBeVisible();
+    const place = await p.page.evaluate(() => {
+      const k = document.querySelector('#keypad')!.getBoundingClientRect();
+      const boxes = [...document.querySelectorAll('#student-answer .numeric-input')].map((e) => e.getBoundingClientRect());
+      const first = boxes[0];
+      const covered = first.bottom > k.top + 1 && first.top < k.bottom - 1 && first.right > k.left && first.left < k.right;
+      return { covered, below: k.top >= first.bottom - 1, beside: k.right <= first.left + 1, inside: k.top >= 0 && k.bottom <= innerHeight && k.left >= 0 && k.right <= innerWidth, h: first.height, gap: k.top - first.bottom };
     });
-    expect(cover.h, `${p.name}: first answer box visible`).toBeGreaterThan(30);
-    expect(cover.q, `${p.name}: keypad does not cover the first question`).toBeLessThanOrEqual(cover.dock + 1);
+    expect(place.h, `${p.name}: first answer box visible`).toBeGreaterThan(30);
+    expect(place.inside, `${p.name}: keypad inside the screen`).toBe(true);
+    expect(place.below || place.beside, `${p.name}: keypad right below (or beside) the field ${JSON.stringify(place)}`).toBe(true);
+    expect(place.covered, `${p.name}: keypad does not cover the field being typed`).toBe(false);
     await bigTargets(p.page, '.math-keys button', `${p.name} keypad`);
     await bigTargets(p.page, '.slide-nav > button, .answer-option, [data-testid="submit-answer"]', `${p.name} buttons`);
     // 頁碼點：高 44、寬至少 36（一排 13 頁也放得下）

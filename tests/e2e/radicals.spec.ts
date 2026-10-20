@@ -86,11 +86,11 @@ test('phone keypad: √ and fraction keys type textbook answers without the syst
   await expect(phone.page.locator('#numeric-item-0')).toHaveValue('4√(5)/(15)');
   await expect(phone.page.locator('[data-preview="numeric-item-0"] .katex')).toBeVisible();
   // (2) √14/6：先按分數，分子打 √14，按 ▶ 兩次到分母
-  await phone.page.locator('#numeric-item-1').tap();
+  await phone.page.getByTestId('keypad-next').tap(); // 用鍵盤上的「下一格」換格
   await tap('frac', '√', '1', '4', 'right', 'right', '6');
   await expect(phone.page.locator('#numeric-item-1')).toHaveValue('(√(14))/(6)');
   // ⌫ 一次刪掉空的 √( )
-  await phone.page.locator('#numeric-item-2').tap();
+  await phone.page.getByTestId('keypad-next').tap(); // 用鍵盤上的「下一格」換格
   await tap('√', 'back');
   await expect(phone.page.locator('#numeric-item-2')).toHaveValue('');
   // (3) √70/10
@@ -128,10 +128,10 @@ test('negative fraction typed fraction-key-first is correct; teacher chips show 
   };
   await ipad.page.locator('#numeric-item-0').tap();
   await tap('-', '1', '0', '√', '3');
-  await ipad.page.locator('#numeric-item-1').tap();
+  await ipad.page.getByTestId('keypad-next').tap(); // 用鍵盤上的「下一格」換格
   await tap('8', '√', '2');
   // 先按「分數」，分子打 −2，▶ 到分母打 3，▶ 跳出，再 √2
-  await ipad.page.locator('#numeric-item-2').tap();
+  await ipad.page.getByTestId('keypad-next').tap(); // 用鍵盤上的「下一格」換格
   await tap('frac', '-', '2', 'right', '3', 'right', '√', '2');
   await expect(ipad.page.locator('#numeric-item-2')).toHaveValue('(-2)/(3)√(2)');
   await ipad.page.getByTestId('submit-answer').tap();
@@ -200,6 +200,18 @@ test('2-2 classroom: students join with seat only, animation unlocks after resul
     .toContain('a-ex1--fig0');
   await teacher.page.getByTestId('tool-laser').click();
   await expect(teacher.page.getByTestId('tool-laser')).toHaveAttribute('aria-pressed', 'true');
+  // 雷射筆移動時留下軌跡，1.5 秒後仍看得到
+  await teacher.page.mouse.move(box.x + box.width * 0.2, box.y + box.height * 0.3);
+  for (let i = 1; i <= 20; i++) await teacher.page.mouse.move(box.x + box.width * (0.2 + i * 0.025), box.y + box.height * (0.3 + 0.15 * Math.sin(i / 3)));
+  await teacher.page.waitForTimeout(1500);
+  const lit = await teacher.page.locator('canvas.laser-trail').evaluate((cv: HTMLCanvasElement) => {
+    const d = cv.getContext('2d')!.getImageData(0, 0, cv.width, cv.height).data;
+    let n = 0;
+    for (let i = 3; i < d.length; i += 16) if (d[i] > 20) n++;
+    return n;
+  });
+  expect(lit, 'laser trail still visible after 1.5 s').toBeGreaterThan(50);
+  await shot(teacher.page, 'teacher-laser-trail');
   await expect(teacher.page.getByTestId('figure-focus')).toBeVisible();
   await teacher.page.getByTestId('toggle-activity').click(); // 放大中也能開放作答
   await expect(teacher.page.getByRole('button', { name: '結束作答' })).toBeVisible();

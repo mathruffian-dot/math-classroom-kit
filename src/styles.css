@@ -2043,6 +2043,7 @@ input[type='range']::-moz-range-thumb {
   flex: 1;
 }
 .switch {
+  position: relative; /* 隱藏的 checkbox 以這裡定位，才不會撐出頁面捲動 */
   display: flex;
   align-items: center;
   gap: 10px;
@@ -3570,4 +3571,342 @@ svg.redpen {
   color: #9a3412;
   font-weight: 700;
   font-size: 14px;
+}
+
+/* ───────── 作答限時 ───────── */
+.activity-actions > .time-limit,
+.activity-actions > .time-state,
+.activity-actions > .time-up {
+  grid-column: 1 / -1;
+}
+.time-limit {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.time-limit svg {
+  width: 16px;
+  height: 16px;
+}
+.time-limit select {
+  min-height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0 8px;
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+}
+.time-state {
+  font-weight: 800;
+  color: var(--ink-2);
+}
+.countdown {
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+}
+.countdown.urgent {
+  color: var(--red);
+}
+.countdown.big {
+  font-size: 1.15em;
+}
+.time-up {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: #ffe4e4;
+  color: #a72c30;
+}
+.time-up strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-basis: 100%;
+}
+.time-up .btn {
+  flex: 1;
+  min-height: 38px;
+  background: #fff;
+}
+.time-up svg {
+  width: 16px;
+  height: 16px;
+}
+.time-chip {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: #eef1fb;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--ink-2);
+}
+.time-chip.up {
+  background: #ffe4e4;
+  color: #a72c30;
+}
+
+/* ───────── 補救練習 ───────── */
+.practice-start {
+  display: grid;
+  gap: 6px;
+  margin-top: 10px;
+}
+.check-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13.5px;
+  color: var(--ink-2);
+}
+.practice-board {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid #ffd3bf;
+  border-radius: 14px;
+  background: #fff7f2;
+}
+.practice-board header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.practice-board header strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--accent-ink);
+  font-size: 15px;
+}
+.practice-board header svg {
+  width: 16px;
+  height: 16px;
+}
+.practice-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0;
+  font-size: 13px;
+}
+.practice-counts .working {
+  color: var(--blue);
+}
+.practice-counts .passed {
+  color: var(--green);
+}
+.practice-counts .help {
+  color: var(--red);
+}
+.practice-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.practice-chip {
+  display: grid;
+  min-width: 64px;
+  text-align: center;
+  padding: 3px 7px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+.practice-chip small {
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+}
+.practice-chip.working {
+  background: #e6efff;
+  color: #1f5fbf;
+}
+.practice-chip.passed {
+  background: #dff5ea;
+  color: #12754a;
+}
+.practice-chip.help {
+  background: #ffe4e4;
+  color: #a72c30;
+}
+.practice-card {
+  display: grid;
+  gap: 10px;
+}
+.practice-card .tag {
+  background: #fff1e9;
+  color: var(--accent-ink);
+}
+.practice-prompt {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.6;
+}
+.practice-history {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.practice-past {
+  display: grid;
+  gap: 2px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #fff4f4;
+  font-size: 14px;
+}
+.practice-past b {
+  color: #a72c30;
+}
+
+/* ───────── 彈幕 ───────── */
+#danmaku-layer {
+  position: fixed;
+  z-index: 55;
+  overflow: hidden;
+  pointer-events: none;
+  border-radius: var(--radius);
+}
+.danmaku-item {
+  position: absolute;
+  left: 0;
+  white-space: nowrap;
+  font-weight: 800;
+  line-height: 1.3;
+  padding: 0 0.35em;
+  border-radius: 0.5em;
+  background: rgba(31, 42, 86, 0.55);
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.6),
+    0 0 1px rgba(0, 0, 0, 0.8);
+  will-change: transform;
+}
+#danmaku-tools {
+  display: grid;
+  gap: 6px;
+  margin-top: 8px;
+}
+.danmaku-log summary {
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--muted);
+}
+.danmaku-log ol {
+  display: grid;
+  gap: 4px;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+  max-height: 180px;
+  overflow: auto;
+}
+.danmaku-log li {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+  font-size: 13.5px;
+}
+.danmaku-log li b {
+  flex: 0 0 auto;
+  color: var(--ink-2);
+}
+.danmaku-log li small {
+  flex: 0 0 auto;
+  color: var(--muted);
+}
+.danmaku-log li span {
+  overflow-wrap: anywhere;
+}
+.danmaku-btn.selected {
+  background: #fff1e9;
+  color: var(--accent-ink);
+}
+.danmaku-bar {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  top: 64px;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 8px;
+  border-radius: 16px;
+  background: var(--card);
+  box-shadow: 0 10px 30px rgba(31, 42, 86, 0.25);
+}
+.danmaku-bar input#danmaku-text {
+  flex: 1;
+  min-width: 0;
+  min-height: 46px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  font: inherit;
+  font-size: 17px;
+}
+.danmaku-bar .check-line {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  font-size: 15px;
+}
+.danmaku-bar .check-line input {
+  width: 20px;
+  height: 20px;
+  min-height: 0;
+  margin: 0;
+}
+
+/* ───────── 浮動作答鍵盤：出現在答案框下方 ───────── */
+.keypad {
+  position: fixed;
+  z-index: 75;
+  display: grid;
+  gap: 6px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #f8f9fd;
+  box-shadow: 0 14px 34px rgba(31, 42, 86, 0.28);
+}
+.keypad[hidden] {
+  display: none;
+}
+.keypad-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.keypad-head > span {
+  margin-right: auto;
+  padding-left: 4px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+}
+.keypad-head .btn {
+  min-height: 38px;
+  padding: 0 12px;
+}
+.keypad-head .btn[hidden] {
+  display: none;
+}
+.keypad .key-hint {
+  font-size: 12px;
 }

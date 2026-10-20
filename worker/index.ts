@@ -37,6 +37,11 @@ interface Env extends StorageEnv {
   ASSETS: { fetch(request: Request): Promise<Response> };
 }
 const LIVE_PATH = '/api/live';
+/** 比對畫面有沒有變：伺服器時間（serverNow）每次都不同，不列入比對。 */
+function viewDigest(view: unknown): string {
+  const { serverNow: _ignored, ...rest } = (view || {}) as { serverNow?: number };
+  return digest(JSON.stringify(rest));
+}
 function digest(text: string): string {
   let h = 0x811c9dc5;
   for (let i = 0; i < text.length; i++) h = Math.imul(h ^ text.charCodeAt(i), 0x01000193);
@@ -121,7 +126,7 @@ export class ClassroomDurableObject {
       this.state.acceptWebSocket!(server, [ticket.role, ticket.sessionId || `class:${ticket.classId}`]);
       const view = liveView(state, ticket, this.onlineUsers());
       const message = JSON.stringify({ type: 'view', view });
-      server.serializeAttachment({ ...ticket, at: Date.now(), sent: digest(message) });
+      server.serializeAttachment({ ...ticket, at: Date.now(), sent: viewDigest(view) });
       server.send(message);
       if (ticket.role === 'student') this.scheduleBroadcast(); // 老師端的上線名單要更新
       return new Response(null, { status: 101, webSocket: client } as ResponseInit);
@@ -154,10 +159,9 @@ export class ClassroomDurableObject {
           socket.close(4001, 'login expired');
           continue;
         }
-        const message = JSON.stringify({ type: 'view', view });
-        const sent = digest(message);
+        const sent = viewDigest(view);
         if (sent === ticket.sent) continue;
-        socket.send(message);
+        socket.send(JSON.stringify({ type: 'view', view }));
         socket.serializeAttachment({ ...ticket, sent });
       } catch {
         // 單一連線失敗不影響其他人；用戶端會自動重連。

@@ -66,13 +66,33 @@ for (const file of files) {
     errors++;
     continue;
   }
+  // 補救練習題另外放在 content/practice/<課程 id>.json（{ 題目 ID: [第 1、2、3 輪] }），在這裡併進課程。
+  let practiceNote = '';
+  try {
+    const pool = JSON.parse(await readFile(join(root, 'content/practice', `${raw.id}.json`), 'utf8'));
+    const acts = new Map(raw.slides.filter((s) => s.activity).map((s) => [s.activity.id, s.activity]));
+    for (const [id, rounds] of Object.entries(pool)) {
+      const a = acts.get(id);
+      if (!a) throw new Error(`補救練習的題目 ID「${id}」不在課程裡`);
+      if (a.type !== 'numeric') throw new Error(`補救練習只支援數值題：「${id}」是 ${a.type}`);
+      a.practice = rounds;
+    }
+    const missing = [...acts.values()].filter((a) => a.type === 'numeric' && !a.practice).map((a) => a.id);
+    practiceNote = `，補救練習 ${Object.keys(pool).length} 題${missing.length ? `（缺：${missing.join('、')}）` : ''}`;
+  } catch (e) {
+    if (e.code !== 'ENOENT') {
+      console.error(`✗ ${file}：補救練習 — ${e.message}`);
+      errors++;
+      continue;
+    }
+  }
   try {
     const lesson = validateLesson(raw);
     if (ids.has(lesson.id)) throw new Error(`課程 ID「${lesson.id}」與 ${ids.get(lesson.id)} 重複`);
     ids.set(lesson.id, file);
     const warnings = lint(raw);
     warned += warnings.length;
-    console.log(`${warnings.length ? '△' : '✓'} ${file}（${lesson.id}，${lesson.slides.length} 頁）`);
+    console.log(`${warnings.length ? '△' : '✓'} ${file}（${lesson.id}，${lesson.slides.length} 頁${practiceNote}）`);
     for (const w of warnings) console.log(`    · ${w}`);
     lessons.push(raw);
   } catch (e) {

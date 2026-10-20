@@ -1,5 +1,8 @@
 import './styles.css';
-import { api, download, escape as esc } from './api';
+import { api, download, escape as esc, serverTime, syncClock } from './api';
+import { practiceStatus, type PracticeStatus } from '../shared/practice';
+import { playCorrect, unlockSound } from './sound';
+import { clearDanmakuLayer, syncDanmaku } from './danmaku';
 import { icon } from './icons';
 import { Whiteboard, type Tool } from './board';
 import { mountInteractive, fmt, type InteractiveController } from './interactive';
@@ -55,8 +58,18 @@ let viz: InteractiveController | null = null;
 let lastNumericInput: HTMLInputElement | null = null;
 document.addEventListener('focusin', (e) => {
   const el = e.target as HTMLElement;
-  if (el instanceof HTMLInputElement && el.classList.contains('numeric-input')) lastNumericInput = el;
+  if (el instanceof HTMLInputElement && el.classList.contains('numeric-input')) {
+    lastNumericInput = el;
+    if (!el.disabled) openKeypad(el);
+  } else if (!el.closest('#keypad')) closeKeypad();
 });
+// 點在鍵盤與答案框以外的地方：收起鍵盤
+document.addEventListener('pointerdown', (e) => {
+  const el = e.target as Element;
+  if (!el.closest('#keypad') && !el.closest('.numeric-input')) closeKeypad();
+}, true);
+addEventListener('resize', () => placeKeypad());
+document.addEventListener('scroll', () => placeKeypad(), true);
 const vizState = new Map<string, Vars>();
 const sketches = new Map<string, SketchState>();
 const sketchPreview = new Map<string, string>();
@@ -411,7 +424,8 @@ function canvasValuePreview(value: Answer['value']) {
 }
 function answerForm(a: Activity) {
   const answered = currentStudentAnswer(a),
-    open = view!.session.activityOpen && !view!.session.ended,
+    over = timeUp(),
+    open = view!.session.activityOpen && !view!.session.ended && !over,
     locked = (answered && !editing) || !open;
   const dis = locked ? 'disabled' : '';
   let fields = '';
@@ -441,9 +455,11 @@ function answerForm(a: Activity) {
   const saved = answered
     ? `<div class="saved-answer">${icon('check')}<div><strong>已送出</strong>${a.type === 'canvas' ? canvasValuePreview(answered.value) : `<span>${answerDisplay(answered.value)}</span>`}</div>${open && !editing ? `<button class="text-button" data-action="edit-answer">修改</button>` : ''}</div>`
     : '';
-  const submit = (!answered || editing) ? btn(open ? (a.type === 'manipulate' ? '送出我的操作' : '送出答案') : '等待老師開放', 'submit-answer', 'primary full', 'check', `data-testid="submit-answer" ${!open ? 'disabled' : ''}`) : '';
-  const keys = a.type === 'numeric' && (!answered || editing) ? mathKeys(dis) : '';
-  return `<div class="activity-prompt"><span class="tag">${TYPE_LABEL[a.type]}</span><h2>${md(a.prompt)}</h2></div>${saved}${(!answered || editing) ? fields : ''}<div class="answer-dock ${keys ? 'with-keys' : ''}">${keys}<div class="submit-area">${submit}<p id="answer-status" role="status" class="muted small-text">${answered && !editing ? '' : open ? '' : '可以先操作與思考。'}</p></div></div>`;
+  const submit = (!answered || editing) ? btn(over ? '時間到' : open ? (a.type === 'manipulate' ? '送出我的操作' : '送出答案') : '等待老師開放', 'submit-answer', 'primary full', 'check', `data-testid="submit-answer" ${!open ? 'disabled' : ''}`) : '';
+  const keys = a.type === 'numeric' && (!answered || editing); // 作答鍵盤浮在答案框下方（#keypad），這裡只留送出鈕
+  const deadline = view!.session.activityOpen && view!.session.activityDeadline;
+  const timer = over ? '<span class="time-chip up" data-testid="student-time-up">時間到，作答已鎖定</span>' : deadline ? `<span class="time-chip">剩 ${countdown(deadline)}</span>` : '';
+  return `<div class="activity-prompt"><span class="tag">${TYPE_LABEL[a.type]}</span>${timer}<h2>${md(a.prompt)}</h2></div>${saved}${(!answered || editing) ? fields : ''}<div class="answer-dock ${keys ? 'with-keys' : ''}"><div class="submit-area">${submit}<p id="answer-status" role="status" class="muted small-text">${answered && !editing ? '' : open ? '' : '可以先操作與思考。'}</p></div></div>`;
 }
 // 作答鍵盤：數字＋運算＋√／分數／括號，觸控裝置不跳出系統鍵盤（不用切換）。
 // √ 會插入 √( )、游標在括號裡；打完數字按 ＋ − ÷ 或 √ 會自動跳出根號。
@@ -466,6 +482,104 @@ function numericInputMode() {
 }
 function mathKeys(dis: string) {
   return `<div class="math-keys" aria-label="作答鍵盤">${MATH_KEYS.map(([label, key, kind]) => `<button type="button" class="key-${kind}" data-action="math-key" data-key="${key}" ${KEY_LABEL[key] ? `aria-label="${KEY_LABEL[key]}"` : ''} ${dis}>${label}</button>`).join('')}</div><p class="muted small-text key-hint">√ 會自動加括號；按 ▶ 跳出括號、從分子到分母。</p>`;
+}
+/**
+ * 浮動作答鍵盤：點答案框時出現在答案框正下方（題目有好幾格時放在最後一格下面，不會蓋住任何一格），
+ * 下方放不下就放在上方；不用再捲到面板底部找鍵盤。標題列有「下一格」「送出」「收起」。
+ */
+function keypadHtml() {
+  return `<div class="keypad" id="keypad" data-testid="keypad" hidden><div class="keypad-head"><span>作答鍵盤</span>${btn('下一格', 'keypad-next', 'quiet', 'next', 'data-testid="keypad-next"')}${btn('送出', 'keypad-submit', 'primary', 'check', 'data-testid="keypad-submit"')}${btn('', 'keypad-close', 'icon-btn', 'x', 'aria-label="收起鍵盤"')}</div>${mathKeys('')}</div>`;
+}
+let keypadFor: HTMLInputElement | null = null;
+function keypadInputs() {
+  return [...document.querySelectorAll<HTMLInputElement>('#student-answer .numeric-input:not([disabled])')];
+}
+function openKeypad(input: HTMLInputElement) {
+  const kp = document.querySelector<HTMLElement>('#keypad');
+  if (!kp || user?.role !== 'student') return;
+  keypadFor = input;
+  kp.hidden = false;
+  kp.querySelector<HTMLElement>('[data-action="keypad-next"]')!.hidden = keypadInputs().length < 2;
+  placeKeypad(true);
+}
+let keypadPadded: HTMLElement | null = null;
+function closeKeypad() {
+  const kp = document.querySelector<HTMLElement>('#keypad');
+  if (kp) kp.hidden = true;
+  keypadFor = null;
+  // 暫時加的底部空白稍後才拿掉：按下「送出」時（pointerdown 先收鍵盤）版面不能立刻跳動，否則點擊會落空
+  const padded = keypadPadded;
+  keypadPadded = null;
+  if (padded)
+    setTimeout(() => {
+      if (keypadPadded !== padded) padded.style.paddingBottom = '';
+    }, 700);
+}
+/**
+ * 擺放順序：① 整組答案框的正下方（放得下時，每一格都看得到）；② 作答面板左邊、投影片上方（橫向 iPad／電腦）；
+ * ③ 這一格（含「系統讀到」預覽）的正下方，必要時把面板往上捲（手機、直向 iPad 題目較長時；用「下一格」換格）。
+ * scroll 只在打開或換格時才捲，學生自己捲動面板時鍵盤只跟著答案框移動。
+ */
+function placeKeypad(scroll = false) {
+  const kp = document.querySelector<HTMLElement>('#keypad');
+  const input = keypadFor;
+  if (!kp || kp.hidden || !input) return;
+  if (!input.isConnected) return closeKeypad();
+  const gap = 6,
+    margin = 8;
+  let r = input.getBoundingClientRect();
+  const w = Math.min(innerWidth - margin * 2, Math.max(r.width, 380), 460);
+  kp.style.width = `${w}px`;
+  const h = kp.offsetHeight;
+  // 「送出」列：內容短時緊接在答案框下面（inline），內容長時黏在面板底部（sticky）。黏在底部時鍵盤不蓋住它。
+  const dockEl = input.closest('#student-answer')?.querySelector('.answer-dock');
+  const scroller = input.closest('.panel-scroll') as HTMLElement | null;
+  let dock = dockEl?.getBoundingClientRect();
+  const box = (scroller || input.closest('.panel-col'))?.getBoundingClientRect();
+  const stuck = !!dock && !!box && dock.bottom >= box.bottom - 20;
+  // 「送出」緊接在答案框下面、但下面放不下鍵盤：把面板往上捲（必要時暫時加底部空白），答案框仍要看得到
+  if (scroll && dock && box && scroller && !stuck && dock.bottom + gap + h > innerHeight - margin) {
+    const need = dock.bottom + gap + h - (innerHeight - margin);
+    if (r.top - need >= box.top) {
+      scroller.style.paddingBottom = `${h + 24}px`;
+      keypadPadded = scroller;
+      scroller.scrollTop += need;
+      r = input.getBoundingClientRect();
+      dock = dockEl!.getBoundingClientRect();
+    }
+  }
+  const floor = dock && stuck && dock.top - h - margin > margin ? Math.min(innerHeight, dock.top) : innerHeight;
+  const maxTop = floor - h - margin;
+  const preview = document.querySelector(`[data-preview="${input.id}"]`);
+  const group = input.closest('.numeric-items');
+  const panel = input.closest('.panel-col')?.getBoundingClientRect();
+  let top: number, left: number;
+  const groupBottom = group ? group.getBoundingClientRect().bottom + gap : 0;
+  if (dock && !stuck && r.top >= 0 && dock.bottom + gap + h <= innerHeight - margin) {
+    // 答案框和「送出」都看得到，鍵盤接在「送出」下面
+    top = dock.bottom + gap;
+    left = r.right - w;
+  } else if (groupBottom && groupBottom <= maxTop && r.top >= 0) {
+    top = groupBottom;
+    left = r.right - w;
+  } else if (panel && panel.left >= w + margin * 2 && panel.top < r.top) {
+    top = Math.min(Math.max(margin, r.top - 40), maxTop);
+    left = panel.left - w - gap;
+  } else {
+    const anchor = () => ((preview?.getBoundingClientRect().bottom ?? 0) || r.bottom) + gap;
+    if (scroll && scroller && anchor() > maxTop) {
+      // 面板內容太短捲不上去：暫時在底部加空白（收起鍵盤時拿掉），讓答案框能捲到鍵盤上方
+      scroller.style.paddingBottom = `${h + 24}px`;
+      keypadPadded = scroller;
+      scroller.scrollTop += anchor() - maxTop;
+      r = input.getBoundingClientRect();
+    }
+    // 還是放不下就放在這一格上方
+    top = anchor() <= maxTop ? anchor() : r.top - h - gap >= margin ? r.top - h - gap : maxTop;
+    left = r.right - w;
+  }
+  kp.style.top = `${Math.round(Math.max(margin, top))}px`;
+  kp.style.left = `${Math.round(Math.min(Math.max(margin, left), innerWidth - w - margin))}px`;
 }
 /** 游標在 √(數字|) 裡、括號剛好在右邊：回傳要跳出的位置。 */
 function radicalExit(v: string, at: number) {
@@ -553,9 +667,10 @@ function renderSession() {
   // 重畫時（例如按「公布結果」）保留動畫的播放位置
   const oldVideo = document.querySelector<HTMLVideoElement>('.anim-focus video');
   const resume = oldVideo ? { t: oldVideo.currentTime, paused: oldVideo.paused } : null;
-  app.innerHTML = `<header class="room-bar"><div class="room-identity">${teacher ? btn('返回', 'dashboard', 'icon-btn', 'back', 'aria-label="返回課程"') : `<span class="brand-mark small">${icon('sigma')}</span>`}<div><strong>${esc(teacher ? s.title : `${s.className}・${user.seat} 號`)}</strong><small>${teacher ? esc(s.className) : esc(view.lesson.title)}</small></div></div><div class="room-progress" aria-label="第 ${index + 1} 頁，共 ${total} 頁"><span>${index + 1}</span>/<span>${total}</span></div><div class="room-actions"><span id="sync-status" class="sync-status"><i></i>已連線</span>${teacher ? `${btn(screen ? '一般' : '大屏', 'screen', 'quiet', 'screen', 'title="切換大屏授課"')}` : ''}${btn('', 'fullscreen', 'icon-btn', 'expand', 'aria-label="全螢幕" title="全螢幕"')}${teacher ? '' : btn('', 'logout', 'icon-btn', 'logout', 'aria-label="登出" title="登出"')}</div></header><div class="room-main"><main class="stage-col"><article class="slide-stage" data-testid="session-slide" id="slide-stage">${slideMarkup(slide, index, total)}</article><nav class="slide-nav" aria-label="翻頁與白板工具">${btn('', 'prev-slide', 'icon-btn nav-btn', 'prev', `aria-label="上一頁" ${index === 0 || (!teacher && s.followTeacher) ? 'disabled' : ''}`)}${teacher ? toolbar() : ''}<div class="slide-dots">${view.lesson.slides.map((sl, i) => `<button class="${i === index ? 'active' : ''} ${sl.activity ? 'has-q' : ''} ${i === s.slideIndex && !teacher ? 'live' : ''}" data-action="go-slide" data-index="${i}" aria-label="第 ${i + 1} 頁${sl.phase ? `・${esc(sl.phase)}` : ''}" title="${esc(sl.phase || sl.title)}" ${!teacher && s.followTeacher ? 'disabled' : ''}><span></span></button>`).join('')}</div>${btn('', 'next-slide', 'icon-btn nav-btn primary', 'next', `aria-label="下一頁" data-testid="next-slide" ${index === total - 1 || (!teacher && s.followTeacher) ? 'disabled' : ''}`)}</nav></main><aside class="panel-col" aria-label="${teacher ? '課堂互動' : '作答區'}">${panel}</aside></div>${teacher ? '' : `<nav class="phone-tabs" aria-label="切換"><button class="${studentTab === 'slide' ? 'selected' : ''}" data-action="student-tab" data-tab="slide">${icon('book')}教材</button><button class="${studentTab === 'answer' ? 'selected' : ''}" data-action="student-tab" data-tab="answer">${icon('pen')}作答${a && s.activityOpen && (!own || editing) ? '<i class="badge-dot"></i>' : ''}</button></nav>`}<div id="buzz-root"></div>`;
+  app.innerHTML = `<header class="room-bar"><div class="room-identity">${teacher ? btn('返回', 'dashboard', 'icon-btn', 'back', 'aria-label="返回課程"') : `<span class="brand-mark small">${icon('sigma')}</span>`}<div><strong>${esc(teacher ? s.title : `${s.className}・${user.seat} 號`)}</strong><small>${teacher ? esc(s.className) : esc(view.lesson.title)}</small></div></div><div class="room-progress" aria-label="第 ${index + 1} 頁，共 ${total} 頁"><span>${index + 1}</span>/<span>${total}</span></div><div class="room-actions"><span id="sync-status" class="sync-status"><i></i>已連線</span>${teacher ? `${btn(screen ? '一般' : '大屏', 'screen', 'quiet', 'screen', 'title="切換大屏授課"')}` : ''}${btn('', 'fullscreen', 'icon-btn', 'expand', 'aria-label="全螢幕" title="全螢幕"')}${!teacher && s.danmakuOpen && !s.ended ? btn('彈幕', 'danmaku-bar', `quiet danmaku-btn ${danmakuBar ? 'selected' : ''}`, 'spark', 'data-testid="danmaku-open"') : ''}${teacher ? '' : btn('', 'logout', 'icon-btn', 'logout', 'aria-label="登出" title="登出"')}</div></header><div class="room-main"><main class="stage-col"><article class="slide-stage" data-testid="session-slide" id="slide-stage">${slideMarkup(slide, index, total)}</article><nav class="slide-nav" aria-label="翻頁與白板工具">${btn('', 'prev-slide', 'icon-btn nav-btn', 'prev', `aria-label="上一頁" ${index === 0 || (!teacher && s.followTeacher) ? 'disabled' : ''}`)}${teacher ? toolbar() : ''}<div class="slide-dots">${view.lesson.slides.map((sl, i) => `<button class="${i === index ? 'active' : ''} ${sl.activity ? 'has-q' : ''} ${i === s.slideIndex && !teacher ? 'live' : ''}" data-action="go-slide" data-index="${i}" aria-label="第 ${i + 1} 頁${sl.phase ? `・${esc(sl.phase)}` : ''}" title="${esc(sl.phase || sl.title)}" ${!teacher && s.followTeacher ? 'disabled' : ''}><span></span></button>`).join('')}</div>${btn('', 'next-slide', 'icon-btn nav-btn primary', 'next', `aria-label="下一頁" data-testid="next-slide" ${index === total - 1 || (!teacher && s.followTeacher) ? 'disabled' : ''}`)}</nav></main><aside class="panel-col" aria-label="${teacher ? '課堂互動' : '作答區'}">${panel}</aside></div>${teacher ? '' : `<nav class="phone-tabs" aria-label="切換"><button class="${studentTab === 'slide' ? 'selected' : ''}" data-action="student-tab" data-tab="slide">${icon('book')}教材</button><button class="${studentTab === 'answer' ? 'selected' : ''}" data-action="student-tab" data-tab="answer">${icon('pen')}作答${a && s.activityOpen && (!own || editing) ? '<i class="badge-dot"></i>' : ''}</button></nav>`}<div id="buzz-root"></div><div id="danmaku-root">${teacher ? '' : danmakuStudentHtml()}</div>${teacher ? '' : keypadHtml()}`;
   const stage = document.querySelector<HTMLElement>('#slide-stage')!;
   renderBuzzLayer();
+  if (teacher) syncDanmaku(view.danmaku, s.danmakuClearedAt, serverTime());
   if (
     figZoom &&
     (figZoom.slideId !== slide.id || (figZoom.index < 0 ? !slide.animation?.src : !slide.figures?.[figZoom.index]))
@@ -604,6 +719,7 @@ function mountRedpens() {
 function studentPanel(a: Activity | undefined, index: number) {
   const s = view!.session;
   if (s.ended) return `<div class="quiet-moment"><h2>課堂已結束</h2><p>你的作答已保存。</p></div>`;
+  if (myPractice()) return `<div class="panel-scroll"><div id="student-answer">${practiceCard()}</div><div id="class-events">${eventsHtml()}</div></div>`;
   if (index !== s.slideIndex)
     return `<div class="quiet-moment"><h2>自主瀏覽中</h2><p>作答只開放在老師目前的頁面。</p>${btn('回到目前頁面', 'go-slide', 'primary', 'arrow', `data-index="${s.slideIndex}"`)}</div>`;
   if (!a) return `<div class="quiet-moment">${icon('sigma')}<h2>先看、先想</h2><p>這一頁沒有題目，跟著老師操作圖形。</p></div><div id="class-events">${eventsHtml()}</div>`;
@@ -622,7 +738,7 @@ function teacherPanel(a: Activity | undefined, screen: boolean) {
   const s = view!.session;
   const gradable = a && a.rubric && (a.type === 'canvas' || a.type === 'short');
   const activity = a
-    ? `<section class="teacher-activity"><div class="activity-top">${tag(TYPE_LABEL[a.type])}<span id="answer-count" class="count-pill">${view!.aggregate.submitted} / ${view!.aggregate.total}</span></div><h2>${md(a.prompt)}</h2><div class="activity-actions">${btn(s.activityOpen ? '結束作答' : '開放作答', 'toggle-activity', s.activityOpen ? 'secondary' : 'primary', s.activityOpen ? 'x' : 'play', s.ended ? 'disabled' : 'data-testid="toggle-activity"')}${btn(s.resultsVisible ? '隱藏結果' : '公布結果', 'toggle-results', 'secondary', 'chart')}</div><div id="aggregate">${aggregateHtml(view!)}</div>${screen ? '' : `<div id="responses">${responsesHtml(a)}</div>`}${!screen && a.aiAllowed && ['short', 'numeric', 'canvas'].includes(a.type) ? btn('AI 整理全班迷思', 'summarize', 'quiet full', 'spark') : ''}</section>`
+    ? `<section class="teacher-activity"><div class="activity-top">${tag(TYPE_LABEL[a.type])}<span id="answer-count" class="count-pill">${view!.aggregate.submitted} / ${view!.aggregate.total}</span></div><h2>${md(a.prompt)}</h2><div class="activity-actions" id="activity-actions">${activityActions(a)}</div><div id="aggregate">${aggregateHtml(view!)}</div><div id="practice-board">${practiceBoard(a)}</div>${screen ? '' : `<div id="responses">${responsesHtml(a)}</div>`}${!screen && a.aiAllowed && ['short', 'numeric', 'canvas'].includes(a.type) ? btn('AI 整理全班迷思', 'summarize', 'quiet full', 'spark') : ''}</section>`
     : `<div class="quiet-moment">${icon('sigma')}<h2>這一頁沒有題目</h2><p>可以用畫筆在圖上標示，或抽籤請同學說明。</p></div>`;
   return `<div class="panel-scroll">${activity}<section class="seat-map" id="seat-map" data-testid="seat-map">${seatMapInner()}</section>${gradable && !screen ? gradingBar(a!) : ''}<section class="class-tools"><div class="draw-filter" role="group" aria-label="抽籤範圍">${(
     [
@@ -633,8 +749,169 @@ function teacherPanel(a: Activity | undefined, screen: boolean) {
     ] as const
   )
     .map(([k, l]) => `<button class="${drawFilter === k ? 'selected' : ''}" data-action="draw-filter" data-filter="${k}" aria-pressed="${drawFilter === k}" ${k !== 'all' && !a ? 'disabled' : ''}>${l}</button>`)
-    .join('')}</div><div class="tool-row">${btn('抽籤', 'draw', 'secondary', 'dice', 'data-testid="draw-seat"')}${btn('搶答', 'buzz-open', 'secondary', 'bolt', 'data-testid="buzz-open"')}</div><div id="class-events">${eventsHtml()}</div></section>${screen ? '' : `<section class="room-options">${btn(s.followTeacher ? '同步翻頁中' : '學生自主瀏覽', 'toggle-follow', 'quiet', s.followTeacher ? 'screen' : 'book', s.ended ? 'disabled' : '')}${btn('學生加入', 'join-info', 'quiet', 'users')}${btn('結束課堂', 'end-session', 'quiet danger', 'logout', s.ended ? 'disabled' : '')}</section>${view!.lesson.slides[s.slideIndex]?.notes ? `<details class="teacher-notes"><summary>教師備註（學生看不到）</summary><p>${esc(view!.lesson.slides[s.slideIndex].notes)}</p></details>` : ''}`}</div>`;
+    .join('')}</div><div class="tool-row">${btn('抽籤', 'draw', 'secondary', 'dice', 'data-testid="draw-seat"')}${btn('搶答', 'buzz-open', 'secondary', 'bolt', 'data-testid="buzz-open"')}</div><div id="danmaku-tools">${danmakuTools()}</div><div id="class-events">${eventsHtml()}</div></section>${screen ? '' : `<section class="room-options">${btn(s.followTeacher ? '同步翻頁中' : '學生自主瀏覽', 'toggle-follow', 'quiet', s.followTeacher ? 'screen' : 'book', s.ended ? 'disabled' : '')}${btn('學生加入', 'join-info', 'quiet', 'users')}${btn('結束課堂', 'end-session', 'quiet danger', 'logout', s.ended ? 'disabled' : '')}</section>${view!.lesson.slides[s.slideIndex]?.notes ? `<details class="teacher-notes"><summary>教師備註（學生看不到）</summary><p>${esc(view!.lesson.slides[s.slideIndex].notes)}</p></details>` : ''}`}</div>`;
 }
+/* ───────────── 作答限時與補救練習 ───────────── */
+const TIME_LIMITS: [number, string][] = [
+  [30, '30 秒'],
+  [60, '1 分鐘'],
+  [90, '1 分 30 秒'],
+  [120, '2 分鐘'],
+  [180, '3 分鐘'],
+  [300, '5 分鐘'],
+  [0, '不限時'],
+];
+function clockText(ms: number) {
+  const t = Math.max(0, Math.ceil(ms / 1000));
+  return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`;
+}
+/** 倒數計時的文字；每半秒由 tickClocks() 更新。 */
+function countdown(deadline: number, cls = '') {
+  return `<span class="countdown ${cls}" data-deadline="${deadline}" role="timer">${clockText(deadline - serverTime())}</span>`;
+}
+/** 開放作答的時間到了（有限時、而且過了截止時間）。 */
+function timeUp() {
+  const d = view?.session.activityDeadline;
+  return !!view?.session.activityOpen && !!d && serverTime() >= d;
+}
+function activityActions(a: Activity) {
+  const s = view!.session,
+    dis = s.ended ? 'disabled' : '';
+  const results = btn(s.resultsVisible ? '隱藏結果' : '公布結果', 'toggle-results', 'secondary', 'chart');
+  if (!s.activityOpen) {
+    const limit = prefs.get('activitySeconds', 60);
+    const picker = `<label class="time-limit">${icon('clock')}<select id="activity-seconds" aria-label="作答限時" ${dis}>${TIME_LIMITS.map(([v, l]) => `<option value="${v}" ${v === limit ? 'selected' : ''}>${l}</option>`).join('')}</select></label>`;
+    return `${btn('開放作答', 'toggle-activity', 'primary', 'play', s.ended ? 'disabled' : 'data-testid="toggle-activity"')}${results}${picker}`;
+  }
+  const stop = btn('結束作答', 'toggle-activity', 'secondary', 'x', 'data-testid="toggle-activity"');
+  if (!s.activityDeadline) return `${stop}${results}<span class="time-state">不限時</span>`;
+  if (!timeUp()) return `${stop}${results}<span class="time-state">剩 ${countdown(s.activityDeadline)}</span>`;
+  return `${stop}${results}<div class="time-up" data-testid="time-up"><strong>${icon('clock')}時間到，作答已鎖定</strong>${btn('＋30 秒', 'extend-time', 'quiet', '', 'data-seconds="30"')}${btn('＋1 分鐘', 'extend-time', 'quiet', '', 'data-seconds="60" data-testid="extend-60"')}</div>`;
+}
+function wrongSeats(a: Activity) {
+  return latestBySeat(view!, a.id).filter((x) => x.correct === false).map((x) => x.seat);
+}
+/** 老師端：派補救練習的按鈕，或練習進行中每位同學的狀態。 */
+function practiceBoard(a: Activity) {
+  const v = view!,
+    s = v.session,
+    p = v.practice;
+  if (p && s.practice?.activityId === a.id) {
+    const now = serverTime();
+    const rows = p.entries
+      .map((e) => ({ e, st: practiceStatus(p.run, e, now) }))
+      .sort((x, y) => x.e.seat - y.e.seat);
+    const n = (k: PracticeStatus['status']) => rows.filter((r) => r.st.status === k).length;
+    const chips = rows
+      .map(({ e, st }) => {
+        const label = st.status === 'passed' ? `✓ 第 ${st.round + 1} 輪過` : st.status === 'help' ? '⚠ 個別指導' : `第 ${st.round + 1} 輪 ${clockText(st.deadline - now)}`;
+        return `<span class="practice-chip ${st.status}" data-testid="practice-seat-${e.seat}"><b>${e.seat}</b><small>${label}</small></span>`;
+      })
+      .join('');
+    return `<section class="practice-board" data-testid="practice-board"><header><strong>${icon('target')}補救練習中</strong><span>每輪 ${p.run.seconds} 秒・最多 ${p.run.rounds} 輪</span></header><p class="practice-counts"><b class="working">練習中 ${n('working')}</b><b class="passed">通過 ${n('passed')}</b><b class="help">需個別指導 ${n('help')}</b></p><div class="practice-chips">${chips}</div>${btn('結束練習', 'practice-end', 'quiet', 'x', 'data-testid="practice-end"')}</section>`;
+  }
+  if (!a.practice?.length || s.activityOpen || s.ended || !v.aggregate.submitted) return '';
+  const wrong = wrongSeats(a).length,
+    unanswered = (v.roster || []).filter((x) => !x.answered).length;
+  return `<section class="practice-start"><button class="btn primary full" data-action="practice-start" data-testid="practice-start" ${wrong || (unanswered && practiceWithUnanswered) ? '' : 'disabled'}>${icon('target')}<span>派補救練習給答錯的同學（${wrong} 人）</span></button><label class="check-line"><input type="checkbox" id="practice-unanswered" ${practiceWithUnanswered ? 'checked' : ''}> 也派給未作答的同學（${unanswered} 人）</label><p class="muted small-text">每人各自計時 1 分鐘；答錯或時間到就換下一題，最多 3 輪。</p></section>`;
+}
+let practiceWithUnanswered = false;
+/** 學生端：補救練習卡（取代原本的作答區）。 */
+let practiceDraft = { key: '', value: '' };
+function myPractice() {
+  const p = view?.practice;
+  if (!p || !p.entries.length || user?.role !== 'student') return null;
+  return { p, st: practiceStatus(p.run, p.entries[0], serverTime()) };
+}
+function practiceCard() {
+  const mine = myPractice()!;
+  const { p, st } = mine;
+  const reveal = (r: number) => p.reveals.find((x) => x.round === r);
+  const past = st.rounds
+    .filter((r) => r.outcome && r.outcome !== 'correct')
+    .map((r) => {
+      const rv = reveal(r.round);
+      return `<li class="practice-past"><b>第 ${r.round + 1} 輪 ${r.outcome === 'timeout' ? '⏱ 時間到' : '✗ 答錯'}</b>${r.value ? `<span>你寫：${answerHtml(r.value)}</span>` : ''}${rv ? `<span>答案：${answerHtml(rv.answer)}${rv.explanation ? `　${md(rv.explanation)}` : ''}</span>` : '<span class="muted">答案稍後顯示</span>'}</li>`;
+    })
+    .join('');
+  const head = `<div class="activity-prompt"><span class="tag">補救練習</span><h2>第 ${st.round + 1} / ${p.run.rounds} 輪${st.status === 'working' ? `　${countdown(st.deadline, 'big')}` : ''}</h2></div>`;
+  let body = '';
+  if (st.status === 'working') {
+    const key = `${p.run.startedAt}:${st.round}`;
+    if (practiceDraft.key !== key) practiceDraft = { key, value: '' };
+    body = `<p class="practice-prompt">${md(p.prompts[st.round] || '')}</p><div class="numeric-field"><input id="practice-answer" class="numeric-input" inputmode="${numericInputMode()}" autocomplete="off" placeholder="答案" value="${esc(practiceDraft.value)}" aria-label="練習答案"></div><div class="tex-preview" data-preview="practice-answer" aria-live="polite">${previewHtml(practiceDraft.value)}</div><div class="answer-dock with-keys"><div class="submit-area">${btn('送出答案', 'submit-practice', 'primary full', 'check', `data-round="${st.round}" data-testid="submit-practice"`)}</div></div>`;
+  } else if (st.status === 'passed')
+    body = `<p class="verdict ok" data-testid="practice-passed">${icon('check')}<span>答對了！第 ${st.round + 1} 輪過關。</span></p>`;
+  else body = `<p class="verdict no" data-testid="practice-help">${icon('x')}<span>${p.run.rounds} 輪都還沒過，老師等一下會來和你一起看。</span></p>`;
+  return `<section class="practice-card" data-testid="practice-card">${head}${past ? `<ol class="practice-history">${past}</ol>` : ''}${body}</section>`;
+}
+/* ───────────── 彈幕 ───────────── */
+/** 老師端：開關、清除、紀錄（紀錄看得到座號，畫面上匿名的不顯示）。 */
+function danmakuTools() {
+  const v = view!,
+    s = v.session;
+  const toggle = btn(s.danmakuOpen ? '關閉彈幕' : '開啟彈幕', 'danmaku-toggle', s.danmakuOpen ? 'primary' : 'secondary', 'spark', `data-testid="danmaku-toggle" aria-pressed="${!!s.danmakuOpen}" ${s.ended ? 'disabled' : ''}`);
+  const list = (v.danmaku || []).slice(-12).reverse();
+  const log = list.length
+    ? `<details class="danmaku-log"><summary>彈幕紀錄（${v.danmaku!.length}）・只有老師看得到座號</summary><ol>${list.map((d) => `<li><b>${d.seat} 號</b>${d.anon ? '<small>匿名</small>' : ''}<span>${esc(d.text)}</span></li>`).join('')}</ol></details>`
+    : '';
+  return `<div class="tool-row">${toggle}${s.danmakuOpen || list.length ? btn('清除彈幕', 'danmaku-clear', 'quiet', 'trash') : ''}</div>${log}`;
+}
+let danmakuBar = false,
+  danmakuDraft = '',
+  danmakuAnon = true;
+/** 學生端：按上方的「彈幕」後出現的輸入列（在畫面上方，iPad 鍵盤不會擋住）。 */
+function danmakuStudentHtml() {
+  const s = view?.session;
+  if (!s?.danmakuOpen || s.ended) {
+    danmakuBar = false; // 關閉後下次開放時，先收起輸入列
+    return '';
+  }
+  if (!danmakuBar) return '';
+  return `<form class="danmaku-bar" id="danmaku-form" data-testid="danmaku-bar"><input id="danmaku-text" maxlength="30" autocomplete="off" placeholder="說點什麼…（30 字內）" value="${esc(danmakuDraft)}" aria-label="彈幕文字"><label class="check-line"><input type="checkbox" id="danmaku-anon" ${danmakuAnon ? 'checked' : ''}> 匿名</label>${btn('送出', 'danmaku-send', 'primary', 'arrow', 'data-testid="danmaku-send"')}${btn('', 'danmaku-bar', 'icon-btn', 'x', 'aria-label="收起彈幕"')}</form>`;
+}
+/** 學生端：老師公布結果、自己答對時播一次答對音效。 */
+const sounded = new Set<string>();
+function cheerIfCorrect(v: SessionView, silent = false) {
+  if (user?.role !== 'student' || !v.session.resultsVisible) return;
+  const a = v.lesson.slides[v.session.slideIndex]?.activity;
+  const mine = a ? v.answers.filter((x) => x.userId === user!.id && x.activityId === a.id).pop() : undefined;
+  if (!mine || mine.correct !== true || sounded.has(mine.id)) return;
+  sounded.add(mine.id);
+  if (!silent) playCorrect();
+}
+let clockKey = '';
+/** 每半秒：更新倒數文字；狀態跨過界線（時間到、換下一輪）時重畫相關區塊。 */
+function tickClocks() {
+  if (!view || !user) return;
+  const now = serverTime();
+  document.querySelectorAll<HTMLElement>('[data-deadline]').forEach((el) => {
+    el.textContent = clockText(Number(el.dataset.deadline) - now);
+    el.classList.toggle('urgent', Number(el.dataset.deadline) - now < 10_000);
+  });
+  const mine = myPractice();
+  const p = view.practice;
+  const teacherStates = user.role === 'teacher' && p ? p.entries.map((e) => { const st = practiceStatus(p.run, e, now); return `${st.status}${st.round}`; }).join() : '';
+  const key = `${timeUp()}|${mine ? `${mine.st.status}${mine.st.round}` : ''}|${teacherStates}`;
+  if (key === clockKey) return;
+  const first = !clockKey;
+  clockKey = key;
+  if (first) return;
+  if (user.role === 'teacher') {
+    const a = view.lesson.slides[view.session.slideIndex]?.activity;
+    const actions = document.querySelector('#activity-actions');
+    if (a && actions && !actions.contains(document.activeElement)) actions.innerHTML = activityActions(a);
+    const board = document.querySelector('#practice-board');
+    if (a && board) board.innerHTML = practiceBoard(a);
+    return;
+  }
+  if (document.querySelector('.sketch-overlay') || document.querySelector('.modal')) return;
+  renderSession();
+  // 這一輪逾時：寬限過後向伺服器拿這一輪的答案
+  if (mine) setTimeout(() => void refreshSession(), 3200);
+}
+setInterval(tickClocks, 500);
+unlockSound();
 function responsesHtml(a: Activity) {
   const answers = latestBySeat(view!, a.id);
   if (a.type === 'canvas' || (a.type === 'short' && a.rubric))
@@ -812,6 +1089,8 @@ function refreshPanelParts() {
   if (responses && !screenMode()) responses.innerHTML = responsesHtml(a);
   const bar = document.querySelector('#grading-bar');
   if (bar && a.rubric) bar.outerHTML = gradingBar(a);
+  const board = document.querySelector('#practice-board');
+  if (board) board.innerHTML = practiceBoard(a);
 }
 function openGrade(answerId: string) {
   if (!view) return;
@@ -843,7 +1122,9 @@ function openGrade(answerId: string) {
 /* ───────────── 同步 ───────────── */
 function viewSignature(v: SessionView) {
   const s = v.session;
-  return [s.id, s.slideIndex, s.activityOpen, s.resultsVisible, s.followTeacher, s.ended].join(':');
+  // 學生端：自己被派到（或結束）補救練習也要整個重畫
+  const mine = user?.role === 'student' ? (v.practice?.entries.length ?? 0) : '';
+  return [s.id, s.slideIndex, s.activityOpen, s.resultsVisible, s.followTeacher, s.ended, s.activityDeadline ?? '', s.practice?.startedAt ?? '', s.danmakuOpen ?? false, mine].join(':');
 }
 function gradesSignature(v: SessionView) {
   return v.grades.map((g) => `${g.answerId}:${g.total}:${g.released}:${g.gradedAt}`).sort().join('|');
@@ -926,7 +1207,10 @@ function connectLive() {
     if (e.data === 'pong' || typeof e.data !== 'string') return;
     try {
       const msg = JSON.parse(e.data) as { type: string; view: SessionView | { session: null } };
-      if (msg.type === 'view') void applyView(msg.view, currentRoute);
+      if (msg.type === 'view') {
+        syncClock(msg.view);
+        void applyView(msg.view, currentRoute);
+      }
     } catch {}
   };
   ws.onclose = () => {
@@ -1001,6 +1285,7 @@ async function applyViewNow(next: SessionView | { session: null }, route: string
       studentSlide = n.session.slideIndex;
       draft = [];
       if (n.session.activityOpen) studentTab = 'answer';
+      cheerIfCorrect(n, true); // 重新整理時不重播
       renderSession();
       updateSync(true);
       return;
@@ -1019,11 +1304,19 @@ async function applyViewNow(next: SessionView | { session: null }, route: string
         if (user.role === 'student') studentTab = 'slide';
       }
       if (opened && user.role === 'student') studentTab = 'answer';
+      if (user.role === 'student' && n.practice?.entries.length && !view.practice?.entries.length) studentTab = 'answer';
       if (!busy) renderSession();
     } else {
       const gradesChanged = gradesSignature(n) !== gradesSignature(view);
       const answersChanged = n.answers.length !== view.answers.length;
+      const practiceChanged = JSON.stringify(n.practice ?? null) !== JSON.stringify(view.practice ?? null);
       view = n;
+      if (practiceChanged) {
+        const a = n.lesson.slides[n.session.slideIndex]?.activity;
+        const board = document.querySelector('#practice-board');
+        if (user.role === 'teacher' && a && board) board.innerHTML = practiceBoard(a);
+        if (user.role === 'student' && !busy) renderSession();
+      }
       const count = document.querySelector('#answer-count');
       if (count) count.textContent = `${n.aggregate.submitted} / ${n.aggregate.total}`;
       const agg = document.querySelector('#aggregate');
@@ -1032,6 +1325,15 @@ async function applyViewNow(next: SessionView | { session: null }, route: string
       if (events) events.innerHTML = eventsHtml();
       const seatMap = document.querySelector('#seat-map');
       if (seatMap) seatMap.innerHTML = seatMapInner();
+      if (user.role === 'teacher') {
+        const tools = document.querySelector('#danmaku-tools');
+        if (tools && !tools.contains(document.activeElement)) {
+          const open = tools.querySelector('details')?.open; // 重畫時保留紀錄的展開狀態
+          tools.innerHTML = danmakuTools();
+          if (open) tools.querySelector('details')?.setAttribute('open', '');
+        }
+        syncDanmaku(n.danmaku, n.session.danmakuClearedAt, serverTime());
+      }
       renderBuzzLayer();
       if (user.role === 'teacher' && (gradesChanged || answersChanged)) refreshPanelParts();
       if (user.role === 'student' && gradesChanged) {
@@ -1047,6 +1349,7 @@ async function applyViewNow(next: SessionView | { session: null }, route: string
       const sid = n.lesson.slides[idx]?.id;
       board?.setRemote((sid && n.whiteboard[boardKey(sid)]) || []);
     }
+    if (view) cheerIfCorrect(view);
     autoGradeCheck();
     await retryPending();
     updateSync(true);
@@ -1085,6 +1388,7 @@ async function renderRoute() {
   // 離開課堂畫面就關閉即時連線；同一堂課切換一般／大屏則沿用。
   const sessionId = /^\/(?:session|screen)\/([\w-]+)/.exec(currentRoute)?.[1];
   if (!(user?.role === 'student' || (sessionId && sessionId === liveKey))) disconnectLive();
+  if (!sessionId) clearDanmakuLayer();
   await board?.flush().catch((e) => toast(e.message, true));
   board?.destroy();
   board = null;
@@ -1161,6 +1465,10 @@ async function submitAnswer(value?: unknown) {
   if (!view.session.activityOpen || view.session.ended) {
     toast('請等待老師開放作答。', true);
     return;
+  }
+  if (timeUp()) {
+    toast('時間到，作答已鎖定。', true);
+    return renderSession();
   }
   if (value === undefined) value = await buildValue(a);
   if ((Array.isArray(value) && !value.length) || (typeof value === 'string' && !value.trim())) {
@@ -1505,7 +1813,51 @@ async function action(el: HTMLElement) {
       return;
     }
     case 'toggle-activity':
-      return control('activity', { value: !s.activityOpen });
+      return control('activity', s.activityOpen ? { value: false } : { value: true, seconds: prefs.get('activitySeconds', 60) });
+    case 'extend-time':
+      await control('extend', { seconds: Number(el.dataset.seconds) });
+      return toast(`已延長 ${Number(el.dataset.seconds) >= 60 ? `${Number(el.dataset.seconds) / 60} 分鐘` : `${el.dataset.seconds} 秒`}`);
+    case 'practice-start': {
+      await control('practice-start', { includeUnanswered: practiceWithUnanswered });
+      return toast(`已派補救練習給 ${view.practice?.entries.length ?? 0} 位同學`);
+    }
+    case 'practice-end':
+      return control('practice-end');
+    case 'danmaku-toggle':
+      await control('danmaku', { value: !s.danmakuOpen });
+      return toast(view.session.danmakuOpen ? '彈幕已開啟：學生可以送出彈幕' : '彈幕已關閉');
+    case 'danmaku-clear':
+      return control('danmaku-clear');
+    case 'danmaku-bar': {
+      danmakuBar = !danmakuBar;
+      const root = document.querySelector('#danmaku-root');
+      if (root) root.innerHTML = danmakuStudentHtml();
+      document.querySelector('.danmaku-btn')?.classList.toggle('selected', danmakuBar);
+      if (danmakuBar) document.querySelector<HTMLInputElement>('#danmaku-text')?.focus();
+      return;
+    }
+    case 'danmaku-send': {
+      const text = danmakuDraft.trim();
+      if (!text) return toast('先輸入文字。', true);
+      await api(`/sessions/${s.id}/danmaku`, 'POST', { text, anon: danmakuAnon });
+      danmakuDraft = '';
+      const input = document.querySelector<HTMLInputElement>('#danmaku-text');
+      if (input) {
+        input.value = '';
+        input.focus();
+      }
+      return toast('彈幕已送出');
+    }
+    case 'submit-practice': {
+      const value = practiceDraft.value.replace(/−/g, '-').trim();
+      if (!value) return toast('先作答，再送出。', true);
+      const r = await api<{ correct: boolean }>(`/sessions/${s.id}/practice`, 'POST', { round: Number(el.dataset.round), value });
+      practiceDraft = { key: '', value: '' };
+      if (r.correct) playCorrect();
+      view = await api(`/sessions/${s.id}`);
+      renderSession();
+      return toast(r.correct ? '答對了！' : '這題沒對，看一下答案，換下一題。', !r.correct);
+    }
     case 'toggle-results':
       return control('results', { value: !s.resultsVisible });
     case 'toggle-follow':
@@ -1545,6 +1897,18 @@ async function action(el: HTMLElement) {
       draft = Number(el.dataset.value);
       document.querySelector('#student-answer')!.innerHTML = answerForm(a);
       return;
+    case 'keypad-close':
+      return closeKeypad();
+    case 'keypad-next': {
+      const inputs = keypadInputs();
+      const next = inputs[(inputs.indexOf(keypadFor!) + 1) % inputs.length];
+      next?.focus();
+      next?.setSelectionRange(next.value.length, next.value.length);
+      return;
+    }
+    case 'keypad-submit':
+      closeKeypad();
+      return document.querySelector<HTMLElement>('[data-testid="submit-answer"]:not([disabled]), [data-testid="submit-practice"]')?.click();
     case 'math-key': {
       const input =
         lastNumericInput && document.body.contains(lastNumericInput)
@@ -1683,6 +2047,9 @@ document.addEventListener('beforeinput', (e) => {
 document.addEventListener('input', (e) => {
   const el = e.target as HTMLInputElement;
   if (el.id === 'short-answer' || el.id === 'numeric-answer') draft = el.value;
+  if (el.id === 'practice-answer') practiceDraft.value = el.value;
+  if (el.id === 'danmaku-text') danmakuDraft = el.value;
+  if (el.id === 'danmaku-anon') danmakuAnon = el.checked;
   const preview = document.querySelector<HTMLElement>(`[data-preview="${el.id}"]`);
   if (preview) preview.innerHTML = previewHtml(el.value);
   if (el.dataset.item !== undefined) {
@@ -1714,6 +2081,13 @@ document.addEventListener('change', async (e) => {
       toast((err as Error).message, true);
     }
   }
+  if (el.id === 'activity-seconds') prefs.set('activitySeconds', Number(el.value));
+  if (el.id === 'practice-unanswered' && el instanceof HTMLInputElement) {
+    practiceWithUnanswered = el.checked;
+    const a = view?.lesson.slides[view.session.slideIndex]?.activity,
+      board = document.querySelector('#practice-board');
+    if (a && board) board.innerHTML = practiceBoard(a);
+  }
   if (el.id === 'pref-concurrency') prefs.set('concurrency', Number(el.value));
   if (el.id === 'pref-votes') prefs.set('votes', Number(el.value));
   if (el.id === 'preview-slide') document.querySelector<HTMLElement>('[data-action="preview-lesson"]')?.click();
@@ -1725,6 +2099,8 @@ document.addEventListener('change', async (e) => {
 });
 document.addEventListener('submit', (e) => {
   const form = e.target as HTMLFormElement;
+  // 彈幕輸入列：按 Enter 會觸發「送出」按鈕的 click（已處理），這裡只擋住表單的預設送出
+  if (form.id === 'danmaku-form') return e.preventDefault();
   if (!['login-form', 'start-form', 'class-form', 'ai-form', 'password-form', 'grade-form', 'generate-form', 'change-password-form'].includes(form.id)) return;
   e.preventDefault();
   if (formBusy) return;

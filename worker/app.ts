@@ -3,8 +3,10 @@ import type {
   Answer,
   Classroom,
   Credential,
+  Danmaku,
   Grade,
   Lesson,
+  PracticeEntry,
   Session,
   SessionView,
   Stroke,
@@ -12,6 +14,7 @@ import type {
 } from '../shared/types';
 import catalog from '../content/catalog.generated.json';
 import { parseNumberAnswer } from '../shared/expr';
+import { PRACTICE_GRACE_MS, practiceStatus } from '../shared/practice';
 import {
   HttpError,
   assert,
@@ -19,6 +22,7 @@ import {
   integer,
   judge,
   judgeNumeric,
+  judgePractice,
   record,
   str,
   validateAnswer,
@@ -77,6 +81,10 @@ interface StoredSession {
   whiteboard: Record<string, Stroke[]>;
   seen: Record<string, string>;
   grades?: Record<string, Grade>;
+  /** 補救練習紀錄：題目 ID → 座號 → 開始時間與每輪作答。 */
+  practice?: Record<string, Record<string, PracticeEntry>>;
+  /** 彈幕（保留最近 100 則）。 */
+  danmaku?: Danmaku[];
 }
 interface Login {
   user: User;
@@ -255,6 +263,7 @@ function hideKeys(activity: Activity) {
   delete activity.explanation;
   delete activity.answer;
   delete activity.check;
+  delete activity.practice; // 補救練習的題目與答案另外經 view.practice 依進度送出
   if (activity.rubric) {
     delete activity.rubric.reference;
     delete activity.rubric.graderNotes;
@@ -374,7 +383,33 @@ export function sessionView(state: State, stored: StoredSession, user: User, onl
         answered: done.has(s.seat),
       })) || [];
   }
+  view.serverNow = Date.now();
+  if (teacher) view.danmaku = clone((stored.danmaku || []).slice(-30));
+  const practice = practiceView(stored, user, view.serverNow);
+  if (practice) view.practice = practice;
   return view;
+}
+/** 補救練習的畫面資料：老師看全部；學生只看自己，答案只公布已結束的輪次。 */
+function practiceView(stored: StoredSession, user: User, now: number): SessionView['practice'] {
+  const run = stored.session.practice;
+  if (!run) return undefined;
+  const activity = stored.lesson.slides.find((x) => x.activity?.id === run.activityId)?.activity;
+  const questions = activity?.practice?.slice(0, run.rounds) || [];
+  const all = Object.values(stored.practice?.[run.activityId] || {});
+  const entries = user.role === 'teacher' ? all : all.filter((e) => e.seat === user.seat);
+  if (user.role !== 'teacher' && !entries.length) return undefined;
+  const done = new Set<number>();
+  if (user.role === 'teacher') questions.forEach((_, i) => done.add(i));
+  else
+    for (const r of practiceStatus(run, entries[0], now - PRACTICE_GRACE_MS).rounds) if (r.outcome) done.add(r.round);
+  return {
+    run: clone(run),
+    entries: clone(entries),
+    prompts: questions.map((q) => q.prompt),
+    reveals: questions
+      .map((q, round) => ({ round, answer: q.answer, ...(q.explanation ? { explanation: q.explanation } : {}) }))
+      .filter((r) => done.has(r.round)),
+  };
 }
 async function login(
   request: Request,
@@ -920,7 +955,7 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
       return json(sessionView(state, s, user, ctx.online?.()));
     }
     const sessionMatch = path.match(
-      /^\/api\/sessions\/([\w-]+)(?:\/(control|answers|buzz|whiteboard|export|images|grades)(?:\/([\w-]+))?)?$/,
+      /^\/api\/sessions\/([\w-]+)(?:\/(control|answers|practice|danmaku|buzz|whiteboard|export|images|grades)(?:\/([\w-]+))?)?$/,
     );
     if (sessionMatch) {
       const s = ownedSession(state, identifier(sessionMatch[1]), user),
@@ -944,14 +979,59 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
           case 'slide':
             session.slideIndex = integer(body.index, 0, s.lesson.slides.length - 1);
             session.activityOpen = false;
+            session.activityDeadline = null;
+            session.practice = null;
             session.resultsVisible = false;
             session.buzzOpen = false;
             session.buzzWinner = null;
             break;
-          case 'activity':
+          case 'activity': {
             assert(typeof body.value === 'boolean', '活動狀態不正確');
             assert(s.lesson.slides[session.slideIndex].activity, '這一頁沒有活動');
             session.activityOpen = body.value;
+            // 限時（秒）：0 或省略表示不限時；時間到就鎖住作答，老師可以加時間或結束作答。
+            const seconds = body.value && body.seconds !== undefined ? integer(body.seconds, 0, 3600) : 0;
+            session.activityDeadline = seconds ? Date.now() + seconds * 1000 : null;
+            if (body.value) session.practice = null;
+            break;
+          }
+          case 'extend': {
+            assert(session.activityOpen, '目前沒有開放作答', 409);
+            const seconds = integer(body.seconds, 5, 3600);
+            session.activityDeadline = Math.max(Date.now(), session.activityDeadline || Date.now()) + seconds * 1000;
+            break;
+          }
+          case 'practice-start': {
+            // 把補救練習派給這一題答錯的同學（可選擇含未作答）；每輪限時、答錯或逾時自動換下一輪。
+            const activity = s.lesson.slides[session.slideIndex].activity;
+            assert(activity?.practice?.length, '這一題沒有補救練習題', 409);
+            const latest = latestAnswers(s.answers, activity.id);
+            const wrong = latest.filter((x) => answerVerdict(x, s.grades![x.id]) === false).map((x) => x.seat);
+            let seats = wrong;
+            if (body.includeUnanswered === true) {
+              const done = new Set(latest.map((x) => x.seat));
+              seats = [...wrong, ...state.classes[session.classId].students.map((x) => x.seat).filter((n) => !done.has(n))];
+            }
+            assert(seats.length, body.includeUnanswered ? '沒有答錯或未作答的同學' : '沒有答錯的同學', 409);
+            const now = Date.now(),
+              seconds = body.seconds !== undefined ? integer(body.seconds, 15, 600) : 60;
+            session.activityOpen = false;
+            session.activityDeadline = null;
+            session.practice = { activityId: activity.id, startedAt: now, seconds, rounds: Math.min(3, activity.practice.length) };
+            s.practice ||= {};
+            s.practice[activity.id] = Object.fromEntries(seats.map((seat) => [String(seat), { seat, start: now, subs: [] }]));
+            break;
+          }
+          case 'practice-end':
+            session.practice = null;
+            break;
+          case 'danmaku':
+            assert(typeof body.value === 'boolean', '彈幕狀態不正確');
+            session.danmakuOpen = body.value;
+            break;
+          case 'danmaku-clear':
+            s.danmaku = [];
+            session.danmakuClearedAt = Date.now();
             break;
           case 'results':
             assert(typeof body.value === 'boolean', '顯示狀態不正確');
@@ -1024,7 +1104,10 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
           }
           case 'end':
             session.ended = true;
+            session.danmakuOpen = false;
             session.activityOpen = false;
+            session.activityDeadline = null;
+            session.practice = null;
             session.buzzOpen = false;
             break;
           default:
@@ -1129,6 +1212,11 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
           409,
         );
         assert(
+          !session.activityDeadline || Date.now() <= session.activityDeadline + PRACTICE_GRACE_MS,
+          '時間到，作答已鎖定',
+          409,
+        );
+        assert(
           s.answers.filter((a) => a.userId === user.id && a.activityId === activityId).length < 20,
           '每題最多提交 20 次',
           429,
@@ -1155,6 +1243,51 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
         return json({
           answer: { ...answer, correct: undefined, itemsCorrect: undefined, note: undefined },
         });
+      }
+      if (action === 'practice' && method === 'POST') {
+        // 補救練習作答：只能交「目前這一輪」，每輪一次；答錯就開始下一輪（狀態由 practiceStatus 推算）。
+        assert(user.role === 'student', '只有學生可作答', 403);
+        const run = session.practice;
+        assert(run && !session.ended, '補救練習已結束', 409);
+        const entry = s.practice?.[run.activityId]?.[String(user.seat)];
+        assert(entry, '這次的補救練習沒有派給你', 403);
+        const round = integer(body.round, 0, run.rounds - 1),
+          value = str(body.value, '答案', 60, 1).replace(/−/g, '-').trim();
+        // 截止後寬限幾秒（網路延遲）仍算這一輪；剛換到下一輪的也接受。
+        const open = (t: number) => {
+          const st = practiceStatus(run, entry, t);
+          return st.status === 'working' && st.round === round;
+        };
+        assert(open(Date.now() - PRACTICE_GRACE_MS) || open(Date.now()), '這一輪已經結束', 409);
+        const activity = s.lesson.slides.find((x) => x.activity?.id === run.activityId)?.activity;
+        assert(activity, '找不到活動', 404);
+        try {
+          parseNumberAnswer(value);
+        } catch {
+          throw new HttpError(400, '請輸入數字、分數或算式');
+        }
+        const correct = judgePractice(activity, round, value);
+        entry.subs.push({ round, value, correct, at: Date.now() });
+        s.seen[String(user.seat)] = now();
+        session.revision++;
+        return save({ correct });
+      }
+      if (action === 'danmaku' && method === 'POST') {
+        // 彈幕：老師開放時學生可送出（每人 3 秒一則、30 字內）。不改 revision：學生畫面不變，只推給老師。
+        assert(user.role === 'student', '只有學生可送彈幕', 403);
+        assert(session.danmakuOpen && !session.ended, '彈幕目前沒有開放', 409);
+        const text = str(body.text, '彈幕', 30, 1)
+          .replace(/[\u0000-\u001f\u007f]/g, '')
+          .trim();
+        assert(text, '彈幕不能空白');
+        s.danmaku ||= [];
+        const mine = s.danmaku.filter((x) => x.seat === user.seat);
+        assert(!mine.length || Date.now() - mine[mine.length - 1].at >= 3000, '太快了，等 3 秒再送', 429);
+        const item: Danmaku = { id: uuid(), seat: user.seat!, text, anon: body.anon !== false, at: Date.now() };
+        s.danmaku.push(item);
+        if (s.danmaku.length > 100) s.danmaku.splice(0, s.danmaku.length - 100);
+        s.seen[String(user.seat)] = now();
+        return save({ ok: true });
       }
       if (action === 'buzz' && method === 'POST') {
         assert(user.role === 'student', '只有學生可搶答', 403);

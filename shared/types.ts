@@ -69,6 +69,17 @@ export interface Activity {
   canvas?: 'blank' | 'grid' | 'axes' | 'dots';
   /** canvas：是否允許拍照上傳作答（預設允許）。 */
   allowPhoto?: boolean;
+  /**
+   * numeric：補救練習（第 1、2、3 輪各一題）。全班作答後，老師把練習派給答錯的同學；
+   * 每輪限時、答錯或逾時自動換下一輪。題目格式（form、unit、tolerance）沿用這一題。
+   */
+  practice?: PracticeQuestion[];
+}
+export interface PracticeQuestion {
+  prompt: string;
+  answer: string;
+  explanation?: string;
+  tolerance?: number;
 }
 
 /** 可操作視覺化：以數學座標描述圖形，滑桿、拖曳點與步驟揭示都會即時重算。 */
@@ -329,6 +340,45 @@ export interface Session {
   drawnSeats: number[];
   drawFilter?: 'all' | 'unanswered' | 'correct' | 'incorrect';
   revision: number;
+  /** 開放作答的截止時間（毫秒時間戳）；null／省略表示不限時。時間到就鎖住作答。 */
+  activityDeadline?: number | null;
+  /** 補救練習進行中（只在老師目前這一頁）。 */
+  practice?: PracticeRun | null;
+  /** 彈幕開放中：學生可以送出短訊息，在老師的畫面由右至左飛過。 */
+  danmakuOpen?: boolean;
+  /** 老師按「清除彈幕」的時間：畫面上正在飛的彈幕一起清掉。 */
+  danmakuClearedAt?: number;
+}
+/** 彈幕：匿名時畫面上不顯示座號（老師的紀錄看得到）。 */
+export interface Danmaku {
+  id: string;
+  seat: number;
+  text: string;
+  anon: boolean;
+  at: number;
+}
+export interface PracticeRun {
+  activityId: string;
+  startedAt: number;
+  /** 每輪秒數。 */
+  seconds: number;
+  /** 最多幾輪。 */
+  rounds: number;
+}
+/** 一位同學的補救練習紀錄：開始時間與每一輪的作答。 */
+export interface PracticeEntry {
+  seat: number;
+  start: number;
+  subs: { round: number; value: string; correct: boolean; at: number }[];
+}
+export interface PracticeView {
+  run: PracticeRun;
+  /** 老師：全部同學；學生：只有自己。 */
+  entries: PracticeEntry[];
+  /** 每輪題目（只有題目文字）；老師另外從課程看得到答案。 */
+  prompts: string[];
+  /** 已結束的輪次才公布答案與說明。 */
+  reveals: { round: number; answer: string; explanation?: string }[];
 }
 export interface SessionView {
   session: Session;
@@ -344,6 +394,12 @@ export interface SessionView {
   grades: Grade[];
   /** 只給老師：每個座號最後出現時間、目前是否上線（有即時連線或 75 秒內有動作）、這一頁是否已作答。 */
   roster?: { seat: number; lastSeen?: string; online?: boolean; answered?: boolean }[];
+  /** 伺服器時間（毫秒），用來校正各裝置的倒數計時。 */
+  serverNow?: number;
+  /** 補救練習；學生端只有在自己被派到練習時才有。 */
+  practice?: PracticeView;
+  /** 只給老師：最近的彈幕。 */
+  danmaku?: Danmaku[];
 }
 export interface Dashboard {
   lessons: Lesson[];
