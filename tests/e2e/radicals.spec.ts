@@ -57,6 +57,54 @@ test.afterEach(async () => {
   await Promise.all(contexts.splice(0).map((c) => c.close()));
 });
 
+test('phone keypad: √ and fraction keys type textbook answers without the system keyboard', async ({ browser }) => {
+  test.setTimeout(120_000);
+  const teacher = await surface(browser, 1440, 900);
+  await loginTeacher(teacher.page);
+  await setRequireCode(teacher.page, false);
+  await teacher.page.getByTestId('lesson-card').filter({ hasText: '最簡根式' }).getByRole('button', { name: '開始上課' }).click();
+  await teacher.page.locator('#start-form select').selectOption('demo-class');
+  await teacher.page.locator('#start-form').getByRole('button', { name: '開始上課' }).click();
+  await expect(teacher.page.getByTestId('session-slide')).toBeVisible();
+  const sessionId = teacher.page.url().split('/session/')[1];
+  cleanup.push({ context: teacher.context, id: sessionId });
+  await goSlide(teacher.page, 8); // 例 5：4/(3√5)、√(7/18)、√0.7
+  await teacher.page.getByTestId('toggle-activity').click();
+
+  const phone = await surface(browser, 390, 844, true);
+  await loginStudent(phone.page, 8);
+  await expect(phone.page.getByTestId('session-slide')).toBeVisible();
+  await answerTab(phone.page);
+  const tap = async (...keys: string[]) => {
+    for (const k of keys) await phone.page.locator(`.math-keys [data-key="${k}"]`).tap();
+  };
+  // 觸控裝置不跳出系統鍵盤
+  await expect(phone.page.locator('#numeric-item-0')).toHaveAttribute('inputmode', 'none');
+  // (1) 4√5/15：4 √ 5 分數 1 5 —— 打完 5 按「分數」自動跳出根號
+  await phone.page.locator('#numeric-item-0').tap();
+  await tap('4', '√', '5', 'frac', '1', '5');
+  await expect(phone.page.locator('#numeric-item-0')).toHaveValue('4√(5)/(15)');
+  await expect(phone.page.locator('[data-preview="numeric-item-0"] .katex')).toBeVisible();
+  // (2) √14/6：先按分數，分子打 √14，按 ▶ 兩次到分母
+  await phone.page.locator('#numeric-item-1').tap();
+  await tap('frac', '√', '1', '4', 'right', 'right', '6');
+  await expect(phone.page.locator('#numeric-item-1')).toHaveValue('(√(14))/(6)');
+  // ⌫ 一次刪掉空的 √( )
+  await phone.page.locator('#numeric-item-2').tap();
+  await tap('√', 'back');
+  await expect(phone.page.locator('#numeric-item-2')).toHaveValue('');
+  // (3) √70/10
+  await tap('√', '7', '0', 'frac', '1', '0');
+  await shot(phone.page, 'phone-keypad');
+  await phone.page.getByTestId('submit-answer').tap();
+  await expect
+    .poll(async () => {
+      const v = await (await teacher.page.request.get(`/api/sessions/${sessionId}`)).json();
+      return v.answers.find((x: { seat: number }) => x.seat === 8)?.itemsCorrect;
+    })
+    .toEqual([true, true, true]);
+});
+
 test('2-2 classroom: students join with seat only, animation unlocks after results, zoom keeps every tool working', async ({ browser }) => {
   test.setTimeout(180_000);
   const teacher = await surface(browser, 1440, 900);
@@ -145,6 +193,10 @@ test('2-2 classroom: students join with seat only, animation unlocks after resul
   await goSlide(teacher.page, 6);
   await slideTab(desk.page);
   await expect(desk.page.locator('.room-progress span').first()).toHaveText('6');
+  // 公布結果前：學生只看到題目，解題步驟鎖住
+  await expect(desk.page.locator('.viz-locked')).toBeVisible();
+  await expect(desk.page.locator('[data-viz="next"]')).toHaveCount(0);
+  await teacher.page.getByRole('button', { name: '公布結果' }).click();
   await expect(desk.page.locator('.viz-step-count')).toContainText('1 / 6');
   await expect(desk.page.locator('.viz-host input[type="range"]')).toHaveCount(0);
   for (let i = 2; i <= 6; i++) {

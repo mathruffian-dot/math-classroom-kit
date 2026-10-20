@@ -58,7 +58,7 @@ v0.1 的正式資料存於 `classroom_state` JSON payload，透過 atomic compar
 | `POST /api/ai` | 教師 | `lesson-review`／`response-summary` |
 | `GET /api/realtime?sessionId=...` | 有權限使用者 | 本版回傳 polling transport 與 2,000ms 間隔 |
 
-控制 action：`slide`、`activity`、`results`、`draw`、`buzz-open`、`buzz-reset`、`mode`、`end`。`slide` 帶 `index`；布林切換使用 `value`。端點即使從開發者工具直接呼叫，也必須由後端檢查角色和場次權限。
+控制 action：`slide`、`activity`、`results`、`draw`、`buzz-open`、`buzz-reset`、`mode`、`end`。`draw` 只抽**上線**的學生：有即時連線（WebSocket，每 45 秒 ping、100 秒內有效），或 45 秒內有輪詢／作答；連線關閉後沒再出現就算離線。老師端的 `roster` 帶每個座號的 `online`、`answered`（目前這一頁），用來顯示座位表。`slide` 帶 `index`；布林切換使用 `value`。端點即使從開發者工具直接呼叫，也必須由後端檢查角色和場次權限。
 
 ## 自訂 HTML 與 AI
 

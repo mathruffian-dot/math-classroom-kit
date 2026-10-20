@@ -1,4 +1,4 @@
-import { handleApi, liveTicket, liveView, type Deferred, type LiveTicket, type State } from './app';
+import { handleApi, liveTicket, liveView, type Deferred, type LiveTicket, type Presence, type State } from './app';
 import {
   DurableStore,
   SupabaseStore,
@@ -25,6 +25,8 @@ interface DurableState {
   acceptWebSocket?(socket: LiveSocket, tags?: string[]): void;
   getWebSockets?(tag?: string): LiveSocket[];
   setWebSocketAutoResponse?(pair: unknown): void;
+  /** 自動回覆 ping 的最後時間（休眠中也會記錄）。 */
+  getWebSocketAutoResponseTimestamp?(socket: LiveSocket): Date | null;
 }
 interface Namespace {
   idFromName(name: string): unknown;
@@ -117,10 +119,11 @@ export class ClassroomDurableObject {
       const pair = new WebSocketPair();
       const [client, server] = [pair[0], pair[1]];
       this.state.acceptWebSocket!(server, [ticket.role, ticket.sessionId || `class:${ticket.classId}`]);
-      const view = liveView(state, ticket);
+      const view = liveView(state, ticket, this.onlineUsers());
       const message = JSON.stringify({ type: 'view', view });
-      server.serializeAttachment({ ...ticket, sent: digest(message) });
+      server.serializeAttachment({ ...ticket, at: Date.now(), sent: digest(message) });
       server.send(message);
+      if (ticket.role === 'student') this.scheduleBroadcast(); // 老師端的上線名單要更新
       return new Response(null, { status: 101, webSocket: client } as ResponseInit);
     } catch (error) {
       return Response.json(
@@ -142,10 +145,11 @@ export class ClassroomDurableObject {
     if (!sockets.length) return;
     const state = await this.store().read();
     if (!state) return;
+    const online = this.onlineUsers();
     for (const socket of sockets) {
       try {
         const ticket = socket.deserializeAttachment() as LiveTicket;
-        const view = liveView(state, ticket);
+        const view = liveView(state, ticket, online);
         if (view === null) {
           socket.close(4001, 'login expired');
           continue;
@@ -167,6 +171,30 @@ export class ClassroomDurableObject {
     try {
       socket.close(code === 1005 ? 1000 : code, reason);
     } catch {}
+    try {
+      const t = socket.deserializeAttachment() as LiveTicket;
+      if (t.role === 'student') this.closedAt.set(t.userId, Date.now());
+    } catch {}
+    this.scheduleBroadcast(); // 學生離線，老師端名單更新
+  }
+  /** 學生連線關掉的時間（記憶體內；Durable Object 休眠後清空，改用最後出現時間判斷）。 */
+  private closedAt = new Map<string, number>();
+  /**
+   * 目前上線的學生（userId）：有即時連線，而且 100 秒內有 ping（用戶端每 45 秒送一次）或剛連上。
+   * iPad 闔上螢幕時連線可能不會立刻關閉，用 ping 時間判斷才不會一直顯示上線。
+   */
+  private onlineUsers(): Presence {
+    const out = new Set<string>();
+    for (const socket of this.state.getWebSockets?.('student') || []) {
+      try {
+        const t = socket.deserializeAttachment() as LiveTicket & { at?: number };
+        const ping = this.state.getWebSocketAutoResponseTimestamp?.(socket)?.getTime() || 0;
+        if (Date.now() - Math.max(ping, t.at || 0) < 100_000) out.add(t.userId);
+      } catch {
+        /* 壞掉的連線不算 */
+      }
+    }
+    return { live: out, closedAt: this.closedAt };
   }
   /** 伺服器端秘密與作答圖片：只存在 Durable Object，不進入快照、Supabase 或備份。 */
   private vault(): Vault {
@@ -224,6 +252,7 @@ export class ClassroomDurableObject {
         store: this.store(),
         vault: this.vault(),
         assets: this.env.ASSETS,
+        online: () => this.onlineUsers(),
         deferAi,
       });
     } catch (error) {

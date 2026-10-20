@@ -202,6 +202,9 @@ for (const [lessonTitle, tag] of [
   ['2-2 根式的運算（2）', 'g8-2-2b'],
   ['2-2 根式的運算（3）', 'g8-2-2c'],
   ['2-2 根式的運算（4）', 'g8-2-2d'],
+  ['1-4 相似三角形的應用（1）', 'g9-1-4a'],
+  ['1-4 相似三角形的應用（2）', 'g9-1-4b'],
+  ['1-4 相似三角形的應用（3）', 'g9-1-4c'],
 ] as const)
 test(`every page of ${tag} fits one screen on projector, iPad and phone`, async ({ browser }) => {
   test.setTimeout(150_000);

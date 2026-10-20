@@ -43,6 +43,10 @@ function fixture(env={APP_MODE:'demo'},assets) {
     },
   };
 }
+/** 讓這些座號「上線」：登入並讀一次課堂（更新最後出現時間）。抽籤只抽上線的人。 */
+async function goOnline(f,seats){
+  for(const seat of seats){const u=`seat${seat}`;await f.call('/api/login','POST',{role:'student',classCode:'DEMO801',seat},u);await f.call('/api/student/session','GET',null,u);}
+}
 async function setup() {
   const f=fixture();assert.equal((await f.call('/api/login','POST',TEACHER)).status,200);
   const dashboard=(await f.call('/api/dashboard')).body;
@@ -109,6 +113,24 @@ test('animations stay locked for students until results are shown on that slide;
   assert.equal((await f.call('/api/lessons/anim-bad','PUT',{lesson:bad})).status,400);
 });
 
+test('solution steps stay hidden from students until results are shown on that slide',async()=>{
+  const f=fixture();assert.equal((await f.call('/api/login','POST',TEACHER)).status,200);
+  const d=(await f.call('/api/dashboard')).body;
+  const lesson=d.lessons.find(l=>l.slides.some(s=>s.interactive?.steps?.length>1&&s.activity));
+  const i=lesson.slides.findIndex(s=>s.interactive?.steps?.length>1&&s.activity),full=lesson.slides[i].interactive;
+  const session=(await f.call('/api/sessions','POST',{lessonId:lesson.id,classId:d.classes[0].id})).body.session;
+  await f.call('/api/login','POST',{role:'student',classCode:'DEMO801',seat:1},'student');
+  await f.call(`/api/sessions/${session.id}/control`,'POST',{action:'slide',index:i});
+  let v=(await f.call(`/api/sessions/${session.id}`,'GET',null,'student')).body.lesson.slides[i].interactive;
+  assert.equal(v.locked,true);assert.equal(v.steps.length,1);
+  assert.ok(v.shapes.every(s=>(s.step??0)===0),'no later-step shapes sent to students');
+  assert.ok(full.shapes.some(s=>(s.step??0)>0));
+  assert.equal((await f.call(`/api/sessions/${session.id}`)).body.lesson.slides[i].interactive.steps.length,full.steps.length,'teacher sees all steps');
+  await f.call(`/api/sessions/${session.id}/control`,'POST',{action:'results',value:true});
+  v=(await f.call(`/api/sessions/${session.id}`,'GET',null,'student')).body.lesson.slides[i].interactive;
+  assert.ok(!v.locked);assert.equal(v.steps.length,full.steps.length);
+});
+
 test('per-class student code switch: off by default, teacher-only, enabling revokes code-less logins',async()=>{
   const f=fixture();assert.equal((await f.call('/api/login','POST',TEACHER)).status,200);
   const cl=(await f.call('/api/dashboard')).body.classes.find(c=>c.code==='DEMO801');
@@ -159,8 +181,14 @@ test('buzz closes atomically under serialized requests and draw avoids repeats',
   const first=await f.call(`/api/sessions/${session.id}/buzz`,'POST',{submissionId:'buzz-first'},'student');
   const second=await f.call(`/api/sessions/${session.id}/buzz`,'POST',{submissionId:'buzz-second'},'second');
   assert.deepEqual(first.body.winner,second.body.winner);assert.equal(first.body.winner.seat,1);
-  const selected=[];for(let i=0;i<40;i++)selected.push((await f.call(`/api/sessions/${session.id}/control`,'POST',{action:'draw'})).body.session.drawnSeat);
-  assert.equal(new Set(selected).size,40);
+  // 抽籤只抽上線的人：讓 5 個座號上線，抽 10 次，5 人都會抽到且不會抽到其他人
+  await goOnline(f,[3,5,7,9,11]);
+  const roster=(await f.call(`/api/sessions/${session.id}`)).body.roster;
+  const on=roster.filter(r=>r.online).map(r=>r.seat).sort((a,b)=>a-b);
+  assert.ok(on.includes(3)&&on.includes(11)&&!on.includes(40),'roster online flags');
+  const selected=[];for(let i=0;i<on.length*2;i++)selected.push((await f.call(`/api/sessions/${session.id}/control`,'POST',{action:'draw'})).body.session.drawnSeat);
+  assert.deepEqual([...new Set(selected)].sort((a,b)=>a-b),on);
+  assert.ok(roster.find(r=>r.seat===40).online===false);
 });
 
 test('AI mock is explicit and sensitive activity cannot reach provider',async()=>{
@@ -326,6 +354,7 @@ test('numeric and manipulate answers are judged server-side; verdict hidden unti
   assert.equal(drawCorrect.body.session.drawnSeat,1);
   const drawWrong=await f.call(`/api/sessions/${session.id}/control`,'POST',{action:'draw',filter:'incorrect'});
   assert.equal(drawWrong.body.session.drawnSeat,2);
+  await goOnline(f,Array.from({length:40},(_,i)=>i+1));
   const unanswered=new Set();for(let i=0;i<38;i++)unanswered.add((await f.call(`/api/sessions/${session.id}/control`,'POST',{action:'draw',filter:'unanswered'})).body.session.drawnSeat);
   assert.equal(unanswered.size,38);assert(!unanswered.has(1)&&!unanswered.has(2));
   await f.call(`/api/sessions/${session.id}/control`,'POST',{action:'results',value:true});
@@ -424,6 +453,21 @@ test('grading helpers and expression engine are safe and deterministic',()=>{
   assert.equal(expr.parseNumberAnswer('-3/4'),-0.75);assert.equal(expr.parseNumberAnswer('2√3'),2*Math.sqrt(3));
   for(const evil of ['constructor','__proto__','alert(1)','a.b','x;y','`1`'])assert.throws(()=>expr.evaluate(evil,{}),evil);
   assert.throws(()=>expr.parseNumberAnswer('x+1'));
+});
+
+test('student input: full-width characters and keypad parentheses are read correctly, without changing values',async()=>{
+  // 作答鍵盤會產生 √(5)、(15)；中文輸入法會產生全形字。數值與最簡判斷都要正確。
+  for(const [input,value,simplest] of [
+    ['4√(5)/(15)',4*Math.sqrt(5)/15,true],['(√(5)+√(3))/(2)',(Math.sqrt(5)+Math.sqrt(3))/2,true],['（√5＋√3）／２',(Math.sqrt(5)+Math.sqrt(3))/2,true],
+    ['２√６',2*Math.sqrt(6),true],['−2√6',-2*Math.sqrt(6),true],['(√6)/(3)',Math.sqrt(6)/3,true],
+    ['4/(3√5)',4/(3*Math.sqrt(5)),false],['(4√5)^2',80,false],['(2)(3)',6,false],['2(3)',6,false],['(√3)2',2*Math.sqrt(3),false],
+    ['sqrt(12)',Math.sqrt(12),false],['√(12)',Math.sqrt(12),false],['(3+2√5)²',(3+2*Math.sqrt(5))**2,false],['√(7/2)',Math.sqrt(3.5),false],
+  ]){
+    assert.ok(Math.abs(expr.parseNumberAnswer(input)-value)<1e-9,`value ${input}`);
+    assert.equal(expr.isSimplestRadical(input),simplest,`simplest ${input}`);
+  }
+  // 顯示用：作者寫的括號保留
+  assert.equal(expr.answerToTex('(−2√3) × (4√2)'),String.raw`\left(-2\sqrt{3}\right)\times \left(4\sqrt{2}\right)`);
 });
 
 test('simplest radical form and multi-item numeric questions are judged per item',async()=>{

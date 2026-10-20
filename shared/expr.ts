@@ -280,8 +280,48 @@ export function variablesOf(src: string): string[] {
  * 解析學生輸入的數值答案：接受整數、小數、分數、帶負號、括號與 √／sqrt。
  * 例如 "3/4"、"-2.5"、"1681"、"2√3"、"(-3)^2"。
  */
+/** 全形字（中文輸入法的 （）＋－／２ 等）轉半形、各種減號統一、去空白。不動括號，顯示用也安全。 */
+export function normalizeChars(input: string): string {
+  return String(input ?? '')
+    .replace(/²/g, '^2') // 先換掉上標：NFKC 會把 ² 變成普通的 2
+    .replace(/³/g, '^3')
+    .normalize('NFKC')
+    .replace(/[－−–—]/g, '-')
+    .replace(/\s+/g, '');
+}
+/**
+ * 判斷學生答案用：再拿掉包住單一數或單一根式的多餘括號，例如 √(6)→√6、(4√5)/(15)→4√5/15，
+ * 讓作答鍵盤產生的括號不會被誤判成「沒化簡」。只拿掉不會改變值的括號：
+ * 前後緊接數字（2(3)、(√3)2）、函式呼叫 sqrt(12)、相乘 (2)(3) 都保留；
+ * 係數乘根號 (3√5) 在 ÷ 後面或 ^ 前後也保留（4/(3√5) ≠ 4/3√5）；負數的括號也保留。
+ */
+export function normalizeInput(input: string): string {
+  let s = normalizeChars(input);
+  // 一次只拿掉一組，每次都用「目前的字串」判斷前後字元：(2)(3) 不能變成 23。
+  for (let guard = 0; guard < 40; guard++) {
+    let changed = false;
+    for (const m of s.matchAll(/\(([\d.]*√?[\d.]+)\)/g)) {
+      const atom = m[1],
+        before = s[m.index! - 1] ?? '',
+        after = s[m.index! + m[0].length] ?? '',
+        product = /^[\d.]+√/.test(atom); // 3√5 是「3 × √5」，不是單一個數
+      const keep =
+        /[\d.(^]/.test(after) ||
+        /[A-Za-z)]/.test(before) || // sqrt(12) 是函式呼叫；(2)(3) 是相乘
+        (before === '√' && atom.startsWith('√')) || // √(√4)
+        (/[\d.]/.test(before) && !atom.startsWith('√')) ||
+        (product && /[/÷^]/.test(before));
+      if (keep) continue;
+      s = s.slice(0, m.index) + atom + s.slice(m.index! + m[0].length);
+      changed = true;
+      break;
+    }
+    if (!changed) break;
+  }
+  return s;
+}
 export function parseNumberAnswer(input: string): number {
-  const s = input
+  const s = normalizeInput(input)
     .trim()
     .replace(/，/g, ',')
     .replace(/\s+/g, '')
@@ -301,8 +341,8 @@ export function sameNumber(a: number, b: number, tolerance = 0): boolean {
 
 /** 把學生輸入的根號寫法統一成 √n。 */
 function normalizeRadicals(input: string): string {
-  return input
-    .replace(/\s+/g, '')
+  return normalizeInput(input)
+    .replace(/÷/g, '/')
     .replace(/[－−]/g, '-')
     .replace(/sqrt\(\s*(\d+)\s*\)/gi, '√$1')
     .replace(/√\((\d+)\)/g, '√$1');
@@ -383,9 +423,7 @@ export function nodeToTex(n: Node): string {
 /** 學生輸入的答案（如 4√6/3+√2）轉 LaTeX；無法解析時回傳 null。 */
 export function answerToTex(input: string): string | null {
   try {
-    const s = input
-      .trim()
-      .replace(/\s+/g, '')
+    const s = normalizeChars(input)
       .replace(/[－−]/g, '-')
       .replace(/[×＊]/g, '*')
       .replace(/[／]/g, '/')

@@ -141,6 +141,8 @@ test('whiteboard survives reload, draw avoids repeats, and concurrent buzz has o
   const write = await t.put(`/api/sessions/${sid}/whiteboard`, { data: { slideId: 'intro', strokes } });
   expect(write.ok(), await write.text()).toBeTruthy();
   expect((await (await students[0].get(`/api/sessions/${sid}`)).json()).whiteboard.intro).toEqual(strokes);
+  // 抽籤只抽上線的學生：三位學生先進入課堂
+  for (const s of students) expect((await s.get('/api/student/session')).ok()).toBeTruthy();
   const seats: number[] = [];
   for (let i = 0; i < 3; i++) {
     const draw = await t.post(`/api/sessions/${sid}/control`, { data: { action: 'draw' } });

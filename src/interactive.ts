@@ -302,7 +302,9 @@ export function mountInteractive(
         : `<label class="viz-slider"><span class="viz-slider-head"><span>${md(p.label || p.id)}</span><output data-param-value="${p.id}"></output></span><input type="range" min="${p.min}" max="${p.max}" step="${p.step}" value="${vars[p.id]}" data-param="${p.id}" aria-label="${esc(p.label || p.id)}"></label>`,
     )
     .join('');
-  const steps = spec.steps?.length
+  const steps = spec.locked
+    ? `<p class="viz-locked">老師公布結果後，才能看完整的解題步驟。</p>`
+    : spec.steps?.length
     ? `<div class="viz-steps"><button type="button" class="viz-step-btn" data-viz="prev" aria-label="上一步">‹</button><span class="viz-step-count"></span><button type="button" class="viz-step-btn primary" data-viz="next">下一步 ›</button><p class="viz-step-caption" aria-live="polite"></p></div>`
     : '';
   const readouts = spec.readouts?.length

@@ -253,7 +253,7 @@ export function binomialSteps({ aLen, bLen, aLab, bLab, a2, ab, ab2, b2, total, 
 export function stepsViz(lines, captions, { size = 25 } = {}) {
   const n = lines.length;
   return litAtEnd({
-    view: { xMin: 0, xMax: 12, yMin: 0, yMax: n + 0.6, aspect: 'fill' },
+    view: { xMin: 0, xMax: 12, yMin: 0.2, yMax: n + 0.9, aspect: 'fill' },
     shapes: lines.map((text, i) => ({
       type: 'text', x: 6, y: n - i, text, size: i === 0 ? size + 2 : size, color: i === n - 1 ? '#5a3fd6' : C.ink, step: i,
     })),
@@ -343,3 +343,125 @@ export function binomialSquare({ p = 3, c = 2, q = 5 } = {}) {
   };
 }
 
+
+/* ───────────── 幾何（九上 1-4 相似三角形的應用） ───────────── */
+const stepOf = (o) => ({ ...(o.step !== undefined ? { step: o.step } : {}), ...(o.show ? { show: o.show } : {}), ...(o.focus ? { focus: o.focus } : {}) });
+/** 幾何小零件：三角形、線段、文字、直角記號、角弧。座標可以是數字或運算式。 */
+export const G = {
+  poly: (points, o = {}) => ({ type: 'polygon', points, fill: o.fill ?? C.fBlue, color: o.color ?? C.blue, width: o.width ?? 2, ...stepOf(o) }),
+  seg: (a, b, o = {}) => ({ type: 'segment', points: [a, b], color: o.color ?? C.ink, width: o.width ?? 2, ...(o.dash ? { dash: true } : {}), ...stepOf(o) }),
+  lab: (x, y, text, o = {}) => ({ type: 'text', x, y, text, size: o.size ?? 15, color: o.color ?? C.ink, ...stepOf(o) }),
+  angle: (a, o, b, text, opt = {}) => ({ type: 'angle', points: [a, o, b], ...(text ? { text } : {}), color: opt.color ?? C.red, ...stepOf(opt) }),
+  /** 直角記號：c 是直角頂點，u、v 是兩邊方向的單位向量（數字）。 */
+  right: (c, u, v, s = 0.4, o = {}) => [
+    { type: 'segment', points: [[c[0] + u[0] * s, c[1] + u[1] * s], [c[0] + u[0] * s + v[0] * s, c[1] + u[1] * s + v[1] * s]], color: o.color ?? C.ink, width: 1.4, ...stepOf(o) },
+    { type: 'segment', points: [[c[0] + v[0] * s, c[1] + v[1] * s], [c[0] + u[0] * s + v[0] * s, c[1] + u[1] * s + v[1] * s]], color: o.color ?? C.ink, width: 1.4, ...stepOf(o) },
+  ],
+};
+
+/**
+ * 圖＋算式的逐步解題（課本例題的解法）：左邊是圖，右邊是一行一行的算式。
+ * figure：圖形（可帶 step 讓某些標記在某一步才出現）；沒有 step 的圖形每一步都清楚顯示。
+ * lines：字串或 { text, step, size, color }；預設第 i 行在第 i 步出現。最後一步全部點亮。
+ */
+export function figSteps({ view, figure, lines, captions, x = 14.5, top, gap = 1.25, size = 19, caption }) {
+  const all = captions.map((_, i) => i);
+  const fig = figure.flat().map((s) => (s.step === undefined && !s.focus ? { ...s, focus: all } : s));
+  const text = lines.map((l, i) => {
+    const o = typeof l === 'string' ? { text: l } : l;
+    return { type: 'text', x, y: top - i * gap, text: o.text, size: o.size ?? size, color: o.color ?? (i === lines.length - 1 ? '#5a3fd6' : C.ink), step: o.step ?? i };
+  });
+  return litAtEnd({ view, shapes: [...fig, ...text], steps: captions, ...(caption ? { caption } : {}) });
+}
+
+/** 同一時刻的影子（具體操作）：拖拉太陽高度角，人和樹的「高÷影長」永遠一樣。 */
+export function shadowExplore({ h = 1.6, H = 4, ang = 40 } = {}) {
+  const sp = `${h}/tan(ang)`, st = 'H/tan(ang)';
+  return {
+    view: { xMin: -0.5, xMax: 17.5, yMin: -1.6, yMax: 6.2, aspect: 'equal' },
+    params: [
+      { id: 'ang', label: '太陽高度角', min: 20, max: 70, step: 1, value: ang, unit: '°' },
+      { id: 'H', label: '樹高（公尺）', min: 2, max: 5, step: 0.5, value: H },
+    ],
+    shapes: [
+      G.seg([-0.5, 0], [17.5, 0], { color: '#6b7394' }),
+      // 人：A 在頭頂、C 在腳，影子 C→B
+      G.seg([1, 0], [1, h], { color: C.violet, width: 5 }),
+      G.lab(1.9, h / 2, `${h} 公尺`, { size: 12, color: C.violet }),
+      G.lab(0.55, h + 0.35, '人', { size: 14, color: C.violet }),
+      G.seg([1, h], [`1+${sp}`, 0], { color: C.orange, dash: true }),
+      G.seg([1, 0], [`1+${sp}`, 0], { color: C.orange, width: 4 }),
+      // 樹：D 在頂、F 在底，影子 F→E
+      G.seg([8, 0], [8, 'H'], { color: C.teal, width: 6 }),
+      G.lab(7.5, 'H+0.4', '樹', { size: 14, color: C.teal }),
+      G.seg([8, 'H'], [`8+${st}`, 0], { color: C.orange, dash: true }),
+      G.seg([8, 0], [`8+${st}`, 0], { color: C.orange, width: 4 }),
+      G.lab(`1+${sp}/2`, -0.6, `影長 {round(${h}/tan(ang),2)}`, { size: 13, color: '#b4541a' }),
+      G.lab(`8+${st}/2`, -0.6, '樹影 {round(H/tan(ang),2)}', { size: 13, color: '#b4541a' }),
+    ],
+    readouts: [
+      { label: '人：身高 ÷ 影長', expr: 'tan(ang)', digits: 3 },
+      { label: '樹：樹高 ÷ 樹影', expr: 'H/(H/tan(ang))', digits: 3 },
+      { label: '樹影（公尺）', expr: 'H/tan(ang)', digits: 2 },
+    ],
+    caption: '陽光是平行光：同一時刻，人和樹的「高 ÷ 影長」相同（兩個直角三角形相似）',
+  };
+}
+
+/** 相似比 1：k 的三角形可以切成 k² 個原來的小三角形（具體操作：面積比＝邊長比的平方）。 */
+export function triangleTiles({ k = 2 } = {}) {
+  const shapes = [];
+  const A = [0, 0], B = [8, 0], T = [3, 6.4]; // 大三角形（k 一變，小三角形邊長是 1/k）
+  const at = (i, j) => [`${(B[0] - A[0])}*${i}/k + ${(T[0] - A[0])}*${j}/k`, `${T[1]}*${j}/k`];
+  for (let j = 0; j < 4; j++)
+    for (let i = 0; i + j < 4; i++) {
+      // 朝上的小三角形
+      shapes.push({ type: 'polygon', points: [at(i, j), at(i + 1, j), at(i, j + 1)], fill: i === 0 && j === 0 ? C.fOrange : C.fBlue, color: i === 0 && j === 0 ? C.orange : C.blue, width: 1.5, show: `${i + j}<k` });
+      // 朝下的小三角形
+      if (i + j + 1 < 4) shapes.push({ type: 'polygon', points: [at(i + 1, j), at(i + 1, j + 1), at(i, j + 1)], fill: C.fViolet, color: C.violet, width: 1.5, show: `${i + j + 1}<k` });
+    }
+  shapes.push(
+    { type: 'polygon', points: [A, B, T], fill: 'rgba(0,0,0,0)', color: C.ink, width: 2.6 },
+    G.lab(10.6, 5.6, '大三角形邊長是小三角形的 {k} 倍', { size: 15 }),
+    G.lab(10.6, 4.4, '可以切成 {k*k} 個小三角形', { size: 17, color: '#5a3fd6' }),
+  );
+  return {
+    view: { xMin: -0.6, xMax: 15.6, yMin: -0.6, yMax: 7.2, aspect: 'equal' },
+    params: [{ id: 'k', label: '相似比 1 : k 的 k', min: 1, max: 4, step: 1, value: k }],
+    shapes,
+    readouts: [
+      { label: '邊長比 1 : k', expr: 'k' },
+      { label: '面積比 1 : k²', expr: 'k^2' },
+    ],
+    caption: '橘色是原來的小三角形；邊長變 k 倍，面積變 k² 倍',
+  };
+}
+
+/** 坡度固定的相似直角三角形（具體操作）：拉長坡道，三組邊長的比值都不變。 */
+export function rampExplore({ ang = 25, s = 2 } = {}) {
+  const b = 's*4*cos(ang)', a = 's*4*sin(ang)';
+  return {
+    view: { xMin: -0.6, xMax: 17, yMin: -1.2, yMax: 8.6, aspect: 'equal' },
+    params: [
+      { id: 's', label: '坡道長度（倍）', min: 1, max: 3.6, step: 0.1, value: s },
+      { id: 'ang', label: '∠A（坡度角）', min: 10, max: 40, step: 1, value: ang, unit: '°' },
+    ],
+    shapes: [
+      { type: 'polygon', points: [[0, 0], [b, 0], [b, a]], fill: C.fTeal, color: C.teal, width: 2 },
+      { type: 'polygon', points: [[0, 0], ['4*cos(ang)', 0], ['4*cos(ang)', '4*sin(ang)']], fill: 'rgba(0,0,0,0)', color: C.violet, width: 2, dash: true },
+      { type: 'angle', points: [[1, 0], [0, 0], [b, a]], text: '{ang}°' },
+      G.lab(-0.3, -0.5, 'A', { size: 14 }),
+      G.lab(b, -0.5, 'C', { size: 14 }),
+      G.lab(`${b}+0.3`, `${a}+0.3`, 'B', { size: 14 }),
+      G.lab(`${b}+0.9`, `${a}/2`, '對邊 a', { size: 13, color: C.red }),
+      G.lab(`${b}/2`, -0.6, '鄰邊 b', { size: 13, color: C.blue }),
+      G.lab(`${b}/2-0.6`, `${a}/2+0.6`, '斜邊 c', { size: 13, color: '#16824f' }),
+    ],
+    readouts: [
+      { label: 'a ÷ c（對邊÷斜邊）', expr: 'sin(ang)', digits: 4 },
+      { label: 'b ÷ c（鄰邊÷斜邊）', expr: 'cos(ang)', digits: 4 },
+      { label: 'a ÷ b（對邊÷鄰邊）', expr: 'tan(ang)', digits: 4 },
+    ],
+    caption: '角度固定時，坡道拉長或縮短（相似），三個比值都不變；角度一改，比值才跟著改',
+  };
+}

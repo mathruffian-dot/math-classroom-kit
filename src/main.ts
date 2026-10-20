@@ -289,7 +289,7 @@ function animationHtml(slide: Slide) {
   if (!a) return '';
   const len = a.seconds ? `<span class="anim-len">${Math.round(a.seconds)} 秒</span>` : '';
   if (a.locked || !a.src)
-    return `<figure class="anim-card locked" data-testid="animation-locked"><div class="anim-thumb"><span class="anim-lock">${icon('clock')}<span>老師公布結果後<br>可以看動畫</span></span>${len}</div><figcaption>${md(a.caption)}</figcaption></figure>`;
+    return `<figure class="anim-card locked" data-testid="animation-locked"><div class="anim-thumb" title="老師公布結果後可以看動畫"><span class="anim-lock">${icon('clock')}<span>公布後可看</span></span></div><figcaption>${md(a.caption)}</figcaption></figure>`;
   const poster = a.poster ? `<img src="/api/assets/lessons/${esc(a.poster)}" alt="" loading="lazy">` : '';
   return `<figure class="anim-card"><button type="button" class="anim-thumb" data-action="play-animation" data-src="${esc(a.src)}" data-poster="${esc(a.poster || '')}" data-caption="${esc(a.caption)}" aria-label="播放動畫：${esc(a.caption)}" data-testid="play-animation">${poster}<span class="anim-play">${icon('play')}</span>${len}</button><figcaption>${md(a.caption)}</figcaption></figure>`;
 }
@@ -425,9 +425,9 @@ function answerForm(a: Activity) {
     fields = `<label class="sr-only" for="short-answer">你的回答</label><textarea id="short-answer" maxlength="1000" placeholder="我認為……，因為……" ${dis}>${typeof draft === 'string' ? esc(draft) : ''}</textarea>${a.rubric ? criteriaHint(a) : ''}`;
   if (a.type === 'numeric' && a.items) {
     const values = Array.isArray(draft) ? (draft as string[]) : [];
-    fields = `<ol class="numeric-items">${a.items.map((it, i) => `<li><label for="numeric-item-${i}">${md(it.prompt)}</label><div class="numeric-field"><input id="numeric-item-${i}" data-item="${i}" class="numeric-input" inputmode="text" autocomplete="off" placeholder="答案" value="${esc(values[i] ?? '')}" ${dis}>${a.unit ? `<span>${esc(a.unit)}</span>` : ''}</div><div class="tex-preview" data-preview="numeric-item-${i}" aria-live="polite">${previewHtml(values[i] ?? '')}</div></li>`).join('')}</ol>${mathKeys(dis)}${a.form === 'simplest-radical' ? '<p class="muted small-text">答案請化成最簡根式，例如 2√3、√6/3。</p>' : ''}`;
+    fields = `<ol class="numeric-items">${a.items.map((it, i) => `<li><label for="numeric-item-${i}">${md(it.prompt)}</label><div class="numeric-field"><input id="numeric-item-${i}" data-item="${i}" class="numeric-input" inputmode="${numericInputMode()}" autocomplete="off" placeholder="答案" value="${esc(values[i] ?? '')}" ${dis}>${a.unit ? `<span>${esc(a.unit)}</span>` : ''}</div><div class="tex-preview" data-preview="numeric-item-${i}" aria-live="polite">${previewHtml(values[i] ?? '')}</div></li>`).join('')}</ol>${a.form === 'simplest-radical' ? '<p class="muted small-text">答案請化成最簡根式，例如 2√3、√6/3。</p>' : ''}`;
   } else if (a.type === 'numeric')
-    fields = `<div class="numeric-field"><input id="numeric-answer" class="numeric-input" inputmode="text" autocomplete="off" placeholder="輸入數字、分數或算式" value="${typeof draft === 'string' ? esc(draft) : ''}" ${dis} aria-label="數值答案">${a.unit ? `<span>${esc(a.unit)}</span>` : ''}</div><div class="tex-preview" data-preview="numeric-answer" aria-live="polite">${previewHtml(typeof draft === 'string' ? draft : '')}</div><div class="math-keys" aria-label="數學符號">${['−', '/', '√', '(', ')', '^', '.'].map((k) => `<button type="button" data-action="math-key" data-key="${k === '−' ? '-' : k}" ${dis}>${k}</button>`).join('')}<button type="button" data-action="math-key" data-key="⌫" aria-label="刪除" ${dis}>⌫</button></div><p class="muted small-text">分數寫成 3/4，根號可用 √。</p>`;
+    fields = `<div class="numeric-field"><input id="numeric-answer" class="numeric-input" inputmode="${numericInputMode()}" autocomplete="off" placeholder="輸入數字、分數或算式" value="${typeof draft === 'string' ? esc(draft) : ''}" ${dis} aria-label="數值答案">${a.unit ? `<span>${esc(a.unit)}</span>` : ''}</div><div class="tex-preview" data-preview="numeric-answer" aria-live="polite">${previewHtml(typeof draft === 'string' ? draft : '')}</div>`;
   if (a.type === 'manipulate') {
     const vars = viz?.vars() || vizState.get(view!.lesson.slides[view!.session.slideIndex].id) || {};
     const keys = a.record?.length ? a.record : Object.keys(vars).filter((k) => k !== 'step');
@@ -442,10 +442,76 @@ function answerForm(a: Activity) {
     ? `<div class="saved-answer">${icon('check')}<div><strong>已送出</strong>${a.type === 'canvas' ? canvasValuePreview(answered.value) : `<span>${answerDisplay(answered.value)}</span>`}</div>${open && !editing ? `<button class="text-button" data-action="edit-answer">修改</button>` : ''}</div>`
     : '';
   const submit = (!answered || editing) ? btn(open ? (a.type === 'manipulate' ? '送出我的操作' : '送出答案') : '等待老師開放', 'submit-answer', 'primary full', 'check', `data-testid="submit-answer" ${!open ? 'disabled' : ''}`) : '';
-  return `<div class="activity-prompt"><span class="tag">${TYPE_LABEL[a.type]}</span><h2>${md(a.prompt)}</h2></div>${saved}${(!answered || editing) ? fields : ''}<div class="submit-area">${submit}<p id="answer-status" role="status" class="muted small-text">${answered && !editing ? '' : open ? '' : '可以先操作與思考。'}</p></div>`;
+  const keys = a.type === 'numeric' && (!answered || editing) ? mathKeys(dis) : '';
+  return `<div class="activity-prompt"><span class="tag">${TYPE_LABEL[a.type]}</span><h2>${md(a.prompt)}</h2></div>${saved}${(!answered || editing) ? fields : ''}<div class="answer-dock ${keys ? 'with-keys' : ''}">${keys}<div class="submit-area">${submit}<p id="answer-status" role="status" class="muted small-text">${answered && !editing ? '' : open ? '' : '可以先操作與思考。'}</p></div></div>`;
+}
+// 作答鍵盤：數字＋運算＋√／分數／括號，觸控裝置不跳出系統鍵盤（不用切換）。
+// √ 會插入 √( )、游標在括號裡；打完數字按 ＋ − ÷ 或 √ 會自動跳出根號。
+const MATH_KEYS: [string, string, string][] = [
+  ['7', '7', 'num'], ['8', '8', 'num'], ['9', '9', 'num'], ['√', '√', 'op'], ['⌫', 'back', 'op'],
+  ['4', '4', 'num'], ['5', '5', 'num'], ['6', '6', 'num'], ['分數', 'frac', 'op'], ['( )', 'paren', 'op'],
+  ['1', '1', 'num'], ['2', '2', 'num'], ['3', '3', 'num'], ['＋', '+', 'op'], ['−', '-', 'op'],
+  ['0', '0', 'num'], ['.', '.', 'num'], ['◀', 'left', 'move'], ['▶', 'right', 'move'], ['⌨', 'keyboard', 'move'],
+];
+const KEY_LABEL: Record<string, string> = { back: '刪除', frac: '分數', paren: '括號', left: '游標左移', right: '游標右移', keyboard: '切換系統鍵盤' };
+function systemKeyboard() {
+  try {
+    return localStorage.getItem('mck-syskb') === '1';
+  } catch {
+    return false;
+  }
+}
+function numericInputMode() {
+  return matchMedia('(pointer: coarse)').matches && !systemKeyboard() ? 'none' : 'text';
 }
 function mathKeys(dis: string) {
-  return `<div class="math-keys" aria-label="數學符號">${['−', '/', '√', '(', ')', '^', '.'].map((k) => `<button type="button" data-action="math-key" data-key="${k === '−' ? '-' : k}" ${dis}>${k}</button>`).join('')}<button type="button" data-action="math-key" data-key="⌫" aria-label="刪除" ${dis}>⌫</button></div>`;
+  return `<div class="math-keys" aria-label="作答鍵盤">${MATH_KEYS.map(([label, key, kind]) => `<button type="button" class="key-${kind}" data-action="math-key" data-key="${key}" ${KEY_LABEL[key] ? `aria-label="${KEY_LABEL[key]}"` : ''} ${dis}>${label}</button>`).join('')}</div><p class="muted small-text key-hint">√ 會自動加括號；按 ▶ 跳出括號、從分子到分母。</p>`;
+}
+/** 游標在 √(數字|) 裡、括號剛好在右邊：回傳要跳出的位置。 */
+function radicalExit(v: string, at: number) {
+  return /√\(\d+$/.test(v.slice(0, at)) && v[at] === ')' ? at + 1 : at;
+}
+function keyInput(input: HTMLInputElement, key: string) {
+  let v = input.value,
+    s = input.selectionStart ?? v.length,
+    e = input.selectionEnd ?? v.length;
+  const sel = v.slice(s, e);
+  const put = (text: string, caret = text.length) => {
+    v = v.slice(0, s) + text + v.slice(e);
+    s = e = s + caret;
+  };
+  const exit = () => {
+    if (s === e) s = e = radicalExit(v, s);
+  };
+  if (key === 'back') {
+    if (s !== e) put('', 0);
+    else if (s > 0) {
+      // 空的 √( ) 或 ( )：一次刪掉整組
+      const empty = v[s - 1] === '(' && v[s] === ')';
+      const from = empty && v[s - 2] === '√' ? s - 2 : s - 1;
+      v = v.slice(0, from) + v.slice(empty ? s + 1 : s);
+      s = e = from;
+    }
+  } else if (key === 'left') s = e = Math.max(0, s - 1);
+  else if (key === 'right') s = e = v.startsWith(')/(', e) ? e + 3 : Math.min(v.length, e + 1);
+  else if (key === '√') {
+    exit();
+    if (sel) put(`√(${sel})`);
+    else put('√()', 2);
+  } else if (key === 'frac') {
+    exit();
+    if (sel) put(`(${sel})/()`, sel.length + 4);
+    else if (s > 0 && /[\d)]/.test(v[s - 1])) put('/()', 2); // 前面已有分子，例如 4√5 → 4√5/( )
+    else put('()/()', 1);
+  } else if (key === 'paren') put(sel ? `(${sel})` : '()', sel ? sel.length + 2 : 1);
+  else {
+    if ('+-'.includes(key)) exit();
+    put(key);
+  }
+  input.value = v;
+  input.setSelectionRange(s, e);
+  input.dispatchEvent(new Event('input', { bubbles: true }));
+  input.focus();
 }
 function criteriaHint(a: Activity) {
   if (!a.rubric) return '';
@@ -482,13 +548,14 @@ function renderSession() {
   const own = a ? currentStudentAnswer(a) : undefined;
   if (own && !editing && a?.type !== 'canvas' && a?.type !== 'manipulate') draft = own.value;
   const total = view.lesson.slides.length;
-  app.className = `classroom ${teacher ? 'teacher-room' : 'student-room'} ${screen ? 'big-screen' : ''} ${needsPanelFocus() ? 'show-panel' : ''}`;
+  app.className = `classroom ${teacher ? 'teacher-room' : 'student-room'} ${screen ? 'big-screen' : ''} ${needsPanelFocus() ? 'show-panel' : ''} ${!teacher && a && s.activityOpen && (!own || editing) ? 'answering' : ''}`;
   const panel = teacher ? teacherPanel(a, screen) : studentPanel(a, index);
   // 重畫時（例如按「公布結果」）保留動畫的播放位置
   const oldVideo = document.querySelector<HTMLVideoElement>('.anim-focus video');
   const resume = oldVideo ? { t: oldVideo.currentTime, paused: oldVideo.paused } : null;
-  app.innerHTML = `<header class="room-bar"><div class="room-identity">${teacher ? btn('返回', 'dashboard', 'icon-btn', 'back', 'aria-label="返回課程"') : `<span class="brand-mark small">${icon('sigma')}</span>`}<div><strong>${esc(teacher ? s.title : `${s.className}・${user.seat} 號`)}</strong><small>${teacher ? esc(s.className) : esc(view.lesson.title)}</small></div></div><div class="room-progress" aria-label="第 ${index + 1} 頁，共 ${total} 頁"><span>${index + 1}</span>/<span>${total}</span></div><div class="room-actions"><span id="sync-status" class="sync-status"><i></i>已連線</span>${teacher ? `${btn(screen ? '一般' : '大屏', 'screen', 'quiet', 'screen', 'title="切換大屏授課"')}` : ''}${btn('', 'fullscreen', 'icon-btn', 'expand', 'aria-label="全螢幕" title="全螢幕"')}${teacher ? '' : btn('', 'logout', 'icon-btn', 'logout', 'aria-label="登出" title="登出"')}</div></header><div class="room-main"><main class="stage-col"><article class="slide-stage" data-testid="session-slide" id="slide-stage">${slideMarkup(slide, index, total)}</article><nav class="slide-nav" aria-label="翻頁與白板工具">${btn('', 'prev-slide', 'icon-btn nav-btn', 'prev', `aria-label="上一頁" ${index === 0 || (!teacher && s.followTeacher) ? 'disabled' : ''}`)}${teacher ? toolbar() : ''}<div class="slide-dots">${view.lesson.slides.map((sl, i) => `<button class="${i === index ? 'active' : ''} ${sl.activity ? 'has-q' : ''} ${i === s.slideIndex && !teacher ? 'live' : ''}" data-action="go-slide" data-index="${i}" aria-label="第 ${i + 1} 頁${sl.phase ? `・${esc(sl.phase)}` : ''}" title="${esc(sl.phase || sl.title)}" ${!teacher && s.followTeacher ? 'disabled' : ''}><span></span></button>`).join('')}</div>${btn('', 'next-slide', 'icon-btn nav-btn primary', 'next', `aria-label="下一頁" data-testid="next-slide" ${index === total - 1 || (!teacher && s.followTeacher) ? 'disabled' : ''}`)}</nav></main><aside class="panel-col" aria-label="${teacher ? '課堂互動' : '作答區'}">${panel}</aside></div>${teacher ? '' : `<nav class="phone-tabs" aria-label="切換"><button class="${studentTab === 'slide' ? 'selected' : ''}" data-action="student-tab" data-tab="slide">${icon('book')}教材</button><button class="${studentTab === 'answer' ? 'selected' : ''}" data-action="student-tab" data-tab="answer">${icon('pen')}作答${a && s.activityOpen && (!own || editing) ? '<i class="badge-dot"></i>' : ''}</button></nav>`}`;
+  app.innerHTML = `<header class="room-bar"><div class="room-identity">${teacher ? btn('返回', 'dashboard', 'icon-btn', 'back', 'aria-label="返回課程"') : `<span class="brand-mark small">${icon('sigma')}</span>`}<div><strong>${esc(teacher ? s.title : `${s.className}・${user.seat} 號`)}</strong><small>${teacher ? esc(s.className) : esc(view.lesson.title)}</small></div></div><div class="room-progress" aria-label="第 ${index + 1} 頁，共 ${total} 頁"><span>${index + 1}</span>/<span>${total}</span></div><div class="room-actions"><span id="sync-status" class="sync-status"><i></i>已連線</span>${teacher ? `${btn(screen ? '一般' : '大屏', 'screen', 'quiet', 'screen', 'title="切換大屏授課"')}` : ''}${btn('', 'fullscreen', 'icon-btn', 'expand', 'aria-label="全螢幕" title="全螢幕"')}${teacher ? '' : btn('', 'logout', 'icon-btn', 'logout', 'aria-label="登出" title="登出"')}</div></header><div class="room-main"><main class="stage-col"><article class="slide-stage" data-testid="session-slide" id="slide-stage">${slideMarkup(slide, index, total)}</article><nav class="slide-nav" aria-label="翻頁與白板工具">${btn('', 'prev-slide', 'icon-btn nav-btn', 'prev', `aria-label="上一頁" ${index === 0 || (!teacher && s.followTeacher) ? 'disabled' : ''}`)}${teacher ? toolbar() : ''}<div class="slide-dots">${view.lesson.slides.map((sl, i) => `<button class="${i === index ? 'active' : ''} ${sl.activity ? 'has-q' : ''} ${i === s.slideIndex && !teacher ? 'live' : ''}" data-action="go-slide" data-index="${i}" aria-label="第 ${i + 1} 頁${sl.phase ? `・${esc(sl.phase)}` : ''}" title="${esc(sl.phase || sl.title)}" ${!teacher && s.followTeacher ? 'disabled' : ''}><span></span></button>`).join('')}</div>${btn('', 'next-slide', 'icon-btn nav-btn primary', 'next', `aria-label="下一頁" data-testid="next-slide" ${index === total - 1 || (!teacher && s.followTeacher) ? 'disabled' : ''}`)}</nav></main><aside class="panel-col" aria-label="${teacher ? '課堂互動' : '作答區'}">${panel}</aside></div>${teacher ? '' : `<nav class="phone-tabs" aria-label="切換"><button class="${studentTab === 'slide' ? 'selected' : ''}" data-action="student-tab" data-tab="slide">${icon('book')}教材</button><button class="${studentTab === 'answer' ? 'selected' : ''}" data-action="student-tab" data-tab="answer">${icon('pen')}作答${a && s.activityOpen && (!own || editing) ? '<i class="badge-dot"></i>' : ''}</button></nav>`}<div id="buzz-root"></div>`;
   const stage = document.querySelector<HTMLElement>('#slide-stage')!;
+  renderBuzzLayer();
   if (
     figZoom &&
     (figZoom.slideId !== slide.id || (figZoom.index < 0 ? !slide.animation?.src : !slide.figures?.[figZoom.index]))
@@ -557,7 +624,7 @@ function teacherPanel(a: Activity | undefined, screen: boolean) {
   const activity = a
     ? `<section class="teacher-activity"><div class="activity-top">${tag(TYPE_LABEL[a.type])}<span id="answer-count" class="count-pill">${view!.aggregate.submitted} / ${view!.aggregate.total}</span></div><h2>${md(a.prompt)}</h2><div class="activity-actions">${btn(s.activityOpen ? '結束作答' : '開放作答', 'toggle-activity', s.activityOpen ? 'secondary' : 'primary', s.activityOpen ? 'x' : 'play', s.ended ? 'disabled' : 'data-testid="toggle-activity"')}${btn(s.resultsVisible ? '隱藏結果' : '公布結果', 'toggle-results', 'secondary', 'chart')}</div><div id="aggregate">${aggregateHtml(view!)}</div>${screen ? '' : `<div id="responses">${responsesHtml(a)}</div>`}${!screen && a.aiAllowed && ['short', 'numeric', 'canvas'].includes(a.type) ? btn('AI 整理全班迷思', 'summarize', 'quiet full', 'spark') : ''}</section>`
     : `<div class="quiet-moment">${icon('sigma')}<h2>這一頁沒有題目</h2><p>可以用畫筆在圖上標示，或抽籤請同學說明。</p></div>`;
-  return `<div class="panel-scroll">${activity}${gradable && !screen ? gradingBar(a!) : ''}<section class="class-tools"><div class="draw-filter" role="group" aria-label="抽籤範圍">${(
+  return `<div class="panel-scroll">${activity}<section class="seat-map" id="seat-map" data-testid="seat-map">${seatMapInner()}</section>${gradable && !screen ? gradingBar(a!) : ''}<section class="class-tools"><div class="draw-filter" role="group" aria-label="抽籤範圍">${(
     [
       ['all', '全部'],
       ['unanswered', '未作答'],
@@ -610,10 +677,54 @@ function toolbar() {
     .join('')}<label class="color-picker" title="畫筆顏色"><input type="color" id="pen-color" value="${color}" aria-label="畫筆顏色"></label>${btn('復原', 'undo', 'tool-button', 'undo', 'title="復原"')}${btn('清空', 'clear-board', 'tool-button', 'trash', 'title="清空筆跡"')}</div>`;
 }
 const FILTER_LABEL = { all: '', unanswered: '未作答', correct: '答對', incorrect: '答錯' };
+/** 搶答層：開放搶答時，學生畫面正中間出現大顆圓形按鈕；有人搶到時，全班畫面正中間顯示座號。 */
+let buzzPressed = '';
+let buzzDismissed = '';
+function buzzLayerHtml() {
+  const s = view?.session;
+  if (s && !s.buzzOpen && !s.buzzWinner) buzzPressed = ''; // 老師重設後，下一輪可以再按
+  if (!s || !user || s.ended || (!s.buzzOpen && !s.buzzWinner)) return '';
+  const key = `${s.id}:${s.buzzWinner?.at || 'open'}`;
+  if (s.buzzWinner) {
+    if (buzzDismissed === key) return '';
+    const mine = user.role === 'student' && s.buzzWinner.seat === user.seat;
+    return `<div class="buzz-layer result ${mine ? 'mine' : ''}" data-testid="buzz-result"><div class="buzz-card"><span>${icon('bolt')}${mine ? '你搶到了！' : '搶答成功'}</span><strong>${s.buzzWinner.seat}<small> 號</small></strong><div class="buzz-actions">${user.role === 'teacher' ? btn('重設搶答', 'buzz-reset', 'secondary', 'undo') : ''}${btn(user.role === 'teacher' ? '關閉' : '知道了', 'buzz-dismiss', 'quiet', user.role === 'teacher' ? 'x' : 'check', `data-key="${key}"`)}</div></div></div>`;
+  }
+  if (user.role === 'teacher')
+    return `<div class="buzz-layer waiting teacher"><div class="buzz-card"><span class="pulse">${icon('bolt')}搶答開放中…</span>${btn('取消', 'buzz-reset', 'quiet', 'x')}</div></div>`;
+  const pressed = buzzPressed === s.id;
+  return `<div class="buzz-layer waiting" data-testid="buzz-layer"><button type="button" class="buzz-big" data-action="buzz" data-testid="buzz-button" ${pressed ? 'disabled' : ''} aria-label="搶答">${icon('bolt')}<span>${pressed ? '已按下' : '搶答'}</span></button><p>${pressed ? '等老師公布誰最快…' : '想回答就按！'}</p></div>`;
+}
+function renderBuzzLayer() {
+  const host = document.querySelector('#buzz-root');
+  if (host) host.innerHTML = buzzLayerHtml();
+}
+/** 老師端座位表：每個座號是否已作答（這一頁的題目）、是否上線；未上線的不列入抽籤。 */
+function seatMapInner() {
+  const r = view?.roster;
+  if (!r?.length) return '';
+  const a = view!.lesson.slides[view!.session.slideIndex]?.activity;
+  const on = r.filter((x) => x.online).length,
+    done = r.filter((x) => x.answered).length;
+  const waiting = r.filter((x) => x.online && !x.answered).map((x) => x.seat);
+  const head = a
+    ? `<strong>已作答 <b class="ok">${done}</b>・未作答 <b class="warn">${r.length - done}</b></strong><small>上線 ${on} / ${r.length}</small>`
+    : `<strong>上線 <b class="ok">${on}</b> / ${r.length}</strong><small>這一頁沒有題目</small>`;
+  const seats = r
+    .map((x) => {
+      const state = a && x.answered ? 'done' : x.online ? 'on' : 'off';
+      const label = `${x.seat} 號：${a ? (x.answered ? '已作答' : '未作答') : ''}${a ? '・' : ''}${x.online ? '上線' : '未上線'}`;
+      return `<span class="seat ${state}" title="${label}" aria-label="${label}">${x.seat}</span>`;
+    })
+    .join('');
+  const legend = `<p class="seat-legend">${a ? '<i class="done"></i>已作答' : ''}<i class="on"></i>${a ? '上線未作答' : '上線'}<i class="off"></i>未上線（不抽籤）</p>`;
+  const list = a && view!.session.activityOpen && waiting.length ? `<p class="seat-waiting">還沒交：${waiting.join('、')} 號</p>` : '';
+  return `<div class="seat-head">${head}</div><div class="seat-grid">${seats}</div>${list}${legend}`;
+}
 function eventsHtml() {
   if (!view) return '';
   const s = view.session;
-  return `${s.drawnSeat ? `<div class="draw-result">${icon('dice')}<div><small>抽中${s.drawFilter && s.drawFilter !== 'all' ? `（${FILTER_LABEL[s.drawFilter]}）` : ''}</small><strong>${s.drawnSeat}<span> 號</span></strong></div></div>` : ''}${s.buzzOpen || s.buzzWinner ? `<div class="buzz-panel">${s.buzzWinner ? `<span>${icon('bolt')}搶答成功</span><strong>${s.buzzWinner.seat}<small> 號</small></strong>` : `<span class="pulse">${icon('bolt')}搶答開放中</span>${user?.role === 'student' ? btn('我要搶答', 'buzz', 'primary full', 'bolt', 'data-testid="buzz-button"') : ''}`}${user?.role === 'teacher' ? btn('重設', 'buzz-reset', 'quiet', 'undo') : ''}</div>` : ''}`;
+  return `${s.drawnSeat ? `<div class="draw-result">${icon('dice')}<div><small>抽中${s.drawFilter && s.drawFilter !== 'all' ? `（${FILTER_LABEL[s.drawFilter]}）` : ''}</small><strong>${s.drawnSeat}<span> 號</span></strong></div></div>` : ''}${s.buzzOpen || s.buzzWinner ? `<div class="buzz-panel">${s.buzzWinner ? `<span>${icon('bolt')}搶答成功</span><strong>${s.buzzWinner.seat}<small> 號</small></strong>` : `<span class="pulse">${icon('bolt')}搶答開放中</span>`}${user?.role === 'teacher' ? btn('重設', 'buzz-reset', 'quiet', 'undo') : ''}</div>` : ''}`;
 }
 
 /* ───────────── 批改佇列（教師端並行） ───────────── */
@@ -733,11 +844,19 @@ function pollDelay() {
   if (!s) return 4000;
   return s.activityOpen || s.buzzOpen || grading.running ? 2000 : 5000;
 }
-/** 備援輪詢：只在即時連線（WebSocket）中斷時才真的發出請求。 */
+/**
+ * 備援輪詢：只在即時連線（WebSocket）中斷時才真的發出請求。
+ * 老師端另外每 30 秒更新一次：學生 iPad 闔上時連線不一定會關，上線名單要靠這次更新變灰。
+ */
+let lastRosterRefresh = 0;
 function schedulePoll(fn: () => Promise<void>) {
   clearTimeout(poll);
   const tick = async () => {
-    if (!liveOpen) await fn().catch(() => {});
+    const roster = user?.role === 'teacher' && !!view && Date.now() - lastRosterRefresh > 30000;
+    if (!liveOpen || roster) {
+      lastRosterRefresh = Date.now();
+      await fn().catch(() => {});
+    }
     poll = setTimeout(tick, pollDelay());
   };
   poll = setTimeout(tick, pollDelay());
@@ -880,6 +999,9 @@ async function applyView(next: SessionView | { session: null }, route: string) {
       if (agg) agg.innerHTML = aggregateHtml(n);
       const events = document.querySelector('#class-events');
       if (events) events.innerHTML = eventsHtml();
+      const seatMap = document.querySelector('#seat-map');
+      if (seatMap) seatMap.innerHTML = seatMapInner();
+      renderBuzzLayer();
       if (user.role === 'teacher' && (gradesChanged || answersChanged)) refreshPanelParts();
       if (user.role === 'student' && gradesChanged) {
         const a = n.lesson.slides[n.session.slideIndex]?.activity;
@@ -1372,8 +1494,13 @@ async function action(el: HTMLElement) {
     case 'buzz-reset':
       return control('buzz-reset');
     case 'buzz':
+      buzzPressed = s.id;
+      renderBuzzLayer();
       await api(`/sessions/${s.id}/buzz`, 'POST', { submissionId: crypto.randomUUID() });
       return refreshSession();
+    case 'buzz-dismiss':
+      buzzDismissed = el.dataset.key || '';
+      return renderBuzzLayer();
     case 'choose':
       if (!a) return;
       {
@@ -1393,13 +1520,19 @@ async function action(el: HTMLElement) {
           ? lastNumericInput
           : document.querySelector<HTMLInputElement>('.numeric-input');
       if (!input) return;
-      const k = el.dataset.key!;
-      const start = input.selectionStart ?? input.value.length,
-        end = input.selectionEnd ?? input.value.length;
-      if (k === '⌫') input.value = start === end ? input.value.slice(0, Math.max(0, start - 1)) + input.value.slice(end) : input.value.slice(0, start) + input.value.slice(end);
-      else input.value = input.value.slice(0, start) + k + input.value.slice(end);
-      input.dispatchEvent(new Event('input', { bubbles: true }));
-      input.focus();
+      if (el.dataset.key === 'keyboard') {
+        try {
+          localStorage.setItem('mck-syskb', systemKeyboard() ? '0' : '1');
+        } catch {
+          /* 無痕模式：只切換這一次 */
+        }
+        const mode = input.inputMode === 'none' ? 'text' : 'none';
+        document.querySelectorAll<HTMLInputElement>('.numeric-input').forEach((x) => (x.inputMode = mode));
+        input.blur();
+        input.focus();
+        return;
+      }
+      keyInput(input, el.dataset.key!);
       return;
     }
     case 'edit-answer':
@@ -1408,6 +1541,7 @@ async function action(el: HTMLElement) {
         const own = currentStudentAnswer(a);
         if (own && a.type !== 'canvas' && a.type !== 'manipulate') draft = own.value;
         document.querySelector('#student-answer')!.innerHTML = answerForm(a);
+        app.classList.toggle('answering', !!view.session.activityOpen);
       }
       return;
     case 'open-sketch':
@@ -1502,6 +1636,18 @@ document.addEventListener('pointerup', (e) => {
       tap.el.click();
     }
   }, 40);
+});
+// 實體鍵盤也一樣：在 √(數字|) 裡打 ＋ − ／ ×，先跳出根號再輸入。
+document.addEventListener('beforeinput', (e) => {
+  const el = e.target as HTMLInputElement;
+  if (!(el instanceof HTMLInputElement) || !el.classList.contains('numeric-input') || e.inputType !== 'insertText') return;
+  if (!e.data || !/^[+\-−－＋/／*×÷]$/.test(e.data) || el.selectionStart !== el.selectionEnd) return;
+  const at = el.selectionStart ?? el.value.length,
+    out = radicalExit(el.value, at);
+  if (out === at) return;
+  e.preventDefault();
+  el.setRangeText(e.data, out, out, 'end');
+  el.dispatchEvent(new Event('input', { bubbles: true }));
 });
 document.addEventListener('input', (e) => {
   const el = e.target as HTMLInputElement;
@@ -1701,7 +1847,27 @@ window.addEventListener('online', () => {
   void refreshSession();
   void retryPending();
 });
+/**
+ * 新版本上線後，已經開著的頁面還在跑舊程式：回到前景時、以及每 3 分鐘檢查一次，
+ * 有新版就自動重新載入（學生正在輸入答案時先不重載，避免答案不見）。
+ */
+let pendingReload = false;
+async function checkNewVersion() {
+  try {
+    const mine = document.querySelector<HTMLScriptElement>('script[type="module"][src*="/assets/"]')?.getAttribute('src');
+    if (!mine) return; // 開發模式
+    const html = await (await fetch('/', { cache: 'no-store' })).text();
+    const live = html.match(/\/assets\/index-[\w-]+\.js/)?.[0];
+    if (live && !mine.endsWith(live)) pendingReload = true;
+  } catch {
+    /* 離線時下次再試 */
+  }
+  const typing = !!document.querySelector('.numeric-input:focus, textarea:focus') || !!document.querySelector('.sketch-overlay');
+  if (pendingReload && !typing && !document.hidden) location.reload();
+}
+setInterval(() => void checkNewVersion(), 180_000);
 document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) void checkNewVersion();
   if (document.hidden || !view) return;
   if (liveOpen) return;
   void refreshSession();

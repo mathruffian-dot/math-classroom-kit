@@ -111,6 +111,8 @@ export interface AppContext {
   env: StorageEnv;
   /** 靜態資產（課本截圖）；只在通過登入檢查後由 API 代為讀取。 */
   assets?: { fetch(request: Request): Promise<Response> };
+  /** 即時連線狀態（Durable Object 的 WebSocket）。 */
+  online?: () => Presence;
   store: Store<State>;
   vault?: Vault;
   deferAi?: (deferred: Deferred) => void;
@@ -235,6 +237,15 @@ function hideKeys(activity: Activity) {
     delete activity.rubric.graderNotes;
   }
 }
+/** 學生端：拿掉第 2 步以後的圖形與說明，只留題目。 */
+function lockSteps(spec: NonNullable<Lesson['slides'][number]['interactive']>) {
+  return {
+    ...spec,
+    shapes: spec.shapes.filter((s) => (s.step ?? 0) === 0).map((s) => ({ ...s, focus: undefined })),
+    steps: spec.steps!.slice(0, 1),
+    locked: true,
+  };
+}
 /** 動畫通常演示答案：有 IRS 的頁面，學生要等老師在這一頁「公布結果」才看得到。 */
 function animationUnlocked(session: Session, slide: Lesson['slides'][number], index: number) {
   return slide.animation?.reveal === 'always' || !slide.activity || (session.resultsVisible && index === session.slideIndex);
@@ -251,7 +262,7 @@ function studentMayLoadAnimation(state: State, user: User, file: string) {
       ),
   );
 }
-export function sessionView(state: State, stored: StoredSession, user: User): SessionView {
+export function sessionView(state: State, stored: StoredSession, user: User, online?: Presence): SessionView {
   const { session } = stored,
     lesson = cleanLesson(clone(stored.lesson)),
     teacher = user.role === 'teacher';
@@ -260,6 +271,9 @@ export function sessionView(state: State, stored: StoredSession, user: User): Se
       delete slide.notes;
       if (slide.activity && (!session.resultsVisible || i !== session.slideIndex))
         hideKeys(slide.activity);
+      // 解題步驟（例題、隨堂、預測頁的逐步解答）：公布結果前只留第 1 步（題目），後面的步驟不送到學生端
+      if (slide.interactive?.steps?.length && slide.activity && !(session.resultsVisible && i === session.slideIndex))
+        slide.interactive = lockSteps(slide.interactive);
       if (slide.animation && !animationUnlocked(session, slide, i)) {
         const { caption, seconds } = slide.animation;
         slide.animation = { src: '', caption, ...(seconds ? { seconds } : {}), locked: true };
@@ -326,12 +340,17 @@ export function sessionView(state: State, stored: StoredSession, user: User): Se
     whiteboard: clone(stored.whiteboard),
     grades: clone(grades),
   };
-  if (teacher)
+  if (teacher) {
+    const on = onlineSeats(state, stored, online),
+      done = new Set(latest.map((x) => x.seat));
     view.roster =
       state.classes[session.classId]?.students.map((s) => ({
         seat: s.seat,
         lastSeen: stored.seen[String(s.seat)],
+        online: on.has(s.seat),
+        answered: done.has(s.seat),
       })) || [];
+  }
   return view;
 }
 async function login(
@@ -449,6 +468,27 @@ export interface LiveTicket {
   sessionId?: string;
   /** 上次送出內容的雜湊，內容沒變就不重送。 */
   sent?: string;
+  /** 連線建立時間（判斷上線用）。 */
+  at?: number;
+}
+/** 即時連線狀態：live＝目前有連線的使用者；closedAt＝連線關掉的時間（關掉後沒再出現就算離線）。 */
+export interface Presence {
+  live: Set<string>;
+  closedAt: Map<string, number>;
+}
+/** 上線判斷：有即時連線；或 45 秒內有輪詢／作答（輪詢備援時，最後出現時間最多每 30 秒更新一次）。 */
+const ONLINE_WINDOW = 45_000;
+export function onlineSeats(state: State, stored: StoredSession, online?: Presence): Set<number> {
+  const classId = stored.session.classId,
+    seats = new Set<number>();
+  for (const s of state.classes[classId]?.students || []) {
+    const id = `${classId}-${s.seat}`,
+      seen = stored.seen[String(s.seat)] ? Date.parse(stored.seen[String(s.seat)]) : 0;
+    if (online?.live.has(id)) seats.add(s.seat);
+    else if ((online?.closedAt.get(id) || 0) >= seen) continue; // 關掉 iPad 之後沒再出現
+    else if (Date.now() - seen < ONLINE_WINDOW) seats.add(s.seat);
+  }
+  return seats;
 }
 function activeSessionFor(state: State, classId: string | undefined): StoredSession | undefined {
   return Object.values(state.sessions)
@@ -473,14 +513,14 @@ export async function liveTicket(request: Request, state: State): Promise<LiveTi
  * 依連線身分算出要推送的內容：教師是指定課堂的完整檢視，學生是自己班級目前課堂的學生檢視。
  * 回傳 null 表示登入已失效，應關閉連線。
  */
-export function liveView(state: State, t: LiveTicket): SessionView | { session: null } | null {
+export function liveView(state: State, t: LiveTicket, online?: Presence): SessionView | { session: null } | null {
   const login = state.logins[t.token];
   if (!login || login.expires < Date.now() || login.user.id !== t.userId) return null;
   if (t.role === 'teacher') {
     const s = state.sessions[t.sessionId || ''];
     if (!s || s.ownerId !== login.user.id) return null;
     s.grades ||= {};
-    return sessionView(state, s, login.user);
+    return sessionView(state, s, login.user, online);
   }
   const s = activeSessionFor(state, login.user.classId);
   if (!s) return { session: null };
@@ -851,9 +891,9 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
         Date.now() - Date.parse(s.seen[String(user.seat)]) > 30000
       ) {
         s.seen[String(user.seat)] = now();
-        return save(sessionView(state, s, user));
+        return save(sessionView(state, s, user, ctx.online?.()));
       }
-      return json(sessionView(state, s, user));
+      return json(sessionView(state, s, user, ctx.online?.()));
     }
     const sessionMatch = path.match(
       /^\/api\/sessions\/([\w-]+)(?:\/(control|answers|buzz|whiteboard|export|images|grades)(?:\/([\w-]+))?)?$/,
@@ -862,7 +902,7 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
       const s = ownedSession(state, identifier(sessionMatch[1]), user),
         session = s.session,
         action = sessionMatch[2];
-      if (!action && method === 'GET') return json(sessionView(state, s, user));
+      if (!action && method === 'GET') return json(sessionView(state, s, user, ctx.online?.()));
       if (!action && method === 'DELETE') {
         requireTeacher(user);
         for (const [id, meta] of Object.entries(state.images))
@@ -937,6 +977,10 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
                 409,
               );
             }
+            // 只抽有上線的學生（沒上線的不列入）
+            const on = onlineSeats(state, s, ctx.online?.());
+            pool = pool.filter((n) => on.has(n));
+            assert(pool.length, filter === 'all' ? '目前沒有上線的學生' : '符合條件的同學目前都沒有上線', 409);
             let seats = pool.filter((n) => !session.drawnSeats.includes(n));
             if (!seats.length) {
               session.drawnSeats = session.drawnSeats.filter((n) => !pool.includes(n));
@@ -963,7 +1007,7 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
             throw new HttpError(400, '未知控制指令');
         }
         session.revision++;
-        return save(sessionView(state, s, user));
+        return save(sessionView(state, s, user, ctx.online?.()));
       }
       if (action === 'images' && method === 'POST') {
         assert(!session.ended, '課堂已結束', 409);

@@ -158,6 +158,8 @@ export interface Interactive {
   /** 步驟揭示的說明文字；變數 step 從 0 開始。 */
   steps?: string[];
   caption?: string;
+  /** 只由伺服器設定：學生端在老師「公布結果」前，解題步驟只留第 1 步（題目）。 */
+  locked?: boolean;
 }
 
 export interface NumericItem {
@@ -340,7 +342,8 @@ export interface SessionView {
   };
   whiteboard: Record<string, Stroke[]>;
   grades: Grade[];
-  roster?: { seat: number; lastSeen?: string }[];
+  /** 只給老師：每個座號最後出現時間、目前是否上線（有即時連線或 75 秒內有動作）、這一頁是否已作答。 */
+  roster?: { seat: number; lastSeen?: string; online?: boolean; answered?: boolean }[];
 }
 export interface Dashboard {
   lessons: Lesson[];
