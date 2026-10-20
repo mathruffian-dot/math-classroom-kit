@@ -2,6 +2,7 @@ import './styles.css';
 import { api, download, escape as esc, serverTime, syncClock } from './api';
 import { practiceStatus, type PracticeStatus } from '../shared/practice';
 import { playCorrect, unlockSound } from './sound';
+import { HandPad } from './handpad';
 import { clearDanmakuLayer, syncDanmaku } from './danmaku';
 import { icon } from './icons';
 import { Whiteboard, type Tool } from './board';
@@ -218,11 +219,11 @@ async function renderSettings() {
     ['custom', '其他 OpenAI 相容 API'],
   ];
   const votes = prefs.get<number>('votes', 1),
-    concurrency = prefs.get<number>('concurrency', 6);
+    concurrency = prefs.get<number>('concurrency', 10);
   shell(
     'settings',
     '設定',
-    `<div class="settings-grid"><section class="panel settings-panel"><h2>${icon('key')}AI 批改與轉課程</h2><p class="muted">API key 只存在伺服器端（Cloudflare Durable Object），不會傳到學生裝置、不進備份。</p><form id="ai-form"><label>供應商<select name="provider">${providers.map(([v, n]) => `<option value="${v}" ${ai?.provider === v ? 'selected' : ''}>${n}</option>`).join('')}</select></label><label>API 網址<input name="baseUrl" value="${esc(ai?.baseUrl || '')}" required></label><label>模型名稱<input name="model" value="${esc(ai?.model || '')}" required placeholder="需支援讀圖（vision）"></label><label>API key<input name="apiKey" type="password" autocomplete="off" placeholder="${ai?.keyHint ? `已設定 ${esc(ai.keyHint)}，留空則不變更` : '貼上你的 API key'}"></label><label>每日呼叫上限<input name="dailyLimit" type="number" min="1" max="5000" value="${ai?.dailyLimit || 200}"></label><p class="setting-status">${ai?.configured ? tag(`已啟用・${ai.source === 'env' ? '部署環境變數' : '教師設定'}・今日已用 ${ai.usedToday} 次`, 'green') : tag('尚未設定：批改與轉課程會使用模擬結果', 'warn')}</p><div class="actions"><button type="submit" class="btn primary">${icon('save')}<span>儲存 AI 設定</span></button>${ai?.source === 'teacher' ? btn('移除金鑰', 'clear-ai', 'quiet danger', 'trash') : ''}</div></form></section><section class="panel settings-panel"><h2>${icon('stamp')}批改節奏</h2><label>同時批改份數<select id="pref-concurrency">${[2, 4, 6, 8].map((n) => `<option ${n === concurrency ? 'selected' : ''}>${n}</option>`).join('')}</select></label><label>每份投票次數<select id="pref-votes"><option value="1" ${votes === 1 ? 'selected' : ''}>1 次（最快）</option><option value="3" ${votes === 3 ? 'selected' : ''}>3 次取共識（較準、費用 ×3）</option></select></label><p class="muted small-text">一班 30 份、同時 6 份時，單次投票約 1.5–3 分鐘可改完（視模型速度與供應商速率限制）。信心低於 0.7 或多次投票不一致的作答會標示「需覆核」。</p></section><section class="panel settings-panel"><h2>${icon('shield')}教師密碼</h2>${config.mode === 'supabase' ? '<p>Supabase 模式請在 Supabase Auth 修改密碼。</p>' : `<form id="password-form"><label>目前密碼<input name="current" type="password" autocomplete="current-password" required></label><label>新密碼（至少 8 字元）<input name="next" type="password" autocomplete="new-password" minlength="8" required></label><button type="submit" class="btn primary">${icon('save')}<span>修改密碼</span></button></form>`}</section><section class="panel settings-panel"><h2>${icon('screen')}部署資訊</h2><dl class="setting-list"><div><dt>模式</dt><dd>${modeBadge()}</dd></div><div><dt>教師帳號</dt><dd>${esc(user?.name || '')}</dd></div><div><dt>課堂同步</dt><dd>即時連線（WebSocket），中斷時自動改用輪詢備援</dd></div><div><dt>版本</dt><dd>${esc(config.version)}</dd></div></dl></section></div>`,
+    `<div class="settings-grid"><section class="panel settings-panel"><h2>${icon('key')}AI 批改與轉課程</h2><p class="muted">API key 只存在伺服器端（Cloudflare Durable Object），不會傳到學生裝置、不進備份。</p><form id="ai-form"><label>供應商<select name="provider">${providers.map(([v, n]) => `<option value="${v}" ${ai?.provider === v ? 'selected' : ''}>${n}</option>`).join('')}</select></label><label>API 網址<input name="baseUrl" value="${esc(ai?.baseUrl || '')}" required></label><label>模型名稱<input name="model" value="${esc(ai?.model || '')}" required placeholder="需支援讀圖（vision）"></label><label>API key<input name="apiKey" type="password" autocomplete="off" placeholder="${ai?.keyHint ? `已設定 ${esc(ai.keyHint)}，留空則不變更` : '貼上你的 API key'}"></label><label>每日呼叫上限<input name="dailyLimit" type="number" min="1" max="5000" value="${ai?.dailyLimit || 200}"></label><p class="setting-status">${ai?.configured ? tag(`已啟用・${ai.source === 'env' ? '部署環境變數' : '教師設定'}・今日已用 ${ai.usedToday} 次`, 'green') : tag('尚未設定：批改與轉課程會使用模擬結果', 'warn')}</p><div class="actions"><button type="submit" class="btn primary">${icon('save')}<span>儲存 AI 設定</span></button>${ai?.source === 'teacher' ? btn('移除金鑰', 'clear-ai', 'quiet danger', 'trash') : ''}</div></form></section><section class="panel settings-panel"><h2>${icon('stamp')}批改節奏</h2><label>同時批改份數<select id="pref-concurrency">${[2, 4, 6, 8, 10, 16].map((n) => `<option ${n === concurrency ? 'selected' : ''}>${n}</option>`).join('')}</select></label><label>每份投票次數<select id="pref-votes"><option value="1" ${votes === 1 ? 'selected' : ''}>1 次（最快）</option><option value="3" ${votes === 3 ? 'selected' : ''}>3 次取共識（較準、費用 ×3）</option></select></label><p class="muted small-text">快速批改（拍照作答依辨識稿、只送文字）每份約 3–8 秒，一班 32 份同時 10 份約半分鐘；看圖＋紅筆的完整批改每份約 15–40 秒。實際速度視模型與供應商速率限制。信心低於 0.7 或多次投票不一致的作答會標示「需覆核」。</p></section><section class="panel settings-panel"><h2>${icon('shield')}教師密碼</h2>${config.mode === 'supabase' ? '<p>Supabase 模式請在 Supabase Auth 修改密碼。</p>' : `<form id="password-form"><label>目前密碼<input name="current" type="password" autocomplete="current-password" required></label><label>新密碼（至少 8 字元）<input name="next" type="password" autocomplete="new-password" minlength="8" required></label><button type="submit" class="btn primary">${icon('save')}<span>修改密碼</span></button></form>`}</section><section class="panel settings-panel"><h2>${icon('screen')}部署資訊</h2><dl class="setting-list"><div><dt>模式</dt><dd>${modeBadge()}</dd></div><div><dt>教師帳號</dt><dd>${esc(user?.name || '')}</dd></div><div><dt>課堂同步</dt><dd>即時連線（WebSocket），中斷時自動改用輪詢備援</dd></div><div><dt>版本</dt><dd>${esc(config.version)}</dd></div></dl></section></div>`,
   );
 }
 const NEW_LESSON = (): Lesson => ({
@@ -420,7 +421,71 @@ function currentStudentAnswer(a: Activity) {
 }
 function canvasValuePreview(value: Answer['value']) {
   const v = value as CanvasAnswer;
-  return `${v.imageId ? `<img class="answer-thumb" src="/api/images/${esc(v.imageId)}" alt="我送出的作答">` : ''}${v.text ? `<p class="answer-note">${md(v.text)}</p>` : ''}`;
+  return `${v.imageId ? `<img class="answer-thumb" src="/api/images/${esc(v.imageId)}" alt="我送出的作答">` : ''}${v.work ? `<div class="work-lines small">${workHtml(v.work)}</div>` : ''}${v.text ? `<p class="answer-note">${md(v.text)}</p>` : ''}`;
+}
+/* ───────────── 拍照作答：照片 → AI 辨識稿 → 學生確認（可修改）→ 送出 ───────────── */
+/** 一行計算過程：以 = 分段，每段能解析成算式就用課本樣式顯示，其他照原文字。[圖：…] 是圖的描述。 */
+function workLineHtml(line: string) {
+  if (/^\[.*\]$/.test(line.trim())) return `<span class="work-figure">${esc(line.trim())}</span>`;
+  return line
+    .split('=')
+    .map((part) => (part.trim() ? answerHtml(part.trim()) : ''))
+    .join(' <span class="work-eq">=</span> ');
+}
+function workHtml(work: string) {
+  return work
+    .split('\n')
+    .filter((l) => l.trim())
+    .map((l) => `<p>${workLineHtml(l)}</p>`)
+    .join('');
+}
+let photoDraft: {
+  activityId: string;
+  imageId: string;
+  preview: string;
+  status: 'reading' | 'ready' | 'error';
+  work: string;
+  ocr: string;
+  message?: string;
+} | null = null;
+async function photoWork(a: Activity, file: File) {
+  if (!view) return;
+  if (a.type !== 'canvas') return startSketch(a, file);
+  const p = await compressPhoto(file);
+  const draft = { activityId: a.id, imageId: '', preview: p.dataUrl, status: 'reading' as const, work: '', ocr: '' };
+  photoDraft = draft;
+  renderPhotoReview(a);
+  try {
+    draft.imageId = (await api<{ imageId: string }>(`/sessions/${view.session.id}/images`, 'POST', { dataUrl: p.dataUrl })).imageId;
+    renderPhotoReview(a);
+    const mock = (window as unknown as { __mckWorkMock?: string }).__mckWorkMock;
+    const r = await api<{ work: string }>(`/sessions/${view.session.id}/ocr-work`, 'POST', {
+      imageId: draft.imageId,
+      activityId: a.id,
+      ...(mock !== undefined ? { mockText: mock } : {}),
+    });
+    if (photoDraft !== draft) return; // 已經重拍或取消
+    Object.assign(draft, { work: r.work, ocr: r.work, status: 'ready' });
+  } catch (e) {
+    if (photoDraft !== draft) return;
+    Object.assign(draft, { status: 'error', message: (e as Error).message });
+  }
+  renderPhotoReview(a);
+}
+function renderPhotoReview(a: Activity) {
+  const host = document.querySelector('#student-answer');
+  if (host) host.innerHTML = answerForm(a);
+}
+function photoReviewHtml(a: Activity) {
+  const d = photoDraft!;
+  const reading = d.status === 'reading';
+  const note =
+    d.status === 'reading'
+      ? `<p class="work-status">${icon('spark')}AI 正在辨識你的計算過程…（約 5–15 秒）</p>`
+      : d.status === 'error'
+        ? `<p class="work-status warn">${esc(d.message || '辨識失敗')}　可以自己打字補上，或直接送出照片。</p>`
+        : `<p class="work-status ok">${icon('check')}請核對：AI 讀到的和你寫的一樣嗎？讀錯的地方直接修改，再按送出。</p>`;
+  return `<section class="photo-review" data-testid="photo-review"><div class="photo-review-grid"><figure><img src="${d.preview}" alt="我拍的作答"></figure><div class="work-edit"><label for="work-text">辨識稿（一行一個步驟）</label><textarea id="work-text" rows="6" ${reading ? 'disabled' : ''} placeholder="${reading ? '辨識中…' : '一行寫一個步驟'}">${esc(d.work)}</textarea><div class="work-lines" id="work-preview" aria-live="polite">${workHtml(d.work)}</div></div></div>${note}<div class="tool-row"><label class="btn secondary">${icon('camera')}<span>重拍</span><input type="file" accept="image/*" capture="environment" data-action-input="quick-photo"></label>${btn('送出照片與辨識稿', 'submit-photo-work', 'primary', 'check', `data-testid="submit-photo-work" ${reading || !d.imageId ? 'disabled' : ''}`)}${btn('取消', 'cancel-photo-work', 'quiet', 'x')}</div>${criteriaHint(a)}</section>`;
 }
 function answerForm(a: Activity) {
   const answered = currentStudentAnswer(a),
@@ -447,6 +512,8 @@ function answerForm(a: Activity) {
     const keys = a.record?.length ? a.record : Object.keys(vars).filter((k) => k !== 'step');
     fields = `<div class="manip-state">${icon('sliders')}<span>先在左邊的圖上操作，再送出目前的狀態。</span><code id="manip-vars">${keys.map((k) => `${esc(k)} = ${fmt(vars[k])}`).join('　')}</code></div>`;
   }
+  if (a.type === 'canvas' && photoDraft?.activityId === a.id && (!answered || editing) && open)
+    return `<div class="activity-prompt"><span class="tag">${TYPE_LABEL[a.type]}</span>${view!.session.activityDeadline ? `<span class="time-chip">剩 ${countdown(view!.session.activityDeadline)}</span>` : ''}<h2>${md(a.prompt)}</h2></div>${photoReviewHtml(a)}`;
   if (a.type === 'canvas') {
     const sk = sketches.get(a.id);
     const preview = sketchPreview.get(a.id);
@@ -488,19 +555,77 @@ function mathKeys(dis: string) {
  * 下方放不下就放在上方；不用再捲到面板底部找鍵盤。標題列有「下一格」「送出」「收起」。
  */
 function keypadHtml() {
-  return `<div class="keypad" id="keypad" data-testid="keypad" hidden><div class="keypad-head"><span>作答鍵盤</span>${btn('下一格', 'keypad-next', 'quiet', 'next', 'data-testid="keypad-next"')}${btn('送出', 'keypad-submit', 'primary', 'check', 'data-testid="keypad-submit"')}${btn('', 'keypad-close', 'icon-btn', 'x', 'aria-label="收起鍵盤"')}</div>${mathKeys('')}</div>`;
+  const mode = keypadMode();
+  const tab = (m: 'keys' | 'hand', label: string) => `<button type="button" data-action="keypad-mode" data-mode="${m}" data-testid="keypad-mode-${m}" aria-pressed="${mode === m}">${label}</button>`;
+  return `<div class="keypad" id="keypad" data-testid="keypad" data-mode="${mode}" hidden><div class="keypad-head"><div class="keypad-mode" role="group" aria-label="輸入方式">${tab('keys', '鍵盤')}${tab('hand', '手寫')}</div><span class="keypad-timer" id="keypad-timer" data-testid="keypad-timer"></span>${btn('下一格', 'keypad-next', 'quiet', 'next', 'data-testid="keypad-next"')}${btn('送出', 'keypad-submit', 'primary', 'check', 'data-testid="keypad-submit"')}${btn('', 'keypad-close', 'icon-btn', 'x', 'aria-label="收起鍵盤"')}</div><div class="keypad-keys">${mathKeys('')}</div><div class="keypad-hand"><canvas class="hand-pad" data-testid="hand-pad" aria-label="手寫答案區"></canvas><div class="hand-bar"><span id="hand-status" class="muted small-text" aria-live="polite">${HAND_HINT}</span>${btn('清除', 'hand-clear', 'quiet', 'erase', 'data-testid="hand-clear"')}${btn('辨識', 'hand-read', 'secondary', 'spark', 'data-testid="hand-read"')}</div></div></div>`;
 }
 let keypadFor: HTMLInputElement | null = null;
+/* 手寫模式：寫完停筆約 1 秒自動辨識，結果填進答案框（下方「系統讀到」可再確認），不對就清除重寫或改用鍵盤 */
+const HAND_HINT = '用手指或 Apple Pencil 寫一個答案，停筆後自動辨識';
+let hand: HandPad | null = null,
+  handBusy = false;
+function keypadMode(): 'keys' | 'hand' {
+  return prefs.get<string>('keypadMode', 'keys') === 'hand' ? 'hand' : 'keys';
+}
+function handStatus(html: string, cls = '') {
+  const el = document.querySelector<HTMLElement>('#hand-status');
+  if (!el) return;
+  el.className = `small-text ${cls || 'muted'}`;
+  el.innerHTML = html;
+}
+function mountHandPad() {
+  hand?.destroy();
+  hand = null;
+  const canvas = document.querySelector<HTMLCanvasElement>('#keypad .hand-pad');
+  if (canvas) hand = new HandPad(canvas, () => void recognizeHand());
+}
+async function recognizeHand() {
+  const input = keypadFor;
+  if (!hand || hand.empty || !input || !view) return;
+  if (handBusy) return;
+  handBusy = true;
+  const version = hand.version;
+  handStatus('辨識中…');
+  try {
+    const r = await api<{ text: string; ok: boolean; message?: string }>(`/sessions/${view.session.id}/ocr`, 'POST', {
+      dataUrl: hand.toDataUrl(),
+      ...((window as unknown as { __mckOcrMock?: string }).__mckOcrMock !== undefined ? { mockText: (window as unknown as { __mckOcrMock?: string }).__mckOcrMock } : {}),
+    });
+    if (keypadFor !== input) return; // 已經換到別格
+    if (r.ok) {
+      input.value = r.text;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      handStatus(`讀到 ${answerHtml(r.text)}　對了按「送出」，不對就「清除」重寫`, 'hand-ok');
+    } else handStatus(esc(r.message || '看不清楚，請再寫一次'), 'hand-warn');
+  } catch (e) {
+    handStatus(esc((e as Error).message), 'hand-warn');
+  } finally {
+    handBusy = false;
+  }
+  // 辨識期間又多寫了筆畫：再辨識一次
+  if (hand && hand.version !== version && keypadFor === input) void recognizeHand();
+}
 function keypadInputs() {
   return [...document.querySelectorAll<HTMLInputElement>('#student-answer .numeric-input:not([disabled])')];
 }
 function openKeypad(input: HTMLInputElement) {
   const kp = document.querySelector<HTMLElement>('#keypad');
   if (!kp || user?.role !== 'student') return;
+  if (keypadFor !== input && hand) {
+    hand.clear(); // 換格就清空手寫板
+    handStatus(HAND_HINT);
+  }
   keypadFor = input;
   kp.hidden = false;
   kp.querySelector<HTMLElement>('[data-action="keypad-next"]')!.hidden = keypadInputs().length < 2;
+  // 鍵盤標題列也顯示倒數：題目捲出畫面時，學生仍看得到剩下多少時間
+  const s = view?.session,
+    mine = myPractice();
+  const deadline = mine?.st.status === 'working' ? mine.st.deadline : s?.activityOpen && s.activityDeadline ? s.activityDeadline : 0;
+  const timer = kp.querySelector('#keypad-timer');
+  if (timer) timer.innerHTML = deadline ? `剩 ${countdown(deadline)}` : '';
   placeKeypad(true);
+  hand?.fit();
 }
 let keypadPadded: HTMLElement | null = null;
 function closeKeypad() {
@@ -670,6 +795,7 @@ function renderSession() {
   app.innerHTML = `<header class="room-bar"><div class="room-identity">${teacher ? btn('返回', 'dashboard', 'icon-btn', 'back', 'aria-label="返回課程"') : `<span class="brand-mark small">${icon('sigma')}</span>`}<div><strong>${esc(teacher ? s.title : `${s.className}・${user.seat} 號`)}</strong><small>${teacher ? esc(s.className) : esc(view.lesson.title)}</small></div></div><div class="room-progress" aria-label="第 ${index + 1} 頁，共 ${total} 頁"><span>${index + 1}</span>/<span>${total}</span></div><div class="room-actions"><span id="sync-status" class="sync-status"><i></i>已連線</span>${teacher ? `${btn(screen ? '一般' : '大屏', 'screen', 'quiet', 'screen', 'title="切換大屏授課"')}` : ''}${btn('', 'fullscreen', 'icon-btn', 'expand', 'aria-label="全螢幕" title="全螢幕"')}${!teacher && s.danmakuOpen && !s.ended ? btn('彈幕', 'danmaku-bar', `quiet danmaku-btn ${danmakuBar ? 'selected' : ''}`, 'spark', 'data-testid="danmaku-open"') : ''}${teacher ? '' : btn('', 'logout', 'icon-btn', 'logout', 'aria-label="登出" title="登出"')}</div></header><div class="room-main"><main class="stage-col"><article class="slide-stage" data-testid="session-slide" id="slide-stage">${slideMarkup(slide, index, total)}</article><nav class="slide-nav" aria-label="翻頁與白板工具">${btn('', 'prev-slide', 'icon-btn nav-btn', 'prev', `aria-label="上一頁" ${index === 0 || (!teacher && s.followTeacher) ? 'disabled' : ''}`)}${teacher ? toolbar() : ''}<div class="slide-dots">${view.lesson.slides.map((sl, i) => `<button class="${i === index ? 'active' : ''} ${sl.activity ? 'has-q' : ''} ${i === s.slideIndex && !teacher ? 'live' : ''}" data-action="go-slide" data-index="${i}" aria-label="第 ${i + 1} 頁${sl.phase ? `・${esc(sl.phase)}` : ''}" title="${esc(sl.phase || sl.title)}" ${!teacher && s.followTeacher ? 'disabled' : ''}><span></span></button>`).join('')}</div>${btn('', 'next-slide', 'icon-btn nav-btn primary', 'next', `aria-label="下一頁" data-testid="next-slide" ${index === total - 1 || (!teacher && s.followTeacher) ? 'disabled' : ''}`)}</nav></main><aside class="panel-col" aria-label="${teacher ? '課堂互動' : '作答區'}">${panel}</aside></div>${teacher ? '' : `<nav class="phone-tabs" aria-label="切換"><button class="${studentTab === 'slide' ? 'selected' : ''}" data-action="student-tab" data-tab="slide">${icon('book')}教材</button><button class="${studentTab === 'answer' ? 'selected' : ''}" data-action="student-tab" data-tab="answer">${icon('pen')}作答${a && s.activityOpen && (!own || editing) ? '<i class="badge-dot"></i>' : ''}</button></nav>`}<div id="buzz-root"></div><div id="danmaku-root">${teacher ? '' : danmakuStudentHtml()}</div>${teacher ? '' : keypadHtml()}`;
   const stage = document.querySelector<HTMLElement>('#slide-stage')!;
   renderBuzzLayer();
+  if (!teacher) mountHandPad();
   if (teacher) syncDanmaku(view.danmaku, s.danmakuClearedAt, serverTime());
   if (
     figZoom &&
@@ -804,7 +930,7 @@ function practiceBoard(a: Activity) {
     const n = (k: PracticeStatus['status']) => rows.filter((r) => r.st.status === k).length;
     const chips = rows
       .map(({ e, st }) => {
-        const label = st.status === 'passed' ? `✓ 第 ${st.round + 1} 輪過` : st.status === 'help' ? '⚠ 個別指導' : `第 ${st.round + 1} 輪 ${clockText(st.deadline - now)}`;
+        const label = st.status === 'passed' ? `✓ 第 ${st.round + 1} 輪過` : st.status === 'help' ? '⚠ 個別指導' : `第 ${st.round + 1} 輪 ${countdown(st.deadline)}`;
         return `<span class="practice-chip ${st.status}" data-testid="practice-seat-${e.seat}"><b>${e.seat}</b><small>${label}</small></span>`;
       })
       .join('');
@@ -812,8 +938,8 @@ function practiceBoard(a: Activity) {
   }
   if (!a.practice?.length || s.activityOpen || s.ended || !v.aggregate.submitted) return '';
   const wrong = wrongSeats(a).length,
-    unanswered = (v.roster || []).filter((x) => !x.answered).length;
-  return `<section class="practice-start"><button class="btn primary full" data-action="practice-start" data-testid="practice-start" ${wrong || (unanswered && practiceWithUnanswered) ? '' : 'disabled'}>${icon('target')}<span>派補救練習給答錯的同學（${wrong} 人）</span></button><label class="check-line"><input type="checkbox" id="practice-unanswered" ${practiceWithUnanswered ? 'checked' : ''}> 也派給未作答的同學（${unanswered} 人）</label><p class="muted small-text">每人各自計時 1 分鐘；答錯或時間到就換下一題，最多 3 輪。</p></section>`;
+    unanswered = (v.roster || []).filter((x) => x.online && !x.answered).length;
+  return `<section class="practice-start"><button class="btn primary full" data-action="practice-start" data-testid="practice-start" ${wrong || (unanswered && practiceWithUnanswered) ? '' : 'disabled'}>${icon('target')}<span>派補救練習給答錯的同學（${wrong} 人）</span></button><label class="check-line"><input type="checkbox" id="practice-unanswered" ${practiceWithUnanswered ? 'checked' : ''}> 也派給上線但未作答的同學（${unanswered} 人）</label><p class="muted small-text">每人各自計時 1 分鐘；答錯或時間到就換下一題，最多 3 輪。</p></section>`;
 }
 let practiceWithUnanswered = false;
 /** 學生端：補救練習卡（取代原本的作答區）。 */
@@ -865,6 +991,7 @@ function danmakuStudentHtml() {
   const s = view?.session;
   if (!s?.danmakuOpen || s.ended) {
     danmakuBar = false; // 關閉後下次開放時，先收起輸入列
+    danmakuDraft = '';
     return '';
   }
   if (!danmakuBar) return '';
@@ -912,15 +1039,57 @@ function tickClocks() {
 }
 setInterval(tickClocks, 500);
 unlockSound();
+/** 學生改過 AI 的辨識結果（老師批改時要留意照片和文字是否一致）。 */
+function workEdited(v: CanvasAnswer) {
+  return !!v.work && !!v.ocr && v.work.replace(/\s+/g, '') !== v.ocr.replace(/\s+/g, '');
+}
+/* ───────────── 投影講解：全班的作答（照片＋辨識稿＋分數），點一份放大 ───────────── */
+let wallAnon = false;
+function wallScore(id: string) {
+  const g = gradeFor(id);
+  if (!g) return '<em class="st">未批改</em>';
+  return g.depth === 'verdict' ? `<em class="st ${g.correct ? 'right' : 'wrong'}">${g.correct ? '✓ 對' : '✗ 錯'}</em>` : `<em class="st graded">${g.total}/${g.max}</em>`;
+}
+function workWallHtml(a: Activity, focusId?: string) {
+  const list = latestBySeat(view!, a.id);
+  const who = (seat: number, i: number) => (wallAnon ? `第 ${i + 1} 份` : `${seat} 號`);
+  const head = `<div class="wall-head"><span>${list.length} 份作答</span><label class="check-line"><input type="checkbox" id="wall-anon" ${wallAnon ? 'checked' : ''}> 投影時隱藏座號</label></div>`;
+  if (focusId) {
+    const i = list.findIndex((x) => x.id === focusId);
+    const x = list[i];
+    if (x) {
+      const v = x.value as CanvasAnswer;
+      const g = gradeFor(x.id);
+      return `${head}<div class="wall-focus" data-testid="wall-focus"><figure>${v.imageId ? `<img src="/api/images/${esc(v.imageId)}" alt="${who(x.seat, i)}的作答">` : ''}</figure><div class="wall-focus-text"><h3>${who(x.seat, i)} ${wallScore(x.id)}</h3>${v.work ? `<div class="work-lines big">${workHtml(v.work)}</div>` : v.text ? `<p>${md(v.text)}</p>` : '<p class="muted">（沒有辨識稿）</p>'}${g?.feedback ? `<p class="wall-feedback">${md(g.feedback)}</p>` : ''}</div></div><div class="tool-row wall-nav">${btn('上一份', 'wall-focus', 'quiet', 'prev', `data-id="${esc(list[i - 1]?.id || '')}" ${i > 0 ? '' : 'disabled'}`)}${btn('回到全班', 'wall-back', 'secondary', 'grid')}${btn('下一份', 'wall-focus', 'quiet', 'next', `data-id="${esc(list[i + 1]?.id || '')}" ${i < list.length - 1 ? '' : 'disabled'}`)}</div>`;
+    }
+  }
+  const cards = list
+    .map((x, i) => {
+      const v = x.value as CanvasAnswer;
+      return `<button class="wall-card" data-action="wall-focus" data-id="${esc(x.id)}" data-testid="wall-card"><header><b>${who(x.seat, i)}</b>${wallScore(x.id)}</header>${v.imageId ? `<img src="/api/images/${esc(v.imageId)}" alt="" loading="lazy">` : ''}${v.work ? `<div class="work-lines small">${workHtml(v.work.split('\n').slice(-3).join('\n'))}</div>` : ''}</button>`;
+    })
+    .join('');
+  return `${head}<div class="wall-grid">${cards || '<p class="muted">還沒有作答。</p>'}</div>`;
+}
+let wallFocus: string | undefined;
+function showWall(a: Activity, focusId?: string) {
+  wallFocus = focusId;
+  const body = document.querySelector('.modal.full .modal-body');
+  if (body && document.querySelector('[data-wall]')) body.innerHTML = workWallHtml(a, focusId);
+  else {
+    modal(`投影講解：${md(a.prompt)}`, workWallHtml(a, focusId), 'full');
+    document.querySelector('.modal')?.setAttribute('data-wall', '');
+  }
+}
 function responsesHtml(a: Activity) {
   const answers = latestBySeat(view!, a.id);
   if (a.type === 'canvas' || (a.type === 'short' && a.rubric))
-    return `<div class="submission-grid" data-testid="submission-grid">${answers
+    return `${answers.length && a.type === 'canvas' ? `<div class="tool-row">${btn('投影講解：全班作答', 'work-wall', 'secondary', 'screen', 'data-testid="work-wall"')}</div>` : ''}<div class="submission-grid" data-testid="submission-grid">${answers
       .map((x) => {
         const g = gradeFor(x.id);
         const v = x.value as CanvasAnswer;
         const state = grading.inFlight.has(x.id) ? '<em class="st busy">批改中</em>' : g ? `<em class="st ${g.released ? 'released' : g.needsReview ? 'review' : 'graded'} ${g.depth === 'verdict' ? (g.correct ? 'right' : 'wrong') : ''}">${g.depth === 'verdict' ? (g.correct ? '✓ 對' : '✗ 錯') : `${g.total}/${g.max}`}${g.needsReview ? ' ⚠' : ''}</em>` : '<em class="st">未批改</em>';
-        return `<button class="submission" data-action="open-grade" data-id="${esc(x.id)}"><span class="seat">${x.seat}</span>${typeof x.value === 'string' ? `<span class="excerpt">${esc(x.value.slice(0, 60))}</span>` : v.imageId ? `<img src="/api/images/${esc(v.imageId)}" alt="${x.seat} 號作答" loading="lazy">` : `<span class="excerpt">${esc(v.text || '')}</span>`}${state}</button>`;
+        return `<button class="submission" data-action="open-grade" data-id="${esc(x.id)}"><span class="seat">${x.seat}</span>${typeof x.value === 'string' ? `<span class="excerpt">${esc(x.value.slice(0, 60))}</span>` : v.imageId ? `<img src="/api/images/${esc(v.imageId)}" alt="${x.seat} 號作答" loading="lazy">` : `<span class="excerpt">${esc(v.text || '')}</span>`}${v.work ? `<span class="excerpt work">${esc(v.work.split('\n').slice(-2).join('　'))}</span>` : ''}${workEdited(v) ? '<em class="st edited">改過辨識</em>' : ''}${state}</button>`;
       })
       .join('') || '<p class="muted">等待第一份作答。</p>'}</div>`;
   if (a.type === 'short')
@@ -948,7 +1117,7 @@ function gradingBar(a: Activity) {
   const released = graded.filter((x) => gradeFor(x.id)!.released).length;
   const review = graded.filter((x) => gradeFor(x.id)!.needsReview).length;
   const auto = prefs.get('autoGrade', false);
-  return `<section class="grading-bar" id="grading-bar"><div class="grading-status"><strong>${icon('stamp')}${redpen ? '第 2 層：紅筆批改' : '第 1 層：判斷對錯'}</strong><span>${graded.length}/${answers.length} 已批改${graded.length ? `・答對 ${right}` : ''}${review ? `・<b class="warn">${review} 需覆核</b>` : ''}${released ? `・${released} 已發回` : ''}</span>${grading.total ? `<span class="grading-progress"><i style="width:${Math.round((grading.done / grading.total) * 100)}%"></i></span>` : ''}</div><div class="tool-row">${btn(`${redpen ? 'AI 紅筆批改' : 'AI 判斷對錯'}${ungraded ? `（${ungraded}）` : ''}`, 'grade-all', 'primary', 'wand', `${ungraded ? '' : 'disabled'} data-testid="grade-all"`)}${btn(released && released === graded.length ? '收回批改' : '發回批改', 'release-grades', 'secondary', 'arrow', graded.length ? '' : 'disabled')}</div><label class="switch"><input type="checkbox" data-pref="redpen" ${redpen ? 'checked' : ''} data-testid="toggle-redpen"><span></span>第 2 層：依規準給分＋紅筆批註</label><label class="switch"><input type="checkbox" data-pref="autoGrade" ${auto ? 'checked' : ''}><span></span>收件後自動 AI 批改</label>${config.aiConfigured ? '' : '<p class="muted small-text">尚未設定 API key：會產生「模擬批改」供試用流程。</p>'}</section>`;
+  return `<section class="grading-bar" id="grading-bar"><div class="grading-status"><strong>${icon('stamp')}${redpen ? '第 2 層：紅筆批改' : '第 1 層：判斷對錯'}</strong><span>${graded.length}/${answers.length} 已批改${graded.length ? `・答對 ${right}` : ''}${review ? `・<b class="warn">${review} 需覆核</b>` : ''}${released ? `・${released} 已發回` : ''}</span>${grading.total ? `<span class="grading-progress"><i style="width:${Math.round((grading.done / grading.total) * 100)}%"></i></span>` : ''}</div><div class="tool-row">${btn(`${fastGrade() && answers.some((x) => hasWork(x.id)) ? 'AI 快速批改' : redpen ? 'AI 紅筆批改' : 'AI 判斷對錯'}${ungraded ? `（${ungraded}）` : ''}`, 'grade-all', 'primary', 'wand', `${ungraded ? '' : 'disabled'} data-testid="grade-all"`)}${btn(released && released === graded.length ? '收回批改' : '發回批改', 'release-grades', 'secondary', 'arrow', graded.length ? '' : 'disabled')}</div><label class="switch"><input type="checkbox" data-pref="redpen" ${redpen ? 'checked' : ''} data-testid="toggle-redpen"><span></span>第 2 層：依規準給分＋紅筆批註</label><label class="switch"><input type="checkbox" data-pref="autoGrade" ${auto ? 'checked' : ''}><span></span>收件後自動 AI 批改</label><label class="switch"><input type="checkbox" data-pref="fastGrade" ${fastGrade() ? 'checked' : ''} data-testid="toggle-fast"><span></span>快速批改：拍照作答依學生確認的辨識稿給分（不看圖、不畫紅筆）</label>${config.aiConfigured ? '' : '<p class="muted small-text">尚未設定 API key：會產生「模擬批改」供試用流程。</p>'}</section>`;
 }
 function toolbar() {
   return `<div class="teaching-toolbar" role="toolbar" aria-label="白板工具">${[
@@ -1016,7 +1185,7 @@ function eventsHtml() {
 
 /* ───────────── 批改佇列（教師端並行） ───────────── */
 const grading = {
-  queue: [] as { sessionId: string; answerId: string; depth: 'verdict' | 'full' }[],
+  queue: [] as { sessionId: string; answerId: string; depth: 'verdict' | 'full' | 'fast' }[],
   inFlight: new Set<string>(),
   running: 0,
   done: 0,
@@ -1030,18 +1199,26 @@ function needsGrading(answerId: string) {
   // 開啟第 2 層時，只有 AI 判過對錯的作答要補紅筆；教師已親自判定的不覆蓋。
   return gradeDepth() === 'full' && g.depth === 'verdict' && g.mode !== 'teacher';
 }
-function enqueueGrades(answerIds: string[], depth = gradeDepth()) {
+/** 快速批改（預設開啟）：拍照作答有學生確認過的辨識稿時，只依文字給分，不看圖、不畫紅筆。 */
+const fastGrade = () => prefs.get('fastGrade', true);
+function hasWork(answerId: string) {
+  const v = view?.answers.find((x) => x.id === answerId)?.value as CanvasAnswer | undefined;
+  return !!v?.work;
+}
+/** depth 省略：有辨識稿而且開啟快速批改就用 'fast'，否則依第 1／2 層設定；老師指定的層級（例如紅筆重改）照指定。 */
+function enqueueGrades(answerIds: string[], depth?: 'verdict' | 'full' | 'fast') {
   if (!view) return;
   for (const answerId of answerIds) {
     if (grading.inFlight.has(answerId) || grading.queue.some((q) => q.answerId === answerId)) continue;
-    grading.queue.push({ sessionId: view.session.id, answerId, depth });
+    const d = depth ?? (fastGrade() && hasWork(answerId) ? 'fast' : gradeDepth());
+    grading.queue.push({ sessionId: view.session.id, answerId, depth: d });
     grading.total++;
   }
   pumpGrades();
   refreshPanelParts();
 }
 function pumpGrades() {
-  const limit = prefs.get('concurrency', 6);
+  const limit = prefs.get('concurrency', 10);
   while (grading.running < limit && grading.queue.length) {
     const job = grading.queue.shift()!;
     grading.running++;
@@ -1091,6 +1268,9 @@ function refreshPanelParts() {
   if (bar && a.rubric) bar.outerHTML = gradingBar(a);
   const board = document.querySelector('#practice-board');
   if (board) board.innerHTML = practiceBoard(a);
+  // 投影講解開著：新的作答與批改即時更新
+  const wall = document.querySelector('.modal[data-wall] .modal-body');
+  if (wall) wall.innerHTML = workWallHtml(a, wallFocus);
 }
 function openGrade(answerId: string) {
   if (!view) return;
@@ -1104,7 +1284,7 @@ function openGrade(answerId: string) {
   const pos = list.findIndex((x) => x.id === answerId);
   modal(
     `${answer.seat} 號作答`,
-    `<div class="grade-layout"><div class="grade-work">${v.imageId ? `<div class="redpen-host big" data-image="${esc(v.imageId)}"></div>` : ''}${text ? `<blockquote class="student-text">${md(text)}</blockquote>` : ''}${g?.transcript ? `<details><summary>AI 轉寫的手寫內容</summary><pre>${esc(g.transcript)}</pre></details>` : ''}</div><form id="grade-form" class="grade-form" data-answer="${esc(answerId)}">${g ? `<p class="grade-meta">${tag(g.depth === 'verdict' ? '第 1 層・對錯' : '第 2 層・紅筆')}${tag(g.mode === 'live' ? 'AI 初評' : g.mode === 'mock' ? '模擬批改' : '教師批改', g.mode === 'teacher' ? 'green' : '')}${g.confidence !== undefined ? tag(`信心 ${g.confidence}`, g.needsReview ? 'warn' : '') : ''}${g.votes && g.votes.length > 1 ? tag(`投票 ${g.votes.join('、')}`) : ''}${g.released ? tag('已發回', 'green') : ''}</p>` : '<p class="muted">尚未批改。</p>'}<section class="layer1"><h3>第 1 層：判斷對錯</h3>${g?.depth === 'verdict' ? `<p class="verdict ${g.correct ? 'ok' : 'no'}">${icon(g.correct ? 'check' : 'x')}<span>${g.correct ? '判定：正確' : '判定：不正確'}</span></p>` : ''}<label>給學生的一句話<textarea name="feedback" rows="2" maxlength="600">${esc(g?.feedback || '')}</textarea></label><div class="grade-actions"><button type="submit" class="btn primary" name="mode" value="right" data-testid="judge-right">${icon('check')}<span>判對</span></button><button type="submit" class="btn secondary" name="mode" value="wrong" data-testid="judge-wrong">${icon('x')}<span>判錯</span></button>${btn('AI 判斷', 'regrade', 'quiet', 'wand', `data-id="${esc(answerId)}" data-depth="verdict"`)}</div></section><details class="layer2" ${g?.depth === 'full' || prefs.get('redpen', false) ? 'open' : ''}><summary>第 2 層：依規準給分＋紅筆批註</summary>${a.rubric.criteria
+    `<div class="grade-layout"><div class="grade-work">${v.imageId ? `<div class="redpen-host big" data-image="${esc(v.imageId)}"></div>` : ''}${v.work ? `<section class="work-confirmed"><h3>學生確認的辨識稿${workEdited(v) ? '<em class="st edited">學生改過</em>' : ''}</h3><div class="work-lines">${workHtml(v.work)}</div>${workEdited(v) ? `<details><summary>AI 原始辨識</summary><pre>${esc(v.ocr!)}</pre></details>` : ''}</section>` : ''}${text ? `<blockquote class="student-text">${md(text)}</blockquote>` : ''}${g?.transcript && !v.work ? `<details><summary>AI 轉寫的手寫內容</summary><pre>${esc(g.transcript)}</pre></details>` : ''}${g?.basis === 'text' ? '<p class="muted small-text">快速批改：依辨識稿給分（沒有看圖、沒有紅筆）。需要時按「AI 紅筆批改」看圖重改。</p>' : ''}</div><form id="grade-form" class="grade-form" data-answer="${esc(answerId)}">${g ? `<p class="grade-meta">${tag(g.depth === 'verdict' ? '第 1 層・對錯' : '第 2 層・紅筆')}${tag(g.mode === 'live' ? 'AI 初評' : g.mode === 'mock' ? '模擬批改' : '教師批改', g.mode === 'teacher' ? 'green' : '')}${g.confidence !== undefined ? tag(`信心 ${g.confidence}`, g.needsReview ? 'warn' : '') : ''}${g.votes && g.votes.length > 1 ? tag(`投票 ${g.votes.join('、')}`) : ''}${g.released ? tag('已發回', 'green') : ''}</p>` : '<p class="muted">尚未批改。</p>'}<section class="layer1"><h3>第 1 層：判斷對錯</h3>${g?.depth === 'verdict' ? `<p class="verdict ${g.correct ? 'ok' : 'no'}">${icon(g.correct ? 'check' : 'x')}<span>${g.correct ? '判定：正確' : '判定：不正確'}</span></p>` : ''}<label>給學生的一句話<textarea name="feedback" rows="2" maxlength="600">${esc(g?.feedback || '')}</textarea></label><div class="grade-actions"><button type="submit" class="btn primary" name="mode" value="right" data-testid="judge-right">${icon('check')}<span>判對</span></button><button type="submit" class="btn secondary" name="mode" value="wrong" data-testid="judge-wrong">${icon('x')}<span>判錯</span></button>${btn('AI 判斷', 'regrade', 'quiet', 'wand', `data-id="${esc(answerId)}" data-depth="verdict"`)}</div></section><details class="layer2" ${g?.depth === 'full' || prefs.get('redpen', false) ? 'open' : ''}><summary>第 2 層：依規準給分＋紅筆批註</summary>${a.rubric.criteria
       .map((c) => {
         const s = g?.scores.find((x) => x.criterionId === c.id);
         return `<fieldset class="criterion"><legend>${md(c.label)}<small>${c.points} 分</small></legend>${c.levels
@@ -1897,8 +2077,51 @@ async function action(el: HTMLElement) {
       draft = Number(el.dataset.value);
       document.querySelector('#student-answer')!.innerHTML = answerForm(a);
       return;
+    case 'work-wall':
+      if (a) showWall(a);
+      return;
+    case 'wall-focus':
+      if (a && el.dataset.id) showWall(a, el.dataset.id);
+      return;
+    case 'wall-back':
+      if (a) showWall(a);
+      return;
+    case 'submit-photo-work': {
+      const d = photoDraft;
+      if (!d?.imageId) return;
+      await submitAnswer({ imageId: d.imageId, source: 'photo', ...(d.work.trim() ? { work: d.work.trim() } : {}), ...(d.ocr.trim() ? { ocr: d.ocr.trim() } : {}) });
+      const act = view?.lesson.slides[view.session.slideIndex].activity;
+      if (act && currentStudentAnswer(act)) {
+        photoDraft = null;
+        renderSession();
+      }
+      return;
+    }
+    case 'cancel-photo-work': {
+      photoDraft = null;
+      const act = view.lesson.slides[view.session.slideIndex]?.activity;
+      if (act) renderPhotoReview(act);
+      return;
+    }
     case 'keypad-close':
       return closeKeypad();
+    case 'keypad-mode': {
+      const mode = el.dataset.mode === 'hand' ? 'hand' : 'keys';
+      prefs.set('keypadMode', mode);
+      const kp = document.querySelector<HTMLElement>('#keypad');
+      if (kp) kp.dataset.mode = mode;
+      document.querySelectorAll('[data-action="keypad-mode"]').forEach((b) => b.setAttribute('aria-pressed', String((b as HTMLElement).dataset.mode === mode)));
+      placeKeypad(true);
+      hand?.fit();
+      keypadFor?.focus();
+      return;
+    }
+    case 'hand-clear':
+      hand?.clear();
+      handStatus(HAND_HINT);
+      return;
+    case 'hand-read':
+      return recognizeHand();
     case 'keypad-next': {
       const inputs = keypadInputs();
       const next = inputs[(inputs.indexOf(keypadFor!) + 1) % inputs.length];
@@ -2048,6 +2271,11 @@ document.addEventListener('input', (e) => {
   const el = e.target as HTMLInputElement;
   if (el.id === 'short-answer' || el.id === 'numeric-answer') draft = el.value;
   if (el.id === 'practice-answer') practiceDraft.value = el.value;
+  if (el.id === 'work-text' && photoDraft) {
+    photoDraft.work = el.value;
+    const pv = document.querySelector('#work-preview');
+    if (pv) pv.innerHTML = workHtml(el.value);
+  }
   if (el.id === 'danmaku-text') danmakuDraft = el.value;
   if (el.id === 'danmaku-anon') danmakuAnon = el.checked;
   const preview = document.querySelector<HTMLElement>(`[data-preview="${el.id}"]`);
@@ -2082,6 +2310,11 @@ document.addEventListener('change', async (e) => {
     }
   }
   if (el.id === 'activity-seconds') prefs.set('activitySeconds', Number(el.value));
+  if (el.id === 'wall-anon' && el instanceof HTMLInputElement && view) {
+    wallAnon = el.checked;
+    const a = view.lesson.slides[view.session.slideIndex]?.activity;
+    if (a) showWall(a, wallFocus);
+  }
   if (el.id === 'practice-unanswered' && el instanceof HTMLInputElement) {
     practiceWithUnanswered = el.checked;
     const a = view?.lesson.slides[view.session.slideIndex]?.activity,
@@ -2093,7 +2326,7 @@ document.addEventListener('change', async (e) => {
   if (el.id === 'preview-slide') document.querySelector<HTMLElement>('[data-action="preview-lesson"]')?.click();
   if (el instanceof HTMLInputElement && el.dataset.actionInput === 'quick-photo' && el.files?.[0] && view) {
     const a = view.lesson.slides[view.session.slideIndex]?.activity;
-    if (a) await startSketch(a, el.files[0]).catch((err) => toast(err.message, true));
+    if (a) await photoWork(a, el.files[0]).catch((err) => toast(err.message, true));
     el.value = '';
   }
 });
@@ -2270,7 +2503,20 @@ async function checkNewVersion() {
     /* 離線時下次再試 */
   }
   const typing = !!document.querySelector('.numeric-input:focus, textarea:focus') || !!document.querySelector('.sketch-overlay');
-  if (pendingReload && !typing && !document.hidden) location.reload();
+  if (pendingReload && !typing && !unsavedWork() && !document.hidden) location.reload();
+}
+/** 學生手上有還沒送出的東西：重新載入會不見，先不要自動更新。 */
+function unsavedWork() {
+  if (user?.role !== 'student' || !view) return !!document.querySelector('.modal');
+  const a = view.lesson.slides[view.session.slideIndex]?.activity;
+  const typed = Array.isArray(draft) ? (draft as unknown[]).some((x) => x !== undefined && x !== '') : draft !== undefined && draft !== '';
+  return (
+    !!photoDraft ||
+    myPractice()?.st.status === 'working' ||
+    !!danmakuDraft.trim() ||
+    !!(hand && !hand.empty) ||
+    (!!a && view.session.activityOpen && !currentStudentAnswer(a) && typed)
+  );
 }
 setInterval(() => void checkNewVersion(), 180_000);
 document.addEventListener('visibilitychange', () => {

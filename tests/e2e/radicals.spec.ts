@@ -153,6 +153,62 @@ test('negative fraction typed fraction-key-first is correct; teacher chips show 
   await shot(teacher.page, 'teacher-chips');
 });
 
+test('handwriting mode on the keypad: write, auto-recognize, fill the box, submit', async ({ browser }) => {
+  test.setTimeout(120_000);
+  const teacher = await surface(browser, 1440, 900);
+  await loginTeacher(teacher.page);
+  await setRequireCode(teacher.page, false);
+  await teacher.page.getByTestId('lesson-card').filter({ hasText: '根式的乘除' }).getByRole('button', { name: '開始上課' }).click();
+  await teacher.page.locator('#start-form select').selectOption('demo-class');
+  await teacher.page.locator('#start-form').getByRole('button', { name: '開始上課' }).click();
+  await expect(teacher.page.getByTestId('session-slide')).toBeVisible();
+  const sessionId = teacher.page.url().split('/session/')[1];
+  cleanup.push({ context: teacher.context, id: sessionId });
+  await goSlide(teacher.page, 2);
+  await teacher.page.getByTestId('toggle-activity').click();
+
+  const ipad = await surface(browser, 820, 1180, true);
+  await loginStudent(ipad.page, 9);
+  await expect(ipad.page.getByTestId('session-slide')).toBeVisible();
+  await answerTab(ipad.page);
+  const write = async (text: string) => {
+    // 示範模式沒有 AI：伺服器回傳測試用文字（模擬辨識結果）
+    await ipad.page.evaluate((t) => ((window as unknown as { __mckOcrMock: string }).__mckOcrMock = t), text);
+    const pad = (await ipad.page.getByTestId('hand-pad').boundingBox())!;
+    await ipad.page.mouse.move(pad.x + 30, pad.y + pad.height / 2);
+    await ipad.page.mouse.down();
+    for (let i = 1; i <= 12; i++) await ipad.page.mouse.move(pad.x + 30 + i * 15, pad.y + pad.height / 2 + (i % 2 ? -18 : 18));
+    await ipad.page.mouse.up();
+  };
+  await ipad.page.locator('#numeric-item-0').tap();
+  await ipad.page.getByTestId('keypad-mode-hand').tap();
+  await expect(ipad.page.getByTestId('hand-pad')).toBeVisible();
+  await write('-10√3');
+  await expect(ipad.page.locator('#numeric-item-0')).toHaveValue('-10√3'); // 停筆後自動辨識、填入
+  await expect(ipad.page.locator('#hand-status')).toContainText('讀到');
+  await expect(ipad.page.locator('[data-preview="numeric-item-0"] .katex')).toBeVisible();
+  await shot(ipad.page, 'ipad-handwriting');
+  await ipad.page.getByTestId('keypad-next').tap(); // 換格：手寫板清空
+  await write('8√2');
+  await expect(ipad.page.locator('#numeric-item-1')).toHaveValue('8√2');
+  await ipad.page.getByTestId('keypad-next').tap();
+  await write('2√?'); // 看不清楚：請學生重寫，不填入
+  await expect(ipad.page.locator('#hand-status')).toContainText('再寫一次');
+  await expect(ipad.page.locator('#numeric-item-2')).toHaveValue('');
+  await ipad.page.getByTestId('hand-clear').tap();
+  await write('-2√2/3');
+  await expect(ipad.page.locator('#numeric-item-2')).toHaveValue('-2√2/3');
+  // 手寫模式會記住；送出
+  await ipad.page.getByTestId('keypad-submit').tap();
+  await expect(ipad.page.locator('.saved-answer')).toContainText('已送出');
+  await expect
+    .poll(async () => {
+      const v = await (await teacher.page.request.get(`/api/sessions/${sessionId}`)).json();
+      return v.answers.find((x: { seat: number }) => x.seat === 9)?.itemsCorrect;
+    })
+    .toEqual([true, true, true]);
+});
+
 test('2-2 classroom: students join with seat only, animation unlocks after results, zoom keeps every tool working', async ({ browser }) => {
   test.setTimeout(180_000);
   const teacher = await surface(browser, 1440, 900);

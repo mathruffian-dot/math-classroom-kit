@@ -475,7 +475,7 @@ test('simplest radical form and multi-item numeric questions are judged per item
   for(const ok of ['2√3','3+2√2','√6/3','-5√2','7','(3+√2)/2','2sqrt(3)','√(15)','4√6/3+√2','(2/3)√6','-2√2/3','√130/10',
     // 作答鍵盤先按「分數」再打負號：負號在係數括號裡
     '(-2)/(3)√(2)','(-2/3)√(2)','-((2)/(3))√(2)','((-2)/(3))√(2)','(-2√(2))/(3)'])assert.equal(expr.isSimplestRadical(ok),true,ok);
-  for(const bad of ['√12','1/√2','√2+√2','4√8','√4','3+1+√2','2√3/√3','3/(√7-2)','√5/√3','(-2)/3√8','(-2)/√3','(-1)/(√2)'])assert.equal(expr.isSimplestRadical(bad),false,bad);
+  for(const bad of ['√12','1/√2','√2+√2','4√8','√4','3+1+√2','2√3/√3','3/(√7-2)','√5/√3','(-2)/3√8','(-2)/√3','(-1)/(√2)','√13√5','√(13)√(5)','2√3√2'])assert.equal(expr.isSimplestRadical(bad),false,bad);
   const {f,lesson,session}=await setup();
   const item={id:'items-q',type:'numeric',prompt:'化成最簡根式',form:'simplest-radical',items:[{prompt:'√12',answer:'2√3'},{prompt:'√18',answer:'3√2'},{prompt:'1/√2',answer:'√2/2'}]};
   const custom={...lesson,id:'items-lesson',slides:[{id:'s1',title:'化簡',body:'',activity:item}]};
@@ -638,4 +638,35 @@ test('danmaku: only while open, rate-limited, anonymous on screen but the teache
   assert.deepEqual(cleared.danmaku,[]);assert.equal(typeof cleared.session.danmakuClearedAt,'number');
   await f.call(`/api/sessions/${session.id}/control`,'POST',{action:'danmaku',value:false});
   assert.equal((await send('關了嗎',true,'seat5')).status,409);
+});
+
+test('handwriting OCR: students only, image format checked, result must parse as an answer (demo mock)',async()=>{
+  const {f,session}=await setup();
+  const png='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+  const ocr=(body,who='student')=>f.call(`/api/sessions/${session.id}/ocr`,'POST',body,who);
+  assert.equal((await ocr({dataUrl:png,mockText:'-2√2/3'},'teacher')).status,403);
+  assert.equal((await ocr({dataUrl:'data:text/html;base64,PGI+',mockText:'1'})).status,400);
+  const ok=(await ocr({dataUrl:png,mockText:'−2√2/3'})).body;
+  assert.deepEqual([ok.ok,ok.text],[true,'-2√2/3']);
+  const bad=(await ocr({dataUrl:png,mockText:'2√?'})).body;
+  assert.equal(bad.ok,false);assert.match(bad.message,/再寫一次/);
+  assert.equal((await ocr({dataUrl:png,mockText:'x+1'})).body.ok,false,'letters are not answers');
+});
+
+test('photo work OCR: own photo only; confirmed transcript kept with the AI original; fast grading uses the text only',async()=>{
+  const {f,lesson,session}=await setup();
+  await openSlide(f,session,lesson,'error-canvas');
+  const png='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+  const imageId=(await f.call(`/api/sessions/${session.id}/images`,'POST',{dataUrl:png},'student')).body.imageId;
+  await f.call('/api/login','POST',{role:'student',classCode:'DEMO801',seat:6},'seat6');
+  const ocr=(who,id=imageId)=>f.call(`/api/sessions/${session.id}/ocr-work`,'POST',{imageId:id,activityId:'error-canvas',mockText:'(2x+3)^2\n=4x^2+12x+9'},who);
+  assert.equal((await ocr('seat6')).status,404,"cannot read someone else's photo");
+  const r=(await ocr('student')).body;
+  assert.equal(r.work,'(2x+3)^2\n=4x^2+12x+9');
+  const value={imageId,source:'photo',work:'(2x+3)^2\n=4x^2+12x+9\n少了 2ab',ocr:r.work};
+  const answer=(await f.call(`/api/sessions/${session.id}/answers`,'POST',{submissionId:'w1',activityId:'error-canvas',value},'student')).body.answer;
+  const stored=(await f.call(`/api/sessions/${session.id}`)).body.answers.find(a=>a.id===answer.id).value;
+  assert.deepEqual([stored.work,stored.ocr],[value.work,value.ocr]);
+  const g=(await f.call('/api/ai','POST',{task:'grade',sessionId:session.id,answerId:answer.id,depth:'fast'})).body.grade;
+  assert.equal(g.basis,'text');assert.equal(g.transcript,value.work);assert.equal(g.annotations.length,0);assert.equal(g.scores.length,3);
 });

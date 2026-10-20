@@ -374,6 +374,8 @@ export function isSimplestRadical(input: string): boolean {
     .replace(/^[+-]/, '')
     .split(/[+-]/)
     .filter(Boolean);
+  // 一項裡只能有一個根號：√13√5、2√3×√2 還要乘開（√65、2√6）
+  if (terms.some((t) => (t.match(/√/g) || []).length > 1)) return false;
   return terms.filter((t) => !t.includes('√')).length <= 1;
 }
 

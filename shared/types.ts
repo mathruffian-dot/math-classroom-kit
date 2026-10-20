@@ -243,6 +243,10 @@ export interface CanvasAnswer {
   imageId?: string;
   /** 'draw'：手寫畫布；'photo'：拍照上傳（可再加註）。 */
   source?: 'draw' | 'photo';
+  /** 拍照作答：學生確認（可修改）後的辨識稿，快速批改依這份文字給分。 */
+  work?: string;
+  /** 拍照作答：AI 原始辨識結果（和 work 不同表示學生改過，老師端會標示）。 */
+  ocr?: string;
 }
 export interface ManipulateAnswer {
   vars: Record<string, number>;
@@ -295,6 +299,8 @@ export interface Grade {
    * 'full' 第 2 層，依規準逐項給分並加紅筆批註。
    */
   depth?: 'verdict' | 'full';
+  /** 'text'：快速批改，只看學生確認過的辨識稿（不看圖、不畫紅筆）。 */
+  basis?: 'text' | 'image';
   /** 第 1 層的對錯判定；第 2 層以滿分視為答對。 */
   correct?: boolean;
   scores: { criterionId: string; score: number; comment: string }[];

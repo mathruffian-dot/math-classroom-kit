@@ -501,8 +501,10 @@ export function validateAnswer(a: Activity, value: unknown): AnswerValue {
   }
   if (a.type === 'canvas') {
     const v = record(value),
-      out: { text?: string; imageId?: string; source?: 'draw' | 'photo' } = {};
+      out: { text?: string; imageId?: string; source?: 'draw' | 'photo'; work?: string; ocr?: string } = {};
     if (v.text !== undefined && v.text !== '') out.text = str(v.text, '文字說明', 2000).trim();
+    if (v.work !== undefined && v.work !== '') out.work = str(v.work, '辨識稿', 3000).trim();
+    if (v.ocr !== undefined && v.ocr !== '') out.ocr = str(v.ocr, 'AI 辨識結果', 3000).trim();
     if (v.imageId !== undefined) out.imageId = identifier(v.imageId);
     if (v.source !== undefined) {
       assert(['draw', 'photo'].includes(String(v.source)), '作答來源不正確');

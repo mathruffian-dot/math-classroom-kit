@@ -14,6 +14,8 @@ export interface StorageEnv {
   AI_MODEL?: string;
   AI_API_KEY?: string;
   AI_DAILY_LIMIT?: string;
+  /** 手寫辨識每日上限（全站），預設 3000 次。 */
+  OCR_DAILY_LIMIT?: string;
 }
 export interface StorageTransaction {
   get<T>(key: string): Promise<T | undefined>;

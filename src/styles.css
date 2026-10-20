@@ -3910,3 +3910,280 @@ svg.redpen {
 .keypad .key-hint {
   font-size: 12px;
 }
+
+/* ───────── 作答鍵盤：鍵盤／手寫切換 ───────── */
+.keypad-mode {
+  display: inline-flex;
+  margin-right: auto;
+  padding: 3px;
+  border-radius: 10px;
+  background: #e8ebf5;
+}
+.keypad-mode button {
+  min-height: 34px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--muted);
+}
+.keypad-mode button[aria-pressed='true'] {
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 1px 3px rgba(31, 42, 86, 0.18);
+}
+.keypad[data-mode='keys'] .keypad-hand,
+.keypad[data-mode='hand'] .keypad-keys {
+  display: none;
+}
+.keypad-hand {
+  display: grid;
+  gap: 6px;
+}
+.hand-pad {
+  width: 100%;
+  height: 150px;
+  border: 1.5px dashed #b9c1dc;
+  border-radius: 12px;
+  background:
+    linear-gradient(transparent calc(50% - 1px), #eef1f8 calc(50% - 1px), #eef1f8 calc(50% + 1px), transparent calc(50% + 1px)),
+    #fff;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+.hand-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.hand-bar > span {
+  flex: 1;
+  min-width: 0;
+}
+.hand-bar .btn {
+  min-height: 40px;
+  padding: 0 12px;
+}
+.hand-ok {
+  color: var(--green);
+  font-weight: 700;
+}
+.hand-warn {
+  color: #a72c30;
+  font-weight: 700;
+}
+
+/* ───────── 拍照作答：辨識稿確認 ───────── */
+.photo-review {
+  display: grid;
+  gap: 10px;
+}
+.photo-review-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: 12px;
+}
+@container (max-width: 520px) {
+  .photo-review-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.photo-review figure {
+  margin: 0;
+}
+.photo-review figure img {
+  width: 100%;
+  max-height: 340px;
+  object-fit: contain;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+}
+.work-edit {
+  display: grid;
+  gap: 6px;
+  align-content: start;
+}
+.work-edit label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+}
+.work-edit textarea {
+  width: 100%;
+  min-height: 140px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  font: inherit;
+  font-size: 17px;
+  line-height: 1.6;
+  resize: vertical;
+}
+.work-lines {
+  display: grid;
+  gap: 2px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #f6f8fc;
+}
+.work-lines:empty {
+  display: none;
+}
+.work-lines p {
+  margin: 0;
+  line-height: 1.7;
+}
+.work-lines.small {
+  font-size: 13px;
+  padding: 4px 6px;
+}
+.work-lines.big {
+  font-size: 26px;
+  padding: 14px 18px;
+}
+.work-eq {
+  color: var(--muted);
+}
+.work-figure {
+  color: var(--muted);
+  font-style: italic;
+}
+.work-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 14px;
+  color: var(--ink-2);
+}
+.work-status svg {
+  width: 16px;
+  height: 16px;
+}
+.work-status.ok {
+  color: var(--green);
+  font-weight: 700;
+}
+.work-status.warn {
+  color: #a72c30;
+  font-weight: 700;
+}
+.st.edited {
+  background: #fff1d6;
+  color: #94600a;
+}
+.excerpt.work {
+  font-size: 11.5px;
+  color: var(--ink-2);
+}
+.work-confirmed h3 {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 8px 0 4px;
+  font-size: 15px;
+}
+
+/* ───────── 投影講解：全班作答牆 ───────── */
+.wall-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  color: var(--muted);
+}
+.wall-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+.wall-card {
+  display: grid;
+  gap: 6px;
+  align-content: start;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+.wall-card header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.wall-card img {
+  width: 100%;
+  height: 150px;
+  object-fit: contain;
+  border-radius: 10px;
+  background: #fff;
+}
+.wall-focus {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+.wall-focus figure {
+  margin: 0;
+}
+.wall-focus figure img {
+  width: 100%;
+  max-height: 68vh;
+  object-fit: contain;
+  border-radius: 14px;
+  background: #fff;
+  border: 1px solid var(--line);
+}
+.wall-focus-text h3 {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin: 0 0 10px;
+  font-size: 24px;
+}
+.wall-feedback {
+  font-size: 18px;
+  color: var(--accent-ink);
+}
+.wall-nav {
+  justify-content: center;
+  margin-top: 12px;
+}
+/* 勾選列：核取方塊固定大小、文字不換行（全站 input 有較大的觸控尺寸） */
+.check-line {
+  white-space: nowrap;
+}
+.check-line input[type='checkbox'] {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  min-height: 0;
+  margin: 0;
+}
+/* 「重拍」按鈕裡的檔案選擇框不顯示 */
+.photo-review label.btn input[type='file'] {
+  display: none;
+}
+.photo-review label.btn {
+  cursor: pointer;
+}
+.keypad-timer {
+  margin-right: auto;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+.keypad-timer:empty {
+  display: none;
+}
