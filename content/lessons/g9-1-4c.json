@@ -1,0 +1,4275 @@
+{
+  "schemaVersion": 1,
+  "id": "g9-1-4c",
+  "title": "1-4 相似三角形的應用（3）相似直角三角形與 sin、cos、tan",
+  "description": "從無障礙坡道看見：角度固定的直角三角形都相似，任兩邊的比值固定。認識 sin、cos、tan，解決生活問題，並用 45°-45°-90°、30°-60°-90° 的邊長比計算。例題與隨堂附課本截圖，解題過程逐步呈現，隨堂改為可即時批改的 IRS（含換數字題）。",
+  "subject": "數學・九年級 1-4",
+  "duration": 45,
+  "objectives": [
+    "能說明銳角固定時，直角三角形任兩邊的比值固定",
+    "能寫出 sin A、cos A、tan A 並求值，用來解生活問題",
+    "能用特殊直角三角形的邊長比 1：1：√2、1：√3：2 求邊長"
+  ],
+  "slides": [
+    {
+      "id": "c-warmup",
+      "phase": "提取練習",
+      "eyebrow": "01 / 先想起畢氏定理與相似",
+      "title": "直角三角形：畢氏定理與相似",
+      "body": "這節課會一直用到直角三角形的邊長。先暖身三題。",
+      "source": "銜接 1-3 相似、八上畢氏定理",
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 20,
+          "yMin": 0,
+          "yMax": 11,
+          "aspect": "equal"
+        },
+        "shapes": [
+          {
+            "type": "polygon",
+            "points": [
+              [
+                0.6,
+                1.2
+              ],
+              [
+                8.6,
+                1.2
+              ],
+              [
+                8.6,
+                7.2
+              ]
+            ],
+            "fill": "rgba(255,138,61,.32)",
+            "color": "rgba(0,0,0,0)",
+            "width": 0.5
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.6,
+                1.2
+              ],
+              [
+                8.6,
+                1.2
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 3
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.6,
+                1.2
+              ],
+              [
+                8.6,
+                7.2
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 3
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.6,
+                1.2
+              ],
+              [
+                8.6,
+                7.2
+              ]
+            ],
+            "color": "#16824f",
+            "width": 3
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.25,
+                1.2
+              ],
+              [
+                8.25,
+                1.5499999999999998
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.6,
+                1.5499999999999998
+              ],
+              [
+                8.25,
+                1.5499999999999998
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4
+          },
+          {
+            "type": "text",
+            "x": 0.25,
+            "y": 0.75,
+            "text": "A",
+            "size": 14,
+            "color": "#1f2a56"
+          },
+          {
+            "type": "text",
+            "x": 8.95,
+            "y": 0.75,
+            "text": "C",
+            "size": 14,
+            "color": "#1f2a56"
+          },
+          {
+            "type": "text",
+            "x": 8.95,
+            "y": 7.55,
+            "text": "B",
+            "size": 14,
+            "color": "#1f2a56"
+          },
+          {
+            "type": "text",
+            "x": 4.6,
+            "y": 0.6,
+            "text": "b",
+            "size": 15,
+            "color": "#2f80ed"
+          },
+          {
+            "type": "text",
+            "x": 9.5,
+            "y": 4.2,
+            "text": "a",
+            "size": 15,
+            "color": "#e5484d"
+          },
+          {
+            "type": "text",
+            "x": 3.9999999999999996,
+            "y": 4.75,
+            "text": "c",
+            "size": 15,
+            "color": "#16824f"
+          },
+          {
+            "type": "text",
+            "x": 15,
+            "y": 7.4,
+            "text": "$a^2+b^2=c^2$",
+            "size": 22,
+            "color": "#5a3fd6"
+          },
+          {
+            "type": "text",
+            "x": 15,
+            "y": 5.6,
+            "text": "斜邊 c 對著直角",
+            "size": 17,
+            "color": "#1f2a56"
+          }
+        ],
+        "caption": "畢氏定理：兩股平方和＝斜邊平方"
+      },
+      "activity": {
+        "id": "c-warmup-q",
+        "type": "numeric",
+        "prompt": "暖身：直接寫出答案",
+        "items": [
+          {
+            "prompt": "直角三角形兩股 6、8，斜邊＝？",
+            "answer": "10"
+          },
+          {
+            "prompt": "直角三角形斜邊 13、一股 5，另一股＝？",
+            "answer": "12"
+          },
+          {
+            "prompt": "△ABC～△A′B′C′，AB＝3、BC＝4、A′B′＝6，B′C′＝？",
+            "answer": "8"
+          }
+        ],
+        "explanation": "(1) √(36＋64)＝10。(2) √(169－25)＝12。(3) 3：6＝4：B′C′，B′C′＝8。"
+      },
+      "notes": "提取練習：畢氏定理與相似比，是本節求邊長的兩個工具。"
+    },
+    {
+      "id": "c-ramp",
+      "phase": "預測",
+      "eyebrow": "02 / 無障礙坡道",
+      "title": "坡度固定，比值會變嗎？",
+      "body": "先猜：坡道加長（三角形變大），「高度差 ÷ 水平長度」會變嗎？送出後拖拉坡道長度和角度驗證。",
+      "source": "對應課本 1-4 p.69（題目數字同課本）",
+      "figures": [
+        {
+          "src": "g9-1-4/ramp.png",
+          "alt": "課本 p.69 無障礙坡道"
+        },
+        {
+          "src": "g9-1-4/ramp-ratio.png",
+          "alt": "課本 p.69 相似直角三角形"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": -0.6,
+          "xMax": 17,
+          "yMin": -1.2,
+          "yMax": 8.6,
+          "aspect": "equal"
+        },
+        "params": [
+          {
+            "id": "s",
+            "label": "坡道長度（倍）",
+            "min": 1,
+            "max": 3.6,
+            "step": 0.1,
+            "value": 2
+          },
+          {
+            "id": "ang",
+            "label": "∠A（坡度角）",
+            "min": 10,
+            "max": 40,
+            "step": 1,
+            "value": 25,
+            "unit": "°"
+          }
+        ],
+        "shapes": [
+          {
+            "type": "polygon",
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                "s*4*cos(ang)",
+                0
+              ],
+              [
+                "s*4*cos(ang)",
+                "s*4*sin(ang)"
+              ]
+            ],
+            "fill": "rgba(18,163,154,.26)",
+            "color": "#12a39a",
+            "width": 2
+          },
+          {
+            "type": "polygon",
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                "4*cos(ang)",
+                0
+              ],
+              [
+                "4*cos(ang)",
+                "4*sin(ang)"
+              ]
+            ],
+            "fill": "rgba(0,0,0,0)",
+            "color": "#7b61ff",
+            "width": 2,
+            "dash": true
+          },
+          {
+            "type": "angle",
+            "points": [
+              [
+                1,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                "s*4*cos(ang)",
+                "s*4*sin(ang)"
+              ]
+            ],
+            "text": "{ang}°"
+          },
+          {
+            "type": "text",
+            "x": -0.3,
+            "y": -0.5,
+            "text": "A",
+            "size": 14,
+            "color": "#1f2a56"
+          },
+          {
+            "type": "text",
+            "x": "s*4*cos(ang)",
+            "y": -0.5,
+            "text": "C",
+            "size": 14,
+            "color": "#1f2a56"
+          },
+          {
+            "type": "text",
+            "x": "s*4*cos(ang)+0.3",
+            "y": "s*4*sin(ang)+0.3",
+            "text": "B",
+            "size": 14,
+            "color": "#1f2a56"
+          },
+          {
+            "type": "text",
+            "x": "s*4*cos(ang)+0.9",
+            "y": "s*4*sin(ang)/2",
+            "text": "對邊 a",
+            "size": 13,
+            "color": "#e5484d"
+          },
+          {
+            "type": "text",
+            "x": "s*4*cos(ang)/2",
+            "y": -0.6,
+            "text": "鄰邊 b",
+            "size": 13,
+            "color": "#2f80ed"
+          },
+          {
+            "type": "text",
+            "x": "s*4*cos(ang)/2-0.6",
+            "y": "s*4*sin(ang)/2+0.6",
+            "text": "斜邊 c",
+            "size": 13,
+            "color": "#16824f"
+          }
+        ],
+        "readouts": [
+          {
+            "label": "a ÷ c（對邊÷斜邊）",
+            "expr": "sin(ang)",
+            "digits": 4
+          },
+          {
+            "label": "b ÷ c（鄰邊÷斜邊）",
+            "expr": "cos(ang)",
+            "digits": 4
+          },
+          {
+            "label": "a ÷ b（對邊÷鄰邊）",
+            "expr": "tan(ang)",
+            "digits": 4
+          }
+        ],
+        "caption": "角度固定時，坡道拉長或縮短（相似），三個比值都不變；角度一改，比值才跟著改"
+      },
+      "activity": {
+        "id": "c-ramp-q",
+        "type": "single",
+        "prompt": "坡度角固定、坡道加長時，「高度差 ÷ 水平長度」會？",
+        "options": [
+          "不變",
+          "變大",
+          "變小",
+          "不一定"
+        ],
+        "correct": [
+          0
+        ],
+        "explanation": "角度固定的直角三角形都相似（AA），對應邊成比例，所以任兩邊的比值固定。"
+      },
+      "notes": "提取 1-3 的相似＋引入新概念：角度決定比值。坡度 1/12 的例子：高度差 20 公分→水平長度 240 公分。",
+      "animation": {
+        "src": "g9-1-4/anim-c-ramp.mp4",
+        "poster": "g9-1-4/anim-c-ramp.png",
+        "caption": "角度固定：三個比值都不變",
+        "seconds": 16.1
+      }
+    },
+    {
+      "id": "c-def",
+      "phase": "概念建立",
+      "eyebrow": "03 / 給比值取名字",
+      "title": "對邊、鄰邊、斜邊：sin、cos、tan",
+      "body": "在直角三角形中，∠A 的對邊 a、鄰邊 b、斜邊 c。拖拉 ∠A，看三個比值怎麼變。",
+      "source": "對應課本 1-4 p.70（題目數字同課本）",
+      "figures": [
+        {
+          "src": "g9-1-4/trig-def.png",
+          "alt": "課本 p.70 直角三角形的邊長比值"
+        },
+        {
+          "src": "g9-1-4/keybox-trig.png",
+          "alt": "課本 p.70 Key point"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": -0.6,
+          "xMax": 17,
+          "yMin": -1.4,
+          "yMax": 8.6,
+          "aspect": "equal"
+        },
+        "params": [
+          {
+            "id": "ang",
+            "label": "∠A",
+            "min": 10,
+            "max": 75,
+            "step": 1,
+            "value": 30,
+            "unit": "°"
+          }
+        ],
+        "shapes": [
+          {
+            "type": "polygon",
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                "7*cos(ang)",
+                0
+              ],
+              [
+                "7*cos(ang)",
+                "7*sin(ang)"
+              ]
+            ],
+            "fill": "rgba(255,138,61,.32)",
+            "color": "rgba(0,0,0,0)",
+            "width": 0.5
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                "7*cos(ang)",
+                0
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 3
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                "7*cos(ang)",
+                0
+              ],
+              [
+                "7*cos(ang)",
+                "7*sin(ang)"
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 3
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                "7*cos(ang)",
+                "7*sin(ang)"
+              ]
+            ],
+            "color": "#16824f",
+            "width": 3
+          },
+          {
+            "type": "angle",
+            "points": [
+              [
+                1,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                "cos(ang)",
+                "sin(ang)"
+              ]
+            ],
+            "text": "{ang}°"
+          },
+          {
+            "type": "text",
+            "x": -0.3,
+            "y": -0.5,
+            "text": "A",
+            "size": 14,
+            "color": "#1f2a56"
+          },
+          {
+            "type": "text",
+            "x": "7*cos(ang)+0.3",
+            "y": -0.5,
+            "text": "C",
+            "size": 14,
+            "color": "#1f2a56"
+          },
+          {
+            "type": "text",
+            "x": "7*cos(ang)+0.3",
+            "y": "7*sin(ang)+0.3",
+            "text": "B",
+            "size": 14,
+            "color": "#1f2a56"
+          },
+          {
+            "type": "text",
+            "x": "7*cos(ang)+1.3",
+            "y": "3.5*sin(ang)",
+            "text": "對邊 a",
+            "size": 14,
+            "color": "#e5484d"
+          },
+          {
+            "type": "text",
+            "x": "3.5*cos(ang)",
+            "y": -0.7,
+            "text": "鄰邊 b",
+            "size": 14,
+            "color": "#2f80ed"
+          },
+          {
+            "type": "text",
+            "x": "3.5*cos(ang)-0.8",
+            "y": "3.5*sin(ang)+0.7",
+            "text": "斜邊 c",
+            "size": 14,
+            "color": "#16824f"
+          },
+          {
+            "type": "text",
+            "x": 12.5,
+            "y": 7.2,
+            "text": "$\\sin A=\\dfrac{a}{c}$",
+            "size": 18,
+            "color": "#e5484d"
+          },
+          {
+            "type": "text",
+            "x": 12.5,
+            "y": 5.4,
+            "text": "$\\cos A=\\dfrac{b}{c}$",
+            "size": 18,
+            "color": "#2f80ed"
+          },
+          {
+            "type": "text",
+            "x": 12.5,
+            "y": 3.6,
+            "text": "$\\tan A=\\dfrac{a}{b}$",
+            "size": 18,
+            "color": "#5a3fd6"
+          }
+        ],
+        "readouts": [
+          {
+            "label": "sin A ≈",
+            "expr": "sin(ang)",
+            "digits": 4
+          },
+          {
+            "label": "cos A ≈",
+            "expr": "cos(ang)",
+            "digits": 4
+          },
+          {
+            "label": "tan A ≈",
+            "expr": "tan(ang)",
+            "digits": 4
+          }
+        ],
+        "caption": "sin、cos、tan 是 sine、cosine、tangent 的縮寫"
+      },
+      "activity": {
+        "id": "c-def-q",
+        "type": "single",
+        "prompt": "直角 △ABC 中 ∠C＝90°，∠A 的對邊是哪一邊？",
+        "options": [
+          "$\\overline{BC}$",
+          "$\\overline{AC}$",
+          "$\\overline{AB}$"
+        ],
+        "correct": [
+          0
+        ],
+        "explanation": "∠A 的對邊是不和 ∠A 相連的那一股 BC；AC 是鄰邊、AB 是斜邊。"
+      },
+      "notes": "用課本的手寫記憶法：s 從斜邊畫到對邊（a/c）、c 從斜邊繞到鄰邊（b/c）、t 從鄰邊到對邊（a/b）。",
+      "animation": {
+        "src": "g9-1-4/anim-c-def.mp4",
+        "poster": "g9-1-4/anim-c-def.png",
+        "caption": "sin、cos、tan 的定義",
+        "seconds": 13.9
+      }
+    },
+    {
+      "id": "c-ex5",
+      "phase": "工作範例",
+      "eyebrow": "04 / 例 5",
+      "title": "求 sin A、cos A、tan A",
+      "body": "先標出 ∠A 的對邊、鄰邊、斜邊，再寫比值。先自己算，再按「下一步」對照。",
+      "source": "對應課本 1-4 p.71（題目數字同課本）",
+      "figures": [
+        {
+          "src": "g9-1-4/ex5.png",
+          "alt": "課本 p.71 例 5 題目"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 20,
+          "yMin": 0,
+          "yMax": 11,
+          "aspect": "equal"
+        },
+        "shapes": [
+          {
+            "type": "polygon",
+            "points": [
+              [
+                0.6,
+                1.2
+              ],
+              [
+                9.1,
+                1.2
+              ],
+              [
+                9.1,
+                5.73
+              ]
+            ],
+            "fill": "rgba(255,138,61,.32)",
+            "color": "rgba(0,0,0,0)",
+            "width": 0.5,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.6,
+                1.2
+              ],
+              [
+                9.1,
+                1.2
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 3,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                9.1,
+                1.2
+              ],
+              [
+                9.1,
+                5.73
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 3,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.6,
+                1.2
+              ],
+              [
+                9.1,
+                5.73
+              ]
+            ],
+            "color": "#16824f",
+            "width": 3,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.75,
+                1.2
+              ],
+              [
+                8.75,
+                1.5499999999999998
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                9.1,
+                1.5499999999999998
+              ],
+              [
+                8.75,
+                1.5499999999999998
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 0.25,
+            "y": 0.75,
+            "text": "A",
+            "size": 14,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9.45,
+            "y": 0.75,
+            "text": "C",
+            "size": 14,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9.45,
+            "y": 6.08,
+            "text": "B",
+            "size": 14,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 4.85,
+            "y": 0.6,
+            "text": "15",
+            "size": 15,
+            "color": "#2f80ed",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 10,
+            "y": 3.4650000000000003,
+            "text": "8",
+            "size": 15,
+            "color": "#e5484d",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 4.25,
+            "y": 4.015000000000001,
+            "text": "17",
+            "size": 15,
+            "color": "#16824f",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 9.4,
+            "text": "對邊 8、鄰邊 15、斜邊 17",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 7.5,
+            "text": "$\\sin A=\\dfrac{8}{17}$（對 ÷ 斜）",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 5.6000000000000005,
+            "text": "$\\cos A=\\dfrac{15}{17}$（鄰 ÷ 斜）",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 3.700000000000001,
+            "text": "$\\tan A=\\dfrac{8}{15}$（對 ÷ 鄰）",
+            "size": 19,
+            "color": "#5a3fd6",
+            "step": 3,
+            "focus": [
+              3
+            ]
+          }
+        ],
+        "steps": [
+          "先標出三個邊",
+          "sin：對邊 ÷ 斜邊",
+          "cos：鄰邊 ÷ 斜邊",
+          "tan：對邊 ÷ 鄰邊"
+        ],
+        "caption": "課本例 5"
+      },
+      "activity": {
+        "id": "c-ex5-q",
+        "type": "numeric",
+        "prompt": "先自己做例 5（寫成分數）",
+        "items": [
+          {
+            "prompt": "sin A＝？",
+            "answer": "8/17"
+          },
+          {
+            "prompt": "cos A＝？",
+            "answer": "15/17"
+          },
+          {
+            "prompt": "tan A＝？",
+            "answer": "8/15"
+          }
+        ],
+        "explanation": "sin A＝8/17，cos A＝15/17，tan A＝8/15。"
+      },
+      "notes": "先讓學生在課本圖上用三種顏色標出對邊、鄰邊、斜邊。"
+    },
+    {
+      "id": "c-ex5-practice",
+      "phase": "隨堂練習",
+      "eyebrow": "05 / 例 5 隨堂",
+      "title": "換你算：三個比值",
+      "body": "三題都是課本隨堂，注意順序（先問 tan）。左圖用另一組數字示範。",
+      "source": "對應課本 1-4 p.71（題目數字同課本）",
+      "figures": [
+        {
+          "src": "g9-1-4/ex5-practice.png",
+          "alt": "課本 p.71 例 5 隨堂練習"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 20,
+          "yMin": 0,
+          "yMax": 11,
+          "aspect": "equal"
+        },
+        "shapes": [
+          {
+            "type": "polygon",
+            "points": [
+              [
+                0.6,
+                1.2
+              ],
+              [
+                9.1,
+                1.2
+              ],
+              [
+                9.1,
+                4.74
+              ]
+            ],
+            "fill": "rgba(255,138,61,.32)",
+            "color": "rgba(0,0,0,0)",
+            "width": 0.5,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.6,
+                1.2
+              ],
+              [
+                9.1,
+                1.2
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 3,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                9.1,
+                1.2
+              ],
+              [
+                9.1,
+                4.74
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 3,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.6,
+                1.2
+              ],
+              [
+                9.1,
+                4.74
+              ]
+            ],
+            "color": "#16824f",
+            "width": 3,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.75,
+                1.2
+              ],
+              [
+                8.75,
+                1.5499999999999998
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                9.1,
+                1.5499999999999998
+              ],
+              [
+                8.75,
+                1.5499999999999998
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 0.25,
+            "y": 0.75,
+            "text": "A",
+            "size": 14,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9.45,
+            "y": 0.75,
+            "text": "C",
+            "size": 14,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9.45,
+            "y": 5.09,
+            "text": "B",
+            "size": 14,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 4.85,
+            "y": 0.6,
+            "text": "12",
+            "size": 15,
+            "color": "#2f80ed",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 10,
+            "y": 2.97,
+            "text": "5",
+            "size": 15,
+            "color": "#e5484d",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 4.25,
+            "y": 3.5200000000000005,
+            "text": "13",
+            "size": 15,
+            "color": "#16824f",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 9.4,
+            "text": "示範：對邊 5、鄰邊 12、斜邊 13",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 7.5,
+            "text": "$\\sin A=\\dfrac{5}{13}$",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 5.6000000000000005,
+            "text": "$\\cos A=\\dfrac{12}{13}$",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 3.700000000000001,
+            "text": "$\\tan A=\\dfrac{5}{12}$",
+            "size": 19,
+            "color": "#5a3fd6",
+            "step": 3,
+            "focus": [
+              3
+            ]
+          }
+        ],
+        "steps": [
+          "另一組數字（自編）",
+          "對 ÷ 斜",
+          "鄰 ÷ 斜",
+          "對 ÷ 鄰"
+        ]
+      },
+      "activity": {
+        "id": "c-ex5-practice-q",
+        "type": "numeric",
+        "prompt": "課本 p.71 隨堂：AB＝5、BC＝3、AC＝4（寫成分數）",
+        "items": [
+          {
+            "prompt": "tan A＝？",
+            "answer": "3/4"
+          },
+          {
+            "prompt": "cos A＝？",
+            "answer": "4/5"
+          },
+          {
+            "prompt": "sin A＝？",
+            "answer": "3/5"
+          }
+        ],
+        "explanation": "tan A＝3/4，cos A＝4/5，sin A＝3/5。"
+      },
+      "notes": "答案：(1) 3/4 (2) 4/5 (3) 3/5。"
+    },
+    {
+      "id": "c-ex6",
+      "phase": "工作範例",
+      "eyebrow": "06 / 例 6 好漢亭",
+      "title": "用 sin 求垂直高度",
+      "body": "已知斜邊（車道長）和夾角，要求對邊（高度）：用 sin。先自己算，再按「下一步」。",
+      "source": "對應課本 1-4 p.72（題目數字同課本）",
+      "figures": [
+        {
+          "src": "g9-1-4/ex6.png",
+          "alt": "課本 p.72 例 6 題目"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 20,
+          "yMin": 0,
+          "yMax": 11,
+          "aspect": "equal"
+        },
+        "shapes": [
+          {
+            "type": "polygon",
+            "points": [
+              [
+                0.6,
+                1.2
+              ],
+              [
+                9.6,
+                1.2
+              ],
+              [
+                9.6,
+                3.6
+              ]
+            ],
+            "fill": "rgba(255,138,61,.32)",
+            "color": "#ff8a3d",
+            "width": 2,
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                9.25,
+                1.2
+              ],
+              [
+                9.25,
+                1.5499999999999998
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4,
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                9.6,
+                1.5499999999999998
+              ],
+              [
+                9.25,
+                1.5499999999999998
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4,
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "angle",
+            "points": [
+              [
+                9.6,
+                1.2
+              ],
+              [
+                0.6,
+                1.2
+              ],
+              [
+                9.6,
+                3.6
+              ]
+            ],
+            "text": "6°",
+            "color": "#e5484d",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 0.3,
+            "y": 0.7,
+            "text": "A",
+            "size": 14,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9.9,
+            "y": 0.7,
+            "text": "B",
+            "size": 14,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9.9,
+            "y": 3.9,
+            "text": "C",
+            "size": 14,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 4.6,
+            "y": 3.2,
+            "text": "1000",
+            "size": 14,
+            "color": "#ff8a3d",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 10.5,
+            "y": 2.4,
+            "text": "x",
+            "size": 15,
+            "color": "#5a3fd6",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 5,
+            "y": 0.4,
+            "text": "（示意圖：角度畫大一點）",
+            "size": 11,
+            "color": "#6b7394",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 9.6,
+            "text": "設 $\\overline{BC}$ 為 x 公尺",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 8,
+            "text": "$\\dfrac{\\overline{BC}}{\\overline{AC}}=\\sin A$（對 ÷ 斜）",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 6.3999999999999995,
+            "text": "$\\dfrac{x}{1000}=\\sin 6°\\approx 0.1045$",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 4.799999999999999,
+            "text": "x ≈ 1000 × 0.1045 ＝ 104.5",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 3,
+            "focus": [
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 3.1999999999999993,
+            "text": "≈ 105（公尺）",
+            "size": 19,
+            "color": "#5a3fd6",
+            "step": 4,
+            "focus": [
+              4
+            ]
+          }
+        ],
+        "steps": [
+          "設未知數",
+          "已知斜邊、求對邊：sin",
+          "查表或按計算機",
+          "移項",
+          "四捨五入到整數"
+        ],
+        "caption": "課本例 6 的方法"
+      },
+      "activity": {
+        "id": "c-ex6-q",
+        "type": "numeric",
+        "prompt": "先自己算例 6",
+        "items": [
+          {
+            "prompt": "垂直高度 BC 約幾公尺？（四捨五入到整數）",
+            "answer": "105"
+          }
+        ],
+        "explanation": "x/1000＝sin 6°≈0.1045，x≈104.5≈105。"
+      },
+      "notes": "計算機操作見課本書末 [6]。",
+      "animation": {
+        "src": "g9-1-4/anim-c-ex6.mp4",
+        "poster": "g9-1-4/anim-c-ex6.png",
+        "caption": "例 6：用 sin 6° 求高度",
+        "seconds": 19.6
+      }
+    },
+    {
+      "id": "c-ex6-practice",
+      "phase": "隨堂練習",
+      "eyebrow": "07 / 例 6 隨堂",
+      "title": "換你算：sin、cos 的生活問題",
+      "body": "第 1 題是課本隨堂，其餘是換數字題。先想：已知哪一邊、要求哪一邊、用哪個比？左圖用另一組數字示範。",
+      "source": "對應課本 1-4 p.72；第 1 題為課本隨堂，其餘為換數字題（自編）",
+      "figures": [
+        {
+          "src": "g9-1-4/ex6-practice.png",
+          "alt": "課本 p.72 例 6 隨堂練習"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 20,
+          "yMin": 0,
+          "yMax": 11,
+          "aspect": "equal"
+        },
+        "shapes": [
+          {
+            "type": "polygon",
+            "points": [
+              [
+                0.6,
+                1.2
+              ],
+              [
+                9.6,
+                1.2
+              ],
+              [
+                9.6,
+                3.6
+              ]
+            ],
+            "fill": "rgba(255,138,61,.32)",
+            "color": "#ff8a3d",
+            "width": 2,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                9.25,
+                1.2
+              ],
+              [
+                9.25,
+                1.5499999999999998
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                9.6,
+                1.5499999999999998
+              ],
+              [
+                9.25,
+                1.5499999999999998
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "angle",
+            "points": [
+              [
+                9.6,
+                1.2
+              ],
+              [
+                0.6,
+                1.2
+              ],
+              [
+                9.6,
+                3.6
+              ]
+            ],
+            "text": "10°",
+            "color": "#e5484d",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 0.3,
+            "y": 0.7,
+            "text": "A",
+            "size": 14,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9.9,
+            "y": 0.7,
+            "text": "B",
+            "size": 14,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9.9,
+            "y": 3.9,
+            "text": "C",
+            "size": 14,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 4.6,
+            "y": 3.2,
+            "text": "500",
+            "size": 14,
+            "color": "#ff8a3d",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 5,
+            "y": 0.55,
+            "text": "y",
+            "size": 15,
+            "color": "#5a3fd6",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 9.6,
+            "text": "示範：坡道 500 公尺、夾角 10°",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 8,
+            "text": "$\\dfrac{\\overline{AB}}{\\overline{AC}}=\\cos A$（鄰 ÷ 斜）",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 6.3999999999999995,
+            "text": "$\\dfrac{y}{500}=\\cos 10°\\approx 0.9848$",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 4.799999999999999,
+            "text": "y ≈ 492.4 ≈ 492（公尺）",
+            "size": 19,
+            "color": "#5a3fd6",
+            "step": 3,
+            "focus": [
+              3
+            ]
+          }
+        ],
+        "steps": [
+          "另一組數字（自編）",
+          "已知斜邊、求鄰邊：cos",
+          "代入",
+          "四捨五入到整數"
+        ]
+      },
+      "activity": {
+        "id": "c-ex6-practice-q",
+        "type": "numeric",
+        "prompt": "四捨五入到整數（公尺）",
+        "items": [
+          {
+            "prompt": "承例 6，水平距離 AB＝？（cos 6°≈0.9945）",
+            "answer": "995"
+          },
+          {
+            "prompt": "車道長 800 公尺、夾角 6°，垂直高度＝？（sin 6°≈0.1045）",
+            "answer": "84"
+          },
+          {
+            "prompt": "夾角 6°、水平距離 2000 公尺，垂直高度＝？（tan 6°≈0.1051）",
+            "answer": "210"
+          }
+        ],
+        "explanation": "(1) 1000×0.9945＝994.5≈995。(2) 800×0.1045＝83.6≈84。(3) 2000×0.1051＝210.2≈210（已知鄰邊求對邊用 tan）。"
+      },
+      "notes": "答案：(1) 995 (2) 84 (3) 210。第 3 題用 tan：已知鄰邊、求對邊。"
+    },
+    {
+      "id": "c-special",
+      "phase": "圖式連結",
+      "eyebrow": "08 / 三角板",
+      "title": "兩種特殊直角三角形的邊長比",
+      "body": "跟著課本：45° 三角板用畢氏定理；30° 三角板兩個拼成正三角形。按「下一步」。",
+      "source": "對應課本 1-4 p.73（題目數字同課本）",
+      "figures": [
+        {
+          "src": "g9-1-4/keybox-special.png",
+          "alt": "課本 p.73 特殊直角三角形的邊長比"
+        },
+        {
+          "src": "g9-1-4/special-45.png",
+          "alt": "課本 p.73 45°、45°、90°"
+        },
+        {
+          "src": "g9-1-4/special-30.png",
+          "alt": "課本 p.73 30°、60°、90°"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 20,
+          "yMin": 0,
+          "yMax": 11,
+          "aspect": "equal"
+        },
+        "shapes": [
+          {
+            "type": "polygon",
+            "points": [
+              [
+                0.6,
+                1.2
+              ],
+              [
+                4.3999999999999995,
+                1.2
+              ],
+              [
+                4.3999999999999995,
+                5
+              ]
+            ],
+            "fill": "rgba(255,138,61,.32)",
+            "color": "rgba(0,0,0,0)",
+            "width": 0.5,
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.6,
+                1.2
+              ],
+              [
+                4.3999999999999995,
+                1.2
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 3,
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                4.3999999999999995,
+                1.2
+              ],
+              [
+                4.3999999999999995,
+                5
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 3,
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.6,
+                1.2
+              ],
+              [
+                4.3999999999999995,
+                5
+              ]
+            ],
+            "color": "#16824f",
+            "width": 3,
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                4.05,
+                1.2
+              ],
+              [
+                4.05,
+                1.5499999999999998
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4,
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                4.3999999999999995,
+                1.5499999999999998
+              ],
+              [
+                4.05,
+                1.5499999999999998
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4,
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 0.25,
+            "y": 0.75,
+            "text": "A",
+            "size": 14,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 4.749999999999999,
+            "y": 0.75,
+            "text": "C",
+            "size": 14,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 4.749999999999999,
+            "y": 5.35,
+            "text": "B",
+            "size": 14,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "angle",
+            "points": [
+              [
+                4.3999999999999995,
+                1.2
+              ],
+              [
+                0.6,
+                1.2
+              ],
+              [
+                4.3999999999999995,
+                5
+              ]
+            ],
+            "text": "45°",
+            "color": "#e5484d",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 2.4999999999999996,
+            "y": 0.6,
+            "text": "1",
+            "size": 15,
+            "color": "#2f80ed",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 5.3,
+            "y": 3.1,
+            "text": "1",
+            "size": 15,
+            "color": "#e5484d",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 1.8999999999999995,
+            "y": 3.6500000000000004,
+            "text": "√2",
+            "size": 15,
+            "color": "#16824f",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "polygon",
+            "points": [
+              [
+                6.6,
+                1.2
+              ],
+              [
+                8.6,
+                1.2
+              ],
+              [
+                8.6,
+                4.664101615137755
+              ]
+            ],
+            "fill": "rgba(255,138,61,.32)",
+            "color": "rgba(0,0,0,0)",
+            "width": 0.5,
+            "step": 3,
+            "focus": [
+              3,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6.6,
+                1.2
+              ],
+              [
+                8.6,
+                1.2
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 3,
+            "step": 3,
+            "focus": [
+              3,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.6,
+                1.2
+              ],
+              [
+                8.6,
+                4.664101615137755
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 3,
+            "step": 3,
+            "focus": [
+              3,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6.6,
+                1.2
+              ],
+              [
+                8.6,
+                4.664101615137755
+              ]
+            ],
+            "color": "#16824f",
+            "width": 3,
+            "step": 3,
+            "focus": [
+              3,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.25,
+                1.2
+              ],
+              [
+                8.25,
+                1.5499999999999998
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4,
+            "step": 3,
+            "focus": [
+              3,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.6,
+                1.5499999999999998
+              ],
+              [
+                8.25,
+                1.5499999999999998
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4,
+            "step": 3,
+            "focus": [
+              3,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6.25,
+            "y": 0.75,
+            "text": "A",
+            "size": 14,
+            "color": "#1f2a56",
+            "step": 3,
+            "focus": [
+              3,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 8.95,
+            "y": 0.75,
+            "text": "C",
+            "size": 14,
+            "color": "#1f2a56",
+            "step": 3,
+            "focus": [
+              3,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 8.95,
+            "y": 5.014101615137754,
+            "text": "B",
+            "size": 14,
+            "color": "#1f2a56",
+            "step": 3,
+            "focus": [
+              3,
+              5
+            ]
+          },
+          {
+            "type": "angle",
+            "points": [
+              [
+                8.6,
+                1.2
+              ],
+              [
+                6.6,
+                1.2
+              ],
+              [
+                8.6,
+                4.664101615137755
+              ]
+            ],
+            "text": "60°",
+            "color": "#e5484d",
+            "step": 3,
+            "focus": [
+              3,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 7.6,
+            "y": 0.6,
+            "text": "1",
+            "size": 15,
+            "color": "#2f80ed",
+            "step": 3,
+            "focus": [
+              3,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9.5,
+            "y": 2.9320508075688774,
+            "text": "√3",
+            "size": 15,
+            "color": "#e5484d",
+            "step": 3,
+            "focus": [
+              3,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 7,
+            "y": 3.4820508075688776,
+            "text": "2",
+            "size": 15,
+            "color": "#16824f",
+            "step": 3,
+            "focus": [
+              3,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 15,
+            "y": 9.8,
+            "text": "45°：$\\overline{AC}=\\overline{BC}$ ＝ a",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 15,
+            "y": 8.3,
+            "text": "$\\overline{AB}=\\sqrt{a^2+a^2}=\\sqrt2\\,a$",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 15,
+            "y": 6.800000000000001,
+            "text": "邊長比 1 : 1 : √2",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 15,
+            "y": 5.300000000000001,
+            "text": "30°-60°：$\\overline{AC}=\\frac12\\overline{AB}$",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 3,
+            "focus": [
+              3,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 15,
+            "y": 3.8000000000000007,
+            "text": "$\\overline{BC}=\\sqrt{b^2-\\left(\\frac12b\\right)^2}=\\frac{\\sqrt3}{2}b$",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 4,
+            "focus": [
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 15,
+            "y": 2.3000000000000007,
+            "text": "邊長比 1 : √3 : 2",
+            "size": 19,
+            "color": "#5a3fd6",
+            "step": 5,
+            "focus": [
+              5
+            ]
+          }
+        ],
+        "steps": [
+          "等腰直角三角形",
+          "畢氏定理",
+          "45°-45°-90°",
+          "兩個 30° 三角板拼成正三角形（課本 p.73 圖）",
+          "畢氏定理",
+          "30°-60°-90°（最短邊對 30°）"
+        ]
+      },
+      "activity": {
+        "id": "c-special-q",
+        "type": "single",
+        "prompt": "30°-60°-90° 三角形中，最短的邊對的是哪個角？",
+        "options": [
+          "30°",
+          "60°",
+          "90°"
+        ],
+        "correct": [
+          0
+        ],
+        "explanation": "大角對大邊、小角對小邊：最短邊（1）對 30°，√3 對 60°，斜邊 2 對 90°。"
+      },
+      "notes": "請學生拿出三角板對照。",
+      "animation": {
+        "src": "g9-1-4/anim-c-special.mp4",
+        "poster": "g9-1-4/anim-c-special.png",
+        "caption": "兩種三角板：1 : 1 : √2、1 : √3 : 2",
+        "seconds": 22.5
+      }
+    },
+    {
+      "id": "c-ex7",
+      "phase": "工作範例",
+      "eyebrow": "09 / 例 7",
+      "title": "用邊長比 1 : 1 : √2 求邊長",
+      "body": "先判斷是哪一種特殊直角三角形，再列比例。先自己算，再按「下一步」。",
+      "source": "對應課本 1-4 p.74（題目數字同課本）",
+      "figures": [
+        {
+          "src": "g9-1-4/ex7.png",
+          "alt": "課本 p.74 例 7 題目"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 20,
+          "yMin": 0,
+          "yMax": 11,
+          "aspect": "equal"
+        },
+        "shapes": [
+          {
+            "type": "polygon",
+            "points": [
+              [
+                0.6,
+                1.2
+              ],
+              [
+                6.199999999999999,
+                1.2
+              ],
+              [
+                6.199999999999999,
+                6.8
+              ]
+            ],
+            "fill": "rgba(255,138,61,.32)",
+            "color": "rgba(0,0,0,0)",
+            "width": 0.5,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.6,
+                1.2
+              ],
+              [
+                6.199999999999999,
+                1.2
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 3,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6.199999999999999,
+                1.2
+              ],
+              [
+                6.199999999999999,
+                6.8
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 3,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.6,
+                1.2
+              ],
+              [
+                6.199999999999999,
+                6.8
+              ]
+            ],
+            "color": "#16824f",
+            "width": 3,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                5.85,
+                1.2
+              ],
+              [
+                5.85,
+                1.5499999999999998
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6.199999999999999,
+                1.5499999999999998
+              ],
+              [
+                5.85,
+                1.5499999999999998
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 0.25,
+            "y": 0.75,
+            "text": "A",
+            "size": 14,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6.549999999999999,
+            "y": 0.75,
+            "text": "C",
+            "size": 14,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6.549999999999999,
+            "y": 7.1499999999999995,
+            "text": "B",
+            "size": 14,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "angle",
+            "points": [
+              [
+                6.199999999999999,
+                1.2
+              ],
+              [
+                0.6,
+                1.2
+              ],
+              [
+                6.199999999999999,
+                6.8
+              ]
+            ],
+            "text": "45°",
+            "color": "#e5484d",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3.3999999999999995,
+            "y": 0.6,
+            "text": "6",
+            "size": 15,
+            "color": "#2f80ed",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 7.1,
+            "y": 4,
+            "text": "?",
+            "size": 15,
+            "color": "#e5484d",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 2.7999999999999994,
+            "y": 4.55,
+            "text": "?",
+            "size": 15,
+            "color": "#16824f",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 9.6,
+            "text": "△ABC 是 45°-45°-90° 直角三角形",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 8,
+            "text": "$\\overline{AC}:\\overline{BC}:\\overline{AB}$ ＝ 1 : 1 : √2",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 6.3999999999999995,
+            "text": "6 : $\\overline{BC}$ ＝ 1 : 1，$\\overline{BC}$ ＝ 6",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 4.799999999999999,
+            "text": "6 : $\\overline{AB}$ ＝ 1 : √2，$\\overline{AB}$ ＝ 6√2",
+            "size": 19,
+            "color": "#5a3fd6",
+            "step": 3,
+            "focus": [
+              3
+            ]
+          }
+        ],
+        "steps": [
+          "∠A＝45°、∠C＝90°",
+          "邊長比",
+          "兩股相等",
+          "斜邊是股的 √2 倍"
+        ],
+        "caption": "課本例 7（也可以用畢氏定理：√(6²＋6²)＝6√2）"
+      },
+      "activity": {
+        "id": "c-ex7-q",
+        "type": "numeric",
+        "prompt": "先自己做例 7",
+        "items": [
+          {
+            "prompt": "BC＝？",
+            "answer": "6"
+          },
+          {
+            "prompt": "AB＝？（最簡根式）",
+            "answer": "6√2"
+          }
+        ],
+        "explanation": "BC＝6，AB＝6√2。",
+        "form": "simplest-radical"
+      },
+      "notes": "Hint：也可以用等腰直角三角形＋畢氏定理。"
+    },
+    {
+      "id": "c-ex7-practice",
+      "phase": "隨堂練習",
+      "eyebrow": "10 / 例 7 隨堂",
+      "title": "換你算：特殊直角三角形",
+      "body": "前兩題是課本隨堂，第 3 題換數字。左圖用另一組數字示範。",
+      "source": "對應課本 1-4 p.74；第 1 題為課本隨堂，其餘為換數字題（自編）",
+      "figures": [
+        {
+          "src": "g9-1-4/ex7-practice.png",
+          "alt": "課本 p.74 例 7 隨堂練習"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 20,
+          "yMin": 0,
+          "yMax": 11,
+          "aspect": "equal"
+        },
+        "shapes": [
+          {
+            "type": "polygon",
+            "points": [
+              [
+                0.6,
+                1.2
+              ],
+              [
+                7.8,
+                1.2
+              ],
+              [
+                7.8,
+                5.356921938165306
+              ]
+            ],
+            "fill": "rgba(255,138,61,.32)",
+            "color": "rgba(0,0,0,0)",
+            "width": 0.5,
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.6,
+                1.2
+              ],
+              [
+                7.8,
+                1.2
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 3,
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                7.8,
+                1.2
+              ],
+              [
+                7.8,
+                5.356921938165306
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 3,
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.6,
+                1.2
+              ],
+              [
+                7.8,
+                5.356921938165306
+              ]
+            ],
+            "color": "#16824f",
+            "width": 3,
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                7.45,
+                1.2
+              ],
+              [
+                7.45,
+                1.5499999999999998
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4,
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                7.8,
+                1.5499999999999998
+              ],
+              [
+                7.45,
+                1.5499999999999998
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4,
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 0.25,
+            "y": 0.75,
+            "text": "A",
+            "size": 14,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 8.15,
+            "y": 0.75,
+            "text": "C",
+            "size": 14,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 8.15,
+            "y": 5.706921938165306,
+            "text": "B",
+            "size": 14,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "angle",
+            "points": [
+              [
+                7.8,
+                1.2
+              ],
+              [
+                0.6,
+                1.2
+              ],
+              [
+                7.8,
+                5.356921938165306
+              ]
+            ],
+            "text": "30°",
+            "color": "#e5484d",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 4.2,
+            "y": 0.6,
+            "text": "?",
+            "size": 15,
+            "color": "#2f80ed",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 8.7,
+            "y": 3.278460969082653,
+            "text": "4",
+            "size": 15,
+            "color": "#e5484d",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3.6,
+            "y": 3.828460969082653,
+            "text": "?",
+            "size": 15,
+            "color": "#16824f",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 9.6,
+            "text": "示範：∠A ＝ 30°",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 8,
+            "text": "30° 的對邊 $\\overline{BC}$ 最短",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 6.3999999999999995,
+            "text": "$\\overline{BC}:\\overline{AC}:\\overline{AB}$ ＝ 1 : √3 : 2",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 4.799999999999999,
+            "text": "4 : $\\overline{AC}$ ＝ 1 : √3，$\\overline{AC}$ ＝ 4√3",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 3,
+            "focus": [
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 3.1999999999999993,
+            "text": "4 : $\\overline{AB}$ ＝ 1 : 2，$\\overline{AB}$ ＝ 8",
+            "size": 19,
+            "color": "#5a3fd6",
+            "step": 4,
+            "focus": [
+              4
+            ]
+          }
+        ],
+        "steps": [
+          "另一組數字（自編）：∠A＝30°、BC＝4，是 30°-60°-90° 直角三角形",
+          "先找 30° 的對邊",
+          "邊長比",
+          "√3 那一邊",
+          "斜邊是最短邊的 2 倍"
+        ]
+      },
+      "activity": {
+        "id": "c-ex7-practice-q",
+        "type": "numeric",
+        "prompt": "課本 p.74 隨堂：∠C＝90°（最簡根式）",
+        "items": [
+          {
+            "prompt": "∠A＝60°、AC＝10，BC＝？",
+            "answer": "10√3"
+          },
+          {
+            "prompt": "∠A＝60°、AC＝10，AB＝？",
+            "answer": "20"
+          },
+          {
+            "prompt": "∠A＝45°、AB＝8，AC＝？",
+            "answer": "4√2"
+          }
+        ],
+        "explanation": "(1)(2) ∠A＝60°：AC 對 30° 最短，AC：BC：AB＝1：√3：2，BC＝10√3、AB＝20。(3) AC：AB＝1：√2，AC＝8/√2＝4√2。",
+        "form": "simplest-radical"
+      },
+      "notes": "答案：(1) 10√3 (2) 20 (3) 4√2。常見錯誤：∠A＝60° 時把 AC 當成 √3 那一邊。"
+    },
+    {
+      "id": "c-ex8",
+      "phase": "工作範例",
+      "eyebrow": "11 / 例 8 三角旗",
+      "title": "特殊直角三角形的生活問題",
+      "body": "三角旗和地面夾 45°，校舍高 15 公尺。先自己算，再按「下一步」。",
+      "source": "對應課本 1-4 p.75（題目數字同課本）",
+      "figures": [
+        {
+          "src": "g9-1-4/ex8.png",
+          "alt": "課本 p.75 例 8 題目"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 20,
+          "yMin": 0,
+          "yMax": 11,
+          "aspect": "equal"
+        },
+        "shapes": [
+          {
+            "type": "polygon",
+            "points": [
+              [
+                0.6,
+                1.2
+              ],
+              [
+                6.3999999999999995,
+                1.2
+              ],
+              [
+                6.3999999999999995,
+                7
+              ]
+            ],
+            "fill": "rgba(255,138,61,.32)",
+            "color": "rgba(0,0,0,0)",
+            "width": 0.5,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.6,
+                1.2
+              ],
+              [
+                6.3999999999999995,
+                1.2
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 3,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6.3999999999999995,
+                1.2
+              ],
+              [
+                6.3999999999999995,
+                7
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 3,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.6,
+                1.2
+              ],
+              [
+                6.3999999999999995,
+                7
+              ]
+            ],
+            "color": "#16824f",
+            "width": 3,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6.05,
+                1.2
+              ],
+              [
+                6.05,
+                1.5499999999999998
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6.3999999999999995,
+                1.5499999999999998
+              ],
+              [
+                6.05,
+                1.5499999999999998
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 0.25,
+            "y": 0.75,
+            "text": "A",
+            "size": 14,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6.749999999999999,
+            "y": 0.75,
+            "text": "C",
+            "size": 14,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6.749999999999999,
+            "y": 7.35,
+            "text": "B",
+            "size": 14,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "angle",
+            "points": [
+              [
+                6.3999999999999995,
+                1.2
+              ],
+              [
+                0.6,
+                1.2
+              ],
+              [
+                6.3999999999999995,
+                7
+              ]
+            ],
+            "text": "45°",
+            "color": "#e5484d",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 7.3,
+            "y": 4.1,
+            "text": "15",
+            "size": 15,
+            "color": "#e5484d",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 2.8999999999999995,
+            "y": 4.6499999999999995,
+            "text": "?",
+            "size": 15,
+            "color": "#16824f",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 9.6,
+            "text": "△ABC 是 45°-45°-90° 直角三角形",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 8,
+            "text": "$\\overline{BC}:\\overline{AB}$ ＝ 1 : √2",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 6.3999999999999995,
+            "text": "$\\overline{AB}=\\overline{BC}\\times\\sqrt2$ ＝ 15√2",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 4.799999999999999,
+            "text": "≈ 21.21（公尺）",
+            "size": 19,
+            "color": "#5a3fd6",
+            "step": 3,
+            "focus": [
+              3
+            ]
+          }
+        ],
+        "steps": [
+          "∠A＝45°",
+          "股：斜邊",
+          "計算機：15 × √2",
+          "四捨五入到小數第 2 位"
+        ],
+        "caption": "課本例 8"
+      },
+      "activity": {
+        "id": "c-ex8-q",
+        "type": "numeric",
+        "prompt": "先自己算例 8",
+        "items": [
+          {
+            "prompt": "三角旗長度約幾公尺？（小數第 2 位）",
+            "answer": "21.21",
+            "tolerance": 0.006
+          }
+        ],
+        "explanation": "AB＝15√2≈21.21。"
+      },
+      "notes": "寫 15√2 也算對（系統容許 0.006 的誤差）。",
+      "animation": {
+        "src": "g9-1-4/anim-c-ex8.mp4",
+        "poster": "g9-1-4/anim-c-ex8.png",
+        "caption": "例 8：45° 直角三角形求斜邊",
+        "seconds": 16.9
+      }
+    },
+    {
+      "id": "c-ex8-practice",
+      "phase": "隨堂練習",
+      "eyebrow": "12 / 例 8 隨堂",
+      "title": "換你算：電扶梯有多長？",
+      "body": "第 1 題是課本隨堂，其餘是換數字題。左圖用另一組數字示範。",
+      "source": "對應課本 1-4 p.75；第 1 題為課本隨堂，其餘為換數字題（自編）",
+      "figures": [
+        {
+          "src": "g9-1-4/ex8-practice.png",
+          "alt": "課本 p.75 例 8 隨堂練習"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 20,
+          "yMin": 0,
+          "yMax": 11,
+          "aspect": "equal"
+        },
+        "shapes": [
+          {
+            "type": "polygon",
+            "points": [
+              [
+                0.6,
+                1.2
+              ],
+              [
+                8.2,
+                1.2
+              ],
+              [
+                8.2,
+                5.587862045841156
+              ]
+            ],
+            "fill": "rgba(255,138,61,.32)",
+            "color": "rgba(0,0,0,0)",
+            "width": 0.5,
+            "focus": [
+              0,
+              1,
+              2
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.6,
+                1.2
+              ],
+              [
+                8.2,
+                1.2
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 3,
+            "focus": [
+              0,
+              1,
+              2
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.2,
+                1.2
+              ],
+              [
+                8.2,
+                5.587862045841156
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 3,
+            "focus": [
+              0,
+              1,
+              2
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.6,
+                1.2
+              ],
+              [
+                8.2,
+                5.587862045841156
+              ]
+            ],
+            "color": "#16824f",
+            "width": 3,
+            "focus": [
+              0,
+              1,
+              2
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                7.85,
+                1.2
+              ],
+              [
+                7.85,
+                1.5499999999999998
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4,
+            "focus": [
+              0,
+              1,
+              2
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.2,
+                1.5499999999999998
+              ],
+              [
+                7.85,
+                1.5499999999999998
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4,
+            "focus": [
+              0,
+              1,
+              2
+            ]
+          },
+          {
+            "type": "text",
+            "x": 0.25,
+            "y": 0.75,
+            "text": "A",
+            "size": 14,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2
+            ]
+          },
+          {
+            "type": "text",
+            "x": 8.549999999999999,
+            "y": 0.75,
+            "text": "C",
+            "size": 14,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2
+            ]
+          },
+          {
+            "type": "text",
+            "x": 8.549999999999999,
+            "y": 5.937862045841156,
+            "text": "B",
+            "size": 14,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2
+            ]
+          },
+          {
+            "type": "angle",
+            "points": [
+              [
+                8.2,
+                1.2
+              ],
+              [
+                0.6,
+                1.2
+              ],
+              [
+                8.2,
+                5.587862045841156
+              ]
+            ],
+            "text": "30°",
+            "color": "#e5484d",
+            "focus": [
+              0,
+              1,
+              2
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9.1,
+            "y": 3.393931022920578,
+            "text": "2.5",
+            "size": 15,
+            "color": "#e5484d",
+            "focus": [
+              0,
+              1,
+              2
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3.7999999999999994,
+            "y": 3.9439310229205784,
+            "text": "?",
+            "size": 15,
+            "color": "#16824f",
+            "focus": [
+              0,
+              1,
+              2
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 9.6,
+            "text": "示範：傾斜角 30°、高度 2.5 公尺",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              2
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 8,
+            "text": "$\\overline{BC}:\\overline{AB}$ ＝ 1 : 2",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              2
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 6.3999999999999995,
+            "text": "$\\overline{AB}$ ＝ 2 × 2.5 ＝ 5（公尺）",
+            "size": 19,
+            "color": "#5a3fd6",
+            "step": 2,
+            "focus": [
+              2
+            ]
+          }
+        ],
+        "steps": [
+          "另一組數字（自編）",
+          "30° 的對邊：斜邊＝1：2",
+          "電扶梯長 5 公尺"
+        ]
+      },
+      "activity": {
+        "id": "c-ex8-practice-q",
+        "type": "numeric",
+        "prompt": "電扶梯長度（公尺）",
+        "items": [
+          {
+            "prompt": "傾斜角 30°、高度 3.6 公尺，長度＝？",
+            "answer": "7.2"
+          },
+          {
+            "prompt": "傾斜角 30°、高度 4.5 公尺，長度＝？",
+            "answer": "9"
+          },
+          {
+            "prompt": "傾斜角 45°、高度 4 公尺，長度＝？（小數第 2 位）",
+            "answer": "5.66",
+            "tolerance": 0.006
+          }
+        ],
+        "explanation": "(1) 2×3.6＝7.2。(2) 2×4.5＝9。(3) 4√2≈5.66。"
+      },
+      "notes": "答案：(1) 7.2 (2) 9 (3) 5.66。"
+    },
+    {
+      "id": "c-error",
+      "phase": "錯誤分析",
+      "eyebrow": "13 / 當小老師",
+      "title": "小明寫：sin A ＝ 4/5",
+      "body": "直角 △ABC 中 ∠C＝90°，BC＝3、AC＝4、AB＝5。小明寫 sin A＝4/5。在畫布圈出錯誤、寫出正確答案與理由，也可以拍照上傳。",
+      "source": "錯誤示例（自編），對應課本 p.70–71",
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 20,
+          "yMin": 0,
+          "yMax": 11,
+          "aspect": "equal"
+        },
+        "shapes": [
+          {
+            "type": "polygon",
+            "points": [
+              [
+                0.6,
+                1.2
+              ],
+              [
+                8.6,
+                1.2
+              ],
+              [
+                8.6,
+                7.2
+              ]
+            ],
+            "fill": "rgba(255,138,61,.32)",
+            "color": "rgba(0,0,0,0)",
+            "width": 0.5,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.6,
+                1.2
+              ],
+              [
+                8.6,
+                1.2
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 3,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.6,
+                1.2
+              ],
+              [
+                8.6,
+                7.2
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 3,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.6,
+                1.2
+              ],
+              [
+                8.6,
+                7.2
+              ]
+            ],
+            "color": "#16824f",
+            "width": 3,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.25,
+                1.2
+              ],
+              [
+                8.25,
+                1.5499999999999998
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.6,
+                1.5499999999999998
+              ],
+              [
+                8.25,
+                1.5499999999999998
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 0.25,
+            "y": 0.75,
+            "text": "A",
+            "size": 14,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 8.95,
+            "y": 0.75,
+            "text": "C",
+            "size": 14,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 8.95,
+            "y": 7.55,
+            "text": "B",
+            "size": 14,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 4.6,
+            "y": 0.6,
+            "text": "4",
+            "size": 15,
+            "color": "#2f80ed",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9.5,
+            "y": 4.2,
+            "text": "3",
+            "size": 15,
+            "color": "#e5484d",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3.9999999999999996,
+            "y": 4.75,
+            "text": "5",
+            "size": 15,
+            "color": "#16824f",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 9.4,
+            "text": "小明：sin A ＝ 4/5",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 7.800000000000001,
+            "text": "∠A 的對邊 ＝ ？",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 6.2,
+            "text": "斜邊 ＝ ？",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 4.6,
+            "text": "sin A ＝ ？",
+            "size": 19,
+            "color": "#5a3fd6",
+            "step": 3,
+            "focus": [
+              3
+            ]
+          }
+        ],
+        "steps": [
+          "小明的答案",
+          "不和 ∠A 相連的那一股",
+          "直角對的邊",
+          "對 ÷ 斜"
+        ]
+      },
+      "activity": {
+        "id": "c-error-q",
+        "type": "canvas",
+        "prompt": "小明寫 sin A＝4/5。① 圈出錯誤 ② 寫出正確答案 ③ 說明理由（4/5 其實是什麼？）",
+        "canvas": "grid",
+        "allowPhoto": true,
+        "aiAllowed": true,
+        "rubric": {
+          "criteria": [
+            {
+              "id": "find",
+              "label": "找出錯誤",
+              "points": 2,
+              "levels": [
+                {
+                  "score": 0,
+                  "description": "未指出錯誤"
+                },
+                {
+                  "score": 1,
+                  "description": "只說錯了"
+                },
+                {
+                  "score": 2,
+                  "description": "指出 4 是鄰邊 AC，不是對邊"
+                }
+              ]
+            },
+            {
+              "id": "fix",
+              "label": "正確答案",
+              "points": 2,
+              "levels": [
+                {
+                  "score": 0,
+                  "description": "答案錯誤或未作答"
+                },
+                {
+                  "score": 2,
+                  "description": "sin A＝3/5"
+                }
+              ]
+            },
+            {
+              "id": "why",
+              "label": "說明理由",
+              "points": 2,
+              "levels": [
+                {
+                  "score": 0,
+                  "description": "沒有理由"
+                },
+                {
+                  "score": 1,
+                  "description": "只寫定義"
+                },
+                {
+                  "score": 2,
+                  "description": "說明 sin A＝對邊÷斜邊＝BC/AB，4/5 是 cos A（鄰邊÷斜邊）"
+                }
+              ]
+            }
+          ],
+          "reference": "∠A 的對邊是 BC＝3、斜邊 AB＝5，sin A＝3/5。小明用了鄰邊 AC＝4，4/5 其實是 cos A。"
+        }
+      },
+      "notes": "收件後按「AI 批改」，覆核後發回。"
+    },
+    {
+      "id": "c-summary",
+      "phase": "出場券",
+      "eyebrow": "14 / 1-4 重點回顧",
+      "title": "1-4 相似三角形的應用：一張圖整理",
+      "body": "對照課本的重點整理，用自己的話寫出 sin、cos、tan 分別是哪兩邊的比。",
+      "source": "對應課本 p.76–77 重點整理",
+      "figures": [
+        {
+          "src": "g9-1-4/summary-1.png",
+          "alt": "課本 p.76 重點整理"
+        },
+        {
+          "src": "g9-1-4/summary-2.png",
+          "alt": "課本 p.77 重點整理"
+        }
+      ],
+      "activity": {
+        "id": "c-exit-q",
+        "type": "short",
+        "prompt": "sin A、cos A、tan A 分別是哪兩邊的比？舉一個直角三角形的例子說明。",
+        "aiAllowed": true,
+        "rubric": {
+          "criteria": [
+            {
+              "id": "def",
+              "label": "三個定義",
+              "points": 2,
+              "levels": [
+                {
+                  "score": 0,
+                  "description": "沒有寫或全錯"
+                },
+                {
+                  "score": 1,
+                  "description": "寫對一到兩個"
+                },
+                {
+                  "score": 2,
+                  "description": "sin＝對邊/斜邊、cos＝鄰邊/斜邊、tan＝對邊/鄰邊"
+                }
+              ]
+            },
+            {
+              "id": "example",
+              "label": "舉例",
+              "points": 2,
+              "levels": [
+                {
+                  "score": 0,
+                  "description": "沒有例子"
+                },
+                {
+                  "score": 1,
+                  "description": "例子不完整"
+                },
+                {
+                  "score": 2,
+                  "description": "用具體邊長正確算出三個比值（例如 3-4-5）"
+                }
+              ]
+            }
+          ],
+          "reference": "直角 △ABC 中 ∠C＝90°：sin A＝對邊/斜邊、cos A＝鄰邊/斜邊、tan A＝對邊/鄰邊。例：BC＝3、AC＝4、AB＝5，sin A＝3/5、cos A＝4/5、tan A＝3/4。"
+        }
+      }
+    },
+    {
+      "id": "c-reflect",
+      "phase": "後設認知",
+      "eyebrow": "最後 / 給自己打分數",
+      "title": "今天的內容，我掌握了多少？",
+      "body": "誠實評估，下一節課會從大家最沒把握的地方開始複習。",
+      "visual": "cards",
+      "bullets": [
+        "還需要再看一次",
+        "看得懂例題",
+        "可以教別人"
+      ],
+      "notes": "3 分以下的學生，下節課開頭用提取練習再做一次；可用抽籤「答錯」請同學上台說明。",
+      "activity": {
+        "id": "c-reflect",
+        "type": "scale",
+        "prompt": "我能用 sin、cos、tan 和特殊直角三角形的邊長比解題",
+        "min": 1,
+        "max": 5,
+        "minLabel": "還需要再看一次",
+        "maxLabel": "可以教別人"
+      }
+    }
+  ]
+}
