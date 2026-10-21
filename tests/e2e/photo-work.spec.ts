@@ -162,6 +162,11 @@ test('numeric question: type the answer or photograph the textbook work; AI read
   }
   // 16 號：直接送答案（和原本一樣）
   const typed = students[0].page;
+  // 老師還沒派發拍照題：學生只看到答案框
+  await expect(typed.locator('#numeric-item-0')).toBeVisible();
+  await expect(typed.getByTestId('photo-alt')).toHaveCount(0);
+  await teacher.page.getByTestId('photo-toggle').click();
+  await expect(teacher.page.getByTestId('photo-toggle')).toContainText('收回拍照題');
   await expect(typed.getByTestId('photo-alt')).toContainText('拍照交計算過程');
   await expect(typed.getByTestId('photo-alt')).toContainText('課本上這題');
   for (const [i, v] of ['√6', '√3'].entries()) await typed.locator(`#numeric-item-${i}`).fill(v);

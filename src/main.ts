@@ -566,7 +566,7 @@ function photoReviewHtml(a: Activity) {
 }
 /** 可拍照的數值題：另一種交法，拍課本上的計算過程（AI 讀答案並依會考標準給分）。 */
 function photoOption(a: Activity, locked: boolean) {
-  if (!a.photoWork) return '';
+  if (!a.photoWork || !view?.session.photoOpen) return ''; // 老師按「派發拍照題」才出現
   const which = a.items && a.photoWork.items && a.photoWork.items.length < a.items.length ? `第 ${a.photoWork.items.map((i) => `(${i + 1})`).join('')} 題` : '這題';
   return `<div class="photo-alt" data-testid="photo-alt"><span class="or-line">或</span><label class="btn secondary full photo-quick ${locked ? 'disabled' : ''}">${icon('camera')}<span>拍照交計算過程（AI 批改）</span><input type="file" accept="image/*" capture="environment" data-action-input="quick-photo" data-testid="photo-alt-input" ${locked ? 'disabled' : ''}></label><p class="muted small-text">把課本上${which}的計算過程拍下來，AI 讀出答案並依會考標準給 0–3 分。</p></div>`;
 }
@@ -981,7 +981,11 @@ function timeUp() {
 function activityActions(a: Activity) {
   const s = view!.session,
     dis = s.ended ? 'disabled' : '';
-  const results = btn(s.resultsVisible ? '隱藏結果' : '公布結果', 'toggle-results', 'secondary', 'chart');
+  // 可拍照的數值題：老師按了才派發拍照交計算過程
+  const photo = a.photoWork
+    ? btn(s.photoOpen ? '收回拍照題' : '派發拍照題', 'photo-toggle', s.photoOpen ? 'primary' : 'secondary', 'camera', `data-testid="photo-toggle" aria-pressed="${!!s.photoOpen}" ${dis}`)
+    : '';
+  const results = `${btn(s.resultsVisible ? '隱藏結果' : '公布結果', 'toggle-results', 'secondary', 'chart')}${photo}`;
   if (!s.activityOpen) {
     const limit = prefs.get('activitySeconds', 60);
     const picker = `<label class="time-limit">${icon('clock')}<select id="activity-seconds" aria-label="作答限時" ${dis}>${TIME_LIMITS.map(([v, l]) => `<option value="${v}" ${v === limit ? 'selected' : ''}>${l}</option>`).join('')}</select></label>`;
@@ -1069,8 +1073,6 @@ function danmakuTools() {
   return `<div class="tool-row">${toggle}${s.danmakuOpen || list.length ? btn('清除彈幕', 'danmaku-clear', 'quiet', 'trash') : ''}</div>${log}`;
 }
 let danmakuBar = false,
-  danmakuLeft: number | null = null, // 還可以送幾則（每人最多 5 則；送過才知道）
-  danmakuSession = '',
   danmakuDraft = '',
   danmakuAnon = true;
 /** 學生端：按上方的「彈幕」後出現的輸入列（在畫面上方，iPad 鍵盤不會擋住）。 */
@@ -1081,12 +1083,12 @@ function danmakuStudentHtml() {
     danmakuDraft = '';
     return '';
   }
-  if (danmakuSession !== s.id) {
-    danmakuSession = s.id; // 新的一堂課：重新算 5 則
-    danmakuLeft = null;
-  }
   if (!danmakuBar) return '';
-  return `<form class="danmaku-bar" id="danmaku-form" data-testid="danmaku-bar"><input id="danmaku-text" maxlength="30" autocomplete="off" placeholder="${danmakuLeft === 0 ? '5 則都送完了' : '說點什麼…（30 字內）'}" value="${esc(danmakuDraft)}" aria-label="彈幕文字" ${danmakuLeft === 0 ? 'disabled' : ''}><label class="check-line"><input type="checkbox" id="danmaku-anon" ${danmakuAnon ? 'checked' : ''}> 匿名</label><small class="danmaku-left" data-testid="danmaku-left">${danmakuLeft === null ? '每人最多 5 則' : `還可以送 ${danmakuLeft} 則`}</small>${btn('送出', 'danmaku-send', 'primary', 'arrow', `data-testid="danmaku-send" ${danmakuLeft === 0 ? 'disabled' : ''}`)}${btn('', 'danmaku-bar', 'icon-btn', 'x', 'aria-label="收起彈幕"')}</form>`;
+  // 平常不限則數；作答開放中只有答對的同學能送，這一題每人 3 則
+  const q = view?.danmakuQuota;
+  const locked = !!q?.limited && (!q.eligible || q.left <= 0);
+  const status = !q?.limited ? '' : !q.eligible ? '作答中：答對這一題才能送' : q.left > 0 ? `答對了！這題還能送 ${q.left} 則` : '這題的 3 則用完了';
+  return `<form class="danmaku-bar" id="danmaku-form" data-testid="danmaku-bar"><input id="danmaku-text" maxlength="30" autocomplete="off" placeholder="${locked ? status : '說點什麼…（30 字內）'}" value="${esc(danmakuDraft)}" aria-label="彈幕文字" ${locked ? 'disabled' : ''}><label class="check-line"><input type="checkbox" id="danmaku-anon" ${danmakuAnon ? 'checked' : ''}> 匿名</label>${status ? `<small class="danmaku-left" data-testid="danmaku-left">${status}</small>` : ''}${btn('送出', 'danmaku-send', 'primary', 'arrow', `data-testid="danmaku-send" ${locked ? 'disabled' : ''}`)}${btn('', 'danmaku-bar', 'icon-btn', 'x', 'aria-label="收起彈幕"')}</form>`;
 }
 /** 學生端：老師公布結果、自己答對時播一次答對音效。 */
 const sounded = new Set<string>();
@@ -1509,7 +1511,7 @@ function viewSignature(v: SessionView) {
   const s = v.session;
   // 學生端：自己被派到（或結束）補救練習也要整個重畫
   const mine = user?.role === 'student' ? (v.practice?.entries.length ?? 0) : '';
-  return [s.id, s.slideIndex, s.activityOpen, s.resultsVisible, s.followTeacher, s.ended, s.activityDeadline ?? '', s.practice?.startedAt ?? '', s.danmakuOpen ?? false, mine].join(':');
+  return [s.id, s.slideIndex, s.activityOpen, s.resultsVisible, s.followTeacher, s.ended, s.activityDeadline ?? '', s.practice?.startedAt ?? '', s.danmakuOpen ?? false, s.photoOpen ?? false, `${v.danmakuQuota?.limited ?? ''}/${v.danmakuQuota?.eligible ?? ''}`, mine].join(':');
 }
 function gradesSignature(v: SessionView) {
   return v.grades.map((g) => `${g.answerId}:${g.total}:${g.released}:${g.gradedAt}`).sort().join('|');
@@ -2231,6 +2233,9 @@ async function action(el: HTMLElement) {
     }
     case 'practice-end':
       return control('practice-end');
+    case 'photo-toggle':
+      await control('photo', { value: !s.photoOpen });
+      return toast(view.session.photoOpen ? '已派發拍照題：學生可以拍課本上的計算過程' : '已收回拍照題');
     case 'danmaku-toggle':
       await control('danmaku', { value: !s.danmakuOpen });
       return toast(view.session.danmakuOpen ? '彈幕已開啟：學生可以送出彈幕' : '彈幕已關閉');
@@ -2247,19 +2252,13 @@ async function action(el: HTMLElement) {
     case 'danmaku-send': {
       const text = danmakuDraft.trim();
       if (!text) return toast('先輸入文字。', true);
-      try {
-        danmakuLeft = (await api<{ left: number }>(`/sessions/${s.id}/danmaku`, 'POST', { text, anon: danmakuAnon })).left;
-      } catch (e) {
-        if (/最多送/.test((e as Error).message)) danmakuLeft = 0;
-        const root = document.querySelector('#danmaku-root');
-        if (root) root.innerHTML = danmakuStudentHtml();
-        throw e;
-      }
+      const r = await api<{ left?: number }>(`/sessions/${s.id}/danmaku`, 'POST', { text, anon: danmakuAnon });
+      if (r.left !== undefined && view.danmakuQuota) view.danmakuQuota.left = r.left;
       danmakuDraft = '';
       const root = document.querySelector('#danmaku-root');
       if (root) root.innerHTML = danmakuStudentHtml();
       document.querySelector<HTMLInputElement>('#danmaku-text:not([disabled])')?.focus();
-      return toast(danmakuLeft ? `彈幕已送出（還可以送 ${danmakuLeft} 則）` : '彈幕已送出（5 則都送完了）');
+      return toast(r.left === undefined ? '彈幕已送出' : r.left ? `彈幕已送出（這題還能送 ${r.left} 則）` : '彈幕已送出（這題的 3 則用完了）');
     }
     case 'submit-practice': {
       const value = practiceDraft.value.replace(/−/g, '-').trim();

@@ -702,6 +702,36 @@ test('answer time limit locks submissions; teacher can extend; practice goes to 
   assert.equal((await practice('seat3',0,'2√3')).status,409);
 });
 
+test('danmaku while a question is open: only students who answered correctly, 3 each per opening',async()=>{
+  const {f,lesson:base}=await setup();
+  const act={id:'dq',type:'numeric',prompt:'√12 化成最簡根式',form:'simplest-radical',answer:'2√3',explanation:'√12＝2√3'};
+  const lesson={...base,id:'danmaku-lesson',slides:[{id:'s1',title:'化簡',body:'',activity:act}]};
+  assert.equal((await f.call('/api/lessons/danmaku-lesson','PUT',{lesson})).status,200);
+  const s=(await f.call('/api/sessions','POST',{lessonId:'danmaku-lesson',classId:'demo-class'})).body.session;
+  const ctl=(body)=>f.call(`/api/sessions/${s.id}/control`,'POST',body);
+  await f.call('/api/login','POST',{role:'student',classCode:'DEMO801',seat:2},'seat2');
+  await ctl({action:'danmaku',value:true});
+  const send=(who,text)=>{f.data.sessions[s.id].danmaku?.forEach(d=>{d.at-=5000;});return f.call(`/api/sessions/${s.id}/danmaku`,'POST',{text},who);};
+  // 平常：不限則數
+  for(let i=0;i<5;i++)assert.equal((await send('student',`平常 ${i}`)).status,200);
+  assert.equal((await f.call(`/api/sessions/${s.id}`,'GET',null,'student')).body.danmakuQuota.limited,false);
+  // 開放作答：還沒答、答錯都不能送；答對的人可以送 3 則
+  await ctl({action:'activity',value:true});
+  assert.equal((await send('student','還沒答')).status,403);
+  await f.call(`/api/sessions/${s.id}/answers`,'POST',{submissionId:'r1',activityId:'dq',value:'2√3'},'student');
+  await f.call(`/api/sessions/${s.id}/answers`,'POST',{submissionId:'w1',activityId:'dq',value:'√12'},'seat2');
+  assert.equal((await send('seat2','答錯')).status,403,'wrong answer: no danmaku while the question is open');
+  const quota=(await f.call(`/api/sessions/${s.id}`,'GET',null,'student')).body.danmakuQuota;
+  assert.deepEqual(quota,{limited:true,eligible:true,left:3});
+  for(let i=0;i<3;i++)assert.equal((await send('student',`答對 ${i}`)).body.left,2-i);
+  assert.equal((await send('student','第 4 則')).status,429);
+  // 結束作答：回到平常；下一次開放重新計算
+  await ctl({action:'activity',value:false});
+  assert.equal((await send('seat2','結束後')).status,200);
+  await ctl({action:'activity',value:true});
+  assert.equal((await send('student','新的一題')).status,200,'reset on the next opening (still answered correctly)');
+});
+
 test('danmaku: only while open, rate-limited, anonymous on screen but the teacher log keeps the seat',async()=>{
   const {f,session}=await setup();
   const send=(text,anon,who='student')=>f.call(`/api/sessions/${session.id}/danmaku`,'POST',{text,anon},who);

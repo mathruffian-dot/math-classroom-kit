@@ -364,6 +364,10 @@ export interface Session {
   drawnSeats: number[];
   drawFilter?: 'all' | 'unanswered' | 'correct' | 'incorrect';
   revision: number;
+  /** 老師按「派發拍照題」後，可拍照的數值題才出現拍照交計算過程（換頁收回）。 */
+  photoOpen?: boolean;
+  /** 這一次開放作答的時間（毫秒時間戳）：彈幕的「每題 3 則」從這裡重新計算。 */
+  activityOpenedAt?: number;
   /** 開放作答的截止時間（毫秒時間戳）；null／省略表示不限時。時間到就鎖住作答。 */
   activityDeadline?: number | null;
   /** 補救練習進行中（只在老師目前這一頁）。 */
@@ -428,6 +432,11 @@ export interface SessionView {
   practice?: PracticeView;
   /** 只給老師：最近的彈幕。 */
   danmaku?: Danmaku[];
+  /**
+   * 學生：作答開放中時彈幕有限制（只有答對的同學能送，這一題每人 3 則）。
+   * limited 為 false 表示平常時間，不限則數。
+   */
+  danmakuQuota?: { limited: boolean; eligible: boolean; left: number };
 }
 export interface Dashboard {
   lessons: Lesson[];

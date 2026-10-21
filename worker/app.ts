@@ -92,7 +92,8 @@ export interface StoredSession {
   /** 補救練習紀錄：題目 ID → 座號 → 開始時間與每輪作答。 */
   practice?: Record<string, Record<string, PracticeEntry>>;
   /** 每位同學這堂課送了幾則彈幕（座號 → 則數）。 */
-  danmakuSent?: Record<string, number>;
+  /** 作答開放中送出的彈幕則數：openedAt 是那一次開放的時間，換一次開放就重新計算。 */
+  danmakuQuiz?: { openedAt: number; counts: Record<string, number> };
   /** 彈幕（保留最近 100 則）。 */
   danmaku?: Danmaku[];
   /** 手寫辨識：每個座號最後一次辨識的時間（限速用）。 */
@@ -172,7 +173,20 @@ export interface AppContext {
   usage?: () => Promise<{ dataBytes: number; rowsToday: number; sessions: number }>;
 }
 /** 彈幕：每人每堂課最多幾則。 */
-const DANMAKU_PER_STUDENT = 5;
+const DANMAKU_PER_QUIZ = 3;
+/**
+ * 彈幕限制：平常不限則數；老師開放作答時，只有這一題已送出且答對的同學能送，每人 3 則（下一次開放重新計算）。
+ */
+function danmakuQuota(s: StoredSession, seat: number) {
+  const session = s.session,
+    activity = s.lesson.slides[session.slideIndex]?.activity;
+  if (!session.activityOpen || !activity) return { limited: false, eligible: true, left: Infinity };
+  const mine = latestAnswers(s.answers, activity.id).find((x) => x.seat === seat);
+  const eligible = !!mine && answerVerdict(mine, s.grades?.[mine.id]) === true;
+  const q = s.danmakuQuiz,
+    used = q && q.openedAt === session.activityOpenedAt ? q.counts[String(seat)] || 0 : 0;
+  return { limited: true, eligible, left: Math.max(0, DANMAKU_PER_QUIZ - used) };
+}
 /** AI 回傳的 finals：每一小題的最後答案（字串，最多 n 個）。 */
 function readFinals(raw: unknown, n: number): string[] {
   const list = raw && typeof raw === 'object' && Array.isArray((raw as { finals?: unknown }).finals) ? ((raw as { finals: unknown[] }).finals) : [];
@@ -453,6 +467,10 @@ export function sessionView(state: State, stored: StoredSession, user: User, onl
   }
   view.serverNow = Date.now();
   if (teacher) view.danmaku = clone((stored.danmaku || []).slice(-30));
+  else if (session.danmakuOpen && user.seat) {
+    const q = danmakuQuota(stored, user.seat);
+    view.danmakuQuota = { limited: q.limited, eligible: q.eligible, left: q.limited ? q.left : 0 };
+  }
   const practice = practiceView(stored, user, view.serverNow);
   if (practice) view.practice = practice;
   return view;
@@ -1117,6 +1135,7 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
           case 'slide':
             session.slideIndex = integer(body.index, 0, s.lesson.slides.length - 1);
             session.activityOpen = false;
+            session.photoOpen = false;
             session.activityDeadline = null;
             session.practice = null;
             session.resultsVisible = false;
@@ -1127,6 +1146,7 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
             assert(typeof body.value === 'boolean', '活動狀態不正確');
             assert(s.lesson.slides[session.slideIndex].activity, '這一頁沒有活動');
             session.activityOpen = body.value;
+            if (body.value) session.activityOpenedAt = Date.now(); // 新的一次開放：彈幕則數重新計算
             // 限時（秒）：0 或省略表示不限時；時間到就鎖住作答，老師可以加時間或結束作答。
             const seconds = body.value && body.seconds !== undefined ? integer(body.seconds, 0, 3600) : 0;
             session.activityDeadline = seconds ? Date.now() + seconds * 1000 : null;
@@ -1174,6 +1194,12 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
           }
           case 'practice-end':
             session.practice = null;
+            break;
+          case 'photo':
+            // 派發／收回拍照題：可拍照的數值題，老師按下才讓學生拍照交計算過程
+            assert(typeof body.value === 'boolean', '拍照題狀態不正確');
+            assert(s.lesson.slides[session.slideIndex].activity?.photoWork, '這一題不能拍照作答', 409);
+            session.photoOpen = body.value;
             break;
           case 'danmaku':
             assert(typeof body.value === 'boolean', '彈幕狀態不正確');
@@ -1342,6 +1368,8 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
           activity = s.lesson.slides.find((slide) => slide.activity?.id === activityId)?.activity;
         assert(activity, '找不到活動', 404);
         const value = validateAnswer(activity, body.value);
+        if (activity.type === 'numeric' && typeof value === 'object' && !Array.isArray(value))
+          assert(session.photoOpen, '老師還沒派發拍照題，請直接輸入答案', 409);
         if (typeof value === 'object' && value && 'imageId' in value && value.imageId) {
           const meta = state.images[value.imageId];
           assert(
@@ -1479,6 +1507,7 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
         assert(meta && meta.ownerId === user.id && meta.sessionId === session.id, '找不到這張照片', 404);
         const activity = s.lesson.slides.find((x) => x.activity?.id === body.activityId)?.activity;
         assert(activity && (activity.type === 'canvas' || activity.photoWork), '找不到題目', 404);
+        if (activity.type === 'numeric') assert(session.photoOpen, '老師還沒派發拍照題，請直接輸入答案', 409);
         assert(!activity.sensitive, '此題標記為敏感題，不傳送至 AI', 403);
         const config = await resolveAi(env, vault);
         if (!config) {
@@ -1527,15 +1556,18 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
         const mine = s.danmaku.filter((x) => x.seat === user.seat);
         assert(!mine.length || Date.now() - mine[mine.length - 1].at >= 3000, '太快了，等 3 秒再送', 429);
         // 每人每堂課最多 5 則（另外計數：紀錄只留最近 100 則）
-        s.danmakuSent ||= {};
-        const sent = s.danmakuSent[String(user.seat)] || 0;
-        assert(sent < DANMAKU_PER_STUDENT, `每人最多送 ${DANMAKU_PER_STUDENT} 則彈幕`, 429);
-        s.danmakuSent[String(user.seat)] = sent + 1;
+        const quota = danmakuQuota(s, user.seat!);
+        if (quota.limited) {
+          assert(quota.eligible, '作答時間：這一題答對的同學才能送彈幕', 403);
+          assert(quota.left > 0, `這一題的彈幕用完了（每人 ${DANMAKU_PER_QUIZ} 則）`, 429);
+          if (s.danmakuQuiz?.openedAt !== session.activityOpenedAt) s.danmakuQuiz = { openedAt: session.activityOpenedAt || 0, counts: {} };
+          s.danmakuQuiz!.counts[String(user.seat)] = DANMAKU_PER_QUIZ - quota.left + 1;
+        }
         const item: Danmaku = { id: uuid(), seat: user.seat!, text, anon: body.anon !== false, at: Date.now() };
         s.danmaku.push(item);
         if (s.danmaku.length > 100) s.danmaku.splice(0, s.danmaku.length - 100);
         s.seen[String(user.seat)] = now();
-        return save({ ok: true, left: DANMAKU_PER_STUDENT - sent - 1 });
+        return save({ ok: true, ...(quota.limited ? { left: quota.left - 1 } : {}) });
       }
       if (action === 'buzz' && method === 'POST') {
         assert(user.role === 'student', '只有學生可搶答', 403);
