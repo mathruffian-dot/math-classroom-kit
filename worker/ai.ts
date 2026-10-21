@@ -170,6 +170,12 @@ export async function chat(
     result = await send();
   }
   if (!result.ok) {
+    // 供應商的錯誤訊息（例如模型名稱不對）一起帶出來，老師才知道要改哪裡；OpenAI 的訊息不含完整金鑰
+    let said = '';
+    try {
+      const e = (await result.json()) as { error?: { message?: string } | string };
+      said = (typeof e.error === 'string' ? e.error : e.error?.message || '').replace(/sk-[\w-]{8,}/g, 'sk-…').slice(0, 140);
+    } catch {}
     const hint =
       result.status === 401 || result.status === 403
         ? 'API key 無效或沒有權限'
@@ -178,13 +184,15 @@ export async function chat(
           : result.status === 429
             ? '供應商額度或速率已達上限'
             : `供應商回應 ${result.status}`;
-    throw new HttpError(502, `AI 服務回應失敗：${hint}`);
+    throw new HttpError(502, `AI 服務回應失敗：${hint}${said ? `（${said}）` : ''}`);
   }
   const response = (await result.json()) as {
     choices?: { message?: { content?: string | { type: string; text?: string }[] } }[];
   };
   const raw = response.choices?.[0]?.message?.content;
   const text = Array.isArray(raw) ? raw.map((x) => x.text || '').join('') : raw;
+  if (!text || !String(text).trim())
+    throw new HttpError(502, reasoning ? 'AI 沒有回傳內容（推理模型的額度可能用在思考上），請再試一次' : 'AI 沒有回傳內容，請再試一次');
   return str(text, 'AI 回應', 60000, 1);
 }
 /** 從模型回覆中取出第一個完整 JSON 物件（容忍 ```json 包裝與前後說明）。 */

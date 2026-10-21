@@ -1,5 +1,6 @@
 import type {
   Activity,
+  AiSettings,
   Answer,
   Classroom,
   Credential,
@@ -792,7 +793,10 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
     if (path === '/api/settings/ai') {
       requireTeacher(user);
       const usedToday = state.aiUsage[`${user.id}:${new Date().toISOString().slice(0, 10)}`] || 0;
-      if (method === 'GET') return json(await aiSettings(env, vault, usedToday));
+      if (method === 'GET') {
+        const lastError = await vault.get<AiSettings['lastError']>('ai-last-error');
+        return json({ ...(await aiSettings(env, vault, usedToday)), ...(lastError ? { lastError } : {}) });
+      }
       if (method === 'PUT') {
         await saveAiSettings(body, vault);
         return json(await aiSettings(env, vault, usedToday));
@@ -800,6 +804,22 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
       if (method === 'DELETE') {
         await clearAiSettings(vault);
         return json(await aiSettings(env, vault, usedToday));
+      }
+    }
+    if (path === '/api/settings/ai/test' && method === 'POST') {
+      // 測試 AI 連線：送一句很短的話，回報成功與耗時，或供應商的錯誤原因
+      requireTeacher(user);
+      const config = await resolveAi(env, vault).catch((e: Error) => {
+        throw new HttpError(400, e.message);
+      });
+      assert(config, '還沒有設定 API key', 400);
+      const started = Date.now();
+      try {
+        const reply = await chat(config, '你是連線測試。只回覆兩個字：正常', '測試', { maxTokens: 60, timeoutMs: 30_000, effort: 'low' });
+        await vault.delete('ai-last-error');
+        return json({ ok: true, ms: Date.now() - started, model: config.model, reply: reply.slice(0, 40) });
+      } catch (e) {
+        return json({ ok: false, ms: Date.now() - started, model: config.model, error: (e as Error).message });
       }
     }
     if (path === '/api/settings/usage' && method === 'GET') {
@@ -1918,7 +1938,12 @@ async function analyze(
     if (fast) effort = 'low';
     votes = Math.min(3, Math.max(1, Math.round(Number(body.votes) || 1)));
     finish = (reply) => {
-      if (!full) return normalizeVerdict(extractJson(reply), rubric, base, 'live');
+      if (!full) {
+        const raw = extractJson(reply);
+        const v = normalizeVerdict(raw, rubric, base, 'live');
+        if (photoNumeric) v.finals = readFinals(raw, photoQuestions(activity).length);
+        return v;
+      }
       const raw = extractJson(reply);
       const g = normalizeGrade(raw, rubric, base, 'live', !!image);
       if (fast) {
@@ -1941,7 +1966,11 @@ async function analyze(
       if (!target || !grade || !stored) return;
       target.grades ||= {};
       target.grades[answerId] = grade;
-      if (photoNumeric && grade.finals) applyFinals(activity, stored, grade.finals);
+      if (photoNumeric) {
+        // 讀得到答案就照答案判對錯；讀不到就用 AI 判斷的對錯
+        if (grade.finals?.some(Boolean)) applyFinals(activity, stored, grade.finals);
+        else if (grade.depth === 'verdict' && typeof grade.correct === 'boolean') stored.correct = grade.correct;
+      }
       target.session.revision++;
     };
     mock = () => {

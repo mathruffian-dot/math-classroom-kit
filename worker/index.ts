@@ -48,6 +48,7 @@ interface Env extends StorageEnv {
   ASSETS: { fetch(request: Request): Promise<Response> };
 }
 const LIVE_PATH = '/api/live';
+const AI_LAST_ERROR = 'ai-last-error';
 /** 比對畫面有沒有變：伺服器時間（serverNow）每次都不同，不列入比對。 */
 function viewDigest(view: unknown): string {
   const { serverNow: _ignored, ...rest } = (view || {}) as { serverNow?: number };
@@ -114,10 +115,15 @@ export class ClassroomDurableObject {
         }
         return Response.json(result);
       } catch (error) {
+        // 記下最近一次 AI 失敗的原因（設定頁顯示給老師；不含金鑰）
+        const detail = error instanceof Error ? error.message : String(error);
+        try {
+          await this.state.storage.put(AI_LAST_ERROR, { at: Date.now(), path: new URL(request.url).pathname, message: detail.slice(0, 300) });
+        } catch {}
         return Response.json(
           {
             error:
-              error instanceof HttpError ? error.message : 'AI 服務暫時無法使用，課堂功能不受影響',
+              error instanceof HttpError ? error.message : `AI 服務暫時無法使用（${detail.slice(0, 80)}），課堂功能不受影響`,
           },
           { status: error instanceof HttpError ? error.status : 502 },
         );

@@ -23,8 +23,8 @@
   "a-ex3": {
     "src": "g8-2-2/anim-a-ex3.mp4",
     "poster": "g8-2-2/anim-a-ex3.png",
-    "caption": "例 3：根式的除法（b > 0）",
-    "seconds": 16.7,
+    "caption": "根式的除法：平方比較 → 若 a ≥ 0、b > 0，√a ÷ √b ＝ √(a ÷ b)",
+    "seconds": 36.7,
     "frame": "L1/05-divide"
   },
   "a-error": {

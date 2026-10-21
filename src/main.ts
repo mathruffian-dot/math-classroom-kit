@@ -243,7 +243,7 @@ async function renderSettings() {
   shell(
     'settings',
     '設定',
-    `<div class="settings-grid"><section class="panel settings-panel"><h2>${icon('key')}AI 批改與轉課程</h2><p class="muted">API key 只存在伺服器端（Cloudflare Durable Object），不會傳到學生裝置、不進備份。</p><form id="ai-form"><label>供應商<select name="provider">${providers.map(([v, n]) => `<option value="${v}" ${ai?.provider === v ? 'selected' : ''}>${n}</option>`).join('')}</select></label><label>API 網址<input name="baseUrl" value="${esc(ai?.baseUrl || '')}" required></label><label>模型名稱<input name="model" value="${esc(ai?.model || '')}" required placeholder="需支援讀圖（vision）"></label><label>API key<input name="apiKey" type="password" autocomplete="off" placeholder="${ai?.keyHint ? `已設定 ${esc(ai.keyHint)}，留空則不變更` : '貼上你的 API key'}"></label><label>每日呼叫上限<input name="dailyLimit" type="number" min="1" max="5000" value="${ai?.dailyLimit || 200}"></label><p class="setting-status">${ai?.configured ? tag(`已啟用・${ai.source === 'env' ? '部署環境變數' : '教師設定'}・今日已用 ${ai.usedToday} 次`, 'green') : tag('尚未設定：批改與轉課程會使用模擬結果', 'warn')}</p><div class="actions"><button type="submit" class="btn primary">${icon('save')}<span>儲存 AI 設定</span></button>${ai?.source === 'teacher' ? btn('移除金鑰', 'clear-ai', 'quiet danger', 'trash') : ''}</div></form></section><section class="panel settings-panel"><h2>${icon('stamp')}批改節奏</h2><label>同時批改份數<select id="pref-concurrency">${[2, 4, 6, 8, 10, 16].map((n) => `<option ${n === concurrency ? 'selected' : ''}>${n}</option>`).join('')}</select></label><label>每份投票次數<select id="pref-votes"><option value="1" ${votes === 1 ? 'selected' : ''}>1 次（最快）</option><option value="3" ${votes === 3 ? 'selected' : ''}>3 次取共識（較準、費用 ×3）</option></select></label><p class="muted small-text">快速批改（拍照作答依辨識稿、只送文字）每份約 3–8 秒，一班 32 份同時 10 份約半分鐘；看圖＋紅筆的完整批改每份約 15–40 秒。實際速度視模型與供應商速率限制。信心低於 0.7 或多次投票不一致的作答會標示「需覆核」。</p></section><section class="panel settings-panel"><h2>${icon('shield')}教師密碼</h2>${config.mode === 'supabase' ? '<p>Supabase 模式請在 Supabase Auth 修改密碼。</p>' : `<form id="password-form"><label>目前密碼<input name="current" type="password" autocomplete="current-password" required></label><label>新密碼（至少 8 字元）<input name="next" type="password" autocomplete="new-password" minlength="8" required></label><button type="submit" class="btn primary">${icon('save')}<span>修改密碼</span></button></form>`}</section><section class="panel settings-panel"><h2>${icon('screen')}部署資訊</h2><dl class="setting-list"><div><dt>模式</dt><dd>${modeBadge()}</dd></div><div><dt>教師帳號</dt><dd>${esc(user?.name || '')}</dd></div><div><dt>課堂同步</dt><dd>即時連線（WebSocket），中斷時自動改用輪詢備援</dd></div><div><dt>版本</dt><dd>${esc(config.version)}</dd></div></dl></section>${usagePanel(usage)}</div>`,
+    `<div class="settings-grid"><section class="panel settings-panel"><h2>${icon('key')}AI 批改與轉課程</h2><p class="muted">API key 只存在伺服器端（Cloudflare Durable Object），不會傳到學生裝置、不進備份。</p><form id="ai-form"><label>供應商<select name="provider">${providers.map(([v, n]) => `<option value="${v}" ${ai?.provider === v ? 'selected' : ''}>${n}</option>`).join('')}</select></label><label>API 網址<input name="baseUrl" value="${esc(ai?.baseUrl || '')}" required></label><label>模型名稱<input name="model" value="${esc(ai?.model || '')}" required placeholder="需支援讀圖（vision）"></label><label>API key<input name="apiKey" type="password" autocomplete="off" placeholder="${ai?.keyHint ? `已設定 ${esc(ai.keyHint)}，留空則不變更` : '貼上你的 API key'}"></label><label>每日呼叫上限<input name="dailyLimit" type="number" min="1" max="5000" value="${ai?.dailyLimit || 200}"></label><p class="setting-status">${ai?.configured ? tag(`已啟用・${ai.source === 'env' ? '部署環境變數' : '教師設定'}・今日已用 ${ai.usedToday} 次`, 'green') : tag('尚未設定：批改與轉課程會使用模擬結果', 'warn')}</p><div class="actions"><button type="submit" class="btn primary">${icon('save')}<span>儲存 AI 設定</span></button>${ai?.configured ? btn('測試 AI 連線', 'test-ai', 'secondary', 'spark', 'data-testid="test-ai"') : ''}${ai?.source === 'teacher' ? btn('移除金鑰', 'clear-ai', 'quiet danger', 'trash') : ''}</div><p id="ai-test-result" class="small-text" role="status"></p>${ai?.lastError ? `<p class="setting-error" data-testid="ai-last-error">${icon('x')}最近一次 AI 失敗（${new Date(ai.lastError.at).toLocaleString('zh-TW', { timeZone: 'Asia/Taipei', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}）：${esc(ai.lastError.message)}</p>` : ''}</form></section><section class="panel settings-panel"><h2>${icon('stamp')}批改節奏</h2><label>同時批改份數<select id="pref-concurrency">${[2, 4, 6, 8, 10, 16].map((n) => `<option ${n === concurrency ? 'selected' : ''}>${n}</option>`).join('')}</select></label><label>每份投票次數<select id="pref-votes"><option value="1" ${votes === 1 ? 'selected' : ''}>1 次（最快）</option><option value="3" ${votes === 3 ? 'selected' : ''}>3 次取共識（較準、費用 ×3）</option></select></label><p class="muted small-text">快速批改（拍照作答依辨識稿、只送文字）每份約 3–8 秒，一班 32 份同時 10 份約半分鐘；看圖＋紅筆的完整批改每份約 15–40 秒。實際速度視模型與供應商速率限制。信心低於 0.7 或多次投票不一致的作答會標示「需覆核」。</p></section><section class="panel settings-panel"><h2>${icon('shield')}教師密碼</h2>${config.mode === 'supabase' ? '<p>Supabase 模式請在 Supabase Auth 修改密碼。</p>' : `<form id="password-form"><label>目前密碼<input name="current" type="password" autocomplete="current-password" required></label><label>新密碼（至少 8 字元）<input name="next" type="password" autocomplete="new-password" minlength="8" required></label><button type="submit" class="btn primary">${icon('save')}<span>修改密碼</span></button></form>`}</section><section class="panel settings-panel"><h2>${icon('screen')}部署資訊</h2><dl class="setting-list"><div><dt>模式</dt><dd>${modeBadge()}</dd></div><div><dt>教師帳號</dt><dd>${esc(user?.name || '')}</dd></div><div><dt>課堂同步</dt><dd>即時連線（WebSocket），中斷時自動改用輪詢備援</dd></div><div><dt>版本</dt><dd>${esc(config.version)}</dd></div></dl></section>${usagePanel(usage)}</div>`,
   );
 }
 const NEW_LESSON = (): Lesson => ({
@@ -953,16 +953,7 @@ function teacherPanel(a: Activity | undefined, screen: boolean) {
   const activity = a
     ? `<section class="teacher-activity"><div class="activity-top">${tag(TYPE_LABEL[a.type])}<span id="answer-count" class="count-pill">${view!.aggregate.submitted} / ${view!.aggregate.total}</span></div><h2>${md(a.prompt)}</h2><div class="activity-actions" id="activity-actions">${activityActions(a)}</div><div id="aggregate">${aggregateHtml(view!)}</div><div id="practice-board">${practiceBoard(a)}</div>${screen ? '' : `<div id="responses">${responsesHtml(a)}</div>`}${!screen && a.aiAllowed && ['short', 'numeric', 'canvas'].includes(a.type) ? btn('AI 整理全班迷思', 'summarize', 'quiet full', 'spark') : ''}</section>`
     : `<div class="quiet-moment">${icon('sigma')}<h2>這一頁沒有題目</h2><p>可以用畫筆在圖上標示，或抽籤請同學說明。</p></div>`;
-  return `<div class="panel-scroll">${activity}<section class="seat-map" id="seat-map" data-testid="seat-map">${seatMapInner()}</section>${gradable && !screen ? gradingBar(a!) : ''}<section class="class-tools"><div class="draw-filter" role="group" aria-label="抽籤範圍">${(
-    [
-      ['all', '全部'],
-      ['unanswered', '未作答'],
-      ['correct', '答對'],
-      ['incorrect', '答錯'],
-    ] as const
-  )
-    .map(([k, l]) => `<button class="${drawFilter === k ? 'selected' : ''}" data-action="draw-filter" data-filter="${k}" aria-pressed="${drawFilter === k}" ${k !== 'all' && !a ? 'disabled' : ''}>${l}</button>`)
-    .join('')}</div><div class="tool-row">${btn('抽籤', 'draw', 'secondary', 'dice', 'data-testid="draw-seat"')}${btn('搶答', 'buzz-open', 'secondary', 'bolt', 'data-testid="buzz-open"')}</div><div id="danmaku-tools">${danmakuTools()}</div><div id="class-events">${eventsHtml()}</div></section>${screen ? '' : `<section class="room-options">${btn(s.followTeacher ? '同步翻頁中' : '學生自主瀏覽', 'toggle-follow', 'quiet', s.followTeacher ? 'screen' : 'book', s.ended ? 'disabled' : '')}${btn('學生加入', 'join-info', 'quiet', 'users')}${btn('結束課堂', 'end-session', 'quiet danger', 'logout', s.ended ? 'disabled' : '')}</section>${view!.lesson.slides[s.slideIndex]?.notes ? `<details class="teacher-notes"><summary>教師備註（學生看不到）</summary><p>${esc(view!.lesson.slides[s.slideIndex].notes)}</p></details>` : ''}`}</div>`;
+  return `<div class="panel-scroll">${activity}<section class="seat-map" id="seat-map" data-testid="seat-map">${seatMapInner()}</section>${gradable && !screen ? gradingBar(a!) : ''}<section class="class-tools">${screen && a ? drawFilterBar() : ''}<div class="tool-row">${btn(drawLabel(a), 'draw', 'secondary', 'dice', 'data-testid="draw-seat"')}${btn('搶答', 'buzz-open', 'secondary', 'bolt', 'data-testid="buzz-open"')}</div><div id="danmaku-tools">${danmakuTools()}</div><div id="class-events">${eventsHtml()}</div></section>${screen ? '' : `<section class="room-options">${btn(s.followTeacher ? '同步翻頁中' : '學生自主瀏覽', 'toggle-follow', 'quiet', s.followTeacher ? 'screen' : 'book', s.ended ? 'disabled' : '')}${btn('學生加入', 'join-info', 'quiet', 'users')}${btn('結束課堂', 'end-session', 'quiet danger', 'logout', s.ended ? 'disabled' : '')}</section>${view!.lesson.slides[s.slideIndex]?.notes ? `<details class="teacher-notes"><summary>教師備註（學生看不到）</summary><p>${esc(view!.lesson.slides[s.slideIndex].notes)}</p></details>` : ''}`}</div>`;
 }
 /* ───────────── 作答限時與補救練習 ───────────── */
 const TIME_LIMITS: [number, string][] = [
@@ -1182,24 +1173,56 @@ function showWall(a: Activity, focusId?: string) {
   }
 }
 function responsesHtml(a: Activity) {
-  const answers = latestBySeat(view!, a.id);
-  if (a.type === 'canvas' || (a.type === 'short' && a.rubric)) return submissionGrid(a, answers);
-  if (a.type === 'short')
-    return `<div class="short-responses">${answers.map((x) => `<div><span class="seat-tag">${x.seat}</span><p>${esc(x.value)}</p></div>`).join('') || '<p class="muted">等待第一個想法。</p>'}</div>`;
-  // 可拍照的數值題：直接送答案的看小卡，拍照交的另外列成批改格（照片＋辨識稿＋分數）
-  const photos = a.type === 'numeric' && a.photoWork ? workAnswers(view!, a) : [];
-  const grid = photos.length ? `<p class="mini-label">拍照交計算過程（${photos.length} 份）</p>${submissionGrid(a, photos)}` : '';
-  // 每一位同學的作答都看得到（選擇、量表、數值、操作），對錯用顏色與 ✓／✗ 標出；預設展開
-  if (['numeric', 'manipulate', 'single', 'multiple', 'scale'].includes(a.type) && answers.length) {
-    const tries = (seat: number) => view!.answers.filter((x) => x.activityId === a.id && x.seat === seat).length;
-    const right = answers.filter((x) => x.correct).length,
-      wrong = answers.filter((x) => x.correct === false).length;
-    return `<details class="answer-list" open data-testid="answer-list"><summary>個別作答（${answers.length} 人${right || wrong ? `・✓ ${right}・✗ ${wrong}` : ''}）</summary><div class="seat-chips">${answers.map((x) => `<span class="seat-chip ${x.correct ? 'ok' : x.note ? 'warn' : x.correct === undefined ? '' : 'no'}" title="${esc(answerText(x.value))}${x.note ? `（${esc(x.note)}）` : ''}"><b class="chip-seat">${x.seat}${x.correct === undefined ? '' : x.correct ? ' ✓' : ' ✗'}${tries(x.seat) > 1 ? `<small>改 ${tries(x.seat) - 1} 次</small>` : ''}</b>${chipAnswer(x, a)}</span>`).join('')}</div></details>${grid}`;
+  const r = filteredResponses(a);
+  // 投影講解是老師要投影時才按，放在收起的清單外面
+  const wall = r.wall ? `<div class="tool-row">${btn('投影講解：全班作答', 'work-wall', 'secondary', 'screen', 'data-testid="work-wall"')}</div>` : '';
+  return `${drawFilterBar()}${wall}<details class="answer-list" ${answerListOpen ? 'open' : ''} data-testid="answer-list"><summary>${r.summary}</summary>${r.body}</details>`;
+}
+/** 個別作答預設收起（老師的畫面常常投影出去，答案不能被還沒作答的同學看到）；老師打開後保持打開。 */
+let answerListOpen = false;
+/** 依「全部／未作答／答對／答錯」列出個別作答。 */
+function filteredResponses(a: Activity): { summary: string; body: string; wall: boolean } {
+  const pick = filterSeats(),
+    label = pick ? `${FILTER_LABEL[drawFilter]} ` : '';
+  if (drawFilter === 'unanswered') {
+    const seats = [...(pick || [])].sort((x, y) => x - y);
+    const roster = new Map((view!.roster || []).map((r) => [r.seat, r]));
+    return {
+      summary: `個別作答（未作答 ${seats.length} 人）`,
+      wall: false,
+      body: seats.length
+        ? `<div class="seat-chips" data-testid="unanswered-list">${seats.map((n) => `<span class="seat-chip ${roster.get(n)?.online ? '' : 'off'}"><b class="chip-seat">${n}</b><small>${roster.get(n)?.online ? '上線・還沒交' : '未上線'}</small></span>`).join('')}</div>`
+        : '<p class="muted">全班都交了。</p>',
+    };
   }
-  return '';
+  const all = latestBySeat(view!, a.id);
+  const answers = all.filter((x) => !pick || pick.has(x.seat));
+  const empty = pick ? `<p class="muted">目前沒有${FILTER_LABEL[drawFilter]}的同學${a.rubric ? '（或還沒批改）' : ''}。</p>` : '<p class="muted">等待第一份作答。</p>';
+  if (a.type === 'canvas' || (a.type === 'short' && a.rubric))
+    return { summary: `個別作答（${label}${answers.length} 份）`, wall: a.type === 'canvas' && all.length > 0, body: answers.length ? submissionGrid(a, answers) : empty };
+  if (a.type === 'short')
+    return {
+      summary: `個別作答（${answers.length} 人）`,
+      wall: false,
+      body: answers.length ? `<div class="short-responses">${answers.map((x) => `<div><span class="seat-tag">${x.seat}</span><p>${esc(x.value)}</p></div>`).join('')}</div>` : empty,
+    };
+  // 可拍照的數值題：直接送答案的看小卡，拍照交的另外列成批改格（照片＋辨識稿＋分數）
+  const photos = a.type === 'numeric' && a.photoWork ? workAnswers(view!, a).filter((x) => !pick || pick.has(x.seat)) : [];
+  const grid = photos.length ? `<p class="mini-label">拍照交計算過程（${photos.length} 份）</p>${submissionGrid(a, photos)}` : '';
+  // 每一位同學的作答（選擇、量表、數值、操作），對錯用顏色與 ✓／✗ 標出
+  const tries = (seat: number) => view!.answers.filter((x) => x.activityId === a.id && x.seat === seat).length;
+  const right = answers.filter((x) => x.correct).length,
+    wrong = answers.filter((x) => x.correct === false).length;
+  return {
+    summary: `個別作答（${label}${answers.length} 人${!pick && (right || wrong) ? `・✓ ${right}・✗ ${wrong}` : ''}）`,
+    wall: photos.length > 0,
+    body: answers.length
+      ? `<div class="seat-chips">${answers.map((x) => `<span class="seat-chip ${x.correct ? 'ok' : x.note ? 'warn' : x.correct === undefined ? '' : 'no'}" title="${esc(answerText(x.value))}${x.note ? `（${esc(x.note)}）` : ''}"><b class="chip-seat">${x.seat}${x.correct === undefined ? '' : x.correct ? ' ✓' : ' ✗'}${tries(x.seat) > 1 ? `<small>改 ${tries(x.seat) - 1} 次</small>` : ''}</b>${chipAnswer(x, a)}</span>`).join('')}</div>${grid}`
+      : empty,
+  };
 }
 function submissionGrid(a: Activity, answers: Answer[]) {
-    return `${answers.length && a.type !== 'short' ? `<div class="tool-row">${btn('投影講解：全班作答', 'work-wall', 'secondary', 'screen', 'data-testid="work-wall"')}</div>` : ''}<div class="submission-grid" data-testid="submission-grid">${answers
+  return `<div class="submission-grid" data-testid="submission-grid">${answers
       .map((x) => {
         const g = gradeFor(x.id);
         const v = x.value as CanvasAnswer;
@@ -1278,11 +1301,22 @@ function renderBuzzLayer() {
 }
 /** 老師端座位表：每個座號是否已作答（這一頁的題目）、是否上線；未上線的不列入抽籤。 */
 /** 抽籤範圍選了「未作答／答對／答錯」時符合的座號（和伺服器抽籤的規則一樣）；「全部」回傳 null。 */
-function filterSeats(): Set<number> | null {
+/** 換到另一頁（另一題）時，範圍回到「全部」。 */
+let drawFilterSlide = -1;
+function syncDrawFilter() {
+  const i = view?.session.slideIndex ?? -1;
+  if (i !== drawFilterSlide) {
+    drawFilterSlide = i;
+    drawFilter = 'all';
+  }
+}
+function filterSeats(filter?: typeof drawFilter): Set<number> | null {
+  syncDrawFilter();
+  filter ??= drawFilter;
   const a = view?.lesson.slides[view.session.slideIndex]?.activity;
-  if (!view || drawFilter === 'all' || !a) return null;
-  if (drawFilter === 'unanswered') return new Set((view.roster || []).filter((x) => !x.answered).map((x) => x.seat));
-  const want = drawFilter === 'correct';
+  if (!view || filter === 'all' || !a) return null;
+  if (filter === 'unanswered') return new Set((view.roster || []).filter((x) => !x.answered).map((x) => x.seat));
+  const want = filter === 'correct';
   return new Set(
     latestBySeat(view, a.id)
       .filter((x) => {
@@ -1292,6 +1326,24 @@ function filterSeats(): Set<number> | null {
       })
       .map((x) => x.seat),
   );
+}
+const DRAW_FILTERS = [
+  ['all', '全部'],
+  ['unanswered', '未作答'],
+  ['correct', '答對'],
+  ['incorrect', '答錯'],
+] as const;
+/** 看作答狀況＋抽籤範圍：選一個，下面的個別作答只列這些同學，抽籤也只從這些同學抽。 */
+function drawFilterBar() {
+  syncDrawFilter();
+  return `<div class="draw-filter" role="group" aria-label="看作答狀況與抽籤範圍" data-testid="draw-filter">${DRAW_FILTERS.map(([k, l]) => {
+    const n = k === 'all' ? (view?.roster || []).length : filterSeats(k)?.size ?? 0;
+    return `<button class="${drawFilter === k ? 'selected' : ''}" data-action="draw-filter" data-filter="${k}" aria-pressed="${drawFilter === k}">${l}<small>${n}</small></button>`;
+  }).join('')}</div>`;
+}
+function drawLabel(a: Activity | undefined) {
+  syncDrawFilter();
+  return `抽籤${a && drawFilter !== 'all' ? `（${FILTER_LABEL[drawFilter]}）` : ''}`;
 }
 function seatMapInner() {
   const r = view?.roster;
@@ -1326,6 +1378,8 @@ function eventsHtml() {
 
 /* ───────────── 批改佇列（教師端並行） ───────────── */
 const grading = {
+  failed: 0,
+  lastError: '',
   queue: [] as { sessionId: string; answerId: string; depth: 'verdict' | 'full' | 'fast' }[],
   inFlight: new Set<string>(),
   running: 0,
@@ -1376,14 +1430,24 @@ function pumpGrades() {
           view.grades = view.grades.filter((g) => g.answerId !== job.answerId).concat(r.grade);
         }
       })
-      .catch((e) => toast(`批改失敗：${(e as Error).message}`, true))
+      .catch((e) => {
+        grading.failed++;
+        grading.lastError = (e as Error).message;
+        toast(`批改失敗：${grading.lastError}`, true);
+      })
       .finally(() => {
         grading.running--;
         grading.inFlight.delete(job.answerId);
         grading.done++;
         if (!grading.queue.length && !grading.running) {
-          if (grading.total) toast(`批改完成 ${grading.done} 份，請覆核後再發回。`);
-          grading.done = grading.total = 0;
+          if (grading.total)
+            toast(
+              grading.failed
+                ? `批改結束：${grading.done - grading.failed} 份完成、${grading.failed} 份失敗（${grading.lastError}）`
+                : `批改完成 ${grading.done} 份，請覆核後再發回。`,
+              !!grading.failed,
+            );
+          grading.done = grading.total = grading.failed = 0;
         }
         refreshPanelParts();
         pumpGrades();
@@ -2091,6 +2155,16 @@ async function action(el: HTMLElement) {
       toast(`已清除 ${r.removed} 張照片`);
       return renderSettings();
     }
+    case 'test-ai': {
+      const out = document.querySelector('#ai-test-result');
+      if (out) out.textContent = '測試中…（約 2–10 秒）';
+      const r = await api<{ ok: boolean; ms: number; model: string; reply?: string; error?: string }>('/settings/ai/test', 'POST', {});
+      if (out) {
+        out.className = `small-text ${r.ok ? 'ok-text' : 'warn-text'}`;
+        out.textContent = r.ok ? `✓ 連線正常：${r.model} 回覆「${r.reply}」，耗時 ${(r.ms / 1000).toFixed(1)} 秒` : `✗ 連線失敗：${r.error}`;
+      }
+      return;
+    }
     case 'clear-ai':
       await api('/settings/ai', 'DELETE');
       config.aiConfigured = false;
@@ -2202,14 +2276,20 @@ async function action(el: HTMLElement) {
     case 'toggle-follow':
       return control('mode', { value: !s.followTeacher });
     case 'draw-filter': {
+      syncDrawFilter();
       drawFilter = el.dataset.filter as typeof drawFilter;
-      // 座位表馬上標出這個範圍的同學，按下去就看得到效果
+      answerListOpen = true; // 老師選了範圍，就是要看這些同學的作答
+      // 個別作答、座位表、抽籤鈕馬上換成這個範圍
+      refreshPanelParts();
       const map = document.querySelector('#seat-map');
       if (map) map.innerHTML = seatMapInner();
-      document.querySelectorAll('[data-action="draw-filter"]').forEach((b) => {
+      // 大屏模式的範圍列在抽籤鈕上方（不在 #responses 裡），選取狀態另外同步
+      document.querySelectorAll('.class-tools [data-action="draw-filter"]').forEach((b) => {
         b.classList.toggle('selected', (b as HTMLElement).dataset.filter === drawFilter);
         b.setAttribute('aria-pressed', String((b as HTMLElement).dataset.filter === drawFilter));
       });
+      const drawBtn = document.querySelector('[data-testid="draw-seat"] span');
+      if (drawBtn) drawBtn.textContent = drawLabel(a);
       return;
     }
     case 'draw':
@@ -2493,6 +2573,15 @@ document.addEventListener('change', async (e) => {
     el.value = '';
   }
 });
+// 記住個別作答清單開或關（畫面更新時照舊）；toggle 不會冒泡，用捕捉階段聽
+document.addEventListener(
+  'toggle',
+  (e) => {
+    const d = e.target;
+    if (d instanceof HTMLDetailsElement && d.dataset.testid === 'answer-list') answerListOpen = d.open;
+  },
+  true,
+);
 document.addEventListener('submit', (e) => {
   const form = e.target as HTMLFormElement;
   // 彈幕輸入列：按 Enter 會觸發「送出」按鈕的 click（已處理），這裡只擋住表單的預設送出

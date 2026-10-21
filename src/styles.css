@@ -4381,3 +4381,32 @@ svg.redpen {
   font-weight: 700;
   color: var(--violet);
 }
+.draw-filter small {
+  margin-left: 4px;
+  font-size: 11px;
+  font-weight: 800;
+  opacity: 0.7;
+}
+#responses > .draw-filter {
+  margin-bottom: 8px;
+}
+.seat-chip.off {
+  opacity: 0.5;
+}
+.setting-error {
+  margin: 8px 0 0;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #ffe4e4;
+  color: #a72c30;
+  font-size: 13px;
+  font-weight: 600;
+}
+.ok-text {
+  color: #12754a;
+  font-weight: 700;
+}
+.warn-text {
+  color: #a72c30;
+  font-weight: 700;
+}

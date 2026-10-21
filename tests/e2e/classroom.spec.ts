@@ -141,6 +141,10 @@ test('teacher and students complete numeric, manipulate and handwritten answers 
   // 按下範圍就看得到效果：座位表框出答對的同學（2 號），其他變淡
   await expect(teacher.page.getByTestId('seat-scope')).toContainText('答對 1 人：2 號');
   await expect(teacher.page.locator('#seat-map .seat.pick')).toHaveText('2');
+  // 個別作答只列答對的同學；抽籤鈕標出範圍
+  await expect(teacher.page.getByTestId('answer-list').locator('summary')).toContainText('答對 1 人');
+  await expect(teacher.page.getByTestId('answer-list').locator('.seat-chip')).toHaveCount(1);
+  await expect(teacher.page.getByTestId('draw-seat')).toContainText('抽籤（答對）');
   await teacher.page.getByTestId('draw-seat').click();
   await expect(teacher.page.locator('.draw-result strong')).toContainText('2');
   await expect(teacher.page.locator('.draw-result small')).toContainText('答對');

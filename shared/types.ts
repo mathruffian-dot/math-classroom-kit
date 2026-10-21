@@ -460,6 +460,8 @@ export interface StorageUsageInfo {
   limits: { storageBytes: number; rowsPerDay: number };
 }
 export interface AiSettings {
+  /** 最近一次 AI 呼叫失敗的原因（沒有就省略）。 */
+  lastError?: { at: number; path: string; message: string };
   configured: boolean;
   source: 'teacher' | 'env' | 'none';
   provider: string;
