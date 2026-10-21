@@ -145,7 +145,7 @@ test('negative fraction typed fraction-key-first is correct; teacher chips show 
       return v.answers.find((x: { seat: number }) => x.seat === 1)?.itemsCorrect;
     })
     .toEqual([true, true, true]);
-  await teacher.page.locator('.answer-list summary').click();
+  await expect(teacher.page.getByTestId('answer-list')).toHaveAttribute('open', '');
   const chip = teacher.page.locator('.seat-chip').first();
   await expect(chip).toHaveClass(/ok/);
   await expect(chip.locator('.chip-item')).toHaveCount(3);

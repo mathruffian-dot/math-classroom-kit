@@ -3,7 +3,7 @@
 import type { Danmaku } from '../shared/types';
 
 const COLORS = ['#ffffff', '#ffe08a', '#bfe3ff', '#ffc9b5', '#c9f2d8', '#e3d6ff'];
-const SPEED = 170; // 每秒移動的像素
+const SPEED = 110; // 每秒移動的像素（老師回饋：再慢一點，學生才讀得完）
 const seen = new Set<string>();
 let started = false,
   clearedAt = 0;
@@ -28,7 +28,7 @@ function fly(item: Danmaku) {
   const w = host.clientWidth,
     h = host.clientHeight;
   if (!w || !h) return;
-  const size = Math.round(Math.max(22, Math.min(34, h / 20)));
+  const size = Math.round(Math.max(30, Math.min(52, h / 13)));
   const lineH = Math.round(size * 1.5);
   const lanes = Math.max(1, Math.floor((h * 0.8) / lineH));
   const now = performance.now();

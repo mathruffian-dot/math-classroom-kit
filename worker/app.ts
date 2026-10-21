@@ -14,7 +14,7 @@ import type {
 } from '../shared/types';
 import catalog from '../content/catalog.generated.json';
 import { normalizeChars, parseNumberAnswer } from '../shared/expr';
-import { PRACTICE_GRACE_MS, practiceStatus } from '../shared/practice';
+import { PRACTICE_GRACE_MS, practiceStatus, practiceTotal } from '../shared/practice';
 import {
   HttpError,
   assert,
@@ -23,6 +23,7 @@ import {
   judge,
   judgeNumeric,
   judgePhotoFinals,
+  judgeOriginal,
   photoItems as photoItemsOf,
   judgePractice,
   record,
@@ -89,6 +90,8 @@ export interface StoredSession {
   grades?: Record<string, Grade>;
   /** 補救練習紀錄：題目 ID → 座號 → 開始時間與每輪作答。 */
   practice?: Record<string, Record<string, PracticeEntry>>;
+  /** 每位同學這堂課送了幾則彈幕（座號 → 則數）。 */
+  danmakuSent?: Record<string, number>;
   /** 彈幕（保留最近 100 則）。 */
   danmaku?: Danmaku[];
   /** 手寫辨識：每個座號最後一次辨識的時間（限速用）。 */
@@ -167,6 +170,8 @@ export interface AppContext {
   /** 免費額度用量（Durable Object 分開存時才有）。 */
   usage?: () => Promise<{ dataBytes: number; rowsToday: number; sessions: number }>;
 }
+/** 彈幕：每人每堂課最多幾則。 */
+const DANMAKU_PER_STUDENT = 5;
 /** AI 回傳的 finals：每一小題的最後答案（字串，最多 n 個）。 */
 function readFinals(raw: unknown, n: number): string[] {
   const list = raw && typeof raw === 'object' && Array.isArray((raw as { finals?: unknown }).finals) ? ((raw as { finals: unknown[] }).finals) : [];
@@ -456,10 +461,19 @@ function practiceView(stored: StoredSession, user: User, now: number): SessionVi
   const run = stored.session.practice;
   if (!run) return undefined;
   const activity = stored.lesson.slides.find((x) => x.activity?.id === run.activityId)?.activity;
-  const questions = activity?.practice?.slice(0, run.rounds) || [];
   const all = Object.values(stored.practice?.[run.activityId] || {});
   const entries = user.role === 'teacher' ? all : all.filter((e) => e.seat === user.seat);
   if (user.role !== 'teacher' && !entries.length) return undefined;
+  // 原題再做一次：學生看到的每一輪是自己答錯的那一題原題；老師看全部小題
+  const original = (i: number) => {
+    const it = activity?.items?.[i];
+    return { prompt: it ? `${activity!.prompt}：(${i + 1}) ${it.prompt}` : activity?.prompt || '', answer: it ? it.answer : activity?.answer || '' };
+  };
+  const questions: { prompt: string; answer: string; explanation?: string }[] = run.retry
+    ? user.role === 'teacher'
+      ? (activity?.items || [null]).map((_, i) => original(i))
+      : (entries[0].items || [0]).map(original)
+    : activity?.practice?.slice(0, run.rounds) || [];
   const done = new Set<number>();
   if (user.role === 'teacher') questions.forEach((_, i) => done.add(i));
   else
@@ -1107,10 +1121,19 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
           }
           case 'practice-start': {
             // 把補救練習派給這一題答錯的同學（可選擇含未作答）；每輪限時、答錯或逾時自動換下一輪。
+            // 不另外出題：把原題再派一次，每位同學只重做自己答錯的小題（未作答的做全部）
             const activity = s.lesson.slides[session.slideIndex].activity;
-            assert(activity?.practice?.length, '這一題沒有補救練習題', 409);
+            assert(activity?.type === 'numeric', '只有數值題可以派原題再做一次', 409);
             const latest = latestAnswers(s.answers, activity.id);
             const wrong = latest.filter((x) => answerVerdict(x, s.grades![x.id]) === false).map((x) => x.seat);
+            const every = Array.from({ length: activity.items?.length || 1 }, (_, i) => i);
+            const redo = (seat: number) => {
+              const x = latest.find((a) => a.seat === seat);
+              if (!x?.itemsCorrect) return every;
+              const photo = typeof x.value === 'object' && !Array.isArray(x.value) ? photoItemsOf(activity) : every;
+              const miss = every.filter((i) => !x.itemsCorrect![i] && photo.includes(i));
+              return miss.length ? miss : every;
+            };
             let seats = wrong;
             if (body.includeUnanswered === true) {
               // 未作答：只算目前上線的同學（沒上線的派了也收不到）
@@ -1123,9 +1146,10 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
               seconds = body.seconds !== undefined ? integer(body.seconds, 15, 600) : 60;
             session.activityOpen = false;
             session.activityDeadline = null;
-            session.practice = { activityId: activity.id, startedAt: now, seconds, rounds: Math.min(3, activity.practice.length) };
+            const plan = seats.map((seat) => ({ seat, start: now, subs: [], items: redo(seat) }));
+            session.practice = { activityId: activity.id, startedAt: now, seconds, rounds: Math.max(...plan.map((e) => e.items.length)), retry: true };
             s.practice ||= {};
-            s.practice[activity.id] = Object.fromEntries(seats.map((seat) => [String(seat), { seat, start: now, subs: [] }]));
+            s.practice[activity.id] = Object.fromEntries(plan.map((e) => [String(e.seat), e]));
             break;
           }
           case 'practice-end':
@@ -1365,7 +1389,7 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
         assert(run && !session.ended, '補救練習已結束', 409);
         const entry = s.practice?.[run.activityId]?.[String(user.seat)];
         assert(entry, '這次的補救練習沒有派給你', 403);
-        const round = integer(body.round, 0, run.rounds - 1),
+        const round = integer(body.round, 0, practiceTotal(run, entry) - 1),
           value = str(body.value, '答案', 60, 1).replace(/−/g, '-').trim();
         // 截止後寬限幾秒（網路延遲）仍算這一輪；剛換到下一輪的也接受。
         const open = (t: number) => {
@@ -1380,7 +1404,7 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
         } catch {
           throw new HttpError(400, '請輸入數字、分數或算式');
         }
-        const correct = judgePractice(activity, round, value);
+        const correct = run.retry ? judgeOriginal(activity, entry.items?.[round] ?? 0, value) : judgePractice(activity, round, value);
         entry.subs.push({ round, value, correct, at: Date.now() });
         s.seen[String(user.seat)] = now();
         session.revision++;
@@ -1482,11 +1506,16 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
         s.danmaku ||= [];
         const mine = s.danmaku.filter((x) => x.seat === user.seat);
         assert(!mine.length || Date.now() - mine[mine.length - 1].at >= 3000, '太快了，等 3 秒再送', 429);
+        // 每人每堂課最多 5 則（另外計數：紀錄只留最近 100 則）
+        s.danmakuSent ||= {};
+        const sent = s.danmakuSent[String(user.seat)] || 0;
+        assert(sent < DANMAKU_PER_STUDENT, `每人最多送 ${DANMAKU_PER_STUDENT} 則彈幕`, 429);
+        s.danmakuSent[String(user.seat)] = sent + 1;
         const item: Danmaku = { id: uuid(), seat: user.seat!, text, anon: body.anon !== false, at: Date.now() };
         s.danmaku.push(item);
         if (s.danmaku.length > 100) s.danmaku.splice(0, s.danmaku.length - 100);
         s.seen[String(user.seat)] = now();
-        return save({ ok: true });
+        return save({ ok: true, left: DANMAKU_PER_STUDENT - sent - 1 });
       }
       if (action === 'buzz' && method === 'POST') {
         assert(user.role === 'student', '只有學生可搶答', 403);

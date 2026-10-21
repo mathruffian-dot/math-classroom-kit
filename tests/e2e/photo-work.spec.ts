@@ -146,7 +146,7 @@ test('numeric question: type the answer or photograph the textbook work; AI read
   await expect(teacher.page.getByTestId('session-slide')).toBeVisible();
   const sessionId = teacher.page.url().split('/session/')[1];
   cleanup.push({ context: teacher.context, id: sessionId });
-  await teacher.page.locator('.slide-dots button').nth(8).click(); // 例 3 隨堂（課本原題 2 題＋換數字 1 題）
+  await teacher.page.locator('.slide-dots button').nth(8).click(); // 例 3 隨堂（課本原題 2 題）
   await teacher.page.getByTestId('toggle-activity').click();
 
   const students = [];
@@ -163,8 +163,8 @@ test('numeric question: type the answer or photograph the textbook work; AI read
   // 16 號：直接送答案（和原本一樣）
   const typed = students[0].page;
   await expect(typed.getByTestId('photo-alt')).toContainText('拍照交計算過程');
-  await expect(typed.getByTestId('photo-alt')).toContainText('第 (1)(2) 題');
-  for (const [i, v] of ['√6', '√3', '3'].entries()) await typed.locator(`#numeric-item-${i}`).fill(v);
+  await expect(typed.getByTestId('photo-alt')).toContainText('課本上這題');
+  for (const [i, v] of ['√6', '√3'].entries()) await typed.locator(`#numeric-item-${i}`).fill(v);
   await typed.getByTestId('submit-answer').click();
   await expect(typed.locator('.saved-answer')).toContainText('已送出');
   // 17 號：拍課本上的計算過程 → 核對辨識稿 → 送出
@@ -184,7 +184,7 @@ test('numeric question: type the answer or photograph the textbook work; AI read
     const v = await (await teacher.page.request.get(`/api/sessions/${sessionId}`)).json();
     const a = v.answers.find((x: { seat: number }) => x.seat === 17);
     return { graded: v.grades.length, basis: v.grades[0]?.basis, correct: a?.correct, items: a?.itemsCorrect };
-  }).toEqual({ graded: 1, basis: 'text', correct: true, items: [true, true, false] });
+  }).toEqual({ graded: 1, basis: 'text', correct: true, items: [true, true] });
   const v = await (await teacher.page.request.get(`/api/sessions/${sessionId}`)).json();
   expect(v.grades[0].finals).toEqual(['√6', '√3']);
   expect(v.answers.find((x: { seat: number }) => x.seat === 16).correct).toBe(true);

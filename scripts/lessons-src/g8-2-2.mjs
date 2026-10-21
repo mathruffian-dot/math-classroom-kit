@@ -5,6 +5,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as V from './viz.mjs';
+import { textbookOnly } from './textbook-only.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const fig = (file, alt, caption) => ({ src: `g8-2-2/${file}`, alt, ...(caption ? { caption } : {}) });
@@ -37,7 +38,7 @@ const lessonA = {
   schemaVersion: 1,
   id: 'g8-2-2a',
   title: '2-2 根式的運算（1）根式的乘除',
-  description: '用「a 個 √m」理解 a√b，用長方形面積理解 √a×√b＝√(ab)，在數線上比較根式大小，並練習根式除法。例題與隨堂皆附課本截圖，隨堂改為可即時批改的 IRS（含換數字題）。',
+  description: '用「a 個 √m」理解 a√b，用長方形面積理解 √a×√b＝√(ab)，在數線上比較根式大小，並練習根式除法。例題與隨堂皆附課本截圖，隨堂改為可即時批改的 IRS。',
   subject: '數學・八年級 2-2',
   duration: 45,
   objectives: ['能說明 a√b 的意義並做係數與根式的乘除', '能用 √a×√b＝√(ab)、√a÷√b＝√(a÷b) 計算', '能把係數移入根號比較根式大小'],
@@ -164,18 +165,18 @@ const lessonA = {
       id: 'a-ex2-practice',
       phase: '隨堂練習',
       eyebrow: '07 / 例 2 隨堂',
-      title: '比較大小：哪些敘述正確？',
-      body: '第一個敘述是課本隨堂，其餘是換數字題。左圖用另一組數字（2√6 和 3√2）示範同樣的步驟，再自己判斷四個敘述。',
-      source: srcVar(75),
+      title: '比較大小：6√2 和 5√3，哪個大？',
+      body: '課本隨堂原題。左圖用另一組數字（2√6 和 3√2）示範同樣的步驟：係數平方後移進根號，再比根號內的數。',
+      source: src(75),
       figures: [fig('ex2-practice.png', '課本 p.75 例 2 隨堂練習')],
       interactive: V.compareSteps({ a: 2, b: 6, c: 3, d: 2 }),
       activity: {
         id: 'a-ex2-practice-q',
-        type: 'multiple',
-        prompt: '選出所有正確的敘述（可複選）',
-        options: ['6√2 < 5√3', '2√7 < 3√3', '4√3 > 3√5', '5√2 < 4√3'],
-        correct: [0, 2],
-        explanation: '6√2＝√72、5√3＝√75 → 6√2 < 5√3 ✓；2√7＝√28、3√3＝√27 → 2√7 > 3√3 ✗；4√3＝√48、3√5＝√45 ✓；5√2＝√50、4√3＝√48 → 5√2 > 4√3 ✗。',
+        type: 'single',
+        prompt: '課本 p.75 隨堂：6√2 和 5√3 的大小關係？',
+        options: ['6√2 > 5√3', '6√2 < 5√3', '6√2 ＝ 5√3'],
+        correct: [1],
+        explanation: '6√2＝√72、5√3＝√75，72 < 75，所以 6√2 < 5√3。',
       },
     },
     {
@@ -1076,6 +1077,20 @@ for (const lesson of [lessonA, lessonB, lessonC, lessonD])
   }
 const unused = Object.keys(animations).filter((id) => !used.has(id));
 if (unused.length) throw new Error(`動畫對照表有找不到的頁 ID：${unused.join('、')}`);
+
+// 只用課本原題（換數字題拿掉）：題目 ID → 保留前幾小題
+textbookOnly([lessonA, lessonB, lessonC, lessonD], {
+  'a-ex3-practice-q': 2,
+  'b-ex4-practice-q': 2,
+  'b-ex6-practice-q': 2,
+  'c-ex7-practice-q': 2,
+  'c-ex8-practice-q': 2,
+  'c-ex9-practice-q': 2,
+  'c-ex10-practice-q': 2,
+  'd-ex11-practice-q': 1,
+  'd-ex12-practice-q': 1,
+  'd-ex13-practice-q': 2,
+});
 
 for (const lesson of [lessonA, lessonB, lessonC, lessonD]) {
   const file = join(root, 'content/lessons', `${lesson.id}.json`);

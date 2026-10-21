@@ -386,14 +386,18 @@ export interface PracticeRun {
   startedAt: number;
   /** 每輪秒數。 */
   seconds: number;
-  /** 最多幾輪。 */
+  /** 最多幾輪（原題再做一次時：答錯最多小題的同學要做幾題）。 */
   rounds: number;
+  /** 原題再做一次：每位同學把自己答錯的原題逐題再做一次（不另外出題）；答對答錯都換下一題，全對才算通過。 */
+  retry?: boolean;
 }
 /** 一位同學的補救練習紀錄：開始時間與每一輪的作答。 */
 export interface PracticeEntry {
   seat: number;
   start: number;
   subs: { round: number; value: string; correct: boolean; at: number }[];
+  /** 原題再做一次：要重做的小題（從 0 起算，依序一輪一題）。 */
+  items?: number[];
 }
 export interface PracticeView {
   run: PracticeRun;

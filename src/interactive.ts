@@ -75,8 +75,11 @@ export function mountInteractive(
   const glowId = `viz-glow-${Math.random().toString(36).slice(2, 8)}`;
   const font = (n = 18) => n * k;
 
-  host.innerHTML = `<div class="viz" data-testid="interactive"><div class="viz-figure"><svg viewBox="0 0 ${W} ${H.toFixed(1)}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="${esc(spec.caption || '可操作的數學圖形')}"></svg></div><div class="viz-controls"></div></div>`;
+  host.innerHTML = `<div class="viz" data-testid="interactive"><div class="viz-figure"><svg viewBox="0 0 ${W} ${H.toFixed(1)}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="${esc(spec.caption || '可操作的數學圖形')}"></svg><div class="viz-math-layer" aria-hidden="true"></div></div><div class="viz-controls"></div></div>`;
   const svg = host.querySelector('svg')!;
+  const mathLayer = host.querySelector<HTMLElement>('.viz-math-layer')!;
+  /** 算式標籤（KaTeX）：畫在 SVG 上方的 HTML 層，不用 foreignObject（iPad Safari 對 foreignObject 加發光、動畫時會畫錯位置與大小）。 */
+  let maths: { cx: number; cy: number; size: number; color: string; content: string; start: boolean; toggle?: string }[] = [];
   const controls = host.querySelector<HTMLElement>('.viz-controls')!;
 
   const ev = (e: string | number | undefined, fallback = NaN) => tryEval(e, vars, fallback);
@@ -116,14 +119,35 @@ export function mountInteractive(
   function label(x: number, y: number, size: number, color: string, content: string, anchor: 'middle' | 'start' = 'middle') {
     if (/[$√]/.test(content)) {
       // 靠左對齊的標籤（點旁的文字）把方框往右挪半個寬度。
-      return mathLabel(anchor === 'start' ? x + W / 2 - 4 * k : x, y, size, color, content, anchor === 'start' ? ' data-align="start"' : '');
+      return mathLabel(anchor === 'start' ? x - 4 * k : x, y, size, color, content, { start: anchor === 'start' });
     }
     return `<text x="${x}" y="${y}" class="viz-label" font-size="${font(size)}" fill="${esc(color)}" text-anchor="${anchor}">${esc(content)}</text>`;
   }
-  function mathLabel(cx: number, cy: number, size: number, color: string, content: string, extra = '') {
-    const h = size * k * 2.4,
-      w = W;
-    return `<foreignObject x="${cx - w / 2}" y="${cy - h / 2}" width="${w}" height="${h}" class="viz-math"${extra}><div class="viz-math-box" style="font-size:${size * k}px;color:${esc(color)}">${md(content)}</div></foreignObject>`;
+  function mathLabel(cx: number, cy: number, size: number, color: string, content: string, opt: { start?: boolean; toggle?: string } = {}) {
+    // SVG 裡只留一個位置記號（用來知道它在發光或反暗的群組裡），算式本身畫在 HTML 層
+    maths.push({ cx, cy, size, color, content, start: !!opt.start, toggle: opt.toggle });
+    return `<g class="viz-math-slot" data-m="${maths.length - 1}"></g>`;
+  }
+  /** 把算式標籤放到 HTML 層：位置依 viewBox 的縮放與置中換算，字級就是設定的像素大小。 */
+  function placeMath() {
+    if (!maths.length) {
+      mathLayer.innerHTML = '';
+      return;
+    }
+    // 用版面尺寸（不受放大鏡的 CSS transform 影響）；SVG 佔滿 .viz-figure，圖在裡面置中
+    const rw = svg.clientWidth,
+      rh = svg.clientHeight;
+    const scale = Math.min(rw / W, rh / H),
+      ox = (rw - W * scale) / 2,
+      oy = (rh - H * scale) / 2;
+    mathLayer.innerHTML = maths
+      .map((m, i) => {
+        const slot = svg.querySelector(`[data-m="${i}"]`);
+        const state = slot?.closest('.viz-dim') ? ' dim' : slot?.closest('.viz-focus') ? ` focus${slot.closest('.viz-enter') ? ' enter' : ''}` : '';
+        const size = m.size * k * scale;
+        return `<div class="viz-math-html${m.start ? ' start' : ''}${state}${m.toggle ? ' viz-clickable' : ''}"${m.toggle ? ` data-toggle="${esc(m.toggle)}"` : ''} style="left:${(ox + m.cx * scale).toFixed(1)}px;top:${(oy + m.cy * scale).toFixed(1)}px;font-size:${size.toFixed(1)}px;color:${esc(m.color)}">${md(m.content)}</div>`;
+      })
+      .join('');
   }
   function shape(s: InteractiveShape): string {
     const tog = s.toggle ? ` data-toggle="${esc(s.toggle)}" class="viz-clickable"` : '';
@@ -188,7 +212,7 @@ export function mountInteractive(
         if (!finite(x, y) || !s.text) return '';
         const content = template(s.text, vars);
         // 含 $…$ 或 √ 的文字用 KaTeX 排版（foreignObject），其他用 SVG 文字。
-        if (/[$√]/.test(content)) return mathLabel(X(x), Y(y), s.size || 18, s.color || INK, content, tog);
+        if (/[$√]/.test(content)) return mathLabel(X(x), Y(y), s.size || 18, s.color || INK, content, { toggle: s.toggle });
         return `<text x="${X(x)}" y="${Y(y)}" class="viz-text" font-size="${font(s.size)}" fill="${esc(s.color || INK)}"${tog}>${esc(content)}</text>`;
       }
       case 'point': {
@@ -259,6 +283,7 @@ export function mountInteractive(
     const focusing = !!spec.steps?.length && shown.some(inFocus);
     const entering = step !== lastStep;
     lastStep = step;
+    maths = [];
     const body = shown
       .map((s) => {
         const html = shape(s);
@@ -270,6 +295,7 @@ export function mountInteractive(
       .join('');
     // 發光濾鏡用整張圖的座標（userSpaceOnUse）：水平／垂直線的外框高度或寬度是 0，用物件外框會讓線整條消失。
     svg.innerHTML = `<defs><marker id="viz-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="${INK}"/></marker><filter id="${glowId}" filterUnits="userSpaceOnUse" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur in="SourceAlpha" stdDeviation="${5 * k}" result="blur"/><feFlood flood-color="#ffc93c" flood-opacity="1"/><feComposite in2="blur" operator="in" result="halo"/><feComposite in="halo" in2="SourceAlpha" operator="out" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>${grid()}${body}${handles()}`;
+    placeMath();
     for (const r of spec.readouts || []) {
       const el = controls.querySelector<HTMLElement>(`[data-readout="${CSS.escape(r.label)}"]`);
       if (el) el.textContent = fmt(tryEval(r.expr, vars), r.digits);

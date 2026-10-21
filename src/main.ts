@@ -1,6 +1,6 @@
 import './styles.css';
 import { api, download, escape as esc, serverTime, syncClock } from './api';
-import { practiceStatus, type PracticeStatus } from '../shared/practice';
+import { practiceStatus, practiceTotal, type PracticeStatus } from '../shared/practice';
 import { playCorrect, unlockSound } from './sound';
 import { HandPad } from './handpad';
 import { clearDanmakuLayer, syncDanmaku } from './danmaku';
@@ -1005,16 +1005,19 @@ function practiceBoard(a: Activity) {
     const n = (k: PracticeStatus['status']) => rows.filter((r) => r.st.status === k).length;
     const chips = rows
       .map(({ e, st }) => {
-        const label = st.status === 'passed' ? `✓ 第 ${st.round + 1} 輪過` : st.status === 'help' ? '⚠ 個別指導' : `第 ${st.round + 1} 輪 ${countdown(st.deadline)}`;
+        const total = practiceTotal(p.run, e);
+        const label = p.run.retry
+          ? st.status === 'passed' ? '✓ 原題全對' : st.status === 'help' ? '⚠ 個別指導' : `第 ${st.round + 1}/${total} 題 ${countdown(st.deadline)}`
+          : st.status === 'passed' ? `✓ 第 ${st.round + 1} 輪過` : st.status === 'help' ? '⚠ 個別指導' : `第 ${st.round + 1} 輪 ${countdown(st.deadline)}`;
         return `<span class="practice-chip ${st.status}" data-testid="practice-seat-${e.seat}"><b>${e.seat}</b><small>${label}</small></span>`;
       })
       .join('');
-    return `<section class="practice-board" data-testid="practice-board"><header><strong>${icon('target')}補救練習中</strong><span>每輪 ${p.run.seconds} 秒・最多 ${p.run.rounds} 輪</span></header><p class="practice-counts"><b class="working">練習中 ${n('working')}</b><b class="passed">通過 ${n('passed')}</b><b class="help">需個別指導 ${n('help')}</b></p><div class="practice-chips">${chips}</div>${btn('結束練習', 'practice-end', 'quiet', 'x', 'data-testid="practice-end"')}</section>`;
+    return `<section class="practice-board" data-testid="practice-board"><header><strong>${icon('target')}${p.run.retry ? '原題再做一次' : '補救練習中'}</strong><span>${p.run.retry ? `每題 ${p.run.seconds} 秒・重做自己答錯的小題` : `每輪 ${p.run.seconds} 秒・最多 ${p.run.rounds} 輪`}</span></header><p class="practice-counts"><b class="working">練習中 ${n('working')}</b><b class="passed">通過 ${n('passed')}</b><b class="help">需個別指導 ${n('help')}</b></p><div class="practice-chips">${chips}</div>${btn('結束練習', 'practice-end', 'quiet', 'x', 'data-testid="practice-end"')}</section>`;
   }
-  if (!a.practice?.length || s.activityOpen || s.ended || !v.aggregate.submitted) return '';
+  if (a.type !== 'numeric' || s.activityOpen || s.ended || !v.aggregate.submitted) return '';
   const wrong = wrongSeats(a).length,
     unanswered = (v.roster || []).filter((x) => x.online && !x.answered).length;
-  return `<section class="practice-start"><button class="btn primary full" data-action="practice-start" data-testid="practice-start" ${wrong || (unanswered && practiceWithUnanswered) ? '' : 'disabled'}>${icon('target')}<span>派補救練習給答錯的同學（${wrong} 人）</span></button><label class="check-line"><input type="checkbox" id="practice-unanswered" ${practiceWithUnanswered ? 'checked' : ''}> 也派給上線但未作答的同學（${unanswered} 人）</label><p class="muted small-text">每人各自計時 1 分鐘；答錯或時間到就換下一題，最多 3 輪。</p></section>`;
+  return `<section class="practice-start"><button class="btn primary full" data-action="practice-start" data-testid="practice-start" ${wrong || (unanswered && practiceWithUnanswered) ? '' : 'disabled'}>${icon('target')}<span>原題再派一次給答錯的同學（${wrong} 人）</span></button><label class="check-line"><input type="checkbox" id="practice-unanswered" ${practiceWithUnanswered ? 'checked' : ''}> 也派給上線但未作答的同學（${unanswered} 人）</label><p class="muted small-text">不另外出題：每人只重做自己答錯的小題，每題限時 1 分鐘；還是錯的會標「個別指導」。</p></section>`;
 }
 let practiceWithUnanswered = false;
 /** 學生端：補救練習卡（取代原本的作答區）。 */
@@ -1028,22 +1031,26 @@ function practiceCard() {
   const mine = myPractice()!;
   const { p, st } = mine;
   const reveal = (r: number) => p.reveals.find((x) => x.round === r);
+  const retry = !!p.run.retry,
+    total = practiceTotal(p.run, p.entries[0]),
+    unit = retry ? '題' : '輪';
   const past = st.rounds
-    .filter((r) => r.outcome && r.outcome !== 'correct')
+    .filter((r) => r.outcome && (retry || r.outcome !== 'correct'))
     .map((r) => {
       const rv = reveal(r.round);
-      return `<li class="practice-past"><b>第 ${r.round + 1} 輪 ${r.outcome === 'timeout' ? '⏱ 時間到' : '✗ 答錯'}</b>${r.value ? `<span>你寫：${answerHtml(r.value)}</span>` : ''}${rv ? `<span>答案：${answerHtml(rv.answer)}${rv.explanation ? `　${md(rv.explanation)}` : ''}</span>` : '<span class="muted">答案稍後顯示</span>'}</li>`;
+      if (r.outcome === 'correct') return `<li class="practice-past ok"><b>第 ${r.round + 1} ${unit} ✓ 答對</b>${r.value ? `<span>你寫：${answerHtml(r.value)}</span>` : ''}</li>`;
+      return `<li class="practice-past"><b>第 ${r.round + 1} ${unit} ${r.outcome === 'timeout' ? '⏱ 時間到' : '✗ 答錯'}</b>${r.value ? `<span>你寫：${answerHtml(r.value)}</span>` : ''}${rv ? `<span>答案：${answerHtml(rv.answer)}${rv.explanation ? `　${md(rv.explanation)}` : ''}</span>` : '<span class="muted">答案稍後顯示</span>'}</li>`;
     })
     .join('');
-  const head = `<div class="activity-prompt"><span class="tag">補救練習</span><h2>第 ${st.round + 1} / ${p.run.rounds} 輪${st.status === 'working' ? `　${countdown(st.deadline, 'big')}` : ''}</h2></div>`;
+  const head = `<div class="activity-prompt"><span class="tag">${retry ? '原題再做一次' : '補救練習'}</span><h2>第 ${st.round + 1} / ${total} ${unit}${st.status === 'working' ? `　${countdown(st.deadline, 'big')}` : ''}</h2></div>`;
   let body = '';
   if (st.status === 'working') {
     const key = `${p.run.startedAt}:${st.round}`;
     if (practiceDraft.key !== key) practiceDraft = { key, value: '' };
     body = `<p class="practice-prompt">${md(p.prompts[st.round] || '')}</p><div class="numeric-field"><input id="practice-answer" class="numeric-input" inputmode="${numericInputMode()}" autocomplete="off" placeholder="答案" value="${esc(practiceDraft.value)}" aria-label="練習答案"></div><div class="tex-preview" data-preview="practice-answer" aria-live="polite">${previewHtml(practiceDraft.value)}</div><div class="answer-dock with-keys"><div class="submit-area">${btn('送出答案', 'submit-practice', 'primary full', 'check', `data-round="${st.round}" data-testid="submit-practice"`)}</div></div>`;
   } else if (st.status === 'passed')
-    body = `<p class="verdict ok" data-testid="practice-passed">${icon('check')}<span>答對了！第 ${st.round + 1} 輪過關。</span></p>`;
-  else body = `<p class="verdict no" data-testid="practice-help">${icon('x')}<span>${p.run.rounds} 輪都還沒過，老師等一下會來和你一起看。</span></p>`;
+    body = `<p class="verdict ok" data-testid="practice-passed">${icon('check')}<span>${retry ? '原題全部答對了！' : `答對了！第 ${st.round + 1} 輪過關。`}</span></p>`;
+  else body = `<p class="verdict no" data-testid="practice-help">${icon('x')}<span>${retry ? '還有題目沒答對' : `${p.run.rounds} 輪都還沒過`}，老師等一下會來和你一起看。</span></p>`;
   return `<section class="practice-card" data-testid="practice-card">${head}${past ? `<ol class="practice-history">${past}</ol>` : ''}${body}</section>`;
 }
 /* ───────────── 彈幕 ───────────── */
@@ -1059,6 +1066,8 @@ function danmakuTools() {
   return `<div class="tool-row">${toggle}${s.danmakuOpen || list.length ? btn('清除彈幕', 'danmaku-clear', 'quiet', 'trash') : ''}</div>${log}`;
 }
 let danmakuBar = false,
+  danmakuLeft: number | null = null, // 還可以送幾則（每人最多 5 則；送過才知道）
+  danmakuSession = '',
   danmakuDraft = '',
   danmakuAnon = true;
 /** 學生端：按上方的「彈幕」後出現的輸入列（在畫面上方，iPad 鍵盤不會擋住）。 */
@@ -1069,8 +1078,12 @@ function danmakuStudentHtml() {
     danmakuDraft = '';
     return '';
   }
+  if (danmakuSession !== s.id) {
+    danmakuSession = s.id; // 新的一堂課：重新算 5 則
+    danmakuLeft = null;
+  }
   if (!danmakuBar) return '';
-  return `<form class="danmaku-bar" id="danmaku-form" data-testid="danmaku-bar"><input id="danmaku-text" maxlength="30" autocomplete="off" placeholder="說點什麼…（30 字內）" value="${esc(danmakuDraft)}" aria-label="彈幕文字"><label class="check-line"><input type="checkbox" id="danmaku-anon" ${danmakuAnon ? 'checked' : ''}> 匿名</label>${btn('送出', 'danmaku-send', 'primary', 'arrow', 'data-testid="danmaku-send"')}${btn('', 'danmaku-bar', 'icon-btn', 'x', 'aria-label="收起彈幕"')}</form>`;
+  return `<form class="danmaku-bar" id="danmaku-form" data-testid="danmaku-bar"><input id="danmaku-text" maxlength="30" autocomplete="off" placeholder="${danmakuLeft === 0 ? '5 則都送完了' : '說點什麼…（30 字內）'}" value="${esc(danmakuDraft)}" aria-label="彈幕文字" ${danmakuLeft === 0 ? 'disabled' : ''}><label class="check-line"><input type="checkbox" id="danmaku-anon" ${danmakuAnon ? 'checked' : ''}> 匿名</label><small class="danmaku-left" data-testid="danmaku-left">${danmakuLeft === null ? '每人最多 5 則' : `還可以送 ${danmakuLeft} 則`}</small>${btn('送出', 'danmaku-send', 'primary', 'arrow', `data-testid="danmaku-send" ${danmakuLeft === 0 ? 'disabled' : ''}`)}${btn('', 'danmaku-bar', 'icon-btn', 'x', 'aria-label="收起彈幕"')}</form>`;
 }
 /** 學生端：老師公布結果、自己答對時播一次答對音效。 */
 const sounded = new Set<string>();
@@ -1164,8 +1177,13 @@ function responsesHtml(a: Activity) {
   // 可拍照的數值題：直接送答案的看小卡，拍照交的另外列成批改格（照片＋辨識稿＋分數）
   const photos = a.type === 'numeric' && a.photoWork ? workAnswers(view!, a) : [];
   const grid = photos.length ? `<p class="mini-label">拍照交計算過程（${photos.length} 份）</p>${submissionGrid(a, photos)}` : '';
-  if (['numeric', 'manipulate'].includes(a.type) && answers.length)
-    return `<details class="answer-list"><summary>個別作答</summary><div class="seat-chips">${answers.map((x) => `<span class="seat-chip ${x.correct ? 'ok' : x.note ? 'warn' : x.correct === undefined ? '' : 'no'}" title="${esc(answerText(x.value))}${x.note ? `（${esc(x.note)}）` : ''}">${x.seat}${chipAnswer(x)}</span>`).join('')}</div></details>${grid}`;
+  // 每一位同學的作答都看得到（選擇、量表、數值、操作），對錯用顏色與 ✓／✗ 標出；預設展開
+  if (['numeric', 'manipulate', 'single', 'multiple', 'scale'].includes(a.type) && answers.length) {
+    const tries = (seat: number) => view!.answers.filter((x) => x.activityId === a.id && x.seat === seat).length;
+    const right = answers.filter((x) => x.correct).length,
+      wrong = answers.filter((x) => x.correct === false).length;
+    return `<details class="answer-list" open data-testid="answer-list"><summary>個別作答（${answers.length} 人${right || wrong ? `・✓ ${right}・✗ ${wrong}` : ''}）</summary><div class="seat-chips">${answers.map((x) => `<span class="seat-chip ${x.correct ? 'ok' : x.note ? 'warn' : x.correct === undefined ? '' : 'no'}" title="${esc(answerText(x.value))}${x.note ? `（${esc(x.note)}）` : ''}"><b class="chip-seat">${x.seat}${x.correct === undefined ? '' : x.correct ? ' ✓' : ' ✗'}${tries(x.seat) > 1 ? `<small>改 ${tries(x.seat) - 1} 次</small>` : ''}</b>${chipAnswer(x, a)}</span>`).join('')}</div></details>${grid}`;
+  }
   return '';
 }
 function submissionGrid(a: Activity, answers: Answer[]) {
@@ -1179,7 +1197,13 @@ function submissionGrid(a: Activity, answers: Answer[]) {
       .join('') || '<p class="muted">等待第一份作答。</p>'}</div>`;
 }
 /** 個別作答小卡：多小題逐題排成 (1) (2) (3)、各自標 ✓／✗，算式照課本樣式顯示（不用「｜」分隔，免得看成絕對值）。 */
-function chipAnswer(x: Answer) {
+function chipAnswer(x: Answer, a?: Activity) {
+  // 選擇題：選了哪幾個（A、B…）
+  if (a && (a.type === 'single' || a.type === 'multiple')) {
+    const picked = (Array.isArray(x.value) ? x.value : [x.value]) as number[];
+    return `<span class="chip-items"><span class="chip-item">${picked.map((i) => String.fromCharCode(65 + i)).join('、')}</span></span>`;
+  }
+  if (a?.type === 'scale') return `<span class="chip-items"><span class="chip-item">${esc(String(x.value))}</span></span>`;
   if (Array.isArray(x.value) && typeof x.value[0] === 'string')
     return `<span class="chip-items">${(x.value as string[]).map((v, i) => {
       const ok = x.itemsCorrect?.[i];
@@ -2097,7 +2121,7 @@ async function action(el: HTMLElement) {
       return toast(`已延長 ${Number(el.dataset.seconds) >= 60 ? `${Number(el.dataset.seconds) / 60} 分鐘` : `${el.dataset.seconds} 秒`}`);
     case 'practice-start': {
       await control('practice-start', { includeUnanswered: practiceWithUnanswered });
-      return toast(`已派補救練習給 ${view.practice?.entries.length ?? 0} 位同學`);
+      return toast(`已把原題再派給 ${view.practice?.entries.length ?? 0} 位同學`);
     }
     case 'practice-end':
       return control('practice-end');
@@ -2117,14 +2141,19 @@ async function action(el: HTMLElement) {
     case 'danmaku-send': {
       const text = danmakuDraft.trim();
       if (!text) return toast('先輸入文字。', true);
-      await api(`/sessions/${s.id}/danmaku`, 'POST', { text, anon: danmakuAnon });
-      danmakuDraft = '';
-      const input = document.querySelector<HTMLInputElement>('#danmaku-text');
-      if (input) {
-        input.value = '';
-        input.focus();
+      try {
+        danmakuLeft = (await api<{ left: number }>(`/sessions/${s.id}/danmaku`, 'POST', { text, anon: danmakuAnon })).left;
+      } catch (e) {
+        if (/最多送/.test((e as Error).message)) danmakuLeft = 0;
+        const root = document.querySelector('#danmaku-root');
+        if (root) root.innerHTML = danmakuStudentHtml();
+        throw e;
       }
-      return toast('彈幕已送出');
+      danmakuDraft = '';
+      const root = document.querySelector('#danmaku-root');
+      if (root) root.innerHTML = danmakuStudentHtml();
+      document.querySelector<HTMLInputElement>('#danmaku-text:not([disabled])')?.focus();
+      return toast(danmakuLeft ? `彈幕已送出（還可以送 ${danmakuLeft} 則）` : '彈幕已送出（5 則都送完了）');
     }
     case 'submit-practice': {
       const value = practiceDraft.value.replace(/−/g, '-').trim();

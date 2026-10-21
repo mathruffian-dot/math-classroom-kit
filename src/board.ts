@@ -16,7 +16,9 @@ export class Whiteboard {
   private resize: ResizeObserver;
   private effect: HTMLDivElement;
   private laser: HTMLCanvasElement;
-  private trail: { x: number; y: number; t: number }[] = [];
+  /** 雷射筆軌跡；s 是第幾筆（筆抬起再放下就是新的一筆，兩筆之間不連線）。 */
+  private trail: { x: number; y: number; t: number; s: number }[] = [];
+  private trailStroke = 0;
   private tip: { x: number; y: number } | null = null; // 雷射筆目前位置（游標停在投影片上時一直顯示紅點）
   private raf = 0;
   private timer?: ReturnType<typeof setTimeout>;
@@ -58,7 +60,14 @@ export class Whiteboard {
   setTool(tool: Tool) {
     this.tool = tool;
     this.canvas.style.pointerEvents = tool === 'cursor' ? 'none' : 'auto';
-    this.canvas.style.cursor = tool === 'pen' ? 'crosshair' : tool === 'erase' ? 'cell' : tool === 'laser' ? 'none' : 'default';
+    this.canvas.style.cursor =
+      tool === 'pen'
+        ? 'crosshair'
+        : tool === 'erase'
+          ? 'cell'
+          : tool === 'laser'
+            ? 'none'
+            : 'default';
     this.effect.style.background = '';
     if (tool !== 'laser') {
       this.trail = [];
@@ -92,6 +101,7 @@ export class Whiteboard {
       return;
     }
     this.pointerId = e.pointerId;
+    if (this.tool === 'laser') this.trailStroke++; // 新的一筆雷射軌跡，不和上一筆連起來
     try {
       this.canvas.setPointerCapture(e.pointerId); // 指標已經不存在時會丟錯（例如筆剛離開螢幕）
     } catch {}
@@ -114,7 +124,11 @@ export class Whiteboard {
     if (this.pointerId !== null && this.pointerId !== e.pointerId) return;
     const p = this.point(e);
     if (this.tool === 'laser') {
-      this.trail.push({ ...p, t: performance.now() });
+      const t = performance.now(),
+        last = this.trail[this.trail.length - 1];
+      // 觸控螢幕沒有懸停：筆離開又在別處出現（中間停超過 0.15 秒）也算新的一筆
+      if (last && last.s === this.trailStroke && t - last.t > 150) this.trailStroke++;
+      this.trail.push({ ...p, t, s: this.trailStroke });
       this.tip = p;
       if (!this.raf) this.raf = requestAnimationFrame(this.drawTrail);
     }
@@ -152,6 +166,7 @@ export class Whiteboard {
     const id = this.pointerId;
     if (id === null) return;
     this.pointerId = null;
+    if (this.tool === 'laser') this.trailStroke++; // 抬筆：下一筆重新開始
     const ended = this.active;
     this.active = null;
     try {
@@ -179,20 +194,27 @@ export class Whiteboard {
     c.lineCap = 'round';
     c.lineJoin = 'round';
     const at = (q: { x: number; y: number }) => [q.x * rect.width, q.y * rect.height] as const;
-    // 每 6 段畫成一條連續的線（同一個透明度），接點才不會疊出圓點
-    for (let i = 1; i < this.trail.length; i += 6) {
-      const end = Math.min(this.trail.length - 1, i + 5);
-      const life = 1 - (now - this.trail[end].t) / LASER_TRAIL_MS;
-      c.beginPath();
-      c.moveTo(...at(this.trail[i - 1]));
-      for (let j = i; j <= end; j++) c.lineTo(...at(this.trail[j]));
-      c.strokeStyle = `rgba(255, 80, 64, ${0.28 * life})`; // 外圈光暈
-      c.lineWidth = 4 + 10 * life;
-      c.stroke();
-      c.strokeStyle = `rgba(255, 59, 48, ${0.95 * life})`; // 中心
-      c.lineWidth = 1.5 + 3.5 * life;
-      c.stroke();
+    // 每一筆分開畫；每 6 段畫成一條連續的線（同一個透明度），接點才不會疊出圓點
+    const runs: (typeof this.trail)[] = [];
+    for (const q of this.trail) {
+      const run = runs[runs.length - 1];
+      if (run && run[0].s === q.s) run.push(q);
+      else runs.push([q]);
     }
+    for (const run of runs)
+      for (let i = 1; i < run.length; i += 6) {
+        const end = Math.min(run.length - 1, i + 5);
+        const life = 1 - (now - run[end].t) / LASER_TRAIL_MS;
+        c.beginPath();
+        c.moveTo(...at(run[i - 1]));
+        for (let j = i; j <= end; j++) c.lineTo(...at(run[j]));
+        c.strokeStyle = `rgba(255, 80, 64, ${0.28 * life})`; // 外圈光暈
+        c.lineWidth = 4 + 10 * life;
+        c.stroke();
+        c.strokeStyle = `rgba(255, 59, 48, ${0.95 * life})`; // 中心
+        c.lineWidth = 1.5 + 3.5 * life;
+        c.stroke();
+      }
     if (this.tip) {
       const [x, y] = at(this.tip);
       const glow = c.createRadialGradient(x, y, 0, x, y, 16);
@@ -313,7 +335,11 @@ export class Whiteboard {
   private drawActive() {
     const s = this.active;
     if (!s) return;
-    if (this.painted < 2 || this.canvas.width !== Math.round(this.size.w * (window.devicePixelRatio || 1))) return this.paint();
+    if (
+      this.painted < 2 ||
+      this.canvas.width !== Math.round(this.size.w * (window.devicePixelRatio || 1))
+    )
+      return this.paint();
     this.trace({ ...s, points: s.points }, this.painted - 1);
     this.painted = s.points.length;
   }

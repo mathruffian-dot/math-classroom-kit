@@ -7,6 +7,7 @@ import { existsSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as V from './viz.mjs';
+import { textbookOnly } from './textbook-only.mjs';
 
 const { G, C } = V;
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
@@ -201,7 +202,7 @@ const lessonA = {
   schemaVersion: 1,
   id: 'g9-1-4a',
   title: '1-4 相似三角形的應用（1）簡易測量與對應高',
-  description: '從泰勒斯量金字塔出發：陽光是平行光，人和樹與影子形成相似直角三角形；用相似測樹高、河寬，並說明相似三角形「對應高的比＝對應邊的比」。例題與隨堂皆附課本截圖，解題過程逐步呈現，隨堂改為可即時批改的 IRS（含換數字題）。',
+  description: '從泰勒斯量金字塔出發：陽光是平行光，人和樹與影子形成相似直角三角形；用相似測樹高、河寬，並說明相似三角形「對應高的比＝對應邊的比」。例題與隨堂皆附課本截圖，解題過程逐步呈現，隨堂改為可即時批改的 IRS。',
   subject: '數學・九年級 1-4',
   duration: 45,
   objectives: ['能用 AA 相似性質說明影子測高、測河寬的兩個三角形相似', '能依對應邊成比例列式求出高度或距離', '能說明相似三角形對應高的比等於對應邊的比'],
@@ -549,7 +550,7 @@ const lessonB = {
   schemaVersion: 1,
   id: 'g9-1-4b',
   title: '1-4 相似三角形的應用（2）面積與邊長、中點連線',
-  description: '用「小三角形拼成大三角形」看見面積比＝邊長比的平方，跟著課本推導面積比，練習例 4，再用中點連線性質求周長與面積。例題與隨堂附課本截圖，解題過程逐步呈現，隨堂改為可即時批改的 IRS（含換數字題）。',
+  description: '用「小三角形拼成大三角形」看見面積比＝邊長比的平方，跟著課本推導面積比，練習例 4，再用中點連線性質求周長與面積。例題與隨堂附課本截圖，解題過程逐步呈現，隨堂改為可即時批改的 IRS。',
   subject: '數學・九年級 1-4',
   duration: 45,
   objectives: ['能說明相似三角形面積的比等於對應邊長平方的比', '能由相似比求面積，或由面積比求相似比', '能用中點連線性質求三角形的周長與面積'],
@@ -811,7 +812,7 @@ const lessonC = {
   schemaVersion: 1,
   id: 'g9-1-4c',
   title: '1-4 相似三角形的應用（3）相似直角三角形與 sin、cos、tan',
-  description: '從無障礙坡道看見：角度固定的直角三角形都相似，任兩邊的比值固定。認識 sin、cos、tan，解決生活問題，並用 45°-45°-90°、30°-60°-90° 的邊長比計算。例題與隨堂附課本截圖，解題過程逐步呈現，隨堂改為可即時批改的 IRS（含換數字題）。',
+  description: '從無障礙坡道看見：角度固定的直角三角形都相似，任兩邊的比值固定。認識 sin、cos、tan，解決生活問題，並用 45°-45°-90°、30°-60°-90° 的邊長比計算。例題與隨堂附課本截圖，解題過程逐步呈現，隨堂改為可即時批改的 IRS。',
   subject: '數學・九年級 1-4',
   duration: 45,
   objectives: ['能說明銳角固定時，直角三角形任兩邊的比值固定', '能寫出 sin A、cos A、tan A 並求值，用來解生活問題', '能用特殊直角三角形的邊長比 1：1：√2、1：√3：2 求邊長'],
@@ -1195,6 +1196,18 @@ if (existsSync(animFile)) {
   const unused = Object.keys(animations).filter((id) => !used.has(id));
   if (unused.length) throw new Error(`動畫對照表有找不到的頁 ID：${unused.join('、')}`);
 }
+
+// 只用課本原題（換數字題拿掉）：題目 ID → 保留前幾小題
+textbookOnly([lessonA, lessonB, lessonC], {
+  'a-ex1-practice-q': 1,
+  'a-ex2-practice-q': 1,
+  'a-ex3-practice-q': 1,
+  'b-ex4-practice-q': 1,
+  'b-midpoint-practice-q': 2,
+  'c-ex6-practice-q': 1,
+  'c-ex7-practice-q': 2,
+  'c-ex8-practice-q': 1,
+});
 
 for (const lesson of [lessonA, lessonB, lessonC]) {
   const file = join(root, 'content/lessons', `${lesson.id}.json`);

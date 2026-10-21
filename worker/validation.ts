@@ -563,6 +563,15 @@ function numericVerdict(
   return { ok: true };
 }
 /** 補救練習第 round 輪的對錯（沿用這一題的 form、tolerance）。 */
+/** 原題再做一次：用原題第 item 小題的答案判定。 */
+export function judgeOriginal(a: Activity, item: number, value: string): boolean {
+  const it = a.items?.[item];
+  try {
+    return numericVerdict(a, value, it ? it.answer : a.answer || '', it?.tolerance ?? a.tolerance).ok;
+  } catch {
+    return false;
+  }
+}
 export function judgePractice(a: Activity, round: number, value: string): boolean {
   const q = a.practice?.[round];
   if (!q) return false;

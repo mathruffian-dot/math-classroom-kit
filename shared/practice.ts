@@ -27,12 +27,14 @@ export function practiceStatus(run: PracticeRun, entry: PracticeEntry, now: numb
   const ms = run.seconds * 1000;
   const rounds: PracticeRound[] = [];
   let start = entry.start;
-  for (let r = 0; r < run.rounds; r++) {
+  // 原題再做一次：每一輪是一題答錯的原題，答對也要做下一題；全部做完、全對才通過
+  const total = run.retry && entry.items?.length ? entry.items.length : run.rounds;
+  for (let r = 0; r < total; r++) {
     const deadline = start + ms;
     const sub = entry.subs.find((x) => x.round === r);
     if (sub) {
       rounds.push({ round: r, start, deadline, outcome: sub.correct ? 'correct' : 'wrong', value: sub.value });
-      if (sub.correct) return { status: 'passed', round: r, deadline, rounds };
+      if (sub.correct && !run.retry) return { status: 'passed', round: r, deadline, rounds };
       start = sub.at;
       continue;
     }
@@ -44,5 +46,10 @@ export function practiceStatus(run: PracticeRun, entry: PracticeEntry, now: numb
     start = deadline;
   }
   const last = rounds[rounds.length - 1];
+  if (run.retry && rounds.every((r) => r.outcome === 'correct')) return { status: 'passed', round: last.round, deadline: last.deadline, rounds };
   return { status: 'help', round: last.round, deadline: last.deadline, rounds };
+}
+/** 這位同學一共要做幾輪。 */
+export function practiceTotal(run: PracticeRun, entry: PracticeEntry): number {
+  return run.retry && entry.items?.length ? entry.items.length : run.rounds;
 }

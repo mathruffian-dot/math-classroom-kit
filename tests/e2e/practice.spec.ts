@@ -1,5 +1,5 @@
 // 作答限時與補救練習：老師＋2 台 iPad。
-// 驗證：限時開放 → 時間到鎖住 → 老師加時間 → 公布後派練習給答錯的同學 → 答錯換下一輪、答對通過，老師端即時看到狀態。
+// 驗證：限時開放 → 時間到鎖住 → 老師加時間 → 原題再派一次給答錯的同學（只重做自己錯的小題）→ 逐題作答，老師端即時看到狀態。
 import { test, expect, type Page, type Browser, type BrowserContext } from '@playwright/test';
 import { mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
@@ -42,7 +42,7 @@ test.afterEach(async () => {
   await Promise.all(contexts.splice(0).map((c) => c.close()));
 });
 
-test('time limit locks answers, teacher extends; wrong answers get timed practice rounds', async ({ browser }) => {
+test('time limit locks answers, teacher extends; wrong items are re-assigned as the original questions', async ({ browser }) => {
   test.setTimeout(150_000);
   const teacher = await surface(browser, 1440, 900);
   await loginTeacher(teacher.page);
@@ -54,7 +54,7 @@ test('time limit locks answers, teacher extends; wrong answers get timed practic
   await expect(teacher.page.getByTestId('session-slide')).toBeVisible();
   const sessionId = teacher.page.url().split('/session/')[1];
   cleanup.push({ context: teacher.context, id: sessionId });
-  await teacher.page.locator('.slide-dots button').nth(1).click(); // 課本 p.73 隨堂（有補救練習）
+  await teacher.page.locator('.slide-dots button').nth(1).click(); // 課本 p.73 隨堂（3 小題都是課本原題）
 
   // 預設限時 1 分鐘
   await expect(teacher.page.locator('#activity-seconds')).toHaveValue('60');
@@ -67,8 +67,8 @@ test('time limit locks answers, teacher extends; wrong answers get timed practic
   await answerTab(right.page);
   await expect(right.page.locator('.time-chip')).toContainText('剩');
 
-  // 11 號全對、12 號第 3 題錯
-  for (const [s, v] of [[right, ['-10√3', '8√2', '-2√2/3']], [wrong, ['-10√3', '8√2', '-2√2']]] as const) {
+  // 11 號全對、12 號第 2、3 題錯
+  for (const [s, v] of [[right, ['-10√3', '8√2', '-2√2/3']], [wrong, ['-10√3', '8', '-2√2']]] as const) {
     await answerTab(s.page);
     for (let i = 0; i < 3; i++) await s.page.locator(`#numeric-item-${i}`).fill(v[i]);
     await s.page.getByTestId('submit-answer').click();
@@ -91,35 +91,34 @@ test('time limit locks answers, teacher extends; wrong answers get timed practic
   await expect(late.page.getByTestId('submit-answer')).toBeEnabled();
   await teacher.page.getByTestId('toggle-activity').click(); // 結束作答
 
-  // 派補救練習：只有 12 號
+  // 原題再派一次：只有 12 號，只重做第 2、3 題（不另外出題）
   await expect(teacher.page.getByTestId('practice-start')).toContainText('1 人');
+  await expect(teacher.page.getByTestId('practice-start')).toContainText('原題再派一次');
   await teacher.page.getByTestId('practice-start').click();
   await expect(teacher.page.getByTestId('practice-board')).toBeVisible();
-  await expect(teacher.page.getByTestId('practice-seat-12')).toContainText('第 1 輪');
+  await expect(teacher.page.getByTestId('practice-seat-12')).toContainText('第 1/2 題');
   await expect(wrong.page.getByTestId('practice-card')).toBeVisible();
   await expect(right.page.getByTestId('practice-card')).toHaveCount(0);
+  await expect(wrong.page.locator('.practice-card h2')).toContainText('第 1 / 2 題');
+  await expect(wrong.page.locator('.practice-prompt')).toContainText('(2)');
   await shot(wrong.page, 'student-round1');
 
-  // 第 1 輪故意答錯 → 看到答案、進入第 2 輪
-  const tap = async (...keys: string[]) => {
-    for (const k of keys) await wrong.page.locator(`.math-keys [data-key="${k}"]`).tap();
-  };
-  await wrong.page.locator('#practice-answer').tap();
-  await tap('1');
-  await wrong.page.getByTestId('submit-practice').tap();
-  await expect(wrong.page.locator('.practice-card h2')).toContainText('第 2 / 3 輪');
-  await expect(wrong.page.locator('.practice-past')).toContainText('答案');
-  await expect(teacher.page.getByTestId('practice-seat-12')).toContainText('第 2 輪');
-
-  // 第 2 輪答對（答案從老師端的課程讀）
-  const lesson = (await (await teacher.page.request.get(`/api/sessions/${sessionId}`)).json()).lesson;
-  const answer2 = lesson.slides[1].activity.practice[1].answer as string;
-  await wrong.page.locator('#practice-answer').fill(answer2);
+  // 第 1 題（原題第 2 小題）答對 → 下一題是原題第 3 小題
+  await wrong.page.locator('#practice-answer').fill('8√2');
   await wrong.page.getByTestId('submit-practice').click();
-  await expect(wrong.page.getByTestId('practice-passed')).toBeVisible();
-  await expect(teacher.page.getByTestId('practice-seat-12')).toContainText('第 2 輪過');
+  await expect(wrong.page.locator('.practice-card h2')).toContainText('第 2 / 2 題');
+  await expect(wrong.page.locator('.practice-prompt')).toContainText('(3)');
+  await expect(wrong.page.locator('.practice-past')).toContainText('答對');
+  await expect(teacher.page.getByTestId('practice-seat-12')).toContainText('第 2/2 題');
+
+  // 第 2 題又錯 → 看到答案、標「個別指導」
+  await wrong.page.locator('#practice-answer').fill('-2√2');
+  await wrong.page.getByTestId('submit-practice').click();
+  await expect(wrong.page.getByTestId('practice-help')).toBeVisible();
+  await expect(wrong.page.locator('.practice-past').last()).toContainText('答案');
+  await expect(teacher.page.getByTestId('practice-seat-12')).toContainText('個別指導');
   await shot(teacher.page, 'teacher-board');
-  await shot(wrong.page, 'student-passed');
+  await shot(wrong.page, 'student-help');
 
   await teacher.page.getByTestId('practice-end').click();
   await expect(wrong.page.getByTestId('practice-card')).toHaveCount(0);
