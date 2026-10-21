@@ -1074,6 +1074,32 @@ td small {
   background: #e0f6f3;
   color: #0c7c75;
 }
+.visual.scale-strip {
+  gap: 10px;
+  align-items: center;
+}
+.scale-card {
+  flex: 1 1 0;
+  max-width: 170px;
+  min-height: 140px;
+  border-radius: 18px;
+  padding: 14px 10px;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 8px;
+  text-align: center;
+  background: #efeaff;
+  color: #4c35bb;
+}
+.scale-card strong {
+  font-size: clamp(26px, 2.6vw, 40px);
+  font-weight: 800;
+}
+.scale-card small {
+  font-size: clamp(13px, 1.05vw, 17px);
+  font-weight: 700;
+}
 .visual.steps {
   flex-direction: column;
   align-items: stretch;
@@ -4341,4 +4367,17 @@ svg.redpen {
 }
 .practice-past.ok b {
   color: var(--green, #2f9e44);
+}
+.seat.faded {
+  opacity: 0.28;
+}
+.seat.pick {
+  outline: 3px solid var(--violet);
+  outline-offset: 1px;
+}
+.seat-scope {
+  margin: 6px 0 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--violet);
 }

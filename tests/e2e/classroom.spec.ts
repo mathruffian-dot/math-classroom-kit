@@ -138,6 +138,9 @@ test('teacher and students complete numeric, manipulate and handwritten answers 
   await ipad.page.getByTestId('submit-answer').click();
   await expect(teacher.page.locator('#answer-count')).toHaveText(/^2 \//);
   await teacher.page.locator('[data-action="draw-filter"][data-filter="correct"]').click();
+  // 按下範圍就看得到效果：座位表框出答對的同學（2 號），其他變淡
+  await expect(teacher.page.getByTestId('seat-scope')).toContainText('答對 1 人：2 號');
+  await expect(teacher.page.locator('#seat-map .seat.pick')).toHaveText('2');
   await teacher.page.getByTestId('draw-seat').click();
   await expect(teacher.page.locator('.draw-result strong')).toContainText('2');
   await expect(teacher.page.locator('.draw-result small')).toContainText('答對');

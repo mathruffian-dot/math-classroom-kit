@@ -310,6 +310,16 @@ function renderGenerate() {
 
 /* ───────────── 課堂 ───────────── */
 function visual(slide: Slide) {
+  const a = slide.activity;
+  // 有選擇題時，左邊的卡片就是右邊的選項（同樣的 A、B、C…），不會兩邊不一樣
+  if (a && (a.type === 'single' || a.type === 'multiple') && a.options?.length && slide.visual !== 'steps' && slide.visual !== 'bars')
+    return `<div class="visual cards">${a.options.map((o, i) => `<div class="idea-card tone-${i % 4}"><span>${String.fromCharCode(65 + i)}</span><strong>${md(o)}</strong></div>`).join('')}</div>`;
+  // 自評量表：和學生的按鈕一樣是 1–5 級，兩端寫出說明
+  if (a?.type === 'scale') {
+    const min = a.min ?? 1,
+      max = a.max ?? 5;
+    return `<div class="visual scale-strip">${Array.from({ length: max - min + 1 }, (_, i) => i + min).map((n) => `<div class="scale-card"><strong>${n}</strong>${n === min && a.minLabel ? `<small>${esc(a.minLabel)}</small>` : n === max && a.maxLabel ? `<small>${esc(a.maxLabel)}</small>` : ''}</div>`).join('')}</div>`;
+  }
   const items = slide.bullets?.length ? slide.bullets : [];
   if (slide.visual === 'steps')
     return `<div class="visual steps">${items.map((x, i) => `<div class="step-card"><span>${i + 1}</span><strong>${md(x)}</strong></div>`).join('')}</div>`;
@@ -357,7 +367,9 @@ function figuresHtml(slide: Slide) {
 }
 function slideMarkup(slide: Slide, index: number, total: number) {
   const figs = !!(slide.figures?.length || slide.animation);
-  const hasVisual = slide.interactive || slide.customHtml || slide.bullets?.length || figs;
+  // 標了 visual 的選擇／自評題：卡片由選項產生（不需要 bullets）
+  const optionCards = !!slide.visual && ['single', 'multiple', 'scale'].includes(slide.activity?.type || '');
+  const hasVisual = slide.interactive || slide.customHtml || slide.bullets?.length || optionCards || figs;
   return `<div class="slide-head"><p class="slide-eyebrow">${slide.phase ? `<span class="phase-chip">${esc(slide.phase)}</span>` : ''}<span>${esc(slide.eyebrow || `${index + 1} / ${total}`)}</span></p><h1>${md(slide.title)}</h1>${slide.body ? `<p class="slide-body">${md(slide.body)}</p>` : ''}</div>${hasVisual ? `<div class="slide-visual ${figs ? 'with-figure' : ''} ${figs && !slide.interactive && !slide.customHtml ? 'figure-only' : ''}">${figuresHtml(slide)}${slide.customHtml ? '<iframe id="custom-activity" class="custom-activity" title="自訂互動教材" sandbox="allow-scripts" referrerpolicy="no-referrer"></iframe>' : slide.interactive ? '<div class="viz-host"></div>' : figs ? '' : visual(slide)}</div>` : ''}${slide.source ? `<p class="slide-source">${icon('book')}${esc(slide.source)}</p>` : ''}`;
 }
 function latestBySeat(v: SessionView, activityId: string): Answer[] {
@@ -1265,6 +1277,22 @@ function renderBuzzLayer() {
   if (host) host.innerHTML = buzzLayerHtml();
 }
 /** 老師端座位表：每個座號是否已作答（這一頁的題目）、是否上線；未上線的不列入抽籤。 */
+/** 抽籤範圍選了「未作答／答對／答錯」時符合的座號（和伺服器抽籤的規則一樣）；「全部」回傳 null。 */
+function filterSeats(): Set<number> | null {
+  const a = view?.lesson.slides[view.session.slideIndex]?.activity;
+  if (!view || drawFilter === 'all' || !a) return null;
+  if (drawFilter === 'unanswered') return new Set((view.roster || []).filter((x) => !x.answered).map((x) => x.seat));
+  const want = drawFilter === 'correct';
+  return new Set(
+    latestBySeat(view, a.id)
+      .filter((x) => {
+        const g = gradeFor(x.id);
+        const verdict = x.correct !== undefined ? x.correct : g ? (g.depth === 'verdict' ? g.correct : g.total === g.max) : undefined;
+        return verdict === want;
+      })
+      .map((x) => x.seat),
+  );
+}
 function seatMapInner() {
   const r = view?.roster;
   if (!r?.length) return '';
@@ -1275,16 +1303,20 @@ function seatMapInner() {
   const head = a
     ? `<strong>已作答 <b class="ok">${done}</b>・未作答 <b class="warn">${r.length - done}</b></strong><small>上線 ${on} / ${r.length}</small>`
     : `<strong>上線 <b class="ok">${on}</b> / ${r.length}</strong><small>這一頁沒有題目</small>`;
+  const pick = filterSeats();
   const seats = r
     .map((x) => {
       const state = a && x.answered ? 'done' : x.online ? 'on' : 'off';
       const label = `${x.seat} 號：${a ? (x.answered ? '已作答' : '未作答') : ''}${a ? '・' : ''}${x.online ? '上線' : '未上線'}`;
-      return `<span class="seat ${state}" title="${label}" aria-label="${label}">${x.seat}</span>`;
+      const mark = pick ? (pick.has(x.seat) ? ' pick' : ' faded') : '';
+      return `<span class="seat ${state}${mark}" title="${label}" aria-label="${label}">${x.seat}</span>`;
     })
     .join('');
+  // 選了抽籤範圍：符合的座號框起來，其他變淡，老師一眼看到會抽到誰
+  const scope = pick ? `<p class="seat-scope" data-testid="seat-scope">${FILTER_LABEL[drawFilter]} ${pick.size} 人${pick.size ? `：${[...pick].sort((x, y) => x - y).join('、')} 號` : ''}（抽籤只抽上線的）</p>` : '';
   const legend = `<p class="seat-legend">${a ? '<i class="done"></i>已作答' : ''}<i class="on"></i>${a ? '上線未作答' : '上線'}<i class="off"></i>未上線（不抽籤）</p>`;
   const list = a && view!.session.activityOpen && waiting.length ? `<p class="seat-waiting">還沒交：${waiting.join('、')} 號</p>` : '';
-  return `<div class="seat-head">${head}</div><div class="seat-grid">${seats}</div>${list}${legend}`;
+  return `<div class="seat-head">${head}</div><div class="seat-grid">${seats}</div>${scope}${list}${legend}`;
 }
 function eventsHtml() {
   if (!view) return '';
@@ -2169,13 +2201,17 @@ async function action(el: HTMLElement) {
       return control('results', { value: !s.resultsVisible });
     case 'toggle-follow':
       return control('mode', { value: !s.followTeacher });
-    case 'draw-filter':
+    case 'draw-filter': {
       drawFilter = el.dataset.filter as typeof drawFilter;
+      // 座位表馬上標出這個範圍的同學，按下去就看得到效果
+      const map = document.querySelector('#seat-map');
+      if (map) map.innerHTML = seatMapInner();
       document.querySelectorAll('[data-action="draw-filter"]').forEach((b) => {
         b.classList.toggle('selected', (b as HTMLElement).dataset.filter === drawFilter);
         b.setAttribute('aria-pressed', String((b as HTMLElement).dataset.filter === drawFilter));
       });
       return;
+    }
     case 'draw':
       await control('draw', { filter: a ? drawFilter : 'all' });
       return toast(`請 ${view.session.drawnSeat} 號同學分享`);

@@ -28,7 +28,6 @@ const reflect = (id, prompt) => ({
   title: '今天的內容，我掌握了多少？',
   body: '誠實評估，下一節課會從大家最沒把握的地方開始複習。',
   visual: 'cards',
-  bullets: ['還需要再看一次', '看得懂例題', '可以教別人'],
   notes: '3 分以下的學生，下節課開頭用提取練習再做一次；可用抽籤「答錯」請同學上台說明。',
   activity: { id, type: 'scale', prompt, min: 1, max: 5, minLabel: '還需要再看一次', maxLabel: '可以教別人' },
 });
@@ -89,10 +88,9 @@ const lessonA = {
       id: 'a-predict',
       phase: '預測',
       eyebrow: '03 / 先猜再驗證',
-      title: '√2 × √3 會等於 √6 嗎？',
+      title: '√2 × √3 ＝ ？',
       body: '先憑直覺選一個，下一頁用長方形面積驗證。',
       visual: 'cards',
-      bullets: ['√2 × √3 ＝ √6？', '√2 × √3 ＝ 6？', '還是都不對？'],
       activity: {
         id: 'a-predict-q',
         type: 'single',

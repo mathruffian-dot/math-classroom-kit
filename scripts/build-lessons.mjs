@@ -43,6 +43,15 @@ function lint(lesson) {
     if (s.interactive?.steps?.length && !s.interactive.shapes.some((x) => x.step !== undefined || x.focus))
       warnings.push(`${where}有 steps 但沒有任何圖形設定 step／focus，步驟聚焦不會發光。`);
     if (s.activity?.rubric && !s.activity.rubric.reference) warnings.push(`${where}評量規準缺參考解答 reference。`);
+    // 選擇題、自評量表的左邊卡片由選項產生；另外寫 bullets 會讓老師以為兩邊不一樣（2026-10-21 課堂回饋）
+    if (['single', 'multiple', 'scale'].includes(s.activity?.type) && s.bullets?.length && !['steps', 'bars'].includes(s.visual))
+      warnings.push(`${where}是選擇／自評題，bullets 不會顯示（左邊卡片＝選項），請刪掉 bullets。`);
+    // 預測頁的標題不要先寫出正確答案
+    if (/預測/.test(s.phase || '') && s.activity?.correct?.length === 1) {
+      const right = s.activity.options?.[s.activity.correct[0]];
+      if (right && right.length <= 12 && /\d|√/.test(right) && (s.title || '').includes(right))
+        warnings.push(`${where}是預測題，標題已經寫出正確選項「${right}」。`);
+    }
     if (['numeric', 'single', 'multiple', 'manipulate'].includes(s.activity?.type) && !s.activity.explanation)
       warnings.push(`${where}題目沒有 explanation（公布結果時的解析）。`);
   }
