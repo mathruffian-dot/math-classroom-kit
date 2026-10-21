@@ -4813,3 +4813,54 @@ svg.redpen {
   color: var(--muted);
   font-weight: 600;
 }
+.quiz-figure {
+  display: block;
+  width: 100%;
+  max-width: 420px;
+  max-height: 34vh;
+  object-fit: contain;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 10px;
+}
+.quiz-figure.small {
+  max-width: 220px;
+  max-height: 140px;
+  margin: 4px 0;
+}
+.qb-detail > summary {
+  list-style: none;
+  cursor: pointer;
+}
+.qb-detail > summary::-webkit-details-marker {
+  display: none;
+}
+.qb-question {
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px;
+  margin: 4px 0 10px;
+  border-radius: 10px;
+  background: var(--surface-2, rgba(127, 127, 127, 0.08));
+}
+.qb-options {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+.qb-options li {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(127, 127, 127, 0.25);
+}
+.qb-options li.ok {
+  border-color: #2e9d5b;
+  background: rgba(46, 157, 91, 0.12);
+  font-weight: 700;
+}

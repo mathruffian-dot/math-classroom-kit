@@ -875,6 +875,21 @@ test('quiz scoring: more correct wins, ties go to the faster one; the computer f
   assert.deepEqual(quizLib.botScore(bot,run,1000+20000),{answered:3,correct:2,finished:true,timeMs:14000});
 });
 
+test('quiz figures: a plain SVG reaches the student paper; SVG with script or event handlers is rejected',async()=>{
+  const {f}=await setup();
+  const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><line x1="0" y1="0" x2="10" y2="10" stroke="#000"/></svg>';
+  const bank=(figure)=>({title:'附圖',slots:Array.from({length:10},(_,q)=>({id:`q${q+1}`,topic:`題位 ${q+1}`,variants:[0,1,2].map(v=>({stem:`第 ${q+1} 題（${v}）`,figure,options:['對','錯A','錯B','錯C'],answer:0}))}))});
+  const base=(await f.call('/api/dashboard')).body.lessons[0];
+  for(const bad of ['<svg onload="alert(1)"></svg>','<svg><script>alert(1)</script></svg>','<svg><a href="javascript:alert(1)">x</a></svg>','<img src=x>'])
+    assert.equal((await f.call('/api/lessons/fig-bad','PUT',{lesson:{...base,id:'fig-bad',quiz:bank(bad)}})).status,400,bad);
+  assert.equal((await f.call('/api/lessons/fig-lesson','PUT',{lesson:{...base,id:'fig-lesson',quiz:bank(svg)}})).status,200);
+  const s=(await f.call('/api/sessions','POST',{lessonId:'fig-lesson',classId:'demo-class'})).body.session;
+  await goOnline(f,[1]);
+  await f.call(`/api/sessions/${s.id}/control`,'POST',{action:'quiz-class',seconds:600});
+  const st=(await f.call(`/api/sessions/${s.id}`,'GET',null,'student')).body;
+  assert(st.quiz.questions.every(q=>q.figure===svg));
+});
+
 test('formative quiz: one random paper for the class, answers hidden until the end; PK pairing, locking, winner, rematch, records',async()=>{
   const {f}=await setup();
   const bank={title:'測試題庫',slots:Array.from({length:10},(_,q)=>({id:`q${q+1}`,topic:`題位 ${q+1}`,variants:[0,1,2].map(v=>({stem:`第 ${q+1} 題（${v}）`,options:[`對${v}`,`錯A${v}`,`錯B${v}`,`錯C${v}`],answer:0,explanation:'解析'}))}))};

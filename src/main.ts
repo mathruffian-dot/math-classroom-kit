@@ -1219,7 +1219,11 @@ function quizBoardHtml(): string {
         right = x.answer !== undefined ? counts[x.answer] || 0 : 0;
       const wrong = counts.map((c, k) => [c, k] as const).filter(([, k]) => k !== x.answer).sort((p, r) => r[0] - p[0])[0];
       const pct = total ? Math.round((right / total) * 100) : 0;
-      return `<div class="qb-row"><span>${i + 1}. ${esc(x.topic)}</span><div class="bar-track"><span style="width:${pct}%"></span></div><b>${total ? `${pct}%` : '—'}</b>${over && wrong && wrong[0] ? `<small>最多人錯選 ${String.fromCharCode(65 + wrong[1])}（${wrong[0]} 人）</small>` : '<small></small>'}</div>`;
+      const row = `<div class="qb-row"><span>${i + 1}. ${esc(x.topic)}</span><div class="bar-track"><span style="width:${pct}%"></span></div><b>${total ? `${pct}%` : '—'}</b>${over && wrong && wrong[0] ? `<small>最多人錯選 ${String.fromCharCode(65 + wrong[1])}（${wrong[0]} 人）</small>` : '<small></small>'}</div>`;
+      // 結束後點一下題目，大螢幕展開題目、附圖、選項與解析（檢討用）
+      if (!over) return row;
+      const opts = x.options.map((o, k) => `<li class="${k === x.answer ? 'ok' : ''}">${String.fromCharCode(65 + k)}. ${md(o)}<small>${counts[k] || 0} 人</small></li>`).join('');
+      return `<details class="qb-detail" data-testid="qb-detail"><summary>${row}</summary><div class="qb-question"><div class="quiz-stem">${md(x.stem)}</div>${quizFigure(x.figure)}<ol class="qb-options">${opts}</ol>${x.explanation ? `<p class="muted">${md(x.explanation)}</p>` : ''}</div></details>`;
     })
     .join('');
   const scores = Object.values(q.scores);
@@ -1235,6 +1239,10 @@ function pkTakenSeats(l: PkLobby) {
   if (l.waiting !== null) out.add(l.waiting);
   return out;
 }
+/** 幾何題附圖：SVG 以圖片顯示（不會執行任何程式）。 */
+function quizFigure(svg: string | undefined, cls = '') {
+  return svg ? `<img class="quiz-figure ${cls}" alt="題目附圖" src="data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}">` : '';
+}
 /** 學生的測驗卡：全班測驗可以前後翻、改答案再交卷；PK 與錯題練習選了就鎖定、馬上知道對錯。 */
 function quizCard(): string {
   const q = view!.quiz!,
@@ -1249,7 +1257,7 @@ function quizCard(): string {
       .map((x, i) => {
         const pick = mine.answers[i],
           ok = mine.correct[i];
-        return `<li class="${ok === true ? 'ok' : ok === false ? 'no' : ''}"><div>${md(x.stem)}</div><small>你選 ${pick === null ? '—' : `${letter(pick)}. ${md(x.options[pick])}`}${x.answer !== undefined ? `　正解 ${letter(x.answer)}. ${md(x.options[x.answer])}` : ''}</small>${x.explanation ? `<small class="muted">${md(x.explanation)}</small>` : ''}</li>`;
+        return `<li class="${ok === true ? 'ok' : ok === false ? 'no' : ''}"><div>${md(x.stem)}</div>${quizFigure(x.figure, 'small')}<small>你選 ${pick === null ? '—' : `${letter(pick)}. ${md(x.options[pick])}`}${x.answer !== undefined ? `　正解 ${letter(x.answer)}. ${md(x.options[x.answer])}` : ''}</small>${x.explanation ? `<small class="muted">${md(x.explanation)}</small>` : ''}</li>`;
       })
       .join('')}</ol>`;
   const options = (i: number, chosen: number | null) =>
@@ -1276,7 +1284,7 @@ function quizCard(): string {
       const right = mine.correct.filter((x) => x === true).length;
       return `<section class="quiz-card" data-testid="quiz-card"><h2>${glyph}${title}</h2>${progress}${result}<p class="quiz-summary" data-testid="quiz-summary">答對 ${right}／${n} 題${pk && quizScoreOf(q, me).timeMs !== null ? `，用時 ${secText(quizScoreOf(q, me).timeMs)}` : ''}</p>${review()}</section>`;
     }
-    return `<section class="quiz-card" data-testid="quiz-card"><h2>${glyph}${title}　${countdown(quizDeadline(q.run))}</h2>${progress}${quizFlash ? `<div class="quiz-flash">${quizFlash}</div>` : ''}<p class="mini-label">第 ${next + 1}／${n} 題・${esc(q.questions[next].topic)}</p><div class="quiz-stem">${md(q.questions[next].stem)}</div>${options(next, null)}</section>`;
+    return `<section class="quiz-card" data-testid="quiz-card"><h2>${glyph}${title}　${countdown(quizDeadline(q.run))}</h2>${progress}${quizFlash ? `<div class="quiz-flash">${quizFlash}</div>` : ''}<p class="mini-label">第 ${next + 1}／${n} 題・${esc(q.questions[next].topic)}</p><div class="quiz-stem">${md(q.questions[next].stem)}</div>${quizFigure(q.questions[next].figure)}${options(next, null)}</section>`;
   }
   // 全班測驗
   if (mine.done !== undefined || over)
@@ -1284,7 +1292,7 @@ function quizCard(): string {
   quizIndex = Math.min(Math.max(0, quizIndex), n - 1);
   const dots = q.questions.map((_, i) => `<button class="quiz-dot ${mine.answers[i] !== null ? 'done' : ''} ${i === quizIndex ? 'current' : ''}" data-action="quiz-go" data-q="${i}" aria-label="第 ${i + 1} 題">${i + 1}</button>`).join('');
   const left = mine.answers.filter((x) => x === null).length;
-  return `<section class="quiz-card" data-testid="quiz-card"><h2>${icon('target')}${esc(q.title)}　${countdown(quizDeadline(q.run))}</h2><div class="quiz-dots">${dots}</div><p class="mini-label">第 ${quizIndex + 1}／${n} 題・${esc(q.questions[quizIndex].topic)}</p><div class="quiz-stem">${md(q.questions[quizIndex].stem)}</div>${options(quizIndex, mine.answers[quizIndex])}<div class="tool-row">${btn('上一題', 'quiz-go', 'quiet', 'prev', `data-q="${quizIndex - 1}" ${quizIndex ? '' : 'disabled'}`)}${btn('下一題', 'quiz-go', 'quiet', 'next', `data-q="${quizIndex + 1}" ${quizIndex < n - 1 ? '' : 'disabled'}`)}</div>${btn(left ? `交卷（還有 ${left} 題沒作答）` : '交卷', 'quiz-submit', 'primary full', 'check', 'data-testid="quiz-submit"')}</section>`;
+  return `<section class="quiz-card" data-testid="quiz-card"><h2>${icon('target')}${esc(q.title)}　${countdown(quizDeadline(q.run))}</h2><div class="quiz-dots">${dots}</div><p class="mini-label">第 ${quizIndex + 1}／${n} 題・${esc(q.questions[quizIndex].topic)}</p><div class="quiz-stem">${md(q.questions[quizIndex].stem)}</div>${quizFigure(q.questions[quizIndex].figure)}${options(quizIndex, mine.answers[quizIndex])}<div class="tool-row">${btn('上一題', 'quiz-go', 'quiet', 'prev', `data-q="${quizIndex - 1}" ${quizIndex ? '' : 'disabled'}`)}${btn('下一題', 'quiz-go', 'quiet', 'next', `data-q="${quizIndex + 1}" ${quizIndex < n - 1 ? '' : 'disabled'}`)}</div>${btn(left ? `交卷（還有 ${left} 題沒作答）` : '交卷', 'quiz-submit', 'primary full', 'check', 'data-testid="quiz-submit"')}</section>`;
 }
 function pkProgressText(q: QuizView, me: number, opp: number) {
   const a = quizScoreOf(q, me),

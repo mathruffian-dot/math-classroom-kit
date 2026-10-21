@@ -508,8 +508,11 @@ export function validateQuiz(input: unknown): QuizBank {
           const it = record(v);
           assert(Array.isArray(it.options) && it.options.length >= 2 && it.options.length <= 6, '每題需要 2–6 個選項');
           const options = it.options.map((o) => str(o, '選項', 300, 1));
+          const figure = it.figure === undefined ? undefined : str(it.figure, '附圖', 30000, 10);
+          assert(!figure || (/^<svg[\s>]/.test(figure) && !/<script|on\w+\s*=|javascript:|<foreignObject/i.test(figure)), '附圖只能是單純的 SVG');
           return {
             stem: str(it.stem, '題目', 1000, 1),
+            ...(figure ? { figure } : {}),
             options,
             answer: integer(it.answer, 0, options.length - 1),
             ...(it.explanation !== undefined ? { explanation: str(it.explanation, '解析', 2000) } : {}),

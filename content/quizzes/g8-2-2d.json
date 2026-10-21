@@ -1,0 +1,397 @@
+{
+  "lessonId": "g8-2-2d",
+  "title": "2-2(4) 乘法公式與根式：課後檢核",
+  "source": "課本 p.73–88＋第一章乘法公式（題目自編，答案已用 SymPy 核算）",
+  "slots": [
+    {
+      "id": "q1",
+      "topic": "和的平方 (a+b)²",
+      "variants": [
+        {
+          "stem": "$(2+\\sqrt{3})^2=$？",
+          "options": [
+            "$7+4\\sqrt{3}$",
+            "$7$",
+            "$7+2\\sqrt{3}$",
+            "$4+4\\sqrt{3}$"
+          ],
+          "answer": 0,
+          "explanation": "$2^2+2\\times 2\\times\\sqrt{3}+(\\sqrt{3})^2=4+4\\sqrt{3}+3=7+4\\sqrt{3}$，中間的 $2ab$ 不能漏。"
+        },
+        {
+          "stem": "$(\\sqrt{5}+2)^2=$？",
+          "options": [
+            "$9+4\\sqrt{5}$",
+            "$9$",
+            "$9+2\\sqrt{5}$",
+            "$7+4\\sqrt{5}$"
+          ],
+          "answer": 0,
+          "explanation": "$(\\sqrt{5})^2+2\\times\\sqrt{5}\\times 2+2^2=5+4\\sqrt{5}+4=9+4\\sqrt{5}$。"
+        },
+        {
+          "stem": "$(3+2\\sqrt{5})^2=$？",
+          "options": [
+            "$29+12\\sqrt{5}$",
+            "$29$",
+            "$19+12\\sqrt{5}$",
+            "$29+6\\sqrt{5}$"
+          ],
+          "answer": 0,
+          "explanation": "$3^2+2\\times 3\\times 2\\sqrt{5}+(2\\sqrt{5})^2=9+12\\sqrt{5}+20=29+12\\sqrt{5}$。$(2\\sqrt{5})^2=20$，不是 $10$。"
+        }
+      ]
+    },
+    {
+      "id": "q2",
+      "topic": "差的平方 (a−b)²",
+      "variants": [
+        {
+          "stem": "$(\\sqrt{7}-\\sqrt{3})^2=$？",
+          "options": [
+            "$10-2\\sqrt{21}$",
+            "$4$",
+            "$10+2\\sqrt{21}$",
+            "$10-\\sqrt{21}$"
+          ],
+          "answer": 0,
+          "explanation": "$7-2\\sqrt{21}+3=10-2\\sqrt{21}$。不是 $7-3=4$。"
+        },
+        {
+          "stem": "$(\\sqrt{5}-1)^2=$？",
+          "options": [
+            "$6-2\\sqrt{5}$",
+            "$4$",
+            "$6+2\\sqrt{5}$",
+            "$4-2\\sqrt{5}$"
+          ],
+          "answer": 0,
+          "explanation": "$(\\sqrt{5})^2-2\\times\\sqrt{5}\\times 1+1^2=6-2\\sqrt{5}$。"
+        },
+        {
+          "stem": "$(3-\\sqrt{2})^2=$？",
+          "options": [
+            "$11-6\\sqrt{2}$",
+            "$7$",
+            "$11+6\\sqrt{2}$",
+            "$11-3\\sqrt{2}$"
+          ],
+          "answer": 0,
+          "explanation": "$9-6\\sqrt{2}+2=11-6\\sqrt{2}$。"
+        }
+      ]
+    },
+    {
+      "id": "q3",
+      "topic": "平方差 (a+b)(a−b)：整數與根式",
+      "variants": [
+        {
+          "stem": "$(3+\\sqrt{5})(3-\\sqrt{5})=$？",
+          "options": [
+            "$4$",
+            "$14$",
+            "$-4$",
+            "$9-\\sqrt{5}$"
+          ],
+          "answer": 0,
+          "explanation": "$(a+b)(a-b)=a^2-b^2$：$3^2-(\\sqrt{5})^2=9-5=4$，根號不見了。"
+        },
+        {
+          "stem": "$(\\sqrt{7}+2)(\\sqrt{7}-2)=$？",
+          "options": [
+            "$3$",
+            "$11$",
+            "$-3$",
+            "$7-2\\sqrt{7}$"
+          ],
+          "answer": 0,
+          "explanation": "$(\\sqrt{7})^2-2^2=7-4=3$。"
+        },
+        {
+          "stem": "$(2\\sqrt{2}+1)(2\\sqrt{2}-1)=$？",
+          "options": [
+            "$7$",
+            "$9$",
+            "$3$",
+            "$-7$"
+          ],
+          "answer": 0,
+          "explanation": "$(2\\sqrt{2})^2-1^2=8-1=7$。$(2\\sqrt{2})^2=8$。"
+        }
+      ]
+    },
+    {
+      "id": "q4",
+      "topic": "平方差：兩個根式",
+      "variants": [
+        {
+          "stem": "$(\\sqrt{3}+\\sqrt{5})(\\sqrt{3}-\\sqrt{5})=$？",
+          "options": [
+            "$-2$",
+            "$2$",
+            "$8$",
+            "$\\sqrt{15}$"
+          ],
+          "answer": 0,
+          "explanation": "$(\\sqrt{3})^2-(\\sqrt{5})^2=3-5=-2$。前面減後面，順序不能反。"
+        },
+        {
+          "stem": "$(\\sqrt{6}+\\sqrt{2})(\\sqrt{6}-\\sqrt{2})=$？",
+          "options": [
+            "$4$",
+            "$8$",
+            "$-4$",
+            "$2\\sqrt{3}$"
+          ],
+          "answer": 0,
+          "explanation": "$6-2=4$。"
+        },
+        {
+          "stem": "$(\\sqrt{10}+\\sqrt{3})(\\sqrt{10}-\\sqrt{3})=$？",
+          "options": [
+            "$7$",
+            "$13$",
+            "$-7$",
+            "$\\sqrt{30}$"
+          ],
+          "answer": 0,
+          "explanation": "$10-3=7$。"
+        }
+      ]
+    },
+    {
+      "id": "q5",
+      "topic": "共軛有理化：1 ÷ (√a ± √b)",
+      "variants": [
+        {
+          "stem": "把 $\\dfrac{1}{\\sqrt{5}-\\sqrt{3}}$ 的分母有理化。",
+          "options": [
+            "$\\dfrac{\\sqrt{5}+\\sqrt{3}}{2}$",
+            "$\\dfrac{\\sqrt{5}-\\sqrt{3}}{2}$",
+            "$\\sqrt{5}+\\sqrt{3}$",
+            "$\\dfrac{\\sqrt{5}+\\sqrt{3}}{8}$"
+          ],
+          "answer": 0,
+          "explanation": "分子分母同乘 $\\sqrt{5}+\\sqrt{3}$：分母 $(\\sqrt{5})^2-(\\sqrt{3})^2=2$，得 $\\dfrac{\\sqrt{5}+\\sqrt{3}}{2}$。"
+        },
+        {
+          "stem": "把 $\\dfrac{1}{\\sqrt{3}+\\sqrt{2}}$ 的分母有理化。",
+          "options": [
+            "$\\sqrt{3}-\\sqrt{2}$",
+            "$\\sqrt{3}+\\sqrt{2}$",
+            "$\\dfrac{\\sqrt{3}-\\sqrt{2}}{5}$",
+            "$\\dfrac{\\sqrt{3}-\\sqrt{2}}{3-2}$"
+          ],
+          "answer": 0,
+          "explanation": "同乘 $\\sqrt{3}-\\sqrt{2}$：分母 $3-2=1$，得 $\\sqrt{3}-\\sqrt{2}$。"
+        },
+        {
+          "stem": "把 $\\dfrac{2}{\\sqrt{5}+\\sqrt{3}}$ 的分母有理化。",
+          "options": [
+            "$\\sqrt{5}-\\sqrt{3}$",
+            "$\\sqrt{5}+\\sqrt{3}$",
+            "$\\dfrac{\\sqrt{5}-\\sqrt{3}}{4}$",
+            "$2(\\sqrt{5}-\\sqrt{3})$"
+          ],
+          "answer": 0,
+          "explanation": "同乘 $\\sqrt{5}-\\sqrt{3}$：$\\dfrac{2(\\sqrt{5}-\\sqrt{3})}{5-3}=\\sqrt{5}-\\sqrt{3}$。"
+        }
+      ]
+    },
+    {
+      "id": "q6",
+      "topic": "共軛有理化：a ÷ (√b ± c)",
+      "variants": [
+        {
+          "stem": "把 $\\dfrac{3}{\\sqrt{7}-2}$ 的分母有理化。",
+          "options": [
+            "$\\sqrt{7}+2$",
+            "$\\sqrt{7}-2$",
+            "$\\dfrac{3(\\sqrt{7}+2)}{5}$",
+            "$3(\\sqrt{7}+2)$"
+          ],
+          "answer": 0,
+          "explanation": "同乘 $\\sqrt{7}+2$：分母 $7-4=3$，$\\dfrac{3(\\sqrt{7}+2)}{3}=\\sqrt{7}+2$。分母是 $7-2^2$，不是 $7-2$。"
+        },
+        {
+          "stem": "把 $\\dfrac{1}{\\sqrt{3}+2}$ 的分母有理化。",
+          "options": [
+            "$2-\\sqrt{3}$",
+            "$\\sqrt{3}-2$",
+            "$\\dfrac{2-\\sqrt{3}}{7}$",
+            "$\\sqrt{3}+2$"
+          ],
+          "answer": 0,
+          "explanation": "同乘 $2-\\sqrt{3}$：分母 $4-3=1$，得 $2-\\sqrt{3}$。"
+        },
+        {
+          "stem": "把 $\\dfrac{2}{\\sqrt{5}+1}$ 的分母有理化。",
+          "options": [
+            "$\\dfrac{\\sqrt{5}-1}{2}$",
+            "$\\dfrac{\\sqrt{5}+1}{2}$",
+            "$\\sqrt{5}-1$",
+            "$\\dfrac{2\\sqrt{5}-2}{4}$"
+          ],
+          "answer": 0,
+          "explanation": "同乘 $\\sqrt{5}-1$：$\\dfrac{2(\\sqrt{5}-1)}{5-1}=\\dfrac{2(\\sqrt{5}-1)}{4}=\\dfrac{\\sqrt{5}-1}{2}$，記得約分。"
+        }
+      ]
+    },
+    {
+      "id": "q7",
+      "topic": "共軛有理化：分子也有根號",
+      "variants": [
+        {
+          "stem": "把 $\\dfrac{\\sqrt{2}}{\\sqrt{6}+\\sqrt{5}}$ 的分母有理化。",
+          "options": [
+            "$2\\sqrt{3}-\\sqrt{10}$",
+            "$\\sqrt{12}-\\sqrt{10}$",
+            "$2\\sqrt{3}+\\sqrt{10}$",
+            "$\\dfrac{2\\sqrt{3}-\\sqrt{10}}{11}$"
+          ],
+          "answer": 0,
+          "explanation": "同乘 $\\sqrt{6}-\\sqrt{5}$：分母 $6-5=1$，分子 $\\sqrt{12}-\\sqrt{10}=2\\sqrt{3}-\\sqrt{10}$。"
+        },
+        {
+          "stem": "把 $\\dfrac{\\sqrt{3}}{\\sqrt{6}-\\sqrt{2}}$ 的分母有理化。",
+          "options": [
+            "$\\dfrac{3\\sqrt{2}+\\sqrt{6}}{4}$",
+            "$\\dfrac{\\sqrt{18}+\\sqrt{6}}{4}$",
+            "$\\dfrac{3\\sqrt{2}-\\sqrt{6}}{4}$",
+            "$\\dfrac{3\\sqrt{2}+\\sqrt{6}}{8}$"
+          ],
+          "answer": 0,
+          "explanation": "同乘 $\\sqrt{6}+\\sqrt{2}$：分母 $6-2=4$，分子 $\\sqrt{18}+\\sqrt{6}=3\\sqrt{2}+\\sqrt{6}$。"
+        },
+        {
+          "stem": "把 $\\dfrac{\\sqrt{2}}{\\sqrt{3}-1}$ 的分母有理化。",
+          "options": [
+            "$\\dfrac{\\sqrt{6}+\\sqrt{2}}{2}$",
+            "$\\dfrac{\\sqrt{6}-\\sqrt{2}}{2}$",
+            "$\\sqrt{6}+\\sqrt{2}$",
+            "$\\dfrac{\\sqrt{6}+\\sqrt{2}}{4}$"
+          ],
+          "answer": 0,
+          "explanation": "同乘 $\\sqrt{3}+1$：分母 $3-1=2$，分子 $\\sqrt{6}+\\sqrt{2}$。"
+        }
+      ]
+    },
+    {
+      "id": "q8",
+      "topic": "平方後判斷相等或大小",
+      "variants": [
+        {
+          "stem": "$\\sqrt{3}+\\sqrt{2}$ 和 $\\sqrt{5}$ 的大小關係？",
+          "options": [
+            "$\\sqrt{3}+\\sqrt{2}>\\sqrt{5}$",
+            "$\\sqrt{3}+\\sqrt{2}<\\sqrt{5}$",
+            "$\\sqrt{3}+\\sqrt{2}=\\sqrt{5}$",
+            "無法比較"
+          ],
+          "answer": 0,
+          "explanation": "都是正數，比平方：$(\\sqrt{3}+\\sqrt{2})^2=5+2\\sqrt{6}$，$(\\sqrt{5})^2=5$，多了 $2\\sqrt{6}$。"
+        },
+        {
+          "stem": "$\\sqrt{7}-\\sqrt{5}$ 和 $\\sqrt{2}$ 的大小關係？",
+          "options": [
+            "$\\sqrt{7}-\\sqrt{5}<\\sqrt{2}$",
+            "$\\sqrt{7}-\\sqrt{5}>\\sqrt{2}$",
+            "$\\sqrt{7}-\\sqrt{5}=\\sqrt{2}$",
+            "無法比較"
+          ],
+          "answer": 0,
+          "explanation": "$(\\sqrt{7}-\\sqrt{5})^2=12-2\\sqrt{35}\\approx0.17$，$(\\sqrt{2})^2=2$，所以 $\\sqrt{7}-\\sqrt{5}<\\sqrt{2}$（不是相等）。"
+        },
+        {
+          "stem": "$\\sqrt{2}+\\sqrt{8}$ 和 $\\sqrt{18}$ 的大小關係？",
+          "options": [
+            "$\\sqrt{2}+\\sqrt{8}=\\sqrt{18}$",
+            "$\\sqrt{2}+\\sqrt{8}>\\sqrt{18}$",
+            "$\\sqrt{2}+\\sqrt{8}<\\sqrt{18}$",
+            "無法比較"
+          ],
+          "answer": 0,
+          "explanation": "$(\\sqrt{2}+\\sqrt{8})^2=2+2\\sqrt{16}+8=18$，兩數都是正數、平方相等，所以相等（也可以化成 $3\\sqrt{2}$）。"
+        }
+      ]
+    },
+    {
+      "id": "q9",
+      "topic": "公式綜合",
+      "variants": [
+        {
+          "stem": "$(\\sqrt{3}+1)^2-(\\sqrt{3}-1)^2=$？",
+          "options": [
+            "$4\\sqrt{3}$",
+            "$0$",
+            "$8$",
+            "$2\\sqrt{3}$"
+          ],
+          "answer": 0,
+          "explanation": "$(4+2\\sqrt{3})-(4-2\\sqrt{3})=4\\sqrt{3}$。"
+        },
+        {
+          "stem": "$(2+\\sqrt{5})^2+(2-\\sqrt{5})^2=$？",
+          "options": [
+            "$18$",
+            "$18+8\\sqrt{5}$",
+            "$-2$",
+            "$9$"
+          ],
+          "answer": 0,
+          "explanation": "$(9+4\\sqrt{5})+(9-4\\sqrt{5})=18$。"
+        },
+        {
+          "stem": "$(\\sqrt{6}+\\sqrt{2})(\\sqrt{6}-\\sqrt{2})+(\\sqrt{2})^2=$？",
+          "options": [
+            "$6$",
+            "$10$",
+            "$4$",
+            "$8$"
+          ],
+          "answer": 0,
+          "explanation": "$(6-2)+2=6$。"
+        }
+      ]
+    },
+    {
+      "id": "q10",
+      "topic": "哪一個算對了？（常見錯誤）",
+      "variants": [
+        {
+          "stem": "下列哪一個計算是正確的？",
+          "options": [
+            "$(\\sqrt{3}+\\sqrt{2})^2=5+2\\sqrt{6}$",
+            "$(\\sqrt{3}+\\sqrt{2})^2=5$",
+            "$(\\sqrt{5}-1)^2=4$",
+            "$\\dfrac{1}{\\sqrt{2}+1}=\\sqrt{2}+1$"
+          ],
+          "answer": 0,
+          "explanation": "中間的 $2ab$ 不能漏；$\\dfrac{1}{\\sqrt{2}+1}=\\sqrt{2}-1$（共軛要變號）。"
+        },
+        {
+          "stem": "下列哪一個計算是正確的？",
+          "options": [
+            "$(2+\\sqrt{3})(2-\\sqrt{3})=1$",
+            "$(2+\\sqrt{3})(2-\\sqrt{3})=7$",
+            "$(1+\\sqrt{2})^2=3$",
+            "$\\dfrac{2}{\\sqrt{3}+1}=\\sqrt{3}+1$"
+          ],
+          "answer": 0,
+          "explanation": "$4-3=1$；$(1+\\sqrt{2})^2=3+2\\sqrt{2}$；$\\dfrac{2}{\\sqrt{3}+1}=\\sqrt{3}-1$。"
+        },
+        {
+          "stem": "下列哪一個計算是正確的？",
+          "options": [
+            "$\\dfrac{1}{\\sqrt{2}+1}=\\sqrt{2}-1$",
+            "$(\\sqrt{6}-\\sqrt{2})^2=4$",
+            "$(\\sqrt{5}+\\sqrt{3})(\\sqrt{5}-\\sqrt{3})=8$",
+            "$(3+\\sqrt{2})^2=11$"
+          ],
+          "answer": 0,
+          "explanation": "$\\dfrac{\\sqrt{2}-1}{2-1}=\\sqrt{2}-1$；$(\\sqrt{6}-\\sqrt{2})^2=8-4\\sqrt{3}$；平方差是 $5-3=2$；$(3+\\sqrt{2})^2=11+6\\sqrt{2}$。"
+        }
+      ]
+    }
+  ]
+}

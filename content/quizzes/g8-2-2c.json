@@ -1,0 +1,397 @@
+{
+  "lessonId": "g8-2-2c",
+  "title": "2-2(3) 根式的加減與混合運算：課後檢核",
+  "source": "課本 p.73–85（題目自編，答案已用 SymPy 核算）",
+  "slots": [
+    {
+      "id": "q1",
+      "topic": "同類方根合併",
+      "variants": [
+        {
+          "stem": "$7\\sqrt{3}-3\\sqrt{3}=$？",
+          "options": [
+            "$4\\sqrt{3}$",
+            "$4$",
+            "$10\\sqrt{3}$",
+            "$4\\sqrt{6}$"
+          ],
+          "answer": 0,
+          "explanation": "同類方根像同類項：$(7-3)\\sqrt{3}=4\\sqrt{3}$，根號部分不變。"
+        },
+        {
+          "stem": "$5\\sqrt{2}+3\\sqrt{2}=$？",
+          "options": [
+            "$8\\sqrt{2}$",
+            "$8\\sqrt{4}$",
+            "$15\\sqrt{2}$",
+            "$8$"
+          ],
+          "answer": 0,
+          "explanation": "$(5+3)\\sqrt{2}=8\\sqrt{2}$。根號內不相加。"
+        },
+        {
+          "stem": "$3\\sqrt{11}-8\\sqrt{11}=$？",
+          "options": [
+            "$-5\\sqrt{11}$",
+            "$5\\sqrt{11}$",
+            "$-5$",
+            "$-24\\sqrt{11}$"
+          ],
+          "answer": 0,
+          "explanation": "$(3-8)\\sqrt{11}=-5\\sqrt{11}$。"
+        }
+      ]
+    },
+    {
+      "id": "q2",
+      "topic": "不是同類方根不能合併",
+      "variants": [
+        {
+          "stem": "$\\sqrt{2}-5\\sqrt{2}+\\sqrt{3}=$？",
+          "options": [
+            "$-4\\sqrt{2}+\\sqrt{3}$",
+            "$-4\\sqrt{5}$",
+            "$-3\\sqrt{2}$",
+            "$-4\\sqrt{2}-\\sqrt{3}$"
+          ],
+          "answer": 0,
+          "explanation": "只合併 $\\sqrt{2}$ 的項：$(1-5)\\sqrt{2}=-4\\sqrt{2}$，$\\sqrt{3}$ 留著。"
+        },
+        {
+          "stem": "$7\\sqrt{2}-2\\sqrt{3}-3\\sqrt{2}=$？",
+          "options": [
+            "$4\\sqrt{2}-2\\sqrt{3}$",
+            "$4\\sqrt{2}+2\\sqrt{3}$",
+            "$2\\sqrt{2}$",
+            "$10\\sqrt{2}-2\\sqrt{3}$"
+          ],
+          "answer": 0,
+          "explanation": "$7\\sqrt{2}-3\\sqrt{2}=4\\sqrt{2}$，$-2\\sqrt{3}$ 不能和 $\\sqrt{2}$ 合併。"
+        },
+        {
+          "stem": "$5\\sqrt{5}+2\\sqrt{7}-\\sqrt{5}=$？",
+          "options": [
+            "$4\\sqrt{5}+2\\sqrt{7}$",
+            "$6\\sqrt{5}+2\\sqrt{7}$",
+            "$4\\sqrt{5}-2\\sqrt{7}$",
+            "$6\\sqrt{7}$"
+          ],
+          "answer": 0,
+          "explanation": "$5\\sqrt{5}-\\sqrt{5}=4\\sqrt{5}$，$2\\sqrt{7}$ 留著。"
+        }
+      ]
+    },
+    {
+      "id": "q3",
+      "topic": "先化成最簡根式再合併",
+      "variants": [
+        {
+          "stem": "$\\sqrt{8}+\\sqrt{18}=$？",
+          "options": [
+            "$5\\sqrt{2}$",
+            "$\\sqrt{26}$",
+            "$6\\sqrt{2}$",
+            "$2\\sqrt{5}$"
+          ],
+          "answer": 0,
+          "explanation": "$\\sqrt{8}=2\\sqrt{2}$、$\\sqrt{18}=3\\sqrt{2}$，是同類方根：$2\\sqrt{2}+3\\sqrt{2}=5\\sqrt{2}$。"
+        },
+        {
+          "stem": "$\\sqrt{50}-\\sqrt{32}=$？",
+          "options": [
+            "$\\sqrt{2}$",
+            "$\\sqrt{18}$",
+            "$9\\sqrt{2}$",
+            "$2$"
+          ],
+          "answer": 0,
+          "explanation": "$\\sqrt{50}=5\\sqrt{2}$、$\\sqrt{32}=4\\sqrt{2}$，$5\\sqrt{2}-4\\sqrt{2}=\\sqrt{2}$。根號內不能直接相減。"
+        },
+        {
+          "stem": "$\\sqrt{12}+\\sqrt{27}=$？",
+          "options": [
+            "$5\\sqrt{3}$",
+            "$\\sqrt{39}$",
+            "$13\\sqrt{3}$",
+            "$6\\sqrt{3}$"
+          ],
+          "answer": 0,
+          "explanation": "$\\sqrt{12}=2\\sqrt{3}$、$\\sqrt{27}=3\\sqrt{3}$，合計 $5\\sqrt{3}$。"
+        }
+      ]
+    },
+    {
+      "id": "q4",
+      "topic": "有理化後合併",
+      "variants": [
+        {
+          "stem": "$\\dfrac{6}{\\sqrt{3}}+\\sqrt{3}=$？",
+          "options": [
+            "$3\\sqrt{3}$",
+            "$7\\sqrt{3}$",
+            "$2\\sqrt{3}$",
+            "$\\dfrac{7}{\\sqrt{3}}$"
+          ],
+          "answer": 0,
+          "explanation": "$\\dfrac{6}{\\sqrt{3}}=\\dfrac{6\\sqrt{3}}{3}=2\\sqrt{3}$，$2\\sqrt{3}+\\sqrt{3}=3\\sqrt{3}$。"
+        },
+        {
+          "stem": "$\\dfrac{4}{\\sqrt{2}}+\\sqrt{2}=$？",
+          "options": [
+            "$3\\sqrt{2}$",
+            "$5\\sqrt{2}$",
+            "$2\\sqrt{2}$",
+            "$\\dfrac{5}{\\sqrt{2}}$"
+          ],
+          "answer": 0,
+          "explanation": "$\\dfrac{4}{\\sqrt{2}}=2\\sqrt{2}$，$2\\sqrt{2}+\\sqrt{2}=3\\sqrt{2}$。"
+        },
+        {
+          "stem": "$\\dfrac{1}{\\sqrt{5}}+\\dfrac{4}{5}\\sqrt{5}=$？",
+          "options": [
+            "$\\sqrt{5}$",
+            "$5\\sqrt{5}$",
+            "$\\dfrac{4}{5}\\sqrt{5}$",
+            "$\\dfrac{\\sqrt{5}}{5}$"
+          ],
+          "answer": 0,
+          "explanation": "$\\dfrac{1}{\\sqrt{5}}=\\dfrac{\\sqrt{5}}{5}$，$\\dfrac{\\sqrt{5}}{5}+\\dfrac{4\\sqrt{5}}{5}=\\dfrac{5\\sqrt{5}}{5}=\\sqrt{5}$。"
+        }
+      ]
+    },
+    {
+      "id": "q5",
+      "topic": "分配律：根式乘括號",
+      "variants": [
+        {
+          "stem": "$\\sqrt{6}(\\sqrt{3}+2\\sqrt{2})=$？（最簡根式）",
+          "options": [
+            "$3\\sqrt{2}+4\\sqrt{3}$",
+            "$\\sqrt{18}+2\\sqrt{12}$",
+            "$3\\sqrt{2}+2\\sqrt{3}$",
+            "$\\sqrt{9}+2\\sqrt{8}$"
+          ],
+          "answer": 0,
+          "explanation": "$\\sqrt{6}\\times\\sqrt{3}=\\sqrt{18}=3\\sqrt{2}$，$\\sqrt{6}\\times2\\sqrt{2}=2\\sqrt{12}=4\\sqrt{3}$。"
+        },
+        {
+          "stem": "$-2\\sqrt{3}(\\sqrt{6}-\\sqrt{2})=$？（最簡根式）",
+          "options": [
+            "$-6\\sqrt{2}+2\\sqrt{6}$",
+            "$-6\\sqrt{2}-2\\sqrt{6}$",
+            "$-2\\sqrt{18}+2\\sqrt{6}$",
+            "$6\\sqrt{2}-2\\sqrt{6}$"
+          ],
+          "answer": 0,
+          "explanation": "$-2\\sqrt{3}\\times\\sqrt{6}=-2\\sqrt{18}=-6\\sqrt{2}$，$-2\\sqrt{3}\\times(-\\sqrt{2})=+2\\sqrt{6}$，負號要分配到每一項。"
+        },
+        {
+          "stem": "$\\sqrt{2}(\\sqrt{6}-\\sqrt{10})=$？（最簡根式）",
+          "options": [
+            "$2\\sqrt{3}-2\\sqrt{5}$",
+            "$\\sqrt{12}-\\sqrt{20}$",
+            "$2\\sqrt{3}+2\\sqrt{5}$",
+            "$\\sqrt{12}-\\sqrt{10}$"
+          ],
+          "answer": 0,
+          "explanation": "$\\sqrt{2}\\times\\sqrt{6}=\\sqrt{12}=2\\sqrt{3}$，$\\sqrt{2}\\times\\sqrt{10}=\\sqrt{20}=2\\sqrt{5}$。括號裡每一項都要乘。"
+        }
+      ]
+    },
+    {
+      "id": "q6",
+      "topic": "兩個括號相乘（逐項乘開）",
+      "variants": [
+        {
+          "stem": "$(\\sqrt{3}-\\sqrt{2})(\\sqrt{6}+1)=$？",
+          "options": [
+            "$2\\sqrt{2}-\\sqrt{3}$",
+            "$3\\sqrt{2}-2\\sqrt{3}$",
+            "$\\sqrt{6}-\\sqrt{2}$",
+            "$2\\sqrt{2}+\\sqrt{3}$"
+          ],
+          "answer": 0,
+          "explanation": "逐項乘：$\\sqrt{18}+\\sqrt{3}-\\sqrt{12}-\\sqrt{2}=3\\sqrt{2}+\\sqrt{3}-2\\sqrt{3}-\\sqrt{2}=2\\sqrt{2}-\\sqrt{3}$。"
+        },
+        {
+          "stem": "$(\\sqrt{2}-1)(\\sqrt{6}+\\sqrt{3})=$？",
+          "options": [
+            "$\\sqrt{3}$",
+            "$2\\sqrt{3}$",
+            "$2\\sqrt{3}+\\sqrt{6}$",
+            "$\\sqrt{3}-\\sqrt{6}$"
+          ],
+          "answer": 0,
+          "explanation": "$\\sqrt{12}+\\sqrt{6}-\\sqrt{6}-\\sqrt{3}=2\\sqrt{3}-\\sqrt{3}=\\sqrt{3}$。"
+        },
+        {
+          "stem": "$(\\sqrt{3}+1)(\\sqrt{3}+2)=$？",
+          "options": [
+            "$5+3\\sqrt{3}$",
+            "$3+3\\sqrt{3}$",
+            "$5+2\\sqrt{3}$",
+            "$2+3\\sqrt{3}$"
+          ],
+          "answer": 0,
+          "explanation": "$\\sqrt{3}\\times\\sqrt{3}+2\\sqrt{3}+\\sqrt{3}+2=3+3\\sqrt{3}+2=5+3\\sqrt{3}$。"
+        }
+      ]
+    },
+    {
+      "id": "q7",
+      "topic": "括號除以根式",
+      "variants": [
+        {
+          "stem": "$(6\\sqrt{3}+\\sqrt{6})\\div\\sqrt{3}=$？",
+          "options": [
+            "$6+\\sqrt{2}$",
+            "$6+\\sqrt{6}$",
+            "$6\\sqrt{2}$",
+            "$2\\sqrt{3}+\\sqrt{2}$"
+          ],
+          "answer": 0,
+          "explanation": "每一項都除以 $\\sqrt{3}$：$6\\sqrt{3}\\div\\sqrt{3}=6$，$\\sqrt{6}\\div\\sqrt{3}=\\sqrt{2}$。"
+        },
+        {
+          "stem": "$(4\\sqrt{6}-2)\\div\\sqrt{2}=$？",
+          "options": [
+            "$4\\sqrt{3}-\\sqrt{2}$",
+            "$4\\sqrt{3}-2$",
+            "$2\\sqrt{3}-\\sqrt{2}$",
+            "$4\\sqrt{3}-2\\sqrt{2}$"
+          ],
+          "answer": 0,
+          "explanation": "$4\\sqrt{6}\\div\\sqrt{2}=4\\sqrt{3}$，$2\\div\\sqrt{2}=\\dfrac{2}{\\sqrt{2}}=\\sqrt{2}$。"
+        },
+        {
+          "stem": "$(4\\sqrt{2}+\\sqrt{6})\\div\\sqrt{3}=$？",
+          "options": [
+            "$\\dfrac{4\\sqrt{6}}{3}+\\sqrt{2}$",
+            "$\\dfrac{4\\sqrt{6}}{3}+\\sqrt{6}$",
+            "$4\\sqrt{6}+\\sqrt{2}$",
+            "$\\dfrac{4\\sqrt{2}}{3}+\\sqrt{2}$"
+          ],
+          "answer": 0,
+          "explanation": "$\\dfrac{4\\sqrt{2}}{\\sqrt{3}}=\\dfrac{4\\sqrt{6}}{3}$，$\\dfrac{\\sqrt{6}}{\\sqrt{3}}=\\sqrt{2}$。"
+        }
+      ]
+    },
+    {
+      "id": "q8",
+      "topic": "乘除混合：合成一個根號",
+      "variants": [
+        {
+          "stem": "$\\sqrt{\\dfrac{1}{3}}\\times\\sqrt{\\dfrac{2}{3}}\\div\\sqrt{\\dfrac{1}{4}}=$？（最簡根式）",
+          "options": [
+            "$\\dfrac{2\\sqrt{2}}{3}$",
+            "$\\sqrt{\\dfrac{8}{9}}$",
+            "$\\dfrac{\\sqrt{2}}{18}$",
+            "$\\dfrac{\\sqrt{2}}{3}$"
+          ],
+          "answer": 0,
+          "explanation": "$\\sqrt{\\dfrac{1}{3}\\times\\dfrac{2}{3}\\times4}=\\sqrt{\\dfrac{8}{9}}=\\dfrac{2\\sqrt{2}}{3}$。除以 $\\sqrt{\\dfrac{1}{4}}$ 就是乘 $\\sqrt{4}$。"
+        },
+        {
+          "stem": "$\\sqrt{\\dfrac{3}{4}}\\times\\sqrt{\\dfrac{1}{2}}\\div\\sqrt{\\dfrac{3}{2}}=$？（最簡根式）",
+          "options": [
+            "$\\dfrac{1}{2}$",
+            "$\\sqrt{\\dfrac{1}{4}}$",
+            "$\\dfrac{3}{8}$",
+            "$\\dfrac{1}{4}$"
+          ],
+          "answer": 0,
+          "explanation": "$\\sqrt{\\dfrac{3}{4}\\times\\dfrac{1}{2}\\times\\dfrac{2}{3}}=\\sqrt{\\dfrac{1}{4}}=\\dfrac{1}{2}$。"
+        },
+        {
+          "stem": "$\\sqrt{\\dfrac{2}{5}}\\times\\sqrt{\\dfrac{5}{6}}\\div\\sqrt{\\dfrac{1}{3}}=$？（最簡根式）",
+          "options": [
+            "$1$",
+            "$\\sqrt{3}$",
+            "$\\dfrac{1}{9}$",
+            "$\\dfrac{\\sqrt{3}}{3}$"
+          ],
+          "answer": 0,
+          "explanation": "$\\sqrt{\\dfrac{2}{5}\\times\\dfrac{5}{6}\\times3}=\\sqrt{1}=1$。"
+        }
+      ]
+    },
+    {
+      "id": "q9",
+      "topic": "比較大小：根號不能直接相加",
+      "variants": [
+        {
+          "stem": "$\\sqrt{2}+\\sqrt{3}$ 和 $\\sqrt{5}$ 的大小關係？",
+          "options": [
+            "$\\sqrt{2}+\\sqrt{3}>\\sqrt{5}$",
+            "$\\sqrt{2}+\\sqrt{3}<\\sqrt{5}$",
+            "$\\sqrt{2}+\\sqrt{3}=\\sqrt{5}$",
+            "無法比較"
+          ],
+          "answer": 0,
+          "explanation": "$\\sqrt{2}+\\sqrt{3}\\approx1.414+1.732=3.146$，$\\sqrt{5}\\approx2.236$。根號不能這樣相加。"
+        },
+        {
+          "stem": "$\\sqrt{3}+\\sqrt{12}$ 和 $\\sqrt{27}$ 的大小關係？",
+          "options": [
+            "$\\sqrt{3}+\\sqrt{12}=\\sqrt{27}$",
+            "$\\sqrt{3}+\\sqrt{12}>\\sqrt{27}$",
+            "$\\sqrt{3}+\\sqrt{12}<\\sqrt{27}$",
+            "無法比較"
+          ],
+          "answer": 0,
+          "explanation": "$\\sqrt{3}+\\sqrt{12}=\\sqrt{3}+2\\sqrt{3}=3\\sqrt{3}=\\sqrt{27}$，剛好相等（化簡後是同類方根）。"
+        },
+        {
+          "stem": "$2\\sqrt{2}$ 和 $\\sqrt{2}+\\sqrt{3}$ 的大小關係？",
+          "options": [
+            "$2\\sqrt{2}<\\sqrt{2}+\\sqrt{3}$",
+            "$2\\sqrt{2}>\\sqrt{2}+\\sqrt{3}$",
+            "$2\\sqrt{2}=\\sqrt{2}+\\sqrt{3}$",
+            "無法比較"
+          ],
+          "answer": 0,
+          "explanation": "$2\\sqrt{2}=\\sqrt{2}+\\sqrt{2}$，而 $\\sqrt{2}<\\sqrt{3}$，所以 $2\\sqrt{2}<\\sqrt{2}+\\sqrt{3}$。"
+        }
+      ]
+    },
+    {
+      "id": "q10",
+      "topic": "哪一個算對了？（常見錯誤）",
+      "variants": [
+        {
+          "stem": "下列哪一個計算是正確的？",
+          "options": [
+            "$\\sqrt{2}+\\sqrt{8}=3\\sqrt{2}$",
+            "$\\sqrt{2}+\\sqrt{8}=\\sqrt{10}$",
+            "$2\\sqrt{3}+3\\sqrt{2}=5\\sqrt{5}$",
+            "$\\sqrt{12}-\\sqrt{3}=3$"
+          ],
+          "answer": 0,
+          "explanation": "$\\sqrt{8}=2\\sqrt{2}$，所以 $\\sqrt{2}+\\sqrt{8}=3\\sqrt{2}$；不同類方根不能合併；$\\sqrt{12}-\\sqrt{3}=\\sqrt{3}$。"
+        },
+        {
+          "stem": "下列哪一個計算是正確的？",
+          "options": [
+            "$\\sqrt{18}-\\sqrt{8}=\\sqrt{2}$",
+            "$5\\sqrt{2}-\\sqrt{2}=5$",
+            "$\\sqrt{3}+\\sqrt{3}=\\sqrt{6}$",
+            "$3+\\sqrt{2}=3\\sqrt{2}$"
+          ],
+          "answer": 0,
+          "explanation": "$3\\sqrt{2}-2\\sqrt{2}=\\sqrt{2}$；$5\\sqrt{2}-\\sqrt{2}=4\\sqrt{2}$；$\\sqrt{3}+\\sqrt{3}=2\\sqrt{3}$；整數和根式不能合併。"
+        },
+        {
+          "stem": "下列哪一個計算是正確的？",
+          "options": [
+            "$\\sqrt{27}+\\sqrt{12}=5\\sqrt{3}$",
+            "$\\sqrt{27}+\\sqrt{12}=\\sqrt{39}$",
+            "$2\\sqrt{5}+\\sqrt{5}=2\\sqrt{10}$",
+            "$\\sqrt{50}-\\sqrt{2}=\\sqrt{48}$"
+          ],
+          "answer": 0,
+          "explanation": "$3\\sqrt{3}+2\\sqrt{3}=5\\sqrt{3}$；$2\\sqrt{5}+\\sqrt{5}=3\\sqrt{5}$；$\\sqrt{50}-\\sqrt{2}=5\\sqrt{2}-\\sqrt{2}=4\\sqrt{2}$。"
+        }
+      ]
+    }
+  ]
+}

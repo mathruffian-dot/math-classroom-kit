@@ -98,6 +98,7 @@ export function quizView(lesson: Lesson, store: QuizStore, run: QuizRun, user: U
       slot: q,
       topic: bank.slots[q].topic,
       stem: it.stem,
+      ...(it.figure ? { figure: it.figure } : {}),
       options: order.map((i) => it.options[i]),
       ...(reveal ? { answer: order.indexOf(it.answer), ...(it.explanation ? { explanation: it.explanation } : {}) } : {}),
     };

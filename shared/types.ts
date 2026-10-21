@@ -247,6 +247,8 @@ export interface QuizSlot {
 }
 export interface QuizItem {
   stem: string;
+  /** 幾何題的附圖（SVG 文字，出題程式依同一組數字畫出）；學生端以圖片顯示。 */
+  figure?: string;
   options: string[];
   /** 正確選項（原始順序，從 0 起算）。 */
   answer: number;
@@ -306,6 +308,7 @@ export interface QuizView {
     slot: number;
     topic: string;
     stem: string;
+    figure?: string;
     /** 顯示順序的選項。 */
     options: string[];
     /** 正確選項的顯示位置：老師都有；學生在 PK 答過的題、全班測驗結束後才有。 */
