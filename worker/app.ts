@@ -22,6 +22,8 @@ import {
   integer,
   judge,
   judgeNumeric,
+  judgePhotoFinals,
+  photoItems as photoItemsOf,
   judgePractice,
   record,
   str,
@@ -49,6 +51,7 @@ import {
   FAST_GRADER_SYSTEM,
   numberedWork,
   parseMarks,
+  photoQuestions,
   LESSON_SYSTEM,
   aiSettings,
   chat,
@@ -76,7 +79,7 @@ interface StoredClass {
   ownerId: string;
   students: { seat: number; codeHash: string }[];
 }
-interface StoredSession {
+export interface StoredSession {
   session: Session;
   ownerId: string;
   lesson: Lesson;
@@ -140,11 +143,15 @@ export interface State {
   images?: Record<string, ImageMeta>;
   /** 專案教材（content/lessons）同步紀錄：課程 ID → 內容雜湊。 */
   catalog?: Record<string, string>;
+  /** 已封存的課堂（紀錄另外存、不在每次讀取時載入）：課堂 ID → 摘要。 */
+  archive?: Record<string, { session: Session; ownerId: string }>;
 }
 export type Deferred = {
   operation: () => Promise<unknown>;
   /** 在 AI 呼叫完成後，於課堂佇列內重新讀取最新狀態並寫入結果。 */
   commit?: (state: State, result: unknown) => void;
+  /** commit 要寫回的課堂（封存的課堂要先載入）。 */
+  sessionId?: string;
 };
 export interface AppContext {
   env: StorageEnv;
@@ -155,6 +162,29 @@ export interface AppContext {
   store: Store<State>;
   vault?: Vault;
   deferAi?: (deferred: Deferred) => void;
+  /** 讀一堂封存的課堂紀錄（Durable Object 分開存時才有）。 */
+  loadSession?: (id: string) => Promise<StoredSession | undefined>;
+  /** 免費額度用量（Durable Object 分開存時才有）。 */
+  usage?: () => Promise<{ dataBytes: number; rowsToday: number; sessions: number }>;
+}
+/** AI 回傳的 finals：每一小題的最後答案（字串，最多 n 個）。 */
+function readFinals(raw: unknown, n: number): string[] {
+  const list = raw && typeof raw === 'object' && Array.isArray((raw as { finals?: unknown }).finals) ? ((raw as { finals: unknown[] }).finals) : [];
+  return Array.from({ length: n }, (_, i) => (typeof list[i] === 'string' || typeof list[i] === 'number' ? String(list[i]).slice(0, 60).trim() : ''));
+}
+/** 拍照交的數值題批改完：用讀到的答案判定對錯，和直接送答案的同學一起統計。 */
+function applyFinals(activity: Activity, answer: Answer, finals: string[]) {
+  const r = judgePhotoFinals(activity, finals);
+  answer.correct = r.correct;
+  if (r.itemsCorrect) answer.itemsCorrect = r.itemsCorrect;
+  if (r.note) answer.note = r.note;
+  else delete answer.note;
+}
+/** 封存的課堂：有人要用（打開、批改、匯出、備份）才從儲存讀回來。 */
+export async function hydrateSession(state: State, load: AppContext['loadSession'], id: unknown) {
+  if (typeof id !== 'string' || !load || state.sessions[id] || !state.archive?.[id]) return;
+  const s = await load(id);
+  if (s) state.sessions[id] = s;
 }
 const TEACHER_ID = 'teacher';
 const TEACHER_VAULT = 'vault:teacher';
@@ -362,6 +392,7 @@ export function sessionView(state: State, stored: StoredSession, user: User, onl
           });
           continue;
         }
+        if (typeof answer.value === 'object' && !Array.isArray(answer.value)) continue; // 拍照作答（批改後才有對錯）
         let key = String(answer.value);
         try {
           key = String(+parseNumberAnswer(String(answer.value)).toFixed(6));
@@ -723,6 +754,10 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
     if (path === '/api/me' && method === 'GET') return json({ user: auth?.user || null });
     assert(auth, '請先登入', 401);
     const { user } = auth;
+    // 這個請求用到的封存課堂先載入（其他封存的課不讀，請求才快）
+    const imageMatch = path.match(/^\/api\/images\/([\w-]+)$/);
+    await hydrateSession(state, ctx.loadSession, path.match(/^\/api\/sessions\/([\w-]+)/)?.[1] ?? body.sessionId ?? (imageMatch ? state.images[imageMatch[1]]?.sessionId : undefined));
+    if (path === '/api/backup') for (const id of Object.keys(state.archive || {})) await hydrateSession(state, ctx.loadSession, id);
     const save = async (value: unknown) => {
       await store.write(state);
       return json(value);
@@ -752,6 +787,37 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
         await clearAiSettings(vault);
         return json(await aiSettings(env, vault, usedToday));
       }
+    }
+    if (path === '/api/settings/usage' && method === 'GET') {
+      requireTeacher(user);
+      const usage = await ctx.usage?.();
+      const images = Object.values(state.images);
+      return json({
+        available: !!usage,
+        dataBytes: usage?.dataBytes || 0,
+        rowsToday: usage?.rowsToday || 0,
+        sessions: usage?.sessions || Object.keys(state.sessions).length,
+        archived: Object.keys(state.archive || {}).length,
+        photos: images.length,
+        // 照片以 base64 文字存，約比原檔大 1/3
+        photoBytes: Math.round(images.reduce((sum, m) => sum + m.bytes, 0) * 4 / 3),
+        limits: { storageBytes: 5 * 1024 ** 3, rowsPerDay: 100_000 },
+      });
+    }
+    if (path === '/api/settings/prune-photos' && method === 'POST') {
+      // 清掉舊的作答照片（最占空間的部分）；辨識稿、批改分數與圈記號都留在課堂紀錄裡
+      requireTeacher(user);
+      const days = integer(Number(body.days), 7, 3650),
+        before = Date.now() - days * 86400_000;
+      let removed = 0;
+      for (const [id, meta] of Object.entries(state.images)) {
+        const owner = state.sessions[meta.sessionId]?.ownerId ?? state.archive?.[meta.sessionId]?.ownerId;
+        if (Date.parse(meta.createdAt) >= before || owner !== user.id) continue;
+        await vault.delete(`blob:${id}`);
+        delete state.images[id];
+        removed++;
+      }
+      return save({ removed });
     }
     const assetGet = path.match(/^\/api\/assets\/lessons\/([a-z0-9][a-z0-9-]*\/[A-Za-z0-9._-]+\.(?:png|jpe?g|webp|mp4))$/);
     if (assetGet && method === 'GET') {
@@ -794,7 +860,7 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
     if (imageGet && method === 'GET') {
       const id = identifier(imageGet[1]),
         meta = state.images[id];
-      assert(meta, '找不到圖片', 404);
+      assert(meta, '這張照片已清除（辨識稿與分數仍在課堂紀錄裡）', 404);
       const ss = state.sessions[meta.sessionId];
       assert(
         user.role === 'teacher' ? ss?.ownerId === user.id : meta.ownerId === user.id,
@@ -835,7 +901,12 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
         classes: Object.values(state.classes)
           .filter((c) => c.ownerId === user.id)
           .map((c) => c.classroom),
-        sessions: Object.values(state.sessions)
+        sessions: [
+          ...Object.values(state.sessions),
+          ...Object.entries(state.archive || {})
+            .filter(([id]) => !state.sessions[id])
+            .map(([, a]) => a),
+        ]
           .filter((s) => s.ownerId === user.id)
           .map((s) => s.session)
           .sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
@@ -916,7 +987,7 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
       const cl = state.classes[classDelete[1]];
       assert(cl && cl.ownerId === user.id, '找不到班級', 404);
       assert(
-        !Object.values(state.sessions).some((s) => s.session.classId === cl.classroom.id),
+        ![...Object.values(state.sessions), ...Object.values(state.archive || {})].some((s) => s.session.classId === cl.classroom.id),
         '請先刪除這個班級的課堂紀錄',
         409,
       );
@@ -937,6 +1008,7 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
       for (const s of Object.values(state.sessions))
         if (s.session.classId === cl.classroom.id && !s.session.ended) {
           s.session.ended = true;
+          s.session.endedAt = Date.now();
           s.session.activityOpen = false;
           s.session.buzzOpen = false;
           s.session.revision++;
@@ -1001,6 +1073,7 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
             delete state.images[id];
           }
         delete state.sessions[session.id];
+        delete state.archive?.[session.id];
         return save({ ok: true });
       }
       if (action === 'control' && method === 'POST') {
@@ -1137,6 +1210,7 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
           }
           case 'end':
             session.ended = true;
+            session.endedAt = Date.now();
             session.danmakuOpen = false;
             session.activityOpen = false;
             session.activityDeadline = null;
@@ -1190,6 +1264,12 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
             'teacher',
           );
           verdict.released = body.released === true || (body.released === undefined && !!previous?.released);
+          // 拍照交的數值題：老師判對錯就是這份作答的對錯（IRS 統計、補救練習跟著改）
+          if (activity.type === 'numeric' && activity.photoWork) {
+            answer.correct = body.verdict;
+            if (activity.items) answer.itemsCorrect = activity.items.map((_, i) => body.verdict === true && photoItemsOf(activity).includes(i));
+            delete answer.note;
+          }
           s.grades![answerId] = verdict;
           session.revision++;
           return save({ grade: verdict });
@@ -1206,6 +1286,7 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
           true,
         );
         grade.released = body.released === true || (body.released === undefined && !!previous?.released);
+        if (previous?.finals) grade.finals = previous.finals;
         s.grades![answerId] = grade;
         session.revision++;
         return save({ grade });
@@ -1353,7 +1434,7 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
         const meta = state.images[imageId];
         assert(meta && meta.ownerId === user.id && meta.sessionId === session.id, '找不到這張照片', 404);
         const activity = s.lesson.slides.find((x) => x.activity?.id === body.activityId)?.activity;
-        assert(activity?.type === 'canvas', '找不到題目', 404);
+        assert(activity && (activity.type === 'canvas' || activity.photoWork), '找不到題目', 404);
         assert(!activity.sensitive, '此題標記為敏感題，不傳送至 AI', 403);
         const config = await resolveAi(env, vault);
         if (!config) {
@@ -1375,7 +1456,7 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
           const reply = await chat(
             config,
             WORK_OCR_SYSTEM,
-            [{ type: 'text', text: `題目（只供你理解內容，不要作答）：${activity.prompt}` }, { type: 'image_url', image_url: { url: image } }],
+            [{ type: 'text', text: `題目（只供你理解內容，不要作答）：${activity.prompt}${activity.photoWork ? `\n${photoQuestions(activity).join('\n')}` : ''}` }, { type: 'image_url', image_url: { url: image } }],
             { maxTokens: 1200, timeoutMs: 40_000, json: true, effort: 'low' },
           );
           const r = record(extractJson(reply));
@@ -1782,6 +1863,8 @@ async function analyze(
     assert(!activity.sensitive, '此題標記為敏感題，不傳送至 AI', 403);
     const rubric = activity.rubric,
       base = { answerId, activityId: answer.activityId, seat: answer.seat };
+    // 拍照交的數值題：AI 另外讀出每一小題的最後答案，伺服器判定對錯（IRS 統計、補救練習照常）
+    const photoNumeric = activity.type === 'numeric' && !!activity.photoWork;
     const value = answer.value;
     const text =
       typeof value === 'string'
@@ -1814,18 +1897,22 @@ async function analyze(
         g.transcript = work;
         g.marks = parseMarks(raw, work!);
       }
+      if (photoNumeric) g.finals = readFinals(raw, photoQuestions(activity).length);
       return g;
     };
-    combine = (runs) => ({
-      mode: 'live',
-      grade: full ? aggregateVotes(runs as Grade[], rubric) : aggregateVerdicts(runs as Grade[]),
-    });
+    combine = (runs) => {
+      const grade = full ? aggregateVotes(runs as Grade[], rubric) : aggregateVerdicts(runs as Grade[]);
+      if (photoNumeric) grade.finals = (runs as Grade[]).find((r) => r.finals?.some(Boolean))?.finals || (runs[0] as Grade).finals;
+      return { mode: 'live', grade };
+    };
     commit = (latest, result) => {
       const target = latest.sessions[s.session.id];
       const grade = (result as { grade?: Grade }).grade;
-      if (!target || !grade || !target.answers.some((a) => a.id === answerId)) return;
+      const stored = target?.answers.find((a) => a.id === answerId);
+      if (!target || !grade || !stored) return;
       target.grades ||= {};
       target.grades[answerId] = grade;
+      if (photoNumeric && grade.finals) applyFinals(activity, stored, grade.finals);
       target.session.revision++;
     };
     mock = () => {
@@ -1837,7 +1924,14 @@ async function analyze(
         const lines = work!.split('\n').filter((l) => l.trim());
         grade.marks = [{ line: lines.length, kind: 'error', note: '（模擬批註）設定 API key 後由 AI 標出錯處' }];
       }
-      s.grades![answerId] = grade;
+      if (photoNumeric) {
+        // 示範：從辨識稿每一行最後的「= 答案」讀答案
+        const lines = (work || '').split('\n').filter((l) => l.trim());
+        grade.finals = photoQuestions(activity).map((_, k) => lines[k]?.split(/[=＝]/).pop()?.trim() || '');
+        applyFinals(activity, answer, grade.finals);
+      }
+      s.grades ||= {};
+      s.grades[answerId] = grade;
       s.session.revision++;
       return { mode: 'mock', grade };
     };
@@ -1894,7 +1988,7 @@ async function analyze(
   // The Durable Object reserves the quota under its queue, then runs the
   // external provider outside that queue so student answers remain responsive.
   if (defer) {
-    defer({ operation, commit });
+    defer({ operation, commit, sessionId: typeof body.sessionId === 'string' ? body.sessionId : undefined });
     return { pending: true };
   }
   const result = await operation();

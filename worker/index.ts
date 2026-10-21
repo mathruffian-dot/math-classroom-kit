@@ -1,6 +1,17 @@
-import { handleApi, liveTicket, liveView, type Deferred, type LiveTicket, type Presence, type State } from './app';
+import {
+  handleApi,
+  hydrateSession,
+  liveTicket,
+  liveView,
+  type Deferred,
+  type LiveTicket,
+  type Presence,
+  type State,
+  type StoredSession,
+} from './app';
 import {
   DurableStore,
+  SessionSplitStore,
   SupabaseStore,
   type LocalStorage,
   type StorageEnv,
@@ -95,6 +106,7 @@ export class ClassroomDurableObject {
             const store = this.store();
             const latest = await store.read();
             if (!latest) return;
+            await hydrateSession(latest, this.loader(), job.sessionId);
             job.commit!(latest, result);
             await store.write(latest);
           });
@@ -120,6 +132,7 @@ export class ClassroomDurableObject {
       assert(request.headers.get('Origin') === new URL(request.url).origin, '來源驗證失敗', 403);
       const state = await this.store().read();
       assert(state, '請先登入', 401);
+      await hydrateSession(state, this.loader(), new URL(request.url).searchParams.get('sessionId'));
       const ticket = await liveTicket(request, state);
       const pair = new WebSocketPair();
       const [client, server] = [pair[0], pair[1]];
@@ -151,6 +164,12 @@ export class ClassroomDurableObject {
     const state = await this.store().read();
     if (!state) return;
     const online = this.onlineUsers();
+    // 老師打開的是已封存的課堂（例如課後檢視結果）：先載入，連線才不會被當成失效關掉
+    for (const socket of sockets) {
+      try {
+        await hydrateSession(state, this.loader(), (socket.deserializeAttachment() as LiveTicket).sessionId);
+      } catch {}
+    }
     for (const socket of sockets) {
       try {
         const ticket = socket.deserializeAttachment() as LiveTicket;
@@ -202,15 +221,31 @@ export class ClassroomDurableObject {
   }
   /** 伺服器端秘密與作答圖片：只存在 Durable Object，不進入快照、Supabase 或備份。 */
   private vault(): Vault {
-    const storage = this.state.storage;
+    const storage = this.state.storage,
+      count = () => this.splitStore().countRows(1);
     return {
       get: (key) => storage.get(key),
-      put: (key, value) => storage.put(key, value),
-      delete: (key) => storage.delete(key),
+      put: (key, value) => (count(), storage.put(key, value)),
+      delete: (key) => (count(), storage.delete(key)),
     };
   }
+  /**
+   * 每堂課分開存（同一個物件重複使用，才記得哪些內容沒變、不必重寫）。
+   * 結束超過 1 小時的課堂封存：課堂清單只留摘要，有人打開時才讀回來。
+   */
+  private split?: SessionSplitStore<State, StoredSession>;
+  private splitStore(): SessionSplitStore<State, StoredSession> {
+    return (this.split ||= new SessionSplitStore<State, StoredSession>(this.state.storage, {
+      archivable: (s, now) => s.session.ended && now - (s.session.endedAt || 0) > 3600_000,
+      summary: (s) => ({ session: s.session, ownerId: s.ownerId }),
+    }));
+  }
+  /** 讀封存課堂的函式；Supabase 模式整份存在資料庫，沒有封存。 */
+  private loader() {
+    return this.env.APP_MODE === 'supabase' ? undefined : (id: string) => this.splitStore().loadSession(id);
+  }
   private store(): Store<State> {
-    let store: Store<State> = new DurableStore<State>(this.state.storage);
+    let store: Store<State> = this.splitStore();
     if (this.env.APP_MODE === 'supabase') {
       const database = new SupabaseStore<State>(this.env),
         logins = new DurableStore<State['logins']>(this.state.storage, 'cloud-logins');
@@ -243,6 +278,7 @@ export class ClassroomDurableObject {
           existing && now - existing.time < 600000 ? existing : { time: now, count: 0 };
         bucket.count++;
         await this.state.storage.put(key, bucket);
+        this.splitStore().countRows(1);
         // One classroom often shares a NAT address. This permits 40 students to
         // sign in together, while preventing unbounded password guessing.
         if (bucket.count > 200)
@@ -258,6 +294,8 @@ export class ClassroomDurableObject {
         assets: this.env.ASSETS,
         online: () => this.onlineUsers(),
         deferAi,
+        loadSession: this.loader(),
+        usage: this.env.APP_MODE === 'supabase' ? undefined : () => this.splitStore().usage(),
       });
     } catch (error) {
       return Response.json(

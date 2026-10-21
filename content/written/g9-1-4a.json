@@ -1,43 +1,4 @@
 {
-  "slides": [
-    {
-      "after": "a-ex2-practice",
-      "slide": {
-        "id": "a-written",
-        "phase": "會考練習",
-        "eyebrow": "寫出完整過程",
-        "title": "測量河寬：寫出相似的理由",
-        "body": "寫在紙上：先說明哪兩個三角形相似、理由是什麼，再寫比例式求河寬。寫完拍照上傳，核對辨識稿再送出。",
-        "source": "對應課本 1-4 p.63–64 簡易測量（數字自編）",
-        "activity": {
-          "id": "a-written-q",
-          "type": "canvas",
-          "prompt": "A、C、D 在同一直線上，AB ⊥ AD，DE ⊥ AD，B、C、E 三點共線。AC＝36 公尺、CD＝9 公尺、DE＝6 公尺，求河寬 AB。寫出相似的理由與比例式。",
-          "canvas": "grid",
-          "allowPhoto": true,
-          "aiAllowed": true,
-          "rubric": {
-            "criteria": [
-              {
-                "id": "kai",
-                "label": "會考評分（0–3 分）",
-                "points": 3,
-                "levels": [
-                  { "score": 3, "description": "寫出 △ABC ～ △DEC（AA：∠A ＝ ∠D ＝ 90°、∠ACB ＝ ∠DCE 對頂角），比例式 AB : DE ＝ AC : DC，求得 AB ＝ 24 公尺" },
-                  { "score": 2, "description": "比例式與答案正確但沒有寫相似理由；或理由、比例式正確但計算有一處小錯" },
-                  { "score": 1, "description": "只寫出相似或只列出部分正確的比例式（例如對應邊配錯），沒有得到正確答案" },
-                  { "score": 0, "description": "空白、只寫答案沒有過程，或過程完全錯誤" }
-                ]
-              }
-            ],
-            "reference": "∠A ＝ ∠D ＝ 90°，∠ACB ＝ ∠DCE（對頂角），所以 △ABC ～ △DEC（AA）。AB : DE ＝ AC : DC，AB : 6 ＝ 36 : 9，AB ＝ 24（公尺）。",
-            "graderNotes": "接受寫成 AB/6 ＝ 36/9 或 AB : 36 ＝ 6 : 9 等同樣正確的比例式；沒寫單位不扣分。常見錯誤：對應邊配錯（AB : 6 ＝ 9 : 36）、只寫 AA 沒說哪兩個角相等。"
-          }
-        },
-        "notes": "會考式非選題（0–3 分）。收件後 AI 依辨識稿快速批改並圈出錯誤，老師覆核後發回。"
-      }
-    }
-  ],
   "rubrics": {
     "a-error-q": {
       "criteria": [
@@ -46,15 +7,199 @@
           "label": "會考評分（0–3 分）",
           "points": 3,
           "levels": [
-            { "score": 3, "description": "圈出對應邊配錯的地方，寫出 1.5 : x ＝ 2 : 6，求得 x ＝ 4.5，並說明要高對高、影對影" },
-            { "score": 2, "description": "答案 4.5 正確但理由不完整，或理由正確但計算有一處小錯" },
-            { "score": 1, "description": "只指出「錯了」或比例式仍有誤，沒有正確答案" },
-            { "score": 0, "description": "空白、同意 x ＝ 8，或沒有任何正確內容" }
+            {
+              "score": 3,
+              "description": "圈出對應邊配錯的地方，寫出 1.5 : x ＝ 2 : 6，求得 x ＝ 4.5，並說明要高對高、影對影"
+            },
+            {
+              "score": 2,
+              "description": "答案 4.5 正確但理由不完整，或理由正確但計算有一處小錯"
+            },
+            {
+              "score": 1,
+              "description": "只指出「錯了」或比例式仍有誤，沒有正確答案"
+            },
+            {
+              "score": 0,
+              "description": "空白、同意 x ＝ 8，或沒有任何正確內容"
+            }
           ]
         }
       ],
       "reference": "△人～△樹（AA），對應邊成比例：人高：樹高＝人影：樹影，1.5：x＝2：6，x＝4.5（公尺）。小明把人高和樹影配成一對，不是對應邊。",
       "graderNotes": "接受 1.5：2＝x：6（同一個三角形的高：影）的寫法。"
+    }
+  },
+  "photo": {
+    "a-ex1-q": {
+      "items": [
+        0
+      ],
+      "rubric": {
+        "criteria": [
+          {
+            "id": "kai",
+            "label": "會考評分（0–3 分）",
+            "points": 3,
+            "levels": [
+              {
+                "score": 3,
+                "description": "過程完整、答案正確：說明同一時刻光線平行，兩個直角三角形相似（AA），列出比例式求樹高"
+              },
+              {
+                "score": 2,
+                "description": "方法正確、過程大致完整，但有一處計算小錯，或沒有化到最簡"
+              },
+              {
+                "score": 1,
+                "description": "只有部分正確的關鍵步驟，或過程有重大錯誤"
+              },
+              {
+                "score": 0,
+                "description": "空白、只寫答案沒有過程，或方法錯誤"
+              }
+            ]
+          }
+        ],
+        "reference": "同一時刻陽光平行，人和影子、樹和影子形成的兩個直角三角形相似（AA）。\n1.6 : 2 ＝ x : 5，2x ＝ 8，x ＝ 4（公尺）",
+        "graderNotes": "接受其他正確的做法。常見錯誤：比例式對應錯（身高對樹影）；沒寫相似的理由。"
+      }
+    },
+    "a-ex1-practice-q": {
+      "items": [
+        0
+      ],
+      "rubric": {
+        "criteria": [
+          {
+            "id": "kai",
+            "label": "會考評分（0–3 分）",
+            "points": 3,
+            "levels": [
+              {
+                "score": 3,
+                "description": "過程完整、答案正確：單位統一後，用相似三角形列比例式"
+              },
+              {
+                "score": 2,
+                "description": "方法正確、過程大致完整，但有一處計算小錯，或沒有化到最簡"
+              },
+              {
+                "score": 1,
+                "description": "只有部分正確的關鍵步驟，或過程有重大錯誤"
+              },
+              {
+                "score": 0,
+                "description": "空白、只寫答案沒有過程，或方法錯誤"
+              }
+            ]
+          }
+        ],
+        "reference": "170 公分 ＝ 1.7 公尺、85 公分 ＝ 0.85 公尺。兩個直角三角形相似（AA），\n1.7 : 0.85 ＝ x : 15，0.85x ＝ 25.5，x ＝ 30（公尺）",
+        "graderNotes": "接受其他正確的做法。常見錯誤：公分和公尺沒有換算；比例式對應錯。"
+      }
+    },
+    "a-ex2-q": {
+      "items": [
+        0
+      ],
+      "rubric": {
+        "criteria": [
+          {
+            "id": "kai",
+            "label": "會考評分（0–3 分）",
+            "points": 3,
+            "levels": [
+              {
+                "score": 3,
+                "description": "過程完整、答案正確：說明兩個三角形相似（AA：直角、對頂角），列出對應邊成比例求河寬"
+              },
+              {
+                "score": 2,
+                "description": "方法正確、過程大致完整，但有一處計算小錯，或沒有化到最簡"
+              },
+              {
+                "score": 1,
+                "description": "只有部分正確的關鍵步驟，或過程有重大錯誤"
+              },
+              {
+                "score": 0,
+                "description": "空白、只寫答案沒有過程，或方法錯誤"
+              }
+            ]
+          }
+        ],
+        "reference": "△ABC 與 △EDC 都有直角，且 ∠ACB ＝ ∠ECD（對頂角），所以 △ABC～△EDC（AA）。\nAB : DE ＝ AC : CD，AB : 2 ＝ 20 : 5，AB ＝ 8（公尺）",
+        "graderNotes": "接受其他正確的做法。接受其他正確的相似理由與對應寫法。常見錯誤：對應邊寫錯（AB 對 CD）。"
+      }
+    },
+    "a-ex2-practice-q": {
+      "items": [
+        0
+      ],
+      "rubric": {
+        "criteria": [
+          {
+            "id": "kai",
+            "label": "會考評分（0–3 分）",
+            "points": 3,
+            "levels": [
+              {
+                "score": 3,
+                "description": "過程完整、答案正確：說明 △EAB～△ECD（AA），注意 BE ＝ 9 ＋ DE，列比例式解方程式"
+              },
+              {
+                "score": 2,
+                "description": "方法正確、過程大致完整，但有一處計算小錯，或沒有化到最簡"
+              },
+              {
+                "score": 1,
+                "description": "只有部分正確的關鍵步驟，或過程有重大錯誤"
+              },
+              {
+                "score": 0,
+                "description": "空白、只寫答案沒有過程，或方法錯誤"
+              }
+            ]
+          }
+        ],
+        "reference": "∠E 共用，∠B ＝ ∠CDE ＝ 90°，所以 △EAB～△ECD（AA）。設 DE ＝ x，\nAB : CD ＝ BE : DE，10 : 4 ＝ (9 + x) : x，10x ＝ 36 + 4x，x ＝ 6（公尺）",
+        "graderNotes": "接受其他正確的做法。常見錯誤：把 BE 當成 9（忘了加 DE）；比例式對應錯。"
+      }
+    },
+    "a-ex3-practice-q": {
+      "items": [
+        0
+      ],
+      "rubric": {
+        "criteria": [
+          {
+            "id": "kai",
+            "label": "會考評分（0–3 分）",
+            "points": 3,
+            "levels": [
+              {
+                "score": 3,
+                "description": "過程完整、答案正確：寫出「對應高的比 ＝ 對應邊的比」，列比例式求邊長"
+              },
+              {
+                "score": 2,
+                "description": "方法正確、過程大致完整，但有一處計算小錯，或沒有化到最簡"
+              },
+              {
+                "score": 1,
+                "description": "只有部分正確的關鍵步驟，或過程有重大錯誤"
+              },
+              {
+                "score": 0,
+                "description": "空白、只寫答案沒有過程，或方法錯誤"
+              }
+            ]
+          }
+        ],
+        "reference": "相似三角形對應高的比等於對應邊的比，CM : FN ＝ BC : EF，\n3 : 2 ＝ 12 : EF，3EF ＝ 24，EF ＝ 8",
+        "graderNotes": "接受其他正確的做法。常見錯誤：比例式前後項對調，算成 18。"
+      }
     }
   }
 }

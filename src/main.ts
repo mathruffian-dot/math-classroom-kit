@@ -20,6 +20,7 @@ import {
 import type {
   AppConfig,
   AiSettings,
+  StorageUsageInfo,
   User,
   Dashboard,
   Lesson,
@@ -208,10 +209,28 @@ function renderRecords() {
     `${btn('還原備份', 'restore', 'secondary', 'upload')}${btn('下載備份', 'backup', 'primary', 'download')}`,
   );
 }
+function bytesText(n: number): string {
+  return n >= 1024 ** 3 ? `${(n / 1024 ** 3).toFixed(2)} GB` : `${(n / 1024 ** 2).toFixed(1)} MB`;
+}
+function meter(used: number, limit: number): string {
+  const pct = Math.min(100, (used / limit) * 100);
+  return `<div class="usage-meter ${pct >= 80 ? 'warn' : ''}"><span style="width:${Math.max(pct, 0.5).toFixed(1)}%"></span></div>`;
+}
+/** 免費額度：儲存 5 GB、每天寫入 10 萬列；超過 80% 變色提醒。 */
+function usagePanel(u: StorageUsageInfo | null): string {
+  if (!u?.available)
+    return `<section class="panel settings-panel"><h2>${icon('screen')}儲存空間</h2><p class="muted">這個部署模式沒有用量資料。</p></section>`;
+  const total = u.dataBytes + u.photoBytes;
+  return `<section class="panel settings-panel" id="usage-panel"><h2>${icon('screen')}儲存空間（Cloudflare 免費額度）</h2><dl class="setting-list"><div><dt>課堂資料</dt><dd>${bytesText(u.dataBytes)}・${u.sessions} 堂（封存 ${u.archived}）</dd></div><div><dt>作答照片</dt><dd>${u.photos} 張・約 ${bytesText(u.photoBytes)}</dd></div></dl><p class="usage-label">合計 ${bytesText(total)} / 5 GB</p>${meter(total, u.limits.storageBytes)}<p class="usage-label">今天寫入約 ${u.rowsToday.toLocaleString()} / ${u.limits.rowsPerDay.toLocaleString()} 列</p>${meter(u.rowsToday, u.limits.rowsPerDay)}<p class="muted small-text">結束超過 1 小時的課堂會自動封存，只在打開時讀取。照片最占空間：清除舊照片後，辨識稿、分數與圈記號都還在（備份本來就不含照片）。</p><div class="actions"><label class="inline-field">清除<select id="prune-days">${[30, 60, 90, 180].map((d) => `<option value="${d}" ${d === 90 ? 'selected' : ''}>${d} 天前</option>`).join('')}</select>的照片</label>${btn('清除', 'prune-photos', 'quiet danger', 'trash')}</div></section>`;
+}
 async function renderSettings() {
-  let ai: AiSettings | null = null;
+  let ai: AiSettings | null = null,
+    usage: StorageUsageInfo | null = null;
   try {
-    ai = await api<AiSettings>('/settings/ai');
+    [ai, usage] = await Promise.all([
+      api<AiSettings>('/settings/ai'),
+      api<StorageUsageInfo>('/settings/usage').catch(() => null),
+    ]);
   } catch {}
   const providers: [string, string][] = [
     ['openai', 'OpenAI（預設 gpt-6-luna）'],
@@ -224,7 +243,7 @@ async function renderSettings() {
   shell(
     'settings',
     '設定',
-    `<div class="settings-grid"><section class="panel settings-panel"><h2>${icon('key')}AI 批改與轉課程</h2><p class="muted">API key 只存在伺服器端（Cloudflare Durable Object），不會傳到學生裝置、不進備份。</p><form id="ai-form"><label>供應商<select name="provider">${providers.map(([v, n]) => `<option value="${v}" ${ai?.provider === v ? 'selected' : ''}>${n}</option>`).join('')}</select></label><label>API 網址<input name="baseUrl" value="${esc(ai?.baseUrl || '')}" required></label><label>模型名稱<input name="model" value="${esc(ai?.model || '')}" required placeholder="需支援讀圖（vision）"></label><label>API key<input name="apiKey" type="password" autocomplete="off" placeholder="${ai?.keyHint ? `已設定 ${esc(ai.keyHint)}，留空則不變更` : '貼上你的 API key'}"></label><label>每日呼叫上限<input name="dailyLimit" type="number" min="1" max="5000" value="${ai?.dailyLimit || 200}"></label><p class="setting-status">${ai?.configured ? tag(`已啟用・${ai.source === 'env' ? '部署環境變數' : '教師設定'}・今日已用 ${ai.usedToday} 次`, 'green') : tag('尚未設定：批改與轉課程會使用模擬結果', 'warn')}</p><div class="actions"><button type="submit" class="btn primary">${icon('save')}<span>儲存 AI 設定</span></button>${ai?.source === 'teacher' ? btn('移除金鑰', 'clear-ai', 'quiet danger', 'trash') : ''}</div></form></section><section class="panel settings-panel"><h2>${icon('stamp')}批改節奏</h2><label>同時批改份數<select id="pref-concurrency">${[2, 4, 6, 8, 10, 16].map((n) => `<option ${n === concurrency ? 'selected' : ''}>${n}</option>`).join('')}</select></label><label>每份投票次數<select id="pref-votes"><option value="1" ${votes === 1 ? 'selected' : ''}>1 次（最快）</option><option value="3" ${votes === 3 ? 'selected' : ''}>3 次取共識（較準、費用 ×3）</option></select></label><p class="muted small-text">快速批改（拍照作答依辨識稿、只送文字）每份約 3–8 秒，一班 32 份同時 10 份約半分鐘；看圖＋紅筆的完整批改每份約 15–40 秒。實際速度視模型與供應商速率限制。信心低於 0.7 或多次投票不一致的作答會標示「需覆核」。</p></section><section class="panel settings-panel"><h2>${icon('shield')}教師密碼</h2>${config.mode === 'supabase' ? '<p>Supabase 模式請在 Supabase Auth 修改密碼。</p>' : `<form id="password-form"><label>目前密碼<input name="current" type="password" autocomplete="current-password" required></label><label>新密碼（至少 8 字元）<input name="next" type="password" autocomplete="new-password" minlength="8" required></label><button type="submit" class="btn primary">${icon('save')}<span>修改密碼</span></button></form>`}</section><section class="panel settings-panel"><h2>${icon('screen')}部署資訊</h2><dl class="setting-list"><div><dt>模式</dt><dd>${modeBadge()}</dd></div><div><dt>教師帳號</dt><dd>${esc(user?.name || '')}</dd></div><div><dt>課堂同步</dt><dd>即時連線（WebSocket），中斷時自動改用輪詢備援</dd></div><div><dt>版本</dt><dd>${esc(config.version)}</dd></div></dl></section></div>`,
+    `<div class="settings-grid"><section class="panel settings-panel"><h2>${icon('key')}AI 批改與轉課程</h2><p class="muted">API key 只存在伺服器端（Cloudflare Durable Object），不會傳到學生裝置、不進備份。</p><form id="ai-form"><label>供應商<select name="provider">${providers.map(([v, n]) => `<option value="${v}" ${ai?.provider === v ? 'selected' : ''}>${n}</option>`).join('')}</select></label><label>API 網址<input name="baseUrl" value="${esc(ai?.baseUrl || '')}" required></label><label>模型名稱<input name="model" value="${esc(ai?.model || '')}" required placeholder="需支援讀圖（vision）"></label><label>API key<input name="apiKey" type="password" autocomplete="off" placeholder="${ai?.keyHint ? `已設定 ${esc(ai.keyHint)}，留空則不變更` : '貼上你的 API key'}"></label><label>每日呼叫上限<input name="dailyLimit" type="number" min="1" max="5000" value="${ai?.dailyLimit || 200}"></label><p class="setting-status">${ai?.configured ? tag(`已啟用・${ai.source === 'env' ? '部署環境變數' : '教師設定'}・今日已用 ${ai.usedToday} 次`, 'green') : tag('尚未設定：批改與轉課程會使用模擬結果', 'warn')}</p><div class="actions"><button type="submit" class="btn primary">${icon('save')}<span>儲存 AI 設定</span></button>${ai?.source === 'teacher' ? btn('移除金鑰', 'clear-ai', 'quiet danger', 'trash') : ''}</div></form></section><section class="panel settings-panel"><h2>${icon('stamp')}批改節奏</h2><label>同時批改份數<select id="pref-concurrency">${[2, 4, 6, 8, 10, 16].map((n) => `<option ${n === concurrency ? 'selected' : ''}>${n}</option>`).join('')}</select></label><label>每份投票次數<select id="pref-votes"><option value="1" ${votes === 1 ? 'selected' : ''}>1 次（最快）</option><option value="3" ${votes === 3 ? 'selected' : ''}>3 次取共識（較準、費用 ×3）</option></select></label><p class="muted small-text">快速批改（拍照作答依辨識稿、只送文字）每份約 3–8 秒，一班 32 份同時 10 份約半分鐘；看圖＋紅筆的完整批改每份約 15–40 秒。實際速度視模型與供應商速率限制。信心低於 0.7 或多次投票不一致的作答會標示「需覆核」。</p></section><section class="panel settings-panel"><h2>${icon('shield')}教師密碼</h2>${config.mode === 'supabase' ? '<p>Supabase 模式請在 Supabase Auth 修改密碼。</p>' : `<form id="password-form"><label>目前密碼<input name="current" type="password" autocomplete="current-password" required></label><label>新密碼（至少 8 字元）<input name="next" type="password" autocomplete="new-password" minlength="8" required></label><button type="submit" class="btn primary">${icon('save')}<span>修改密碼</span></button></form>`}</section><section class="panel settings-panel"><h2>${icon('screen')}部署資訊</h2><dl class="setting-list"><div><dt>模式</dt><dd>${modeBadge()}</dd></div><div><dt>教師帳號</dt><dd>${esc(user?.name || '')}</dd></div><div><dt>課堂同步</dt><dd>即時連線（WebSocket），中斷時自動改用輪詢備援</dd></div><div><dt>版本</dt><dd>${esc(config.version)}</dd></div></dl></section>${usagePanel(usage)}</div>`,
   );
 }
 const NEW_LESSON = (): Lesson => ({
@@ -345,6 +364,15 @@ function latestBySeat(v: SessionView, activityId: string): Answer[] {
   const map = new Map<number, Answer>();
   for (const a of v.answers) if (a.activityId === activityId) map.set(a.seat, a);
   return [...map.values()].sort((a, b) => a.seat - b.seat);
+}
+/** 拍照交的作答（畫布題或可拍照的數值題）。 */
+function isPhotoValue(value: Answer['value']): boolean {
+  return !!value && typeof value === 'object' && !Array.isArray(value) && 'imageId' in value;
+}
+/** 要 AI 批改的作答：畫布／短答全部；可拍照的數值題只有拍照交的（直接送答案的由系統判對錯）。 */
+function workAnswers(v: SessionView, a: Activity): Answer[] {
+  const list = latestBySeat(v, a.id);
+  return a.type === 'numeric' ? list.filter((x) => isPhotoValue(x.value)) : list;
 }
 function gradeFor(answerId: string): Grade | undefined {
   return view?.grades.find((g) => g.answerId === answerId);
@@ -487,7 +515,7 @@ let photoDraft: {
 } | null = null;
 async function photoWork(a: Activity, file: File) {
   if (!view) return;
-  if (a.type !== 'canvas') return startSketch(a, file);
+  if (a.type !== 'canvas' && !a.photoWork) return startSketch(a, file);
   const p = await compressPhoto(file);
   const draft = { activityId: a.id, imageId: '', preview: p.dataUrl, status: 'reading' as const, work: '', ocr: '' };
   photoDraft = draft;
@@ -524,6 +552,12 @@ function photoReviewHtml(a: Activity) {
         : `<p class="work-status ok">${icon('check')}請核對：AI 讀到的和你寫的一樣嗎？讀錯的地方直接修改，再按送出。</p>`;
   return `<section class="photo-review" data-testid="photo-review"><div class="photo-review-grid"><figure><img src="${d.preview}" alt="我拍的作答"></figure><div class="work-edit"><label for="work-text">辨識稿（一行一個步驟）</label><textarea id="work-text" rows="6" ${reading ? 'disabled' : ''} placeholder="${reading ? '辨識中…' : '一行寫一個步驟'}">${esc(d.work)}</textarea><div class="work-lines" id="work-preview" aria-live="polite">${workHtml(d.work)}</div></div></div>${note}<div class="tool-row"><label class="btn secondary">${icon('camera')}<span>重拍</span><input type="file" accept="image/*" capture="environment" data-action-input="quick-photo"></label>${btn('送出照片與辨識稿', 'submit-photo-work', 'primary', 'check', `data-testid="submit-photo-work" ${reading || !d.imageId ? 'disabled' : ''}`)}${btn('取消', 'cancel-photo-work', 'quiet', 'x')}</div>${criteriaHint(a)}</section>`;
 }
+/** 可拍照的數值題：另一種交法，拍課本上的計算過程（AI 讀答案並依會考標準給分）。 */
+function photoOption(a: Activity, locked: boolean) {
+  if (!a.photoWork) return '';
+  const which = a.items && a.photoWork.items && a.photoWork.items.length < a.items.length ? `第 ${a.photoWork.items.map((i) => `(${i + 1})`).join('')} 題` : '這題';
+  return `<div class="photo-alt" data-testid="photo-alt"><span class="or-line">或</span><label class="btn secondary full photo-quick ${locked ? 'disabled' : ''}">${icon('camera')}<span>拍照交計算過程（AI 批改）</span><input type="file" accept="image/*" capture="environment" data-action-input="quick-photo" data-testid="photo-alt-input" ${locked ? 'disabled' : ''}></label><p class="muted small-text">把課本上${which}的計算過程拍下來，AI 讀出答案並依會考標準給 0–3 分。</p></div>`;
+}
 function answerForm(a: Activity) {
   const answered = currentStudentAnswer(a),
     over = timeUp(),
@@ -541,15 +575,15 @@ function answerForm(a: Activity) {
     fields = `<label class="sr-only" for="short-answer">你的回答</label><textarea id="short-answer" maxlength="1000" placeholder="我認為……，因為……" ${dis}>${typeof draft === 'string' ? esc(draft) : ''}</textarea>${a.rubric ? criteriaHint(a) : ''}`;
   if (a.type === 'numeric' && a.items) {
     const values = Array.isArray(draft) ? (draft as string[]) : [];
-    fields = `<ol class="numeric-items">${a.items.map((it, i) => `<li><label for="numeric-item-${i}">${md(it.prompt)}</label><div class="numeric-field"><input id="numeric-item-${i}" data-item="${i}" class="numeric-input" inputmode="${numericInputMode()}" autocomplete="off" placeholder="答案" value="${esc(values[i] ?? '')}" ${dis}>${a.unit ? `<span>${esc(a.unit)}</span>` : ''}</div><div class="tex-preview" data-preview="numeric-item-${i}" aria-live="polite">${previewHtml(values[i] ?? '')}</div></li>`).join('')}</ol>${a.form === 'simplest-radical' ? '<p class="muted small-text">答案請化成最簡根式，例如 2√3、√6/3。</p>' : ''}`;
+    fields = `<ol class="numeric-items">${a.items.map((it, i) => `<li><label for="numeric-item-${i}">${md(it.prompt)}</label><div class="numeric-field"><input id="numeric-item-${i}" data-item="${i}" class="numeric-input" inputmode="${numericInputMode()}" autocomplete="off" placeholder="答案" value="${esc(values[i] ?? '')}" ${dis}>${a.unit ? `<span>${esc(a.unit)}</span>` : ''}</div><div class="tex-preview" data-preview="numeric-item-${i}" aria-live="polite">${previewHtml(values[i] ?? '')}</div></li>`).join('')}</ol>${a.form === 'simplest-radical' ? '<p class="muted small-text">答案請化成最簡根式，例如 2√3、√6/3。</p>' : ''}${photoOption(a, !!locked)}`;
   } else if (a.type === 'numeric')
-    fields = `<div class="numeric-field"><input id="numeric-answer" class="numeric-input" inputmode="${numericInputMode()}" autocomplete="off" placeholder="輸入數字、分數或算式" value="${typeof draft === 'string' ? esc(draft) : ''}" ${dis} aria-label="數值答案">${a.unit ? `<span>${esc(a.unit)}</span>` : ''}</div><div class="tex-preview" data-preview="numeric-answer" aria-live="polite">${previewHtml(typeof draft === 'string' ? draft : '')}</div>`;
+    fields = `<div class="numeric-field"><input id="numeric-answer" class="numeric-input" inputmode="${numericInputMode()}" autocomplete="off" placeholder="輸入數字、分數或算式" value="${typeof draft === 'string' ? esc(draft) : ''}" ${dis} aria-label="數值答案">${a.unit ? `<span>${esc(a.unit)}</span>` : ''}</div><div class="tex-preview" data-preview="numeric-answer" aria-live="polite">${previewHtml(typeof draft === 'string' ? draft : '')}</div>${photoOption(a, !!locked)}`;
   if (a.type === 'manipulate') {
     const vars = viz?.vars() || vizState.get(view!.lesson.slides[view!.session.slideIndex].id) || {};
     const keys = a.record?.length ? a.record : Object.keys(vars).filter((k) => k !== 'step');
     fields = `<div class="manip-state">${icon('sliders')}<span>先在左邊的圖上操作，再送出目前的狀態。</span><code id="manip-vars">${keys.map((k) => `${esc(k)} = ${fmt(vars[k])}`).join('　')}</code></div>`;
   }
-  if (a.type === 'canvas' && photoDraft?.activityId === a.id && (!answered || editing) && open)
+  if ((a.type === 'canvas' || a.photoWork) && photoDraft?.activityId === a.id && (!answered || editing) && open)
     return `<div class="activity-prompt"><span class="tag">${TYPE_LABEL[a.type]}</span>${view!.session.activityDeadline ? `<span class="time-chip">剩 ${countdown(view!.session.activityDeadline)}</span>` : ''}<h2>${md(a.prompt)}</h2></div>${photoReviewHtml(a)}`;
   if (a.type === 'canvas') {
     const sk = sketches.get(a.id);
@@ -557,7 +591,7 @@ function answerForm(a: Activity) {
     fields = `${criteriaHint(a)}<button type="button" class="canvas-launch ${preview ? 'has-preview' : ''}" data-action="open-sketch" data-testid="open-sketch" ${dis}>${preview ? `<img src="${preview}" alt="畫布預覽">` : `<span>${icon('pen')}<strong>開啟畫布作答</strong><small>手寫、作圖${a.allowPhoto !== false ? '，或寫在紙上拍照' : ''}</small></span>`}</button>${sk?.text ? `<p class="answer-note">${esc(sk.text)}</p>` : ''}${a.allowPhoto !== false ? `<label class="btn secondary full photo-quick ${locked ? 'disabled' : ''}">${icon('camera')}<span>直接拍照作答</span><input type="file" accept="image/*" capture="environment" data-action-input="quick-photo" ${dis}></label>` : ''}`;
   }
   const saved = answered
-    ? `<div class="saved-answer">${icon('check')}<div><strong>已送出</strong>${a.type === 'canvas' ? canvasValuePreview(answered.value) : `<span>${answerDisplay(answered.value)}</span>`}</div>${open && !editing ? `<button class="text-button" data-action="edit-answer">修改</button>` : ''}</div>`
+    ? `<div class="saved-answer">${icon('check')}<div><strong>已送出</strong>${a.type === 'canvas' || isPhotoValue(answered.value) ? canvasValuePreview(answered.value) : `<span>${answerDisplay(answered.value)}</span>`}</div>${open && !editing ? `<button class="text-button" data-action="edit-answer">修改</button>` : ''}</div>`
     : '';
   const submit = (!answered || editing) ? btn(over ? '時間到' : open ? (a.type === 'manipulate' ? '送出我的操作' : '送出答案') : '等待老師開放', 'submit-answer', 'primary full', 'check', `data-testid="submit-answer" ${!open ? 'disabled' : ''}`) : '';
   const keys = a.type === 'numeric' && (!answered || editing); // 作答鍵盤浮在答案框下方（#keypad），這裡只留送出鈕
@@ -903,7 +937,7 @@ function ownVerdict(a: Activity) {
 }
 function teacherPanel(a: Activity | undefined, screen: boolean) {
   const s = view!.session;
-  const gradable = a && a.rubric && (a.type === 'canvas' || a.type === 'short');
+  const gradable = a && a.rubric && (a.type === 'canvas' || a.type === 'short' || (a.type === 'numeric' && !!a.photoWork));
   const activity = a
     ? `<section class="teacher-activity"><div class="activity-top">${tag(TYPE_LABEL[a.type])}<span id="answer-count" class="count-pill">${view!.aggregate.submitted} / ${view!.aggregate.total}</span></div><h2>${md(a.prompt)}</h2><div class="activity-actions" id="activity-actions">${activityActions(a)}</div><div id="aggregate">${aggregateHtml(view!)}</div><div id="practice-board">${practiceBoard(a)}</div>${screen ? '' : `<div id="responses">${responsesHtml(a)}</div>`}${!screen && a.aiAllowed && ['short', 'numeric', 'canvas'].includes(a.type) ? btn('AI 整理全班迷思', 'summarize', 'quiet full', 'spark') : ''}</section>`
     : `<div class="quiet-moment">${icon('sigma')}<h2>這一頁沒有題目</h2><p>可以用畫筆在圖上標示，或抽籤請同學說明。</p></div>`;
@@ -1092,7 +1126,7 @@ function wallScore(id: string) {
   return g.depth === 'verdict' ? `<em class="st ${g.correct ? 'right' : 'wrong'}">${g.correct ? '✓ 對' : '✗ 錯'}</em>` : `<em class="st graded">${g.total}/${g.max}</em>`;
 }
 function workWallHtml(a: Activity, focusId?: string) {
-  const list = latestBySeat(view!, a.id);
+  const list = workAnswers(view!, a);
   const who = (seat: number, i: number) => (wallAnon ? `第 ${i + 1} 份` : `${seat} 號`);
   const head = `<div class="wall-head"><span>${list.length} 份作答</span><label class="check-line"><input type="checkbox" id="wall-anon" ${wallAnon ? 'checked' : ''}> 投影時隱藏座號</label></div>`;
   if (focusId) {
@@ -1124,8 +1158,18 @@ function showWall(a: Activity, focusId?: string) {
 }
 function responsesHtml(a: Activity) {
   const answers = latestBySeat(view!, a.id);
-  if (a.type === 'canvas' || (a.type === 'short' && a.rubric))
-    return `${answers.length && a.type === 'canvas' ? `<div class="tool-row">${btn('投影講解：全班作答', 'work-wall', 'secondary', 'screen', 'data-testid="work-wall"')}</div>` : ''}<div class="submission-grid" data-testid="submission-grid">${answers
+  if (a.type === 'canvas' || (a.type === 'short' && a.rubric)) return submissionGrid(a, answers);
+  if (a.type === 'short')
+    return `<div class="short-responses">${answers.map((x) => `<div><span class="seat-tag">${x.seat}</span><p>${esc(x.value)}</p></div>`).join('') || '<p class="muted">等待第一個想法。</p>'}</div>`;
+  // 可拍照的數值題：直接送答案的看小卡，拍照交的另外列成批改格（照片＋辨識稿＋分數）
+  const photos = a.type === 'numeric' && a.photoWork ? workAnswers(view!, a) : [];
+  const grid = photos.length ? `<p class="mini-label">拍照交計算過程（${photos.length} 份）</p>${submissionGrid(a, photos)}` : '';
+  if (['numeric', 'manipulate'].includes(a.type) && answers.length)
+    return `<details class="answer-list"><summary>個別作答</summary><div class="seat-chips">${answers.map((x) => `<span class="seat-chip ${x.correct ? 'ok' : x.note ? 'warn' : x.correct === undefined ? '' : 'no'}" title="${esc(answerText(x.value))}${x.note ? `（${esc(x.note)}）` : ''}">${x.seat}${chipAnswer(x)}</span>`).join('')}</div></details>${grid}`;
+  return '';
+}
+function submissionGrid(a: Activity, answers: Answer[]) {
+    return `${answers.length && a.type !== 'short' ? `<div class="tool-row">${btn('投影講解：全班作答', 'work-wall', 'secondary', 'screen', 'data-testid="work-wall"')}</div>` : ''}<div class="submission-grid" data-testid="submission-grid">${answers
       .map((x) => {
         const g = gradeFor(x.id);
         const v = x.value as CanvasAnswer;
@@ -1133,11 +1177,6 @@ function responsesHtml(a: Activity) {
         return `<button class="submission" data-action="open-grade" data-id="${esc(x.id)}"><span class="seat">${x.seat}</span>${typeof x.value === 'string' ? `<span class="excerpt">${esc(x.value.slice(0, 60))}</span>` : v.imageId ? `<img src="/api/images/${esc(v.imageId)}" alt="${x.seat} 號作答" loading="lazy">` : `<span class="excerpt">${esc(v.text || '')}</span>`}${v.work ? `<span class="excerpt work">${esc(v.work.split('\n').slice(-2).join('　'))}</span>` : ''}${workEdited(v) ? '<em class="st edited">改過辨識</em>' : ''}${state}</button>`;
       })
       .join('') || '<p class="muted">等待第一份作答。</p>'}</div>`;
-  if (a.type === 'short')
-    return `<div class="short-responses">${answers.map((x) => `<div><span class="seat-tag">${x.seat}</span><p>${esc(x.value)}</p></div>`).join('') || '<p class="muted">等待第一個想法。</p>'}</div>`;
-  if (['numeric', 'manipulate'].includes(a.type) && answers.length)
-    return `<details class="answer-list"><summary>個別作答</summary><div class="seat-chips">${answers.map((x) => `<span class="seat-chip ${x.correct ? 'ok' : x.note ? 'warn' : 'no'}" title="${esc(answerText(x.value))}${x.note ? `（${esc(x.note)}）` : ''}">${x.seat}${chipAnswer(x)}</span>`).join('')}</div></details>`;
-  return '';
 }
 /** 個別作答小卡：多小題逐題排成 (1) (2) (3)、各自標 ✓／✗，算式照課本樣式顯示（不用「｜」分隔，免得看成絕對值）。 */
 function chipAnswer(x: Answer) {
@@ -1147,10 +1186,15 @@ function chipAnswer(x: Answer) {
       return `<span class="chip-item ${ok === undefined ? '' : ok ? 'ok' : 'no'}"><b>${ok === undefined ? '' : ok ? '✓' : '✗'}(${i + 1})</b>${answerHtml(v)}</span>`;
     }).join('')}</span>${x.note ? '<small class="chip-note">未化簡</small>' : ''}`;
   if (typeof x.value === 'string') return `<span class="chip-items"><span class="chip-item">${answerHtml(x.value)}</span></span>${x.note ? '<small class="chip-note">未化簡</small>' : ''}`;
+  if (isPhotoValue(x.value)) {
+    const g = gradeFor(x.id);
+    const items = x.itemsCorrect?.map((ok, i) => (ok ? `<b>✓(${i + 1})</b>` : '')).join('') || '';
+    return `<span class="chip-items"><span class="chip-item">📷${g ? ` ${g.total}/${g.max}` : ' 批改中'}</span>${items ? `<span class="chip-item ok">${items}</span>` : ''}</span>`;
+  }
   return `<small>${esc(answerText(x.value)).slice(0, 14)}</small>`;
 }
 function gradingBar(a: Activity) {
-  const answers = latestBySeat(view!, a.id);
+  const answers = workAnswers(view!, a);
   const ungraded = answers.filter((x) => needsGrading(x.id) && !grading.inFlight.has(x.id)).length;
   const redpen = prefs.get('redpen', false);
   const right = answers.filter((x) => gradeFor(x.id)?.correct ?? (gradeFor(x.id) ? gradeFor(x.id)!.total === gradeFor(x.id)!.max : false)).length;
@@ -1294,7 +1338,7 @@ function autoGradeCheck() {
   if (!view || user?.role !== 'teacher' || screenMode() || !prefs.get('autoGrade', true)) return;
   const a = view.lesson.slides[view.session.slideIndex]?.activity;
   if (!a?.rubric) return;
-  const ids = latestBySeat(view, a.id)
+  const ids = workAnswers(view, a)
     .filter((x) => needsGrading(x.id))
     .map((x) => x.id);
   if (ids.length) enqueueGrades(ids);
@@ -1321,7 +1365,7 @@ function openGrade(answerId: string) {
   const g = gradeFor(answerId);
   const v = answer.value as CanvasAnswer;
   const text = typeof answer.value === 'string' ? answer.value : v.text;
-  const list = latestBySeat(view, a.id);
+  const list = workAnswers(view, a);
   const pos = list.findIndex((x) => x.id === answerId);
   modal(
     `${answer.seat} 號作答`,
@@ -1978,6 +2022,19 @@ async function action(el: HTMLElement) {
         `<img class="figure-zoom" src="/api/assets/lessons/${esc(el.dataset.src!)}" alt="${esc(el.dataset.alt || '')}">`,
         'wide',
       );
+    case 'prune-photos': {
+      const days = Number((document.querySelector('#prune-days') as HTMLSelectElement | null)?.value || 90);
+      return modal(
+        `清除 ${days} 天前的作答照片？`,
+        `<p>照片刪除後無法復原（備份也不含照片）。課堂紀錄裡的辨識稿、批改分數與圈記號都會保留。</p>${btn('確認清除', 'confirm-prune', 'danger-fill', 'trash', `data-days="${days}"`)}`,
+      );
+    }
+    case 'confirm-prune': {
+      const r = await api<{ removed: number }>('/settings/prune-photos', 'POST', { days: Number(el.dataset.days) });
+      closeModal();
+      toast(`已清除 ${r.removed} 張照片`);
+      return renderSettings();
+    }
     case 'clear-ai':
       await api('/settings/ai', 'DELETE');
       config.aiConfigured = false;
@@ -2212,7 +2269,7 @@ async function action(el: HTMLElement) {
       return analyze('response-summary');
     case 'grade-all':
       if (!a) return;
-      enqueueGrades(latestBySeat(view, a.id).filter((x) => needsGrading(x.id)).map((x) => x.id));
+      enqueueGrades(workAnswers(view, a).filter((x) => needsGrading(x.id)).map((x) => x.id));
       return;
     case 'regrade':
       closeModal();
@@ -2221,7 +2278,7 @@ async function action(el: HTMLElement) {
       return;
     case 'release-grades': {
       if (!a) return;
-      const graded = latestBySeat(view, a.id).map((x) => gradeFor(x.id)).filter(Boolean) as Grade[];
+      const graded = workAnswers(view, a).map((x) => gradeFor(x.id)).filter(Boolean) as Grade[];
       const all = graded.length && graded.every((g) => g.released);
       await control('release-grades', { activityId: a.id, value: !all });
       return toast(all ? '已收回批改' : `已發回 ${graded.length} 份批改`);
@@ -2451,7 +2508,7 @@ document.addEventListener('submit', (e) => {
         });
         view.grades = view.grades.filter((g) => g.answerId !== answerId).concat(r.grade);
         toast(submitter.value === 'right' ? `${answer.seat} 號：判對` : `${answer.seat} 號：判錯`);
-        const list = latestBySeat(view, a.id);
+        const list = workAnswers(view, a);
         const next = list[list.findIndex((x) => x.id === answerId) + 1];
         if (next) openGrade(next.id);
         else closeModal();
@@ -2470,7 +2527,7 @@ document.addEventListener('submit', (e) => {
       });
       view.grades = view.grades.filter((g) => g.answerId !== answerId).concat(r.grade);
       toast(submitter?.value === 'release' ? '已儲存並發回' : '已儲存');
-      const list = latestBySeat(view, a.id);
+      const list = workAnswers(view, a);
       const next = list[list.findIndex((x) => x.id === answerId) + 1];
       if (next) openGrade(next.id);
       else closeModal();

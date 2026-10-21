@@ -1,6 +1,7 @@
 import type {
   Activity,
   AnswerValue,
+  CanvasAnswer,
   Interactive,
   InteractiveShape,
   Lesson,
@@ -364,8 +365,19 @@ export function validateActivity(input: unknown, interactive?: Interactive): Act
       : 'grid') as Activity['canvas'];
     out.allowPhoto = a.allowPhoto !== false;
   }
+  if (a.photoWork !== undefined) {
+    assert(out.type === 'numeric', '只有數值題可設定拍照交計算過程');
+    const pw = record(a.photoWork),
+      n = out.items?.length || 1;
+    out.photoWork = {};
+    if (pw.items !== undefined) {
+      assert(Array.isArray(pw.items) && pw.items.length >= 1 && pw.items.length <= n, '拍照批改的小題格式不正確');
+      out.photoWork.items = [...new Set(pw.items.map((i) => integer(i, 0, n - 1)))].sort((x, y) => x - y);
+    }
+    assert(a.rubric !== undefined, '拍照交計算過程必須事先寫好評量規準（rubric）');
+  }
   if (a.rubric !== undefined) {
-    assert(['short', 'canvas'].includes(out.type), '只有短答與畫布題可設定評量規準');
+    assert(['short', 'canvas'].includes(out.type) || out.photoWork, '只有短答、畫布題與可拍照的數值題可設定評量規準');
     out.rubric = validateRubric(a.rubric);
   }
   if (out.type === 'canvas') assert(out.rubric, '畫布題必須事先寫好評量規準（rubric）');
@@ -476,11 +488,29 @@ export function validateLesson(input: unknown): Lesson {
   };
   return out;
 }
+/** 畫布／拍照作答：文字說明、圖片、辨識稿。 */
+function canvasValue(value: unknown, photoOnly = false): CanvasAnswer {
+  const v = record(value),
+    out: CanvasAnswer = {};
+  if (v.text !== undefined && v.text !== '') out.text = str(v.text, '文字說明', 2000).trim();
+  if (v.work !== undefined && v.work !== '') out.work = str(v.work, '辨識稿', 3000).trim();
+  if (v.ocr !== undefined && v.ocr !== '') out.ocr = str(v.ocr, 'AI 辨識結果', 3000).trim();
+  if (v.imageId !== undefined) out.imageId = identifier(v.imageId);
+  if (v.source !== undefined) {
+    assert(['draw', 'photo'].includes(String(v.source)), '作答來源不正確');
+    out.source = v.source as 'draw' | 'photo';
+  }
+  assert(out.text || out.imageId, '請在畫布作答、拍照或寫下說明');
+  if (photoOnly) assert(out.imageId, '請拍照上傳計算過程');
+  return out;
+}
 export function validateAnswer(a: Activity, value: unknown): AnswerValue {
   if (a.type === 'short') return str(str(value, '短答', 2000, 1).trim(), '短答', 2000, 1);
   if (a.type === 'scale') return integer(value, a.min!, a.max!);
   if (a.type === 'single') return integer(value, 0, a.options!.length - 1);
   if (a.type === 'numeric') {
+    // 可拍照的數值題：學生也可以交照片＋辨識稿（AI 批改時讀出答案）
+    if (a.photoWork && value && typeof value === 'object' && !Array.isArray(value)) return canvasValue(value, true);
     const one = (v: unknown) => {
       const text = str(v, '數值答案', 60, 1).trim();
       try {
@@ -499,20 +529,7 @@ export function validateAnswer(a: Activity, value: unknown): AnswerValue {
     }
     return one(value);
   }
-  if (a.type === 'canvas') {
-    const v = record(value),
-      out: { text?: string; imageId?: string; source?: 'draw' | 'photo'; work?: string; ocr?: string } = {};
-    if (v.text !== undefined && v.text !== '') out.text = str(v.text, '文字說明', 2000).trim();
-    if (v.work !== undefined && v.work !== '') out.work = str(v.work, '辨識稿', 3000).trim();
-    if (v.ocr !== undefined && v.ocr !== '') out.ocr = str(v.ocr, 'AI 辨識結果', 3000).trim();
-    if (v.imageId !== undefined) out.imageId = identifier(v.imageId);
-    if (v.source !== undefined) {
-      assert(['draw', 'photo'].includes(String(v.source)), '作答來源不正確');
-      out.source = v.source as 'draw' | 'photo';
-    }
-    assert(out.text || out.imageId, '請在畫布作答、拍照或寫下說明');
-    return out;
-  }
+  if (a.type === 'canvas') return canvasValue(value);
   if (a.type === 'manipulate') {
     const v = record(record(value).vars);
     const entries = Object.entries(v);
@@ -554,6 +571,41 @@ export function judgePractice(a: Activity, round: number, value: string): boolea
   } catch {
     return false;
   }
+}
+/** 拍照作答要批改（讀答案）的小題。 */
+export function photoItems(a: Activity): number[] {
+  const n = a.items?.length || 1;
+  return a.photoWork?.items?.filter((i) => i < n) ?? Array.from({ length: n }, (_, i) => i);
+}
+/**
+ * 拍照交的數值題：用 AI 讀到的最後答案判定對錯（和直接送答案同一套判定）。
+ * 照片沒有批改的小題算未作答（不計入答對）。
+ */
+export function judgePhotoFinals(
+  a: Activity,
+  finals: string[],
+): { correct: boolean; itemsCorrect?: boolean[]; note?: string } {
+  const pick = photoItems(a),
+    notes: string[] = [];
+  const verdict = (i: number) => {
+    const k = pick.indexOf(i),
+      given = (finals[k] || '').replace(/−/g, '-').trim();
+    if (k < 0 || !given) return false;
+    try {
+      const it = a.items?.[i];
+      const r = numericVerdict(a, given, it ? it.answer : a.answer || '', it?.tolerance ?? a.tolerance);
+      if (r.note) notes.push(a.items ? `第 ${i + 1} 小題${r.note}` : r.note);
+      return r.ok;
+    } catch {
+      return false;
+    }
+  };
+  const results = a.items ? a.items.map((_, i) => verdict(i)) : [verdict(0)];
+  return {
+    correct: pick.every((i) => results[i]),
+    ...(a.items ? { itemsCorrect: results } : {}),
+    ...(notes.length ? { note: notes.join('；') } : {}),
+  };
 }
 /** numeric 的詳細判定（含多小題與最簡根式說明）。 */
 export function judgeNumeric(
@@ -606,7 +658,7 @@ export function validateStrokes(value: unknown): Stroke[] {
     return {
       id: identifier(s.id),
       color,
-      width: s.width,
+      width: Math.round(s.width * 100) / 100,
       points: s.points.map((input) => {
         const p = record(input);
         assert(
@@ -620,7 +672,8 @@ export function validateStrokes(value: unknown): Stroke[] {
             p.y <= 1,
           '白板座標必須是 0–1',
         );
-        return { x: p.x, y: p.y };
+        // 存到小數第 4 位（4K 螢幕上不到半個像素），資料量約少一半
+        return { x: Math.round(p.x * 1e4) / 1e4, y: Math.round(p.y * 1e4) / 1e4 };
       }),
     };
   });

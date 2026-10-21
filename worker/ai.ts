@@ -279,9 +279,20 @@ export function parseMarks(raw: unknown, work: string): TextMark[] {
   }
   return out;
 }
+/** 拍照交的數值題：照片要批改的小題（課本原題）。 */
+export function photoQuestions(activity: Activity): string[] {
+  const n = activity.items?.length || 1;
+  const pick = activity.photoWork?.items?.filter((i) => i < n) ?? Array.from({ length: n }, (_, i) => i);
+  return pick.map((i) => (activity.items ? `(${i + 1}) ${activity.items[i].prompt}` : activity.prompt));
+}
+/** 讀最後答案的說明：AI 照抄學生每一小題的最後答案，伺服器用和直接作答相同的規則判定對錯。 */
+const FINALS_RULE =
+  '另外在 JSON 加上 "finals"：依「要批改的小題」順序，照抄學生每一小題最後寫出的答案（只寫答案本身，例如 "2√6/3"、"-6√2+2√6"、"8"；沒寫或看不出就寫 ""）。不要替學生改正。';
 export function gradingPrompt(activity: Activity, rubric: Rubric, text?: string): string {
+  const photo = activity.type === 'numeric' && !!activity.photoWork;
   return JSON.stringify({
     題目: activity.prompt,
+    ...(photo ? { 要批改的小題: photoQuestions(activity), 讀答案: FINALS_RULE } : {}),
     評量規準: rubric.criteria.map((c) => ({
       criterionId: c.id,
       向度: c.label,

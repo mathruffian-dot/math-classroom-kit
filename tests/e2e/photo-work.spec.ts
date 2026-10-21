@@ -129,3 +129,66 @@ test('photo work: AI transcript to confirm, fast grading on the text, projector 
   await expect(students[0].page.getByTestId('feedback-marks').getByTestId('mark-circle').first()).toBeVisible();
   await shot(students[0].page, 'student-feedback-marks');
 });
+
+test('numeric question: type the answer or photograph the textbook work; AI reads the answers and scores 0–3', async ({ browser }) => {
+  test.setTimeout(150_000);
+  const teacher = await surface(browser, 1440, 900);
+  await teacher.page.goto('/');
+  await teacher.page.getByLabel('帳號').fill('teacher');
+  await teacher.page.getByLabel('密碼').fill('11235813');
+  await teacher.page.locator('#login-form').getByRole('button', { name: '登入' }).click();
+  await expect(teacher.page.getByTestId('lesson-card').first()).toBeVisible();
+  const cl = (await (await teacher.page.request.get('/api/dashboard')).json()).classes.find((c: { code: string }) => c.code === 'DEMO801');
+  await teacher.page.request.patch(`/api/classes/${cl.id}`, { headers: { Origin: baseURL }, data: { requireCode: false } });
+  await teacher.page.getByTestId('lesson-card').filter({ hasText: '根式的乘除' }).getByRole('button', { name: '開始上課' }).click();
+  await teacher.page.locator('#start-form select').selectOption('demo-class');
+  await teacher.page.locator('#start-form').getByRole('button', { name: '開始上課' }).click();
+  await expect(teacher.page.getByTestId('session-slide')).toBeVisible();
+  const sessionId = teacher.page.url().split('/session/')[1];
+  cleanup.push({ context: teacher.context, id: sessionId });
+  await teacher.page.locator('.slide-dots button').nth(8).click(); // 例 3 隨堂（課本原題 2 題＋換數字 1 題）
+  await teacher.page.getByTestId('toggle-activity').click();
+
+  const students = [];
+  for (const seat of [16, 17]) {
+    const s = await surface(browser, 820, 1180, true);
+    await s.page.goto('/#/student');
+    await s.page.getByLabel('座號').fill(String(seat));
+    await s.page.locator('#login-form').getByRole('button', { name: '登入' }).click();
+    await expect(s.page.getByTestId('session-slide')).toBeVisible();
+    const tab = s.page.locator('.phone-tabs [data-tab="answer"]');
+    if (await tab.isVisible()) await tab.click();
+    students.push(s);
+  }
+  // 16 號：直接送答案（和原本一樣）
+  const typed = students[0].page;
+  await expect(typed.getByTestId('photo-alt')).toContainText('拍照交計算過程');
+  await expect(typed.getByTestId('photo-alt')).toContainText('第 (1)(2) 題');
+  for (const [i, v] of ['√6', '√3', '3'].entries()) await typed.locator(`#numeric-item-${i}`).fill(v);
+  await typed.getByTestId('submit-answer').click();
+  await expect(typed.locator('.saved-answer')).toContainText('已送出');
+  // 17 號：拍課本上的計算過程 → 核對辨識稿 → 送出
+  const photo = students[1].page;
+  await photo.evaluate(() => ((window as unknown as { __mckWorkMock: string }).__mckWorkMock = '√48 ÷ √8 = √(48÷8) = √6\n(√6/√3) ÷ √(2/3) = √2 × √(3/2) = √3'));
+  await photo.getByTestId('photo-alt-input').setInputFiles({ name: 'work.png', mimeType: 'image/png', buffer: paperPng() });
+  await expect(photo.getByTestId('photo-review')).toBeVisible();
+  await expect(photo.locator('#work-text')).toHaveValue(/√3/);
+  await shot(photo, 'numeric-review');
+  await photo.getByTestId('submit-photo-work').click();
+  await expect(photo.locator('.saved-answer')).toContainText('已送出');
+
+  // 老師端：拍照的那份列在批改格，自動快速批改；AI 讀出的答案由系統判對錯
+  await expect(teacher.page.getByTestId('submission-grid').locator('.submission')).toHaveCount(1);
+  if (await teacher.page.getByTestId('grade-all').isEnabled().catch(() => false)) await teacher.page.getByTestId('grade-all').click();
+  await expect.poll(async () => {
+    const v = await (await teacher.page.request.get(`/api/sessions/${sessionId}`)).json();
+    const a = v.answers.find((x: { seat: number }) => x.seat === 17);
+    return { graded: v.grades.length, basis: v.grades[0]?.basis, correct: a?.correct, items: a?.itemsCorrect };
+  }).toEqual({ graded: 1, basis: 'text', correct: true, items: [true, true, false] });
+  const v = await (await teacher.page.request.get(`/api/sessions/${sessionId}`)).json();
+  expect(v.grades[0].finals).toEqual(['√6', '√3']);
+  expect(v.answers.find((x: { seat: number }) => x.seat === 16).correct).toBe(true);
+  // 老師畫面即時更新：兩種交法一起統計
+  await expect(teacher.page.locator('.correct-rate strong')).toHaveText('2');
+  await shot(teacher.page, 'numeric-teacher');
+});

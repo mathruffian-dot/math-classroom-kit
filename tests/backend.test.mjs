@@ -7,11 +7,12 @@ import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 const dir=await mkdtemp(join(tmpdir(),'classroom-backend-'));
-await build({entryPoints:[resolve('worker/app.ts'),resolve('worker/storage.ts'),resolve('worker/index.ts'),resolve('worker/ai.ts'),resolve('shared/expr.ts'),resolve('shared/practice.ts')],outdir:dir,bundle:true,platform:'node',format:'esm',outExtension:{'.js':'.mjs'},logLevel:'silent'});
+await build({entryPoints:[resolve('worker/app.ts'),resolve('worker/storage.ts'),resolve('worker/index.ts'),resolve('worker/ai.ts'),resolve('worker/validation.ts'),resolve('shared/expr.ts'),resolve('shared/practice.ts')],outdir:dir,bundle:true,platform:'node',format:'esm',outExtension:{'.js':'.mjs'},logLevel:'silent'});
 const {handleApi,liveTicket,liveView}=await import(pathToFileURL(join(dir,'worker','app.mjs')).href);
-const {SupabaseStore,DurableStore,MAX_SNAPSHOT_BYTES}=await import(pathToFileURL(join(dir,'worker','storage.mjs')).href);
+const {SupabaseStore,DurableStore,SessionSplitStore,MAX_SNAPSHOT_BYTES}=await import(pathToFileURL(join(dir,'worker','storage.mjs')).href);
 const {ClassroomDurableObject}=await import(pathToFileURL(join(dir,'worker','index.mjs')).href);
 const {aggregateVotes,normalizeGrade,extractJson,isReasoning,numberedWork,parseMarks}=await import(pathToFileURL(join(dir,'worker','ai.mjs')).href);
+const {judgePhotoFinals,validateAnswer,validateActivity}=await import(pathToFileURL(join(dir,'worker','validation.mjs')).href);
 const expr=await import(pathToFileURL(join(dir,'shared','expr.mjs')).href);
 const {practiceStatus}=await import(pathToFileURL(join(dir,'shared','practice.mjs')).href);
 const TEACHER={role:'teacher',account:'teacher',password:'11235813'};
@@ -20,7 +21,7 @@ test.after(()=>rm(dir,{recursive:true,force:true}));
 function memoryStorage(values=new Map(),failKey=()=>false) {
   const methods=map=>({
     async get(key){const v=map.get(key);return v===undefined?undefined:structuredClone(v);},
-    async put(key,value){if(failKey(key))throw new Error('Injected storage failure');if(value instanceof Uint8Array)assert(value.byteLength<=65536);map.set(key,structuredClone(value));},
+    async put(key,value){if(failKey(key))throw new Error('Injected storage failure');if(value instanceof Uint8Array)assert(value.byteLength<=2*1024*1024);map.set(key,structuredClone(value));},
     async delete(key){return map.delete(key);},
   });
   return {...methods(values),async transaction(operation){const copy=structuredClone(values);const result=await operation(methods(copy));values.clear();for(const [key,value]of copy)values.set(key,value);return result;}};
@@ -261,8 +262,83 @@ test('slow live AI does not block the Durable Object classroom command queue',as
     assert.equal(responsive.status,200);
     finishProvider(Response.json({choices:[{message:{content:'測試分析'}}]}));
     assert.equal((await (await ai).json()).mode,'live');
-    assert.equal(Object.values((await new DurableStore(storage).read()).aiUsage)[0],1);
+    assert.equal(Object.values((await splitStore(storage).read()).aiUsage)[0],1);
   }finally{finishProvider?.(Response.json({choices:[{message:{content:'測試清理'}}]}));globalThis.fetch=original;}
+});
+
+const HOUR=3600_000;
+function splitStore(storage){
+  return new SessionSplitStore(storage,{archivable:(s,now)=>s.session.ended&&now-(s.session.endedAt||0)>HOUR,summary:s=>({session:s.session,ownerId:s.ownerId})});
+}
+const sess=(id,extra={})=>({ownerId:'t1',session:{id,ended:false,createdAt:'2026-10-01',...extra},answers:[],note:'x'.repeat(1000)});
+
+test('SessionSplitStore keeps each class session in its own piece and rewrites only what changed',async()=>{
+  const values=new Map(),store=splitStore(memoryStorage(values));
+  // 舊版單一快照：讀得到，第一次儲存時拆開並刪掉舊鍵
+  await new DurableStore(memoryStorage(values)).write({logins:{},sessions:{a:sess('a'),b:sess('b')}});
+  const legacy=await store.read();
+  assert.deepEqual(Object.keys(legacy.sessions),['a','b']);
+  await store.write(legacy);
+  assert(!values.has('classroom-state:manifest'),'legacy snapshot removed after the split');
+  assert(values.has('sess:a:m')&&values.has('sess:b:m')&&values.has('main:m'));
+  const rows=()=>values.get('usage:rows').rows;
+  // 只改一堂課：只寫那一堂（2 列）＋用量計數
+  const before=rows();
+  const fresh=splitStore(memoryStorage(values));const again=await fresh.read();
+  again.sessions.a.answers.push({id:'ans1'});
+  await fresh.write(again);
+  assert.equal(rows()-before,3,'one session piece (manifest + chunk) and the usage counter');
+  assert.equal((await splitStore(memoryStorage(values)).read()).sessions.a.answers.length,1);
+  // 沒變就不寫資料，只記用量
+  const n=rows();await fresh.write(await fresh.read());assert.equal(rows()-n,1);
+  // 結束超過 1 小時：封存（主檔只留摘要，讀取時不載入），需要時再讀
+  again.sessions.b.session.ended=true;again.sessions.b.session.endedAt=Date.now()-2*HOUR;
+  await fresh.write(again);
+  const next=await splitStore(memoryStorage(values)).read();
+  assert.deepEqual(Object.keys(next.sessions),['a']);
+  assert.equal(next.archive.b.session.id,'b');assert.equal(next.archive.b.ownerId,'t1');
+  assert.equal(next.archive.b.answers,undefined,'archive keeps only the summary');
+  assert.equal((await fresh.loadSession('b')).note.length,1000);
+  // 封存的課被載入、改了又存：仍是封存，紀錄更新
+  const loaded=await fresh.read();loaded.sessions.b=await fresh.loadSession('b');loaded.sessions.b.answers.push({id:'late'});
+  await fresh.write(loaded);
+  assert.equal((await fresh.loadSession('b')).answers.length,1);
+  assert.deepEqual(Object.keys((await fresh.read()).sessions),['a']);
+  // 刪除：主檔與封存都移除，紀錄一起刪掉
+  const del=await fresh.read();delete del.archive.b;delete del.sessions.a;
+  await fresh.write(del);
+  assert(!values.has('sess:a:m')&&!values.has('sess:b:m')&&!values.has('sess:b:c:0'));
+  const usage=await fresh.usage();
+  assert.equal(usage.sessions,0);assert(usage.dataBytes>0&&usage.rowsToday>0);
+});
+
+test('archived sessions load on demand for the dashboard, opening, export and backup',async()=>{
+  const values=new Map(),storage=memoryStorage(values);
+  const object=new ClassroomDurableObject({storage},{APP_MODE:'demo'});
+  const request=(path,method='GET',body,cookie)=>new Request(`http://localhost${path}`,{method,headers:{Origin:'http://localhost','Content-Type':'application/json',...(cookie?{Cookie:cookie}:{})},body:method==='GET'?undefined:JSON.stringify(body??{})});
+  const call=async(path,method,body,cookie)=>(await object.fetch(request(path,method,body,cookie))).json();
+  const t=(await object.fetch(request('/api/login','POST',TEACHER))).headers.get('Set-Cookie').split(';')[0];
+  const d=await call('/api/dashboard','GET',null,t);
+  const first=(await call('/api/sessions','POST',{lessonId:d.lessons[0].id,classId:'demo-class'},t)).session;
+  await call(`/api/sessions/${first.id}/control`,'POST',{action:'end'},t);
+  // 模擬「結束超過 1 小時」：把結束時間往前調
+  const s=splitStore(storage),st=await s.read();st.sessions[first.id].session.endedAt=Date.now()-2*HOUR;await s.write(st);
+  const second=(await call('/api/sessions','POST',{lessonId:d.lessons[0].id,classId:'demo-class'},t)).session;
+  const raw=await splitStore(storage).read();
+  assert(!raw.sessions[first.id]&&raw.archive[first.id],'ended session archived');
+  assert(raw.sessions[second.id]);
+  const dash=await call('/api/dashboard','GET',null,t);
+  assert(dash.sessions.some(x=>x.id===first.id)&&dash.sessions.some(x=>x.id===second.id),'dashboard lists archived sessions');
+  const opened=await call(`/api/sessions/${first.id}`,'GET',null,t);
+  assert.equal(opened.session.id,first.id,'an archived session opens');
+  const backup=await call('/api/backup','GET',null,t);
+  assert(backup.sessions.some(x=>x.session.id===first.id),'backup includes archived sessions');
+  const usage=await call('/api/settings/usage','GET',null,t);
+  assert.equal(usage.available,true);assert.equal(usage.archived,1);assert(usage.dataBytes>0);
+  assert.equal(usage.limits.rowsPerDay,100000);
+  assert.equal((await object.fetch(request(`/api/sessions/${first.id}`,'DELETE',null,t))).status,200);
+  const after=await splitStore(storage).read();
+  assert(!after.archive[first.id]&&!values.has(`sess:${first.id}:m`),'deleting an archived session removes its record');
 });
 
 test('DurableStore chunks multi-megabyte snapshots and rolls back a partial failure atomically',async()=>{
@@ -689,4 +765,15 @@ test('fast grading marks: numbered lines for the model; marks must point at a re
     {line:1,kind:'missing',note:'少了 √3×√2＝√6'},
   ]);
   assert.deepEqual(parseMarks({},work),[]);
+});
+
+test('numeric photo work: AI-read final answers are judged like typed answers; photo needs an image',()=>{
+  const a={id:'q',type:'numeric',prompt:'化簡',form:'simplest-radical',items:[{prompt:'√48÷√8',answer:'√6'},{prompt:'(√6/√3)÷√(2/3)',answer:'√3'},{prompt:'√45÷√5',answer:'3'}],photoWork:{items:[0,1]},rubric:{criteria:[]}};
+  assert.deepEqual(judgePhotoFinals(a,['√6','√3']),{correct:true,itemsCorrect:[true,true,false]});
+  const wrong=judgePhotoFinals(a,['√6','']);assert.equal(wrong.correct,false);assert.deepEqual(wrong.itemsCorrect,[true,false,false]);
+  const unsimplified=judgePhotoFinals(a,['√6','3/√3']);assert.equal(unsimplified.correct,false);assert.match(unsimplified.note,/第 2 小題/);
+  assert.deepEqual(validateAnswer(a,{imageId:'img1',work:'√6',source:'photo'}),{imageId:'img1',work:'√6',source:'photo'});
+  assert.throws(()=>validateAnswer(a,{text:'沒有照片'}),/拍照/);
+  assert.deepEqual(validateAnswer(a,['√6','√3','3']),['√6','√3','3']);
+  assert.throws(()=>validateAnswer({...a,photoWork:undefined},{imageId:'img1'}));
 });

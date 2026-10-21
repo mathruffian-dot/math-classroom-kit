@@ -1,43 +1,4 @@
 {
-  "slides": [
-    {
-      "after": "b-ex4-practice",
-      "slide": {
-        "id": "b-written",
-        "phase": "會考練習",
-        "eyebrow": "寫出完整過程",
-        "title": "由邊長比求面積",
-        "body": "寫在紙上：先寫相似比，再寫面積比，最後列式求面積，寫出每一步。寫完拍照上傳，核對辨識稿再送出。",
-        "source": "對應課本 1-4 p.66–67 相似三角形的面積比（數字自編）",
-        "activity": {
-          "id": "b-written-q",
-          "type": "canvas",
-          "prompt": "△ABC ～ △DEF，AB＝6、DE＝9，△ABC 的面積是 20，求 △DEF 的面積。寫出相似比、面積比與計算過程。",
-          "canvas": "grid",
-          "allowPhoto": true,
-          "aiAllowed": true,
-          "rubric": {
-            "criteria": [
-              {
-                "id": "kai",
-                "label": "會考評分（0–3 分）",
-                "points": 3,
-                "levels": [
-                  { "score": 3, "description": "相似比 6 : 9 ＝ 2 : 3，面積比 4 : 9，列式 20 : x ＝ 4 : 9，求得 x ＝ 45" },
-                  { "score": 2, "description": "知道面積比是相似比的平方，但計算有一處小錯；或答案正確但缺相似比或面積比的說明" },
-                  { "score": 1, "description": "只寫出相似比 2 : 3，或把面積比當成 2 : 3（得 30）" },
-                  { "score": 0, "description": "空白、只寫答案沒有過程，或過程完全錯誤" }
-                ]
-              }
-            ],
-            "reference": "相似比 AB : DE ＝ 6 : 9 ＝ 2 : 3，面積比 ＝ 2² : 3² ＝ 4 : 9。20 : x ＝ 4 : 9，4x ＝ 180，x ＝ 45。",
-            "graderNotes": "接受直接寫 x ＝ 20 × (9/4) ＝ 45。常見錯誤：面積比寫成 2 : 3（得 30）、比例式顛倒（20 : x ＝ 9 : 4 得 80/9）。"
-          }
-        },
-        "notes": "會考式非選題（0–3 分）。收件後 AI 依辨識稿快速批改並圈出錯誤，老師覆核後發回。"
-      }
-    }
-  ],
   "rubrics": {
     "b-error-q": {
       "criteria": [
@@ -46,15 +7,132 @@
           "label": "會考評分（0–3 分）",
           "points": 3,
           "levels": [
-            { "score": 3, "description": "圈出把面積比當成相似比的錯誤，寫出面積比 4 : 9、8 : x ＝ 4 : 9、x ＝ 18，並說明面積比是相似比的平方" },
-            { "score": 2, "description": "答案 18 正確但理由不完整，或理由正確但計算有一處小錯" },
-            { "score": 1, "description": "只指出「錯了」或只寫出面積比 4 : 9，沒有正確答案" },
-            { "score": 0, "description": "空白、同意 x ＝ 12，或沒有任何正確內容" }
+            {
+              "score": 3,
+              "description": "圈出把面積比當成相似比的錯誤，寫出面積比 4 : 9、8 : x ＝ 4 : 9、x ＝ 18，並說明面積比是相似比的平方"
+            },
+            {
+              "score": 2,
+              "description": "答案 18 正確但理由不完整，或理由正確但計算有一處小錯"
+            },
+            {
+              "score": 1,
+              "description": "只指出「錯了」或只寫出面積比 4 : 9，沒有正確答案"
+            },
+            {
+              "score": 0,
+              "description": "空白、同意 x ＝ 12，或沒有任何正確內容"
+            }
           ]
         }
       ],
       "reference": "面積比＝對應邊長平方的比＝4：9，8：x＝4：9，4x＝72，x＝18。小美把面積比當成相似比。",
       "graderNotes": "接受用「邊長 k 倍、面積 k² 倍」的說法說明。"
+    }
+  },
+  "photo": {
+    "b-ex4-q": {
+      "items": [
+        0
+      ],
+      "rubric": {
+        "criteria": [
+          {
+            "id": "kai",
+            "label": "會考評分（0–3 分）",
+            "points": 3,
+            "levels": [
+              {
+                "score": 3,
+                "description": "過程完整、答案正確：由對應高的比得相似比，面積比 ＝ 相似比的平方，列式求面積"
+              },
+              {
+                "score": 2,
+                "description": "方法正確、過程大致完整，但有一處計算小錯，或沒有化到最簡"
+              },
+              {
+                "score": 1,
+                "description": "只有部分正確的關鍵步驟，或過程有重大錯誤"
+              },
+              {
+                "score": 0,
+                "description": "空白、只寫答案沒有過程，或方法錯誤"
+              }
+            ]
+          }
+        ],
+        "reference": "對應高 AH : DK ＝ 3 : 2，所以相似比 ＝ 3 : 2，面積比 ＝ 3² : 2² ＝ 9 : 4。\n18 : △DEF ＝ 9 : 4，△DEF ＝ 8",
+        "graderNotes": "接受其他正確的做法。常見錯誤：面積比直接用 3 : 2，算成 12。"
+      }
+    },
+    "b-ex4-practice-q": {
+      "items": [
+        0
+      ],
+      "rubric": {
+        "criteria": [
+          {
+            "id": "kai",
+            "label": "會考評分（0–3 分）",
+            "points": 3,
+            "levels": [
+              {
+                "score": 3,
+                "description": "過程完整、答案正確：(1) 用 AA 說明 △EBD～△ABC；(2) 先求 BC、BD，相似比平方得面積比"
+              },
+              {
+                "score": 2,
+                "description": "方法正確、過程大致完整，但有一處計算小錯，或沒有化到最簡"
+              },
+              {
+                "score": 1,
+                "description": "只有部分正確的關鍵步驟，或過程有重大錯誤"
+              },
+              {
+                "score": 0,
+                "description": "空白、只寫答案沒有過程，或方法錯誤"
+              }
+            ]
+          }
+        ],
+        "reference": "(1) ∠B 共用，∠BED ＝ ∠BAC ＝ 90°，所以 △EBD～△ABC（AA）。\n(2) BC ＝ √(8² + 6²) ＝ 10，BD ＝ 8 ÷ 2 ＝ 4，相似比 BD : BC ＝ 4 : 10 ＝ 2 : 5，\n面積比 ＝ 2² : 5² ＝ 4 : 25，所以 △EBD 面積 ÷ △ABC 面積 ＝ 4/25",
+        "graderNotes": "接受其他正確的做法。照片要包含 (1) 的理由與 (2) 的計算。常見錯誤：BD 對應到 AB（應對應斜邊 BC）；面積比沒有平方。"
+      }
+    },
+    "b-midpoint-practice-q": {
+      "items": [
+        0,
+        1
+      ],
+      "rubric": {
+        "criteria": [
+          {
+            "id": "kai",
+            "label": "會考評分（0–3 分）",
+            "points": 3,
+            "levels": [
+              {
+                "score": 3,
+                "description": "每一小題都過程完整、答案正確：先求 EF，再用中點連線性質（△ABC 的邊是 △DEF 對應邊的 2 倍）求周長與面積"
+              },
+              {
+                "score": 2,
+                "description": "方法正確、過程大致完整，但有一小題有一處計算小錯，或沒有化到最簡"
+              },
+              {
+                "score": 1,
+                "description": "只有部分正確的關鍵步驟（例如只做對一小題），或過程有重大錯誤"
+              },
+              {
+                "score": 0,
+                "description": "空白、只寫答案沒有過程，或方法錯誤"
+              }
+            ]
+          }
+        ],
+        "reference": "∠FDE ＝ 90°，EF ＝ √(3² + 4²) ＝ 5。由中點連線性質，△ABC 各邊是 △DEF 對應邊的 2 倍，\n(1) △ABC 周長 ＝ 2 × (3 + 4 + 5) ＝ 24\n(2) △DEF 面積 ＝ 3 × 4 ÷ 2 ＝ 6，面積是 2² ＝ 4 倍，△ABC 面積 ＝ 24",
+        "graderNotes": "接受其他正確的做法。常見錯誤：面積也只乘 2 倍，算成 12。"
+      }
     }
   }
 }

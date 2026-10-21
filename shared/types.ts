@@ -63,8 +63,13 @@ export interface Activity {
   check?: string;
   /** manipulate：提交時要記錄的互動變數；省略時記錄全部參數與點座標。 */
   record?: string[];
-  /** short／canvas：評量規準。 */
+  /** short／canvas：評量規準；numeric 設了 photoWork 時是拍照作答的會考評分（0–3 分）。 */
   rubric?: Rubric;
+  /**
+   * numeric：也可以拍照交計算過程（AI 依辨識稿批改）。學生可以直接送答案，或拍課本上的計算過程。
+   * items：照片要批改的小題（課本原題，從 0 起算）；省略表示全部小題。
+   */
+  photoWork?: { items?: number[] };
   /** canvas：畫布底圖。 */
   canvas?: 'blank' | 'grid' | 'axes' | 'dots';
   /** canvas：是否允許拍照上傳作答（預設允許）。 */
@@ -308,6 +313,8 @@ export interface Grade {
   depth?: 'verdict' | 'full';
   /** 'text'：快速批改，只看學生確認過的辨識稿（不看圖、不畫紅筆）。 */
   basis?: 'text' | 'image';
+  /** 拍照交的數值題：AI 從辨識稿讀到的每一小題最後答案（依 photoWork.items 的順序），伺服器再判定對錯。 */
+  finals?: string[];
   /** 快速批改：在辨識稿上的批註（第幾行、哪一段），畫面上把錯的地方圈起來。 */
   marks?: TextMark[];
   /** 第 1 層的對錯判定；第 2 層以滿分視為答對。 */
@@ -345,6 +352,8 @@ export interface Session {
   title: string;
   createdAt: string;
   ended: boolean;
+  /** 結束時間（毫秒時間戳）；結束超過 1 小時的課堂會封存，不在每次讀取時載入。 */
+  endedAt?: number;
   slideIndex: number;
   activityOpen: boolean;
   resultsVisible: boolean;
@@ -430,6 +439,21 @@ export interface AppConfig {
   version: string;
   /** 教師帳號提示（只在 demo 模式提供預設值，正式模式不回傳）。 */
   teacherHint?: string;
+}
+/** 免費額度用量（設定頁）。Cloudflare 免費方案：儲存 5 GB、每天寫入 10 萬列。 */
+export interface StorageUsageInfo {
+  /** 這個部署模式有沒有用量資料（Supabase 模式沒有）。 */
+  available: boolean;
+  /** 課堂資料（課程、班級、作答、白板、批改）大小，位元組。 */
+  dataBytes: number;
+  /** 作答照片／手寫圖：張數與大約大小（位元組）。 */
+  photos: number;
+  photoBytes: number;
+  /** 今天（UTC）大約寫入的列數。 */
+  rowsToday: number;
+  sessions: number;
+  archived: number;
+  limits: { storageBytes: number; rowsPerDay: number };
 }
 export interface AiSettings {
   configured: boolean;

@@ -33,7 +33,9 @@
         "APP_MODE": "cloudflare",
         "APP_INSTANCE": "default",
         "ALLOW_PUBLIC_DEMO": "false",
-        "AI_DAILY_LIMIT": "200",
+        // 金鑰另外用 secret 設定（npx wrangler secret put AI_API_KEY --env production），沒設時改用教師設定頁的金鑰
+        "AI_MODEL": "gpt-6-luna",
+        "AI_DAILY_LIMIT": "2000",
       },
     },
   },

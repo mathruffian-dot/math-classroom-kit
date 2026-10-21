@@ -66,8 +66,8 @@ for (const file of files) {
     errors++;
     continue;
   }
-  // 會考式手寫題（拍照批改）放在 content/written/<課程 id>.json：
-  // { slides: [{ after: 頁 ID, slide }], rubrics: { 題目 ID: 評量規準（0–3 分） } }，在這裡插入新頁、換掉原本的規準。
+  // 會考式評分放在 content/written/<課程 id>.json（由 scripts/photo-work.mjs 產生 photo 欄位）：
+  // { rubrics: { 錯誤分析題 ID: 會考規準 }, photo: { 數值題 ID: { items, rubric } }, slides?: [{ after, slide }] }
   let writtenNote = '';
   try {
     const w = JSON.parse(await readFile(join(root, 'content/written', `${raw.id}.json`), 'utf8'));
@@ -82,8 +82,18 @@ for (const file of files) {
       if (!a) throw new Error(`要換規準的題目「${id}」不在課程裡`);
       a.rubric = rubric;
     }
-    const n = raw.slides.filter((s) => s.activity?.rubric?.criteria?.some((c) => c.id === 'kai')).length;
-    writtenNote = `，會考式手寫題 ${n} 題`;
+    // photo：{ 題目 ID: { items, rubric } }：數值題也可以拍照交計算過程（AI 讀答案並依會考標準給分）
+    for (const [id, pw] of Object.entries(w.photo || {})) {
+      const a = raw.slides.find((s) => s.activity?.id === id)?.activity;
+      if (!a) throw new Error(`拍照批改的題目「${id}」不在課程裡`);
+      if (a.type !== 'numeric') throw new Error(`拍照批改只用在數值題：「${id}」是 ${a.type}`);
+      a.photoWork = pw.items ? { items: pw.items } : {};
+      a.rubric = pw.rubric;
+      a.aiAllowed = true;
+    }
+    const n = raw.slides.filter((s) => s.activity?.type === 'canvas' && s.activity?.rubric?.criteria?.some((c) => c.id === 'kai')).length;
+    const photo = Object.keys(w.photo || {}).length;
+    writtenNote = `，會考式手寫題 ${n} 題${photo ? `、可拍照批改 ${photo} 題` : ''}`;
   } catch (e) {
     if (e.code !== 'ENOENT') {
       console.error(`✗ ${file}：手寫題 — ${e.message}`);

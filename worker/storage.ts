@@ -94,6 +94,147 @@ export class SupabaseStore<T> implements Store<T> {
     this.revision = revision;
   }
 }
+/* ───────────── 課堂紀錄分開存（Durable Object，SQLite） ─────────────
+ * 主檔（班級、課程、登入…）一份、每一堂課各一份。每次儲存只寫內容有變的那幾份，
+ * 一份通常 1 列（1 MiB 一塊，SQLite 單值上限 2 MB）：學生交一次答案只寫 1–2 列，
+ * 不會撞到免費方案每天 10 萬列的寫入上限，也不再受單一檔案 8 MiB 的限制。
+ * 已結束一段時間的課堂移到「封存」：不在每次讀取時載入，有人打開時才讀。 */
+const PIECE_CHUNK = 1024 * 1024;
+type PieceManifest = { format: 'json-chunks-v2'; chunks: number; bytes: number };
+async function readPiece<T>(storage: StorageTransaction, key: string): Promise<T | undefined> {
+  const m = await storage.get<PieceManifest>(`${key}:m`);
+  if (!m) return undefined;
+  assert(m.format === 'json-chunks-v2' && Number.isInteger(m.chunks) && m.chunks > 0, '資料索引損壞，請使用備份還原', 503);
+  const bytes = new Uint8Array(m.bytes);
+  for (let i = 0; i < m.chunks; i++) {
+    const chunk = await storage.get<Uint8Array>(`${key}:c:${i}`);
+    assert(chunk instanceof Uint8Array && chunk.byteLength === Math.min(PIECE_CHUNK, m.bytes - i * PIECE_CHUNK), '資料區塊缺失，請使用備份還原', 503);
+    bytes.set(chunk, i * PIECE_CHUNK);
+  }
+  return JSON.parse(new TextDecoder().decode(bytes)) as T;
+}
+/** 寫一份資料；回傳寫了幾列（給用量統計）。 */
+async function writePiece(txn: StorageTransaction, key: string, json: string): Promise<number> {
+  const bytes = new TextEncoder().encode(json);
+  assert(bytes.byteLength <= MAX_SNAPSHOT_BYTES, '這一堂課的資料超過 8 MiB 上限，請刪除部分白板筆跡或照片', 413);
+  const chunks = Math.max(1, Math.ceil(bytes.byteLength / PIECE_CHUNK));
+  const previous = await txn.get<PieceManifest>(`${key}:m`);
+  for (let i = 0; i < chunks; i++) await txn.put(`${key}:c:${i}`, bytes.slice(i * PIECE_CHUNK, (i + 1) * PIECE_CHUNK));
+  for (let i = chunks; i < (previous?.chunks || 0); i++) await txn.delete(`${key}:c:${i}`);
+  await txn.put(`${key}:m`, { format: 'json-chunks-v2', chunks, bytes: bytes.byteLength });
+  return chunks + 1;
+}
+async function deletePiece(txn: StorageTransaction, key: string) {
+  const m = await txn.get<PieceManifest>(`${key}:m`);
+  for (let i = 0; i < (m?.chunks || 0); i++) await txn.delete(`${key}:c:${i}`);
+  await txn.delete(`${key}:m`);
+}
+function pieceDigest(text: string): string {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < text.length; i++) h = Math.imul(h ^ text.charCodeAt(i), 0x01000193);
+  return `${text.length}:${(h >>> 0).toString(36)}`;
+}
+export interface SplitHooks<S> {
+  /** 這一堂課可以封存了嗎（例如結束超過 1 小時）。 */
+  archivable(session: S, now: number): boolean;
+  /** 封存後留在主檔的摘要（課堂清單用）。 */
+  summary(session: S): unknown;
+}
+export interface StorageUsage {
+  /** 主檔＋所有課堂紀錄的大小（位元組）。 */
+  dataBytes: number;
+  /** 今天（UTC）寫入的列數；免費方案上限每天 100,000 列。 */
+  rowsToday: number;
+  sessions: number;
+}
+type SplitState<S> = { sessions: Record<string, S>; archive?: Record<string, unknown> };
+export class SessionSplitStore<T extends SplitState<S>, S = unknown> implements Store<T> {
+  /** 每一份上次寫入內容的摘要：沒變就不寫。 */
+  private written = new Map<string, string>();
+  private known = new Set<string>();
+  private legacyChecked = false;
+  /** 不經過這裡的寫入（照片、登入次數）：下一次儲存時一起記進用量。 */
+  private extraRows = 0;
+  constructor(
+    private storage: LocalStorage,
+    private hooks: SplitHooks<S>,
+    private legacy = new DurableStore<T>(storage),
+  ) {}
+  async read(): Promise<T | undefined> {
+    const main = await readPiece<T & { hot?: string[] }>(this.storage, 'main');
+    if (!main) return this.legacy.read(); // 舊版：全部在一份快照裡，下一次儲存時拆開
+    const sessions: Record<string, S> = {};
+    for (const id of main.hot || []) {
+      const s = await this.loadSession(id);
+      if (s) sessions[id] = s;
+    }
+    this.known = new Set([...(main.hot || []), ...Object.keys(main.archive || {})]);
+    this.written.set('main', pieceDigest(JSON.stringify(main)));
+    const { hot: _hot, ...rest } = main;
+    return { ...rest, sessions } as unknown as T;
+  }
+  countRows(rows: number) {
+    this.extraRows += rows;
+  }
+  /** 讀一堂封存的課（有人打開、批改、匯出或備份時）。 */
+  async loadSession(id: string): Promise<S | undefined> {
+    const s = await readPiece<S>(this.storage, `sess:${id}`);
+    // 記下讀到的內容：沒被改過就不必再寫回去（Durable Object 醒來後的第一次儲存也一樣）
+    if (s) this.written.set(id, pieceDigest(JSON.stringify(s)));
+    return s;
+  }
+  async write(value: T): Promise<void> {
+    const now = Date.now(),
+      archive = { ...(value.archive || {}) },
+      hot: string[] = [],
+      puts: [string, string, string][] = [];
+    for (const [id, s] of Object.entries(value.sessions)) {
+      const json = JSON.stringify(s),
+        d = pieceDigest(json);
+      if (this.written.get(id) !== d) puts.push([id, json, d]);
+      if (this.hooks.archivable(s, now)) archive[id] = this.hooks.summary(s);
+      else {
+        hot.push(id);
+        delete archive[id];
+      }
+    }
+    const keep = new Set([...hot, ...Object.keys(archive)]);
+    const removed = [...this.known].filter((id) => !keep.has(id));
+    value.archive = archive;
+    const mainJson = JSON.stringify({ ...value, sessions: undefined, hot }),
+      mainDigest = pieceDigest(mainJson);
+    const day = new Date(now).toISOString().slice(0, 10);
+    await this.storage.transaction(async (txn) => {
+      let rows = this.extraRows;
+      for (const [id, json] of puts) rows += await writePiece(txn, `sess:${id}`, json);
+      for (const id of removed) await deletePiece(txn, `sess:${id}`);
+      if (this.written.get('main') !== mainDigest) rows += await writePiece(txn, 'main', mainJson);
+      if (!this.legacyChecked) {
+        // 第一次拆開存：刪掉舊版的單一快照
+        const old = await txn.get<{ chunks: number }>('classroom-state:manifest');
+        for (let i = 0; i < (old?.chunks || 0); i++) await txn.delete(`classroom-state:chunk:${i}`);
+        await txn.delete('classroom-state:manifest');
+        await txn.delete('classroom-state');
+      }
+      const usage = (await txn.get<{ day: string; rows: number }>('usage:rows')) || { day, rows: 0 };
+      await txn.put('usage:rows', { day, rows: (usage.day === day ? usage.rows : 0) + rows + 1 });
+    });
+    this.legacyChecked = true;
+    this.extraRows = 0;
+    for (const [id, , d] of puts) this.written.set(id, d);
+    for (const id of removed) this.written.delete(id);
+    this.written.set('main', mainDigest);
+    this.known = keep;
+  }
+  /** 用量：資料大小與今天寫入的列數（設定頁顯示，避免超過免費額度）。 */
+  async usage(): Promise<StorageUsage> {
+    let dataBytes = 0;
+    for (const key of ['main', ...[...this.known].map((id) => `sess:${id}`)]) dataBytes += (await this.storage.get<PieceManifest>(`${key}:m`))?.bytes || 0;
+    const day = new Date().toISOString().slice(0, 10);
+    const u = await this.storage.get<{ day: string; rows: number }>('usage:rows');
+    return { dataBytes, rowsToday: u?.day === day ? u.rows : 0, sessions: this.known.size };
+  }
+}
 export class DurableStore<T> implements Store<T> {
   constructor(
     private storage: LocalStorage,

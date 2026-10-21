@@ -4230,3 +4230,45 @@ svg.redpen {
   font-size: 17px;
   margin: 8px 0;
 }
+.usage-label {
+  margin: 12px 0 4px;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.usage-meter {
+  height: 10px;
+  border-radius: 999px;
+  background: #eef1f8;
+  overflow: hidden;
+}
+.usage-meter span {
+  display: block;
+  height: 100%;
+  background: var(--violet);
+}
+.usage-meter.warn span {
+  background: #d9480f;
+}
+.inline-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.photo-alt {
+  display: grid;
+  gap: 6px;
+  margin-top: 10px;
+}
+.photo-alt .or-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.photo-alt .or-line::before,
+.photo-alt .or-line::after {
+  content: '';
+  flex: 1;
+  border-top: 1px solid var(--line);
+}
