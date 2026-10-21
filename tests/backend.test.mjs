@@ -11,7 +11,7 @@ await build({entryPoints:[resolve('worker/app.ts'),resolve('worker/storage.ts'),
 const {handleApi,liveTicket,liveView}=await import(pathToFileURL(join(dir,'worker','app.mjs')).href);
 const {SupabaseStore,DurableStore,SessionSplitStore,MAX_SNAPSHOT_BYTES}=await import(pathToFileURL(join(dir,'worker','storage.mjs')).href);
 const {ClassroomDurableObject}=await import(pathToFileURL(join(dir,'worker','index.mjs')).href);
-const {aggregateVotes,normalizeGrade,extractJson,isReasoning,numberedWork,parseMarks}=await import(pathToFileURL(join(dir,'worker','ai.mjs')).href);
+const {aggregateVotes,normalizeGrade,extractJson,isReasoning,numberedWork,parseMarks,chat}=await import(pathToFileURL(join(dir,'worker','ai.mjs')).href);
 const {judgePhotoFinals,validateAnswer,validateActivity}=await import(pathToFileURL(join(dir,'worker','validation.mjs')).href);
 const expr=await import(pathToFileURL(join(dir,'shared','expr.mjs')).href);
 const {practiceStatus}=await import(pathToFileURL(join(dir,'shared','practice.mjs')).href);
@@ -812,4 +812,18 @@ test('numeric photo work: AI-read final answers are judged like typed answers; p
   assert.throws(()=>validateAnswer(a,{text:'沒有照片'}),/拍照/);
   assert.deepEqual(validateAnswer(a,['√6','√3','3']),['√6','√3','3']);
   assert.throws(()=>validateAnswer({...a,photoWork:undefined},{imageId:'img1'}));
+});
+
+test('AI calls work on Cloudflare: redirect is manual (never "error"), redirects are reported, provider reasons shown',async()=>{
+  const original=globalThis.fetch,seen=[];
+  const config={provider:'openai',baseUrl:'https://provider.example/v1',model:'gpt-6-luna',apiKey:'test-only-no-real-key',dailyLimit:10,source:'teacher'};
+  try{
+    globalThis.fetch=async(url,options)=>{seen.push(options);return Response.json({choices:[{message:{content:'正常'}}]});};
+    assert.equal(await chat(config,'系統','測試'),'正常');
+    assert.equal(seen[0].redirect,'manual','Cloudflare Workers reject redirect:"error"');
+    globalThis.fetch=async()=>new Response(null,{status:302,headers:{Location:'https://elsewhere.example/'}});
+    await assert.rejects(()=>chat(config,'系統','測試'),/轉址/);
+    globalThis.fetch=async()=>Response.json({error:{message:'The model `gpt-x` does not exist (key sk-proj-abcdefghijk)'}},{status:404});
+    await assert.rejects(()=>chat(config,'系統','測試'),(e)=>/找不到模型/.test(e.message)&&/does not exist/.test(e.message)&&!/abcdefghijk/.test(e.message));
+  }finally{globalThis.fetch=original;}
 });

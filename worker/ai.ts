@@ -153,7 +153,8 @@ export async function chat(
   const send = () =>
     fetch(`${config.baseUrl}/chat/completions`, {
       method: 'POST',
-      redirect: 'error',
+      // Cloudflare Workers 只支援 follow／manual（'error' 會直接丟錯）；用 manual 不跟隨轉址，金鑰不會被送到別的網址
+      redirect: 'manual',
       headers: { Authorization: `Bearer ${config.apiKey}`, 'Content-Type': 'application/json' },
       signal: AbortSignal.timeout(options.timeoutMs || 90000),
       body: JSON.stringify(body),
@@ -169,6 +170,8 @@ export async function chat(
     }
     result = await send();
   }
+  if (result.status >= 300 && result.status < 400)
+    throw new HttpError(502, 'AI 服務回應失敗：API 網址被轉址，請確認 API 網址是否正確（例如 https://api.openai.com/v1）');
   if (!result.ok) {
     // 供應商的錯誤訊息（例如模型名稱不對）一起帶出來，老師才知道要改哪裡；OpenAI 的訊息不含完整金鑰
     let said = '';
