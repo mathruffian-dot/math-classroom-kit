@@ -229,6 +229,90 @@ export interface Lesson {
   objectives: string[];
   slides: Slide[];
   updatedAt?: string;
+  /** 課後形成性評量題庫（10 個題位 × 3 題換數字）；學生端看不到。 */
+  quiz?: QuizBank;
+}
+/** 課後形成性評量題庫：每個題位有 3 題同類型換數字的四選一題目。 */
+export interface QuizBank {
+  title: string;
+  source?: string;
+  slots: QuizSlot[];
+}
+export interface QuizSlot {
+  id: string;
+  topic: string;
+  variants: QuizItem[];
+}
+export interface QuizItem {
+  stem: string;
+  options: string[];
+  /** 正確選項（原始順序，從 0 起算）。 */
+  answer: number;
+  explanation?: string;
+}
+/** 抽好的一份卷子：每個題位抽到第幾題，以及選項的顯示順序（order[顯示位置]＝原始選項）。 */
+export interface QuizPaper {
+  picks: { variant: number; order: number[] }[];
+}
+/** PK 一組：b＝0 表示和電腦對戰。 */
+export interface PkMatch {
+  id: string;
+  a: number;
+  b: number;
+}
+/** 一次全班測驗或一場 PK（同一份卷子；PK 時所有組與觀眾都用這一份）。 */
+export interface QuizRun {
+  id: string;
+  mode: 'class' | 'pk';
+  paper: QuizPaper;
+  /** 開始作答的時間（PK 有 3 秒倒數，所以比建立時間晚）。 */
+  startedAt: number;
+  seconds: number;
+  endedAt?: number;
+  matches?: PkMatch[];
+}
+/** 一位同學在一次測驗的作答：answers 存原始選項，times 是從開始算起的毫秒。 */
+export interface QuizSheet {
+  answers: (number | null)[];
+  times: (number | null)[];
+  /** 交卷（全部答完）的時間，從開始算起的毫秒。 */
+  done?: number;
+}
+/** 學生、大螢幕看到的成績摘要（只有題數，不含答案）。 */
+export interface QuizScore {
+  answered: number;
+  correct: number;
+  /** 用時（毫秒）：交卷時間；時間到還沒交卷就是整段時間；還在作答就是 null。 */
+  timeMs: number | null;
+  finished: boolean;
+}
+/** PK 配對區：已配好的組，以及等待對手的那一位。 */
+export interface PkLobby {
+  pairs: [number, number][];
+  waiting: number | null;
+  /** 開放搶答上場。 */
+  buzz: boolean;
+}
+export interface QuizView {
+  run: QuizRun;
+  title: string;
+  questions: {
+    topic: string;
+    stem: string;
+    /** 顯示順序的選項。 */
+    options: string[];
+    /** 正確選項的顯示位置：老師都有；學生在 PK 答過的題、全班測驗結束後才有。 */
+    answer?: number;
+    explanation?: string;
+  }[];
+  /** 自己的作答（顯示位置）。 */
+  mine?: { answers: (number | null)[]; correct: (boolean | null)[]; done?: number };
+  /** 每位同學的成績摘要（座號 → 摘要；0＝電腦）。學生只在 PK 時看得到。 */
+  scores: Record<string, QuizScore>;
+  /** 老師：每一題每個選項（顯示位置）有幾人選。 */
+  picks?: number[][];
+  /** 電腦對手的作答時間表（各裝置自己算即時進度）。 */
+  bot?: { correct: boolean[]; times: number[] };
 }
 export interface Classroom {
   id: string;
@@ -345,6 +429,10 @@ export interface Stroke {
   points: Point[];
 }
 export interface Session {
+  /** 目前（或剛結束）的形成性評量／PK。 */
+  quiz?: QuizRun | null;
+  /** PK 配對中。 */
+  pkLobby?: PkLobby | null;
   id: string;
   classId: string;
   className: string;
@@ -432,6 +520,8 @@ export interface SessionView {
   practice?: PracticeView;
   /** 只給老師：最近的彈幕。 */
   danmaku?: Danmaku[];
+  /** 形成性評量／PK（有進行中或剛結束的才有）。 */
+  quiz?: QuizView;
   /**
    * 學生：作答開放中時彈幕有限制（只有答對的同學能送，這一題每人 3 則）。
    * limited 為 false 表示平常時間，不限則數。

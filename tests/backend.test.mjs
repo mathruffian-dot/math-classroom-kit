@@ -7,7 +7,7 @@ import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 const dir=await mkdtemp(join(tmpdir(),'classroom-backend-'));
-await build({entryPoints:[resolve('worker/app.ts'),resolve('worker/storage.ts'),resolve('worker/index.ts'),resolve('worker/ai.ts'),resolve('worker/validation.ts'),resolve('shared/expr.ts'),resolve('shared/practice.ts')],outdir:dir,bundle:true,platform:'node',format:'esm',outExtension:{'.js':'.mjs'},logLevel:'silent'});
+await build({entryPoints:[resolve('worker/app.ts'),resolve('worker/storage.ts'),resolve('worker/index.ts'),resolve('worker/ai.ts'),resolve('worker/validation.ts'),resolve('shared/expr.ts'),resolve('shared/practice.ts'),resolve('shared/quiz.ts')],outdir:dir,bundle:true,platform:'node',format:'esm',outExtension:{'.js':'.mjs'},logLevel:'silent'});
 const {handleApi,liveTicket,liveView}=await import(pathToFileURL(join(dir,'worker','app.mjs')).href);
 const {SupabaseStore,DurableStore,SessionSplitStore,MAX_SNAPSHOT_BYTES}=await import(pathToFileURL(join(dir,'worker','storage.mjs')).href);
 const {ClassroomDurableObject}=await import(pathToFileURL(join(dir,'worker','index.mjs')).href);
@@ -15,6 +15,7 @@ const {aggregateVotes,normalizeGrade,extractJson,isReasoning,numberedWork,parseM
 const {judgePhotoFinals,validateAnswer,validateActivity}=await import(pathToFileURL(join(dir,'worker','validation.mjs')).href);
 const expr=await import(pathToFileURL(join(dir,'shared','expr.mjs')).href);
 const {practiceStatus}=await import(pathToFileURL(join(dir,'shared','practice.mjs')).href);
+const quizLib=await import(pathToFileURL(join(dir,'shared','quiz.mjs')).href);
 const TEACHER={role:'teacher',account:'teacher',password:'11235813'};
 test.after(()=>rm(dir,{recursive:true,force:true}));
 
@@ -826,4 +827,122 @@ test('AI calls work on Cloudflare: redirect is manual (never "error"), redirects
     globalThis.fetch=async()=>Response.json({error:{message:'The model `gpt-x` does not exist (key sk-proj-abcdefghijk)'}},{status:404});
     await assert.rejects(()=>chat(config,'系統','測試'),(e)=>/找不到模型/.test(e.message)&&/does not exist/.test(e.message)&&!/abcdefghijk/.test(e.message));
   }finally{globalThis.fetch=original;}
+});
+
+test('records: every danmaku kept; CSV lists each attempt, original-question practice and danmaku; backup round-trips them',async()=>{
+  const {f,lesson:base}=await setup();
+  const act={id:'rq',type:'numeric',prompt:'√12 化成最簡根式',form:'simplest-radical',answer:'2√3',explanation:'√12＝2√3'};
+  const lesson={...base,id:'record-lesson',slides:[{id:'s1',title:'化簡',body:'',activity:act}]};
+  assert.equal((await f.call('/api/lessons/record-lesson','PUT',{lesson})).status,200);
+  const s=(await f.call('/api/sessions','POST',{lessonId:'record-lesson',classId:'demo-class'})).body.session;
+  const ctl=(body)=>f.call(`/api/sessions/${s.id}/control`,'POST',body);
+  await f.call('/api/login','POST',{role:'student',classCode:'DEMO801',seat:2},'seat2');
+  await ctl({action:'danmaku',value:true});
+  for(let i=0;i<120;i++){f.data.sessions[s.id].danmaku?.forEach(d=>{d.at-=5000;});assert.equal((await f.call(`/api/sessions/${s.id}/danmaku`,'POST',{text:`第 ${i} 則`,anon:i%2===0},'student')).status,200);}
+  await ctl({action:'activity',value:true});
+  const answer=(who,id,value)=>f.call(`/api/sessions/${s.id}/answers`,'POST',{submissionId:id,activityId:'rq',value},who);
+  await answer('seat2','w1','√12');await answer('seat2','w2','3');await answer('student','r1','2√3');
+  await ctl({action:'activity',value:false});
+  await ctl({action:'practice-start'});
+  assert.equal((await f.call(`/api/sessions/${s.id}/practice`,'POST',{round:0,value:'2√3'},'seat2')).body.correct,true);
+  assert.equal(f.data.sessions[s.id].danmaku.length,120,'all danmaku kept (no 100 cap)');
+  const csv=new TextDecoder().decode((await f.call(`/api/sessions/${s.id}/export?format=csv`)).body);
+  const rows=csv.replace(/^﻿/,'').split('\r\n').map(r=>r.split(',').map(c=>c.replace(/^"|"$/g,'')));
+  assert.deepEqual(rows[0],['kind','seat','activityId','attempt','answer','correct','score','max','feedback','submittedAt']);
+  const mine=rows.filter(r=>r[0]==='作答'&&r[1]==='2');
+  assert.deepEqual(mine.map(r=>r[3]),['1','2'],'attempt counts each submission');
+  assert(rows.some(r=>r[0]==='原題再做一次'&&r[1]==='2'&&r[3]==='1'&&r[5]==='Y'));
+  assert.equal(rows.filter(r=>r[0]==='彈幕').length,120);
+  const backup=(await f.call('/api/backup')).body;
+  const bs=backup.sessions.find(x=>x.session.id===s.id);
+  assert.equal(bs.danmaku.length,120);assert.equal(bs.practice.rq['2'].subs.length,1);
+  // 還原到另一個環境：彈幕與練習紀錄都在
+  const g=fixture();assert.equal((await g.call('/api/login','POST',TEACHER)).status,200);
+  const r=await g.call('/api/restore','POST',{backup});
+  assert.equal(r.status,200,JSON.stringify(r.body));
+  const restored=g.data.sessions[s.id];
+  assert.equal(restored.danmaku.length,120);assert.equal(restored.practice.rq['2'].subs[0].correct,true);
+});
+
+test('quiz scoring: more correct wins, ties go to the faster one; the computer follows its timetable',()=>{
+  const s=(correct,timeMs,finished=true)=>({answered:10,correct,timeMs,finished});
+  assert.equal(quizLib.decide(s(8,90000),s(7,30000)),'a');
+  assert.equal(quizLib.decide(s(7,60000),s(7,50000)),'b');
+  assert.equal(quizLib.decide(s(7,60000),s(7,60000)),'draw');
+  const run={id:'r',mode:'pk',paper:{picks:[]},startedAt:1000,seconds:60};
+  const bot={correct:[true,false,true],times:[5000,9000,14000]};
+  assert.deepEqual(quizLib.botScore(bot,run,1000+9500),{answered:2,correct:1,finished:false,timeMs:null});
+  assert.deepEqual(quizLib.botScore(bot,run,1000+20000),{answered:3,correct:2,finished:true,timeMs:14000});
+});
+
+test('formative quiz: one random paper for the class, answers hidden until the end; PK pairing, locking, winner, rematch, records',async()=>{
+  const {f}=await setup();
+  const bank={title:'測試題庫',slots:Array.from({length:10},(_,q)=>({id:`q${q+1}`,topic:`題位 ${q+1}`,variants:[0,1,2].map(v=>({stem:`第 ${q+1} 題（${v}）`,options:[`對${v}`,`錯A${v}`,`錯B${v}`,`錯C${v}`],answer:0,explanation:'解析'}))}))};
+  const base=(await f.call('/api/dashboard')).body.lessons[0];
+  const lesson={...base,id:'quiz-lesson',quiz:bank};
+  assert.equal((await f.call('/api/lessons/quiz-lesson','PUT',{lesson})).status,200);
+  const s=(await f.call('/api/sessions','POST',{lessonId:'quiz-lesson',classId:'demo-class'})).body.session;
+  const ctl=(body)=>f.call(`/api/sessions/${s.id}/control`,'POST',body);
+  for(const seat of [2,3,4])await f.call('/api/login','POST',{role:'student',classCode:'DEMO801',seat},`seat${seat}`);
+  await goOnline(f,[1,2,3,4,5]);
+  const view=(who)=>f.call(`/api/sessions/${s.id}`,'GET',null,who).then(r=>r.body);
+  const answer=(who,body)=>f.call(`/api/sessions/${s.id}/quiz`,'POST',body,who);
+  // 全班測驗：同一份卷子；學生看不到題庫與答案
+  await ctl({action:'quiz-class',seconds:600});
+  const t1=await view('teacher'),st1=await view('student');
+  assert.equal(st1.lesson.quiz,undefined,'the bank never reaches students');
+  assert.equal(st1.quiz.questions.length,10);assert(st1.quiz.questions.every(q=>q.answer===undefined));
+  assert.deepEqual(st1.quiz.questions.map(q=>q.stem),t1.quiz.questions.map(q=>q.stem),'same paper for everyone');
+  const right=(v,q)=>v.quiz.questions[q].options.findIndex(o=>o.startsWith('對'));
+  const runId=t1.quiz.run.id;
+  for(let q=0;q<10;q++)await answer('student',{runId,q,choice:right(t1,q)});
+  assert.equal((await answer('student',{runId,q:0,choice:(right(t1,0)+1)%4})).status,200,'class mode: can change before submitting');
+  assert.equal((await answer('student',{runId,submit:true})).status,200);
+  assert.equal((await answer('student',{runId,q:0,choice:0})).status,409,'locked after submitting');
+  const t2=await view('teacher');
+  assert.equal(t2.quiz.scores['1'].correct,9);assert.equal(t2.quiz.picks[1][right(t1,1)],1);
+  await ctl({action:'quiz-end'});
+  const st2=await view('student');assert.deepEqual(st2.quiz.mine.correct.filter(Boolean).length,9);assert(st2.quiz.questions.every(q=>q.answer!==undefined),'answers after the end');
+  // 重新派題：重新抽一份
+  await ctl({action:'quiz-class'});
+  assert.notEqual((await view('teacher')).quiz.run.id,runId);
+  // PK：點選＋點選、隨機（單數配電腦）、抽籤、搶答
+  await ctl({action:'pk-lobby'});
+  await ctl({action:'pk-pick',seat:1});await ctl({action:'pk-pick',seat:2});
+  assert.deepEqual((await view('teacher')).session.pkLobby.pairs,[[1,2]]);
+  await ctl({action:'pk-draw'});
+  const waiting=(await view('teacher')).session.pkLobby.waiting;assert([3,4,5].includes(waiting));
+  await ctl({action:'pk-buzz',value:true});
+  const other=[3,4,5].find(n=>n!==waiting);
+  assert.equal((await f.call(`/api/sessions/${s.id}/pk-buzz`,'POST',{},`seat${other}`)).body.paired,true);
+  const lobby=(await view('teacher')).session.pkLobby;
+  assert.equal(lobby.pairs.length,2);assert.equal(lobby.buzz,false,'buzz closes once a pair is made');
+  await ctl({action:'pk-remove',index:1});
+  await ctl({action:'pk-random'});
+  const pairs=(await view('teacher')).session.pkLobby.pairs;
+  assert.deepEqual(pairs.flat().sort((a,b)=>a-b),[0,1,2,3,4,5],'odd one out plays the computer');
+  await ctl({action:'pk-start',seconds:120});
+  const pk=await view('teacher');assert.equal(pk.quiz.run.mode,'pk');assert(pk.quiz.bot,'computer timetable for the odd pair');
+  // 3 秒倒數後開始
+  f.data.sessions[s.id].session.quiz.startedAt-=4000;
+  const pkRun=pk.quiz.run.id;
+  const r1=await answer('student',{runId:pkRun,q:0,choice:right(pk,0)});
+  assert.equal(r1.body.correct,true);
+  assert.equal((await answer('student',{runId:pkRun,q:0,choice:0})).status,409,'PK: an answer is final');
+  const mine=(await view('student')).quiz;
+  assert.equal(mine.questions[0].answer,right(pk,0),'PK: answered question shows the right option');assert.equal(mine.questions[1].answer,undefined);
+  assert(mine.scores['1'].answered===1,'students see PK progress');
+  for(let q=1;q<10;q++)await answer('student',{runId:pkRun,q,choice:right(pk,q)});
+  assert.equal((await view('teacher')).quiz.scores['1'].finished,true);
+  await ctl({action:'pk-again'});
+  const again=await view('teacher');assert.notEqual(again.quiz.run.id,pkRun);assert.deepEqual(again.quiz.run.matches.map(m=>[m.a,m.b]),pk.quiz.run.matches.map(m=>[m.a,m.b]));
+  // 紀錄：CSV 與備份
+  const csv=new TextDecoder().decode((await f.call(`/api/sessions/${s.id}/export?format=csv`)).body);
+  assert(csv.includes('"形成性評量"')&&csv.includes('"PK戰"'));
+  const backup=(await f.call('/api/backup')).body;
+  const bs=backup.sessions.find(x=>x.session.id===s.id);
+  assert.equal(bs.quizRuns.length,4);
+  const g=fixture();await g.call('/api/login','POST',TEACHER);
+  const r=await g.call('/api/restore','POST',{backup});assert.equal(r.status,200,JSON.stringify(r.body));
+  assert.equal(g.data.sessions[s.id].quizRuns.length,4);
 });

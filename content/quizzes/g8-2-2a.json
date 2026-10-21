@@ -1,0 +1,397 @@
+{
+  "lessonId": "g8-2-2a",
+  "title": "2-2(1) 根式的乘除：課後檢核",
+  "source": "課本 p.73–76（題目自編，答案已用 SymPy 核算）",
+  "slots": [
+    {
+      "id": "q1",
+      "topic": "簡記：整數 × 根式",
+      "variants": [
+        {
+          "stem": "$(-5)\\times2\\sqrt{3}=$？",
+          "options": [
+            "$-10\\sqrt{3}$",
+            "$10\\sqrt{3}$",
+            "$-2\\sqrt{15}$",
+            "$-3\\sqrt{3}$"
+          ],
+          "answer": 0,
+          "explanation": "整數乘係數：$(-5)\\times2=-10$，根號不變，得 $-10\\sqrt{3}$。"
+        },
+        {
+          "stem": "$4\\times(-3\\sqrt{2})=$？",
+          "options": [
+            "$-12\\sqrt{2}$",
+            "$12\\sqrt{2}$",
+            "$-3\\sqrt{8}$",
+            "$\\sqrt{2}$"
+          ],
+          "answer": 0,
+          "explanation": "$4\\times(-3)=-12$，根號不變，得 $-12\\sqrt{2}$。"
+        },
+        {
+          "stem": "$(-6)\\times5\\sqrt{7}=$？",
+          "options": [
+            "$-30\\sqrt{7}$",
+            "$30\\sqrt{7}$",
+            "$-5\\sqrt{42}$",
+            "$-\\sqrt{7}$"
+          ],
+          "answer": 0,
+          "explanation": "$(-6)\\times5=-30$，根號不變，得 $-30\\sqrt{7}$。"
+        }
+      ]
+    },
+    {
+      "id": "q2",
+      "topic": "簡記：根式 ÷ 整數",
+      "variants": [
+        {
+          "stem": "$(-4\\sqrt{2})\\div6=$？",
+          "options": [
+            "$-\\dfrac{2}{3}\\sqrt{2}$",
+            "$-\\dfrac{3}{2}\\sqrt{2}$",
+            "$-24\\sqrt{2}$",
+            "$\\dfrac{2}{3}\\sqrt{2}$"
+          ],
+          "answer": 0,
+          "explanation": "係數相除：$-4\\div6=-\\dfrac{2}{3}$，根號不變。"
+        },
+        {
+          "stem": "$(-6\\sqrt{5})\\div4=$？",
+          "options": [
+            "$-\\dfrac{3}{2}\\sqrt{5}$",
+            "$-\\dfrac{2}{3}\\sqrt{5}$",
+            "$-24\\sqrt{5}$",
+            "$\\dfrac{3}{2}\\sqrt{5}$"
+          ],
+          "answer": 0,
+          "explanation": "$-6\\div4=-\\dfrac{3}{2}$，根號不變。"
+        },
+        {
+          "stem": "$9\\sqrt{3}\\div(-6)=$？",
+          "options": [
+            "$-\\dfrac{3}{2}\\sqrt{3}$",
+            "$-\\dfrac{2}{3}\\sqrt{3}$",
+            "$-54\\sqrt{3}$",
+            "$\\dfrac{3}{2}\\sqrt{3}$"
+          ],
+          "answer": 0,
+          "explanation": "$9\\div(-6)=-\\dfrac{3}{2}$，根號不變。"
+        }
+      ]
+    },
+    {
+      "id": "q3",
+      "topic": "根式乘法：√a × √b",
+      "variants": [
+        {
+          "stem": "$\\sqrt{3}\\times\\sqrt{7}=$？",
+          "options": [
+            "$\\sqrt{21}$",
+            "$\\sqrt{10}$",
+            "$21$",
+            "$10$"
+          ],
+          "answer": 0,
+          "explanation": "$\\sqrt{a}\\times\\sqrt{b}=\\sqrt{a\\times b}$：$\\sqrt{3\\times7}=\\sqrt{21}$，不是根號內相加。"
+        },
+        {
+          "stem": "$\\sqrt{5}\\times\\sqrt{6}=$？",
+          "options": [
+            "$\\sqrt{30}$",
+            "$\\sqrt{11}$",
+            "$30$",
+            "$11$"
+          ],
+          "answer": 0,
+          "explanation": "$\\sqrt{5\\times6}=\\sqrt{30}$。"
+        },
+        {
+          "stem": "$\\sqrt{2}\\times\\sqrt{11}=$？",
+          "options": [
+            "$\\sqrt{22}$",
+            "$\\sqrt{13}$",
+            "$22$",
+            "$13$"
+          ],
+          "answer": 0,
+          "explanation": "$\\sqrt{2\\times11}=\\sqrt{22}$。"
+        }
+      ]
+    },
+    {
+      "id": "q4",
+      "topic": "係數乘係數、根號乘根號",
+      "variants": [
+        {
+          "stem": "$3\\sqrt{3}\\times(-2\\sqrt{5})=$？",
+          "options": [
+            "$-6\\sqrt{15}$",
+            "$6\\sqrt{15}$",
+            "$\\sqrt{15}$",
+            "$-6\\sqrt{8}$"
+          ],
+          "answer": 0,
+          "explanation": "係數 $3\\times(-2)=-6$，根號 $\\sqrt{3}\\times\\sqrt{5}=\\sqrt{15}$，得 $-6\\sqrt{15}$。"
+        },
+        {
+          "stem": "$(-2\\sqrt{3})\\times4\\sqrt{2}=$？",
+          "options": [
+            "$-8\\sqrt{6}$",
+            "$8\\sqrt{6}$",
+            "$2\\sqrt{6}$",
+            "$-8\\sqrt{5}$"
+          ],
+          "answer": 0,
+          "explanation": "係數 $(-2)\\times4=-8$，根號 $\\sqrt{3\\times2}=\\sqrt{6}$。"
+        },
+        {
+          "stem": "$5\\sqrt{2}\\times(-3\\sqrt{7})=$？",
+          "options": [
+            "$-15\\sqrt{14}$",
+            "$15\\sqrt{14}$",
+            "$2\\sqrt{14}$",
+            "$-15\\sqrt{9}$"
+          ],
+          "answer": 0,
+          "explanation": "係數 $5\\times(-3)=-15$，根號 $\\sqrt{2\\times7}=\\sqrt{14}$。"
+        }
+      ]
+    },
+    {
+      "id": "q5",
+      "topic": "乘完要化簡",
+      "variants": [
+        {
+          "stem": "$\\sqrt{2}\\times\\sqrt{8}=$？",
+          "options": [
+            "$4$",
+            "$\\sqrt{10}$",
+            "$16$",
+            "$2\\sqrt{2}$"
+          ],
+          "answer": 0,
+          "explanation": "$\\sqrt{2\\times8}=\\sqrt{16}=4$。"
+        },
+        {
+          "stem": "$\\sqrt{3}\\times\\sqrt{12}=$？",
+          "options": [
+            "$6$",
+            "$\\sqrt{15}$",
+            "$36$",
+            "$2\\sqrt{3}$"
+          ],
+          "answer": 0,
+          "explanation": "$\\sqrt{3\\times12}=\\sqrt{36}=6$。"
+        },
+        {
+          "stem": "$\\sqrt{5}\\times\\sqrt{20}=$？",
+          "options": [
+            "$10$",
+            "$100$",
+            "$2\\sqrt{5}$",
+            "$5$"
+          ],
+          "answer": 0,
+          "explanation": "$\\sqrt{5\\times20}=\\sqrt{100}=10$。"
+        }
+      ]
+    },
+    {
+      "id": "q6",
+      "topic": "長方形面積（課本隨堂 2）",
+      "variants": [
+        {
+          "stem": "長 $\\sqrt{13}$ 公分、寬 $\\sqrt{5}$ 公分的長方形，面積是幾平方公分？",
+          "options": [
+            "$\\sqrt{65}$",
+            "$\\sqrt{18}$",
+            "$65$",
+            "$2\\sqrt{13}+2\\sqrt{5}$"
+          ],
+          "answer": 0,
+          "explanation": "面積＝長 × 寬＝$\\sqrt{13}\\times\\sqrt{5}=\\sqrt{65}$。$2\\sqrt{13}+2\\sqrt{5}$ 是周長。"
+        },
+        {
+          "stem": "長 $\\sqrt{7}$ 公分、寬 $\\sqrt{3}$ 公分的長方形，面積是幾平方公分？",
+          "options": [
+            "$\\sqrt{21}$",
+            "$\\sqrt{10}$",
+            "$21$",
+            "$2\\sqrt{7}+2\\sqrt{3}$"
+          ],
+          "answer": 0,
+          "explanation": "$\\sqrt{7}\\times\\sqrt{3}=\\sqrt{21}$。"
+        },
+        {
+          "stem": "長 $2\\sqrt{3}$ 公分、寬 $\\sqrt{5}$ 公分的長方形，面積是幾平方公分？",
+          "options": [
+            "$2\\sqrt{15}$",
+            "$2\\sqrt{8}$",
+            "$4\\sqrt{3}+2\\sqrt{5}$",
+            "$15$"
+          ],
+          "answer": 0,
+          "explanation": "$2\\sqrt{3}\\times\\sqrt{5}=2\\sqrt{15}$。"
+        }
+      ]
+    },
+    {
+      "id": "q7",
+      "topic": "比較大小（係數移進根號）",
+      "variants": [
+        {
+          "stem": "$3\\sqrt{2}$ 和 $2\\sqrt{3}$ 的大小關係？",
+          "options": [
+            "$3\\sqrt{2}>2\\sqrt{3}$",
+            "$3\\sqrt{2}<2\\sqrt{3}$",
+            "$3\\sqrt{2}=2\\sqrt{3}$",
+            "無法比較"
+          ],
+          "answer": 0,
+          "explanation": "$3\\sqrt{2}=\\sqrt{18}$、$2\\sqrt{3}=\\sqrt{12}$，$18>12$。"
+        },
+        {
+          "stem": "$6\\sqrt{2}$ 和 $5\\sqrt{3}$ 的大小關係？",
+          "options": [
+            "$6\\sqrt{2}<5\\sqrt{3}$",
+            "$6\\sqrt{2}>5\\sqrt{3}$",
+            "$6\\sqrt{2}=5\\sqrt{3}$",
+            "無法比較"
+          ],
+          "answer": 0,
+          "explanation": "$6\\sqrt{2}=\\sqrt{72}$、$5\\sqrt{3}=\\sqrt{75}$，$72<75$。"
+        },
+        {
+          "stem": "$4\\sqrt{3}$ 和 $3\\sqrt{5}$ 的大小關係？",
+          "options": [
+            "$4\\sqrt{3}>3\\sqrt{5}$",
+            "$4\\sqrt{3}<3\\sqrt{5}$",
+            "$4\\sqrt{3}=3\\sqrt{5}$",
+            "無法比較"
+          ],
+          "answer": 0,
+          "explanation": "$4\\sqrt{3}=\\sqrt{48}$、$3\\sqrt{5}=\\sqrt{45}$，$48>45$。"
+        }
+      ]
+    },
+    {
+      "id": "q8",
+      "topic": "根式除法：√a ÷ √b",
+      "variants": [
+        {
+          "stem": "$\\sqrt{35}\\div\\sqrt{7}=$？",
+          "options": [
+            "$\\sqrt{5}$",
+            "$\\sqrt{28}$",
+            "$5$",
+            "$7\\sqrt{5}$"
+          ],
+          "answer": 0,
+          "explanation": "$\\sqrt{a}\\div\\sqrt{b}=\\sqrt{a\\div b}$：$\\sqrt{35\\div7}=\\sqrt{5}$。"
+        },
+        {
+          "stem": "$\\sqrt{48}\\div\\sqrt{8}=$？",
+          "options": [
+            "$\\sqrt{6}$",
+            "$\\sqrt{40}$",
+            "$6$",
+            "$8\\sqrt{6}$"
+          ],
+          "answer": 0,
+          "explanation": "$\\sqrt{48\\div8}=\\sqrt{6}$。"
+        },
+        {
+          "stem": "$\\sqrt{54}\\div\\sqrt{6}=$？",
+          "options": [
+            "$3$",
+            "$\\sqrt{48}$",
+            "$9$",
+            "$18$"
+          ],
+          "answer": 0,
+          "explanation": "$\\sqrt{54\\div6}=\\sqrt{9}=3$。"
+        }
+      ]
+    },
+    {
+      "id": "q9",
+      "topic": "除以分數形式的根式",
+      "variants": [
+        {
+          "stem": "$\\dfrac{\\sqrt{6}}{\\sqrt{3}}\\div\\sqrt{\\dfrac{2}{3}}=$？",
+          "options": [
+            "$\\sqrt{3}$",
+            "$\\dfrac{2}{\\sqrt{3}}$",
+            "$3$",
+            "$\\sqrt{2}$"
+          ],
+          "answer": 0,
+          "explanation": "$\\dfrac{\\sqrt{6}}{\\sqrt{3}}=\\sqrt{2}$，$\\sqrt{2}\\div\\sqrt{\\dfrac{2}{3}}=\\sqrt{2\\times\\dfrac{3}{2}}=\\sqrt{3}$（除以分數要乘倒數）。"
+        },
+        {
+          "stem": "$\\sqrt{\\dfrac{7}{2}}\\div\\dfrac{\\sqrt{3}}{\\sqrt{6}}=$？",
+          "options": [
+            "$\\sqrt{7}$",
+            "$\\dfrac{\\sqrt{7}}{2}$",
+            "$7$",
+            "$\\sqrt{14}$"
+          ],
+          "answer": 0,
+          "explanation": "$\\dfrac{\\sqrt{3}}{\\sqrt{6}}=\\sqrt{\\dfrac{1}{2}}$，$\\sqrt{\\dfrac{7}{2}\\div\\dfrac{1}{2}}=\\sqrt{7}$。"
+        },
+        {
+          "stem": "$\\sqrt{\\dfrac{5}{3}}\\div\\sqrt{\\dfrac{1}{6}}=$？",
+          "options": [
+            "$\\sqrt{10}$",
+            "$\\sqrt{\\dfrac{5}{18}}$",
+            "$10$",
+            "$\\sqrt{5}$"
+          ],
+          "answer": 0,
+          "explanation": "$\\sqrt{\\dfrac{5}{3}\\times6}=\\sqrt{10}$。"
+        }
+      ]
+    },
+    {
+      "id": "q10",
+      "topic": "哪一個算對了？（常見錯誤）",
+      "variants": [
+        {
+          "stem": "下列哪一個計算是正確的？",
+          "options": [
+            "$\\sqrt{2}\\times\\sqrt{3}=\\sqrt{6}$",
+            "$\\sqrt{2}+\\sqrt{3}=\\sqrt{5}$",
+            "$\\sqrt{12}\\div\\sqrt{3}=\\sqrt{9}$",
+            "$2\\sqrt{3}\\times3\\sqrt{2}=6\\sqrt{5}$"
+          ],
+          "answer": 0,
+          "explanation": "根號乘根號，根號內相乘；根號不能直接相加；$\\sqrt{12}\\div\\sqrt{3}=\\sqrt{4}=2$。"
+        },
+        {
+          "stem": "下列哪一個計算是正確的？",
+          "options": [
+            "$\\sqrt{20}\\div\\sqrt{5}=2$",
+            "$\\sqrt{2}\\times\\sqrt{8}=\\sqrt{10}$",
+            "$3\\sqrt{2}\\times2\\sqrt{2}=6\\sqrt{2}$",
+            "$\\sqrt{3}\\times\\sqrt{3}=9$"
+          ],
+          "answer": 0,
+          "explanation": "$\\sqrt{20\\div5}=\\sqrt{4}=2$；$3\\sqrt{2}\\times2\\sqrt{2}=6\\times2=12$；$\\sqrt{3}\\times\\sqrt{3}=3$。"
+        },
+        {
+          "stem": "下列哪一個計算是正確的？",
+          "options": [
+            "$(-2\\sqrt{3})\\times4\\sqrt{2}=-8\\sqrt{6}$",
+            "$\\sqrt{18}\\div\\sqrt{2}=\\sqrt{16}$",
+            "$\\sqrt{5}\\times\\sqrt{5}=25$",
+            "$4\\sqrt{2}\\div2=2$"
+          ],
+          "answer": 0,
+          "explanation": "$\\sqrt{18\\div2}=\\sqrt{9}=3$；$\\sqrt{5}\\times\\sqrt{5}=5$；$4\\sqrt{2}\\div2=2\\sqrt{2}$。"
+        }
+      ]
+    }
+  ]
+}

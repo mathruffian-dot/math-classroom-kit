@@ -8,6 +8,7 @@ import type {
   Grade,
   Lesson,
   PracticeEntry,
+  QuizRun,
   Session,
   SessionView,
   Stroke,
@@ -16,6 +17,8 @@ import type {
 import catalog from '../content/catalog.generated.json';
 import { normalizeChars, parseNumberAnswer } from '../shared/expr';
 import { PRACTICE_GRACE_MS, practiceStatus, practiceTotal } from '../shared/practice';
+import { PK_COUNTDOWN_MS, QUIZ_GRACE_MS, decide, quizOver } from '../shared/quiz';
+import { drawPaper, isCorrect, makeBot, newMatch, quizView, restoreQuiz, score, type QuizStore } from './quiz';
 import {
   HttpError,
   assert,
@@ -81,7 +84,7 @@ interface StoredClass {
   ownerId: string;
   students: { seat: number; codeHash: string }[];
 }
-export interface StoredSession {
+export interface StoredSession extends QuizStore {
   session: Session;
   ownerId: string;
   lesson: Lesson;
@@ -91,10 +94,9 @@ export interface StoredSession {
   grades?: Record<string, Grade>;
   /** 補救練習紀錄：題目 ID → 座號 → 開始時間與每輪作答。 */
   practice?: Record<string, Record<string, PracticeEntry>>;
-  /** 每位同學這堂課送了幾則彈幕（座號 → 則數）。 */
   /** 作答開放中送出的彈幕則數：openedAt 是那一次開放的時間，換一次開放就重新計算。 */
   danmakuQuiz?: { openedAt: number; counts: Record<string, number> };
-  /** 彈幕（保留最近 100 則）。 */
+  /** 彈幕（全部保留）。 */
   danmaku?: Danmaku[];
   /** 手寫辨識：每個座號最後一次辨識的時間（限速用）。 */
   ocr?: Record<string, number>;
@@ -172,7 +174,81 @@ export interface AppContext {
   /** 免費額度用量（Durable Object 分開存時才有）。 */
   usage?: () => Promise<{ dataBytes: number; rowsToday: number; sessions: number }>;
 }
-/** 彈幕：每人每堂課最多幾則。 */
+/** 這一堂課的題庫：開課後才加的題庫也拿得到（複製進這一堂的課程）。 */
+/** CSV：每一次測驗／PK 的每一題作答。 */
+function quizCsvRows(s: StoredSession): (string | number)[][] {
+  const bank = s.lesson.quiz;
+  if (!bank) return [];
+  const rows: (string | number)[][] = [];
+  for (const run of s.quizRuns || []) {
+    const sheets = s.quizSheets?.[run.id] || {},
+      end = run.endedAt ?? run.startedAt + run.seconds * 1000;
+    for (const [seat, sheet] of Object.entries(sheets)) {
+      if (seat === '0') continue;
+      const mine = score(bank, run, sheet, end);
+      let note = run.mode === 'pk' ? '觀眾（跟著做）' : '';
+      const m = run.matches?.find((x) => String(x.a) === seat || String(x.b) === seat);
+      if (m) {
+        const other = String(m.a) === seat ? m.b : m.a;
+        const theirs = other === 0 ? score(bank, run, sheets['0'], end) : score(bank, run, sheets[String(other)], end);
+        const r = decide(mine, theirs);
+        note = `對手 ${other === 0 ? '電腦' : `${other} 號`}・${r === 'draw' ? '平手' : r === 'a' ? '勝' : '負'}`;
+      }
+      sheet.answers.forEach((x, q) => {
+        if (x === null) return;
+        const it = bank.slots[q].variants[run.paper.picks[q].variant];
+        rows.push([run.mode === 'pk' ? 'PK戰' : '形成性評量', seat, bank.slots[q].id, q + 1, it.options[x], isCorrect(bank, run.paper, q, x) ? 'Y' : 'N', mine.correct, bank.slots.length, note, new Date(run.startedAt + (sheet.times[q] || 0)).toISOString()]);
+      });
+    }
+  }
+  return rows;
+}
+function quizBank(state: State, s: StoredSession) {
+  if (!s.lesson.quiz) {
+    const bank = state.lessons[s.session.lessonId]?.quiz;
+    if (bank) s.lesson.quiz = clone(bank);
+  }
+  assert(s.lesson.quiz, '這一課還沒有形成性評量題庫', 409);
+  return s.lesson.quiz;
+}
+function startQuiz(s: StoredSession, run: QuizRun) {
+  const session = s.session;
+  session.activityOpen = false;
+  session.activityDeadline = null;
+  session.practice = null;
+  session.pkLobby = null;
+  session.quiz = run;
+  (s.quizRuns ||= []).push(clone(run));
+  (s.quizSheets ||= {})[run.id] = {};
+}
+function pkLobby(session: Session) {
+  assert(session.pkLobby, '請先開啟 PK 配對', 409);
+  return session.pkLobby;
+}
+function pkTaken(lobby: { pairs: [number, number][]; waiting: number | null }) {
+  const out = new Set<number>(lobby.pairs.flat().filter((n) => n > 0));
+  if (lobby.waiting !== null) out.add(lobby.waiting);
+  return out;
+}
+/** 選一位：沒有人等待就成為等待者；有人等待就配成一組；點等待者本人是取消。 */
+function pkPick(lobby: { pairs: [number, number][]; waiting: number | null }, seat: number) {
+  assert(!lobby.pairs.some(([a, b]) => a === seat || b === seat), `${seat} 號已經在對戰名單裡`, 409);
+  if (lobby.waiting === null) lobby.waiting = seat;
+  else if (lobby.waiting === seat) lobby.waiting = null;
+  else {
+    lobby.pairs.push([lobby.waiting, seat]);
+    lobby.waiting = null;
+  }
+}
+function shuffleSeats(list: number[]) {
+  const out = [...list];
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = crypto.getRandomValues(new Uint32Array(1))[0] % (i + 1);
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
+
 const DANMAKU_PER_QUIZ = 3;
 /**
  * 彈幕限制：平常不限則數；老師開放作答時，只有這一題已送出且答對的同學能送，每人 3 則（下一次開放重新計算）。
@@ -380,6 +456,7 @@ export function sessionView(state: State, stored: StoredSession, user: User, onl
     lesson = cleanLesson(clone(stored.lesson)),
     teacher = user.role === 'teacher';
   if (!teacher) {
+    delete lesson.quiz; // 題庫（含答案）不送到學生端；題目經 view.quiz 依卷子送出
     for (const [i, slide] of lesson.slides.entries()) {
       delete slide.notes;
       if (slide.activity && (!session.resultsVisible || i !== session.slideIndex))
@@ -473,6 +550,10 @@ export function sessionView(state: State, stored: StoredSession, user: User, onl
   }
   const practice = practiceView(stored, user, view.serverNow);
   if (practice) view.practice = practice;
+  if (session.quiz) {
+    const q = quizView(stored.lesson, stored, session.quiz, user, view.serverNow);
+    if (q) view.quiz = q;
+  }
   return view;
 }
 /** 補救練習的畫面資料：老師看全部；學生只看自己，答案只公布已結束的輪次。 */
@@ -1110,7 +1191,7 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
       return json(sessionView(state, s, user, ctx.online?.()));
     }
     const sessionMatch = path.match(
-      /^\/api\/sessions\/([\w-]+)(?:\/(control|answers|practice|danmaku|ocr|ocr-work|buzz|whiteboard|export|images|grades)(?:\/([\w-]+))?)?$/,
+      /^\/api\/sessions\/([\w-]+)(?:\/(control|answers|practice|danmaku|ocr|ocr-work|buzz|whiteboard|export|images|grades|quiz|pk-buzz)(?:\/([\w-]+))?)?$/,
     );
     if (sessionMatch) {
       const s = ownedSession(state, identifier(sessionMatch[1]), user),
@@ -1209,6 +1290,84 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
             s.danmaku = [];
             session.danmakuClearedAt = Date.now();
             break;
+          // ── 課後形成性評量：全班同一份卷子（每個題位從 3 題裡抽 1 題） ──
+          case 'quiz-class': {
+            const bank = quizBank(state, s);
+            const run: QuizRun = { id: uuid(), mode: 'class', paper: drawPaper(bank), startedAt: Date.now(), seconds: integer(body.seconds ?? 600, 60, 3600) };
+            startQuiz(s, run);
+            break;
+          }
+          case 'quiz-end': {
+            assert(session.quiz, '目前沒有測驗', 409);
+            const at = Date.now();
+            session.quiz.endedAt ??= at;
+            const kept = s.quizRuns?.find((r) => r.id === session.quiz!.id);
+            if (kept) kept.endedAt ??= at;
+            break;
+          }
+          case 'quiz-close':
+            session.quiz = null;
+            session.pkLobby = null;
+            break;
+          // ── PK 戰：先配對（隨機、點選、抽籤、搶答、配電腦），再一起開始，所有組與觀眾同一份卷子 ──
+          case 'pk-lobby':
+            quizBank(state, s);
+            session.quiz = null;
+            session.pkLobby = { pairs: [], waiting: null, buzz: false };
+            break;
+          case 'pk-random': {
+            const lobby = pkLobby(session);
+            const taken = pkTaken(lobby);
+            const pool = shuffleSeats([...onlineSeats(state, s, ctx.online?.())].filter((n) => !taken.has(n)));
+            if (lobby.waiting !== null) pool.unshift(lobby.waiting);
+            lobby.waiting = null;
+            assert(pool.length, '沒有可以配對的上線同學', 409);
+            for (let i = 0; i < pool.length; i += 2) lobby.pairs.push([pool[i], pool[i + 1] ?? 0]); // 單數：最後一位和電腦對戰
+            break;
+          }
+          case 'pk-pick': {
+            const lobby = pkLobby(session);
+            pkPick(lobby, integer(body.seat, 1, state.classes[session.classId].classroom.seats));
+            break;
+          }
+          case 'pk-draw': {
+            const lobby = pkLobby(session);
+            const taken = pkTaken(lobby);
+            const pool = [...onlineSeats(state, s, ctx.online?.())].filter((n) => !taken.has(n));
+            assert(pool.length, '沒有可以抽的上線同學', 409);
+            pkPick(lobby, shuffleSeats(pool)[0]);
+            break;
+          }
+          case 'pk-buzz':
+            assert(typeof body.value === 'boolean', '搶答狀態不正確');
+            pkLobby(session).buzz = body.value;
+            break;
+          case 'pk-bot': {
+            const lobby = pkLobby(session);
+            assert(lobby.waiting !== null, '先選一位同學', 409);
+            lobby.pairs.push([lobby.waiting, 0]);
+            lobby.waiting = null;
+            break;
+          }
+          case 'pk-remove': {
+            const lobby = pkLobby(session);
+            lobby.pairs.splice(integer(body.index, 0, Math.max(0, lobby.pairs.length - 1)), 1);
+            break;
+          }
+          case 'pk-start':
+          case 'pk-again': {
+            // pk-again：同樣的組別重新抽一份卷子再比一次
+            const pairs: [number, number][] =
+              body.action === 'pk-again' ? (session.quiz?.matches || []).map((m) => [m.a, m.b]) : pkLobby(session).pairs;
+            assert(pairs.length, '還沒有配好的組', 409);
+            const bank = quizBank(state, s),
+              paper = drawPaper(bank),
+              seconds = integer(body.seconds ?? session.quiz?.seconds ?? 180, 30, 1800);
+            const run: QuizRun = { id: uuid(), mode: 'pk', paper, startedAt: Date.now() + PK_COUNTDOWN_MS, seconds, matches: pairs.map(([a, b]) => newMatch(a, b)) };
+            startQuiz(s, run);
+            if (pairs.some(([, b]) => b === 0)) s.quizSheets![run.id]['0'] = makeBot(bank, paper, seconds);
+            break;
+          }
           case 'results':
             assert(typeof body.value === 'boolean', '顯示狀態不正確');
             session.resultsVisible = body.value;
@@ -1544,6 +1703,49 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
         await store.write(state);
         return json(await operation());
       }
+      if (action === 'quiz' && method === 'POST') {
+        // 形成性評量／PK 作答：全班測驗可以改答案直到交卷；PK 選了就鎖定、馬上知道對錯
+        assert(user.role === 'student', '只有學生可作答', 403);
+        const run = session.quiz;
+        assert(run && run.id === body.runId, '這份測驗已經結束', 409);
+        const t = Date.now();
+        assert(t >= run.startedAt - 300, '還沒開始', 409);
+        assert(!run.endedAt && !quizOver(run, t - QUIZ_GRACE_MS), '時間到，作答已鎖定', 409);
+        const bank = quizBank(state, s),
+          n = bank.slots.length;
+        const sheets = ((s.quizSheets ||= {})[run.id] ||= {});
+        const sheet = (sheets[String(user.seat)] ||= { answers: Array(n).fill(null), times: Array(n).fill(null) });
+        assert(sheet.done === undefined, '已經交卷', 409);
+        const elapsed = Math.max(0, Math.min(t - run.startedAt, run.seconds * 1000));
+        if (body.submit === true) {
+          sheet.done = run.mode === 'pk' ? Math.max(0, ...sheet.times.filter((x): x is number => x !== null)) : elapsed;
+          session.revision++;
+          return save({ done: sheet.done });
+        }
+        const q = integer(body.q, 0, n - 1),
+          order = run.paper.picks[q].order,
+          original = order[integer(body.choice, 0, order.length - 1)];
+        if (run.mode === 'pk') assert(sheet.answers[q] === null, '這題已經作答', 409);
+        sheet.answers[q] = original;
+        sheet.times[q] = elapsed;
+        if (run.mode === 'pk' && sheet.answers.every((x) => x !== null)) sheet.done = elapsed;
+        s.seen[String(user.seat)] = now();
+        session.revision++;
+        const correct = isCorrect(bank, run.paper, q, original);
+        return save(run.mode === 'pk' ? { correct, score: score(bank, run, sheet, t) } : { ok: true });
+      }
+      if (action === 'pk-buzz' && method === 'POST') {
+        // 搶答上場 PK：搶到的人成為等待中那一位的對手（沒有人等待就成為第一位）
+        assert(user.role === 'student', '只有學生可搶答', 403);
+        const lobby = session.pkLobby;
+        assert(lobby?.buzz, '目前沒有開放搶答上場', 409);
+        assert(!pkTaken(lobby).has(user.seat!), '你已經在對戰名單裡', 409);
+        const before = lobby.pairs.length;
+        pkPick(lobby, user.seat!);
+        if (lobby.pairs.length > before) lobby.buzz = false; // 配成一組就關閉搶答
+        session.revision++;
+        return save({ ok: true, paired: lobby.pairs.length > before });
+      }
       if (action === 'danmaku' && method === 'POST') {
         // 彈幕：老師開放時學生可送出（每人 3 秒一則、30 字內）。不改 revision：學生畫面不變，只推給老師。
         assert(user.role === 'student', '只有學生可送彈幕', 403);
@@ -1565,7 +1767,6 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
         }
         const item: Danmaku = { id: uuid(), seat: user.seat!, text, anon: body.anon !== false, at: Date.now() };
         s.danmaku.push(item);
-        if (s.danmaku.length > 100) s.danmaku.splice(0, s.danmaku.length - 100);
         s.seen[String(user.seat)] = now();
         return save({ ok: true, ...(quota.limited ? { left: quota.left - 1 } : {}) });
       }
@@ -1607,21 +1808,31 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
           answers: s.answers,
           grades: Object.values(s.grades!),
           whiteboard: s.whiteboard,
+          danmaku: s.danmaku || [],
+          practice: s.practice || {},
+          quizRuns: s.quizRuns || [],
+          quizSheets: s.quizSheets || {},
         };
         const csvCell = (value: unknown) =>
           `"${String(value)
             .replace(/^(?:\s*[=+\-@]|[\t\r])/, "'$&")
             .replace(/"/g, '""')}"`;
         const isCsv = url.searchParams.get('format') === 'csv';
+        const tries = new Map<string, number>();
         const content = isCsv
           ? '﻿' +
             [
-              ['seat', 'activityId', 'answer', 'correct', 'score', 'max', 'feedback', 'submittedAt'],
+              ['kind', 'seat', 'activityId', 'attempt', 'answer', 'correct', 'score', 'max', 'feedback', 'submittedAt'],
+              // 作答：每一次送出一列；attempt 是同一人同一題的第幾次送出
               ...s.answers.map((a) => {
                 const g = s.grades![a.id];
+                const key = `${a.seat}:${a.activityId}`;
+                tries.set(key, (tries.get(key) || 0) + 1);
                 return [
+                  '作答',
                   a.seat,
                   a.activityId,
+                  tries.get(key),
                   JSON.stringify(a.value),
                   a.correct === undefined ? '' : a.correct ? 'Y' : 'N',
                   g ? g.total : '',
@@ -1630,6 +1841,19 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
                   a.submittedAt,
                 ];
               }),
+              // 原題再做一次：attempt 是第幾題；answer 前面標原題的小題號
+              ...Object.entries(s.practice || {}).flatMap(([activityId, bySeat]) =>
+                Object.values(bySeat).flatMap((e) =>
+                  e.subs.map((sub) => {
+                    const item = e.items?.[sub.round];
+                    return ['原題再做一次', e.seat, activityId, sub.round + 1, `${item !== undefined ? `(${item + 1}) ` : ''}${sub.value}`, sub.correct ? 'Y' : 'N', '', '', '', new Date(sub.at).toISOString()];
+                  }),
+                ),
+              ),
+              // 形成性評量／PK：每一題一列；attempt＝第幾題；score／max＝這份卷子的總答對題數；feedback＝PK 對手與勝負
+              ...quizCsvRows(s),
+              // 彈幕：feedback 欄寫匿名／具名
+              ...(s.danmaku || []).map((d) => ['彈幕', d.seat, '', '', d.text, '', '', '', d.anon ? '匿名' : '具名', new Date(d.at).toISOString()]),
             ]
               .map((row) => row.map(csvCell).join(','))
               .join('\r\n')
@@ -1657,12 +1881,16 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
             .map((c) => c.classroom),
           sessions: Object.values(state.sessions)
             .filter((s) => s.ownerId === user.id)
-            .map(({ session, lesson, answers, whiteboard, grades }) => ({
+            .map(({ session, lesson, answers, whiteboard, grades, danmaku, practice, quizRuns, quizSheets }) => ({
               session,
               lesson,
               answers,
               whiteboard,
               grades: Object.values(grades || {}),
+              danmaku: danmaku || [],
+              practice: practice || {},
+              quizRuns: quizRuns || [],
+              quizSheets: quizSheets || {},
             })),
         },
         200,
@@ -1715,6 +1943,45 @@ async function readBody(request: Request, maxBytes: number, message: string): Pr
   return bytes;
 }
 
+/** 備份裡的彈幕（舊備份沒有就是空的）。 */
+function restoreDanmaku(input: unknown, seats: number): Danmaku[] {
+  if (input === undefined) return [];
+  assert(Array.isArray(input) && input.length <= 50_000, '彈幕資料格式不正確');
+  return input.map((x) => {
+    const d = record(x);
+    return {
+      id: uuid(),
+      seat: integer(d.seat, 1, seats),
+      text: str(d.text, '彈幕', 30, 1),
+      anon: d.anon !== false,
+      at: integer(d.at, 0, 8.64e15),
+    };
+  });
+}
+/** 備份裡的「原題再做一次」紀錄：題目 ID → 座號 → 每一題的作答。 */
+function restorePractice(input: unknown, lesson: Lesson, seats: number): StoredSession['practice'] {
+  if (input === undefined) return {};
+  const out: NonNullable<StoredSession['practice']> = {};
+  for (const [activityId, bySeat] of Object.entries(record(input))) {
+    assert(lesson.slides.some((s) => s.activity?.id === activityId), '備份練習含未知題目');
+    out[identifier(activityId)] = {};
+    for (const raw of Object.values(record(bySeat))) {
+      const e = record(raw);
+      const seat = integer(e.seat, 1, seats);
+      assert(Array.isArray(e.subs) && e.subs.length <= 20, '練習紀錄格式不正確');
+      out[activityId][String(seat)] = {
+        seat,
+        start: integer(e.start, 0, 8.64e15),
+        subs: e.subs.map((y) => {
+          const r = record(y);
+          return { round: integer(r.round, 0, 19), value: str(r.value, '練習答案', 60, 0), correct: r.correct === true, at: integer(r.at, 0, 8.64e15) };
+        }),
+        ...(Array.isArray(e.items) ? { items: e.items.slice(0, 20).map((i) => integer(i, 0, 19)) } : {}),
+      };
+    }
+  }
+  return out;
+}
 function restoreBackup(input: unknown, state: State, user: User): void {
   const b = record(input);
   assert(b.schemaVersion === 1, '不支援的備份版本');
@@ -1852,6 +2119,9 @@ function restoreBackup(input: unknown, state: State, user: User): void {
       whiteboard,
       seen: {},
       grades,
+      danmaku: restoreDanmaku(bs.danmaku, cl.classroom.seats),
+      practice: restorePractice(bs.practice, lesson, cl.classroom.seats),
+      ...restoreQuiz(bs.quizRuns, bs.quizSheets, cl.classroom.seats),
     };
   }
   Object.assign(state, draft);

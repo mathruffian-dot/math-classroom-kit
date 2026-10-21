@@ -1,6 +1,7 @@
 import './styles.css';
 import { api, download, escape as esc, serverTime, syncClock } from './api';
 import { practiceStatus, practiceTotal, type PracticeStatus } from '../shared/practice';
+import { botScore, decide, matchOver, quizDeadline, quizOver } from '../shared/quiz';
 import { playCorrect, unlockSound } from './sound';
 import { HandPad } from './handpad';
 import { clearDanmakuLayer, syncDanmaku } from './danmaku';
@@ -18,6 +19,10 @@ import {
   type SketchState,
 } from './sketch';
 import type {
+  PkLobby,
+  PkMatch,
+  QuizScore,
+  QuizView,
   AppConfig,
   AiSettings,
   StorageUsageInfo,
@@ -205,7 +210,7 @@ function renderRecords() {
   shell(
     'records',
     '課堂紀錄',
-    `<section class="panel"><div class="table-wrap"><table><thead><tr><th>課程與班級</th><th>時間</th><th>狀態</th><th>操作</th></tr></thead><tbody>${rows.map((s) => `<tr><td><strong>${esc(s.title)}</strong><small>${esc(s.className)}</small></td><td>${new Date(s.createdAt).toLocaleString('zh-TW', { timeZone: 'Asia/Taipei', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}</td><td>${tag(s.ended ? '已結束' : '進行中', s.ended ? '' : 'green')}</td><td><div class="actions">${btn('開啟', 'resume', 'quiet', 'eye', `data-id="${s.id}"`)}${btn('CSV', 'export-session', 'quiet', 'download', `data-id="${s.id}"`)}${btn('刪除', 'delete-session', 'quiet danger', 'trash', `data-id="${s.id}"`)}</div></td></tr>`).join('') || '<tr><td colspan="4" class="empty-state">還沒有課堂紀錄。</td></tr>'}</tbody></table></div></section><p class="muted small-text">備份含作答與批改分數，不含作答照片本身與任何金鑰。</p>`,
+    `<section class="panel"><div class="table-wrap"><table><thead><tr><th>課程與班級</th><th>時間</th><th>狀態</th><th>操作</th></tr></thead><tbody>${rows.map((s) => `<tr><td><strong>${esc(s.title)}</strong><small>${esc(s.className)}</small></td><td>${new Date(s.createdAt).toLocaleString('zh-TW', { timeZone: 'Asia/Taipei', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}</td><td>${tag(s.ended ? '已結束' : '進行中', s.ended ? '' : 'green')}</td><td><div class="actions">${btn('開啟', 'resume', 'quiet', 'eye', `data-id="${s.id}"`)}${btn('CSV', 'export-session', 'quiet', 'download', `data-id="${s.id}"`)}${btn('刪除', 'delete-session', 'quiet danger', 'trash', `data-id="${s.id}"`)}</div></td></tr>`).join('') || '<tr><td colspan="4" class="empty-state">還沒有課堂紀錄。</td></tr>'}</tbody></table></div></section><p class="muted small-text">備份含每一次送出的作答、批改分數、「原題再做一次」與彈幕紀錄；不含作答照片與任何金鑰。CSV 每一次送出一列（attempt＝第幾次）。</p>`,
     `${btn('還原備份', 'restore', 'secondary', 'upload')}${btn('下載備份', 'backup', 'primary', 'download')}`,
   );
 }
@@ -879,7 +884,7 @@ function renderSession() {
   // 重畫時（例如按「公布結果」）保留動畫的播放位置
   const oldVideo = document.querySelector<HTMLVideoElement>('.anim-focus video');
   const resume = oldVideo ? { t: oldVideo.currentTime, paused: oldVideo.paused } : null;
-  app.innerHTML = `<header class="room-bar"><div class="room-identity">${teacher ? btn('返回', 'dashboard', 'icon-btn', 'back', 'aria-label="返回課程"') : `<span class="brand-mark small">${icon('sigma')}</span>`}<div><strong>${esc(teacher ? s.title : `${s.className}・${user.seat} 號`)}</strong><small>${teacher ? esc(s.className) : esc(view.lesson.title)}</small></div></div><div class="room-progress" aria-label="第 ${index + 1} 頁，共 ${total} 頁"><span>${index + 1}</span>/<span>${total}</span></div><div class="room-actions"><span id="sync-status" class="sync-status"><i></i>已連線</span>${teacher ? `${btn(screen ? '一般' : '大屏', 'screen', 'quiet', 'screen', 'title="切換大屏授課"')}` : ''}${btn('', 'fullscreen', 'icon-btn', 'expand', 'aria-label="全螢幕" title="全螢幕"')}${!teacher && s.danmakuOpen && !s.ended ? btn('彈幕', 'danmaku-bar', `quiet danmaku-btn ${danmakuBar ? 'selected' : ''}`, 'spark', 'data-testid="danmaku-open"') : ''}${teacher ? '' : btn('', 'logout', 'icon-btn', 'logout', 'aria-label="登出" title="登出"')}</div></header><div class="room-main"><main class="stage-col"><article class="slide-stage" data-testid="session-slide" id="slide-stage">${slideMarkup(slide, index, total)}</article><nav class="slide-nav" aria-label="翻頁與白板工具">${btn('', 'prev-slide', 'icon-btn nav-btn', 'prev', `aria-label="上一頁" ${index === 0 || (!teacher && s.followTeacher) ? 'disabled' : ''}`)}${teacher ? toolbar() : ''}<div class="slide-dots">${view.lesson.slides.map((sl, i) => `<button class="${i === index ? 'active' : ''} ${sl.activity ? 'has-q' : ''} ${i === s.slideIndex && !teacher ? 'live' : ''}" data-action="go-slide" data-index="${i}" aria-label="第 ${i + 1} 頁${sl.phase ? `・${esc(sl.phase)}` : ''}" title="${esc(sl.phase || sl.title)}" ${!teacher && s.followTeacher ? 'disabled' : ''}><span></span></button>`).join('')}</div>${btn('', 'next-slide', 'icon-btn nav-btn primary', 'next', `aria-label="下一頁" data-testid="next-slide" ${index === total - 1 || (!teacher && s.followTeacher) ? 'disabled' : ''}`)}</nav></main><aside class="panel-col" aria-label="${teacher ? '課堂互動' : '作答區'}">${panel}</aside></div>${teacher ? '' : `<nav class="phone-tabs" aria-label="切換"><button class="${studentTab === 'slide' ? 'selected' : ''}" data-action="student-tab" data-tab="slide">${icon('book')}教材</button><button class="${studentTab === 'answer' ? 'selected' : ''}" data-action="student-tab" data-tab="answer">${icon('pen')}作答${a && s.activityOpen && (!own || editing) ? '<i class="badge-dot"></i>' : ''}</button></nav>`}<div id="buzz-root"></div><div id="danmaku-root">${teacher ? '' : danmakuStudentHtml()}</div>${teacher ? '' : keypadHtml()}`;
+  app.innerHTML = `<header class="room-bar"><div class="room-identity">${teacher ? btn('返回', 'dashboard', 'icon-btn', 'back', 'aria-label="返回課程"') : `<span class="brand-mark small">${icon('sigma')}</span>`}<div><strong>${esc(teacher ? s.title : `${s.className}・${user.seat} 號`)}</strong><small>${teacher ? esc(s.className) : esc(view.lesson.title)}</small></div></div><div class="room-progress" aria-label="第 ${index + 1} 頁，共 ${total} 頁"><span>${index + 1}</span>/<span>${total}</span></div><div class="room-actions"><span id="sync-status" class="sync-status"><i></i>已連線</span>${teacher ? `${btn(screen ? '一般' : '大屏', 'screen', 'quiet', 'screen', 'title="切換大屏授課"')}` : ''}${btn('', 'fullscreen', 'icon-btn', 'expand', 'aria-label="全螢幕" title="全螢幕"')}${!teacher && s.danmakuOpen && !s.ended ? btn('彈幕', 'danmaku-bar', `quiet danmaku-btn ${danmakuBar ? 'selected' : ''}`, 'spark', 'data-testid="danmaku-open"') : ''}${teacher ? '' : btn('', 'logout', 'icon-btn', 'logout', 'aria-label="登出" title="登出"')}</div></header><div class="room-main"><main class="stage-col"><article class="slide-stage" data-testid="session-slide" id="slide-stage">${slideMarkup(slide, index, total)}<div id="quiz-board-host">${teacher ? quizBoardHtml() : ''}</div></article><nav class="slide-nav" aria-label="翻頁與白板工具">${btn('', 'prev-slide', 'icon-btn nav-btn', 'prev', `aria-label="上一頁" ${index === 0 || (!teacher && s.followTeacher) ? 'disabled' : ''}`)}${teacher ? toolbar() : ''}<div class="slide-dots">${view.lesson.slides.map((sl, i) => `<button class="${i === index ? 'active' : ''} ${sl.activity ? 'has-q' : ''} ${i === s.slideIndex && !teacher ? 'live' : ''}" data-action="go-slide" data-index="${i}" aria-label="第 ${i + 1} 頁${sl.phase ? `・${esc(sl.phase)}` : ''}" title="${esc(sl.phase || sl.title)}" ${!teacher && s.followTeacher ? 'disabled' : ''}><span></span></button>`).join('')}</div>${btn('', 'next-slide', 'icon-btn nav-btn primary', 'next', `aria-label="下一頁" data-testid="next-slide" ${index === total - 1 || (!teacher && s.followTeacher) ? 'disabled' : ''}`)}</nav></main><aside class="panel-col" aria-label="${teacher ? '課堂互動' : '作答區'}">${panel}</aside></div>${teacher ? '' : `<nav class="phone-tabs" aria-label="切換"><button class="${studentTab === 'slide' ? 'selected' : ''}" data-action="student-tab" data-tab="slide">${icon('book')}教材</button><button class="${studentTab === 'answer' ? 'selected' : ''}" data-action="student-tab" data-tab="answer">${icon('pen')}作答${a && s.activityOpen && (!own || editing) ? '<i class="badge-dot"></i>' : ''}</button></nav>`}<div id="buzz-root"></div><div id="danmaku-root">${teacher ? '' : danmakuStudentHtml()}</div>${teacher ? '' : keypadHtml()}`;
   const stage = document.querySelector<HTMLElement>('#slide-stage')!;
   renderBuzzLayer();
   if (!teacher) mountHandPad();
@@ -933,6 +938,8 @@ function studentPanel(a: Activity | undefined, index: number) {
   const s = view!.session;
   if (s.ended) return `<div class="quiet-moment"><h2>課堂已結束</h2><p>你的作答已保存。</p></div>`;
   if (myPractice()) return `<div class="panel-scroll"><div id="student-answer">${practiceCard()}</div><div id="class-events">${eventsHtml()}</div></div>`;
+  if (view!.quiz && s.quiz) return `<div class="panel-scroll"><div id="student-answer">${quizCard()}</div><div id="class-events">${eventsHtml()}</div></div>`;
+  if (s.pkLobby?.buzz && !pkTakenSeats(s.pkLobby).has(user!.seat!)) return `<div class="panel-scroll"><div id="student-answer">${pkBuzzCard()}</div></div>`;
   if (index !== s.slideIndex)
     return `<div class="quiet-moment"><h2>自主瀏覽中</h2><p>作答只開放在老師目前的頁面。</p>${btn('回到目前頁面', 'go-slide', 'primary', 'arrow', `data-index="${s.slideIndex}"`)}</div>`;
   if (!a) return `<div class="quiet-moment">${icon('sigma')}<h2>先看、先想</h2><p>這一頁沒有題目，跟著老師操作圖形。</p></div><div id="class-events">${eventsHtml()}</div>`;
@@ -953,7 +960,10 @@ function teacherPanel(a: Activity | undefined, screen: boolean) {
   const activity = a
     ? `<section class="teacher-activity"><div class="activity-top">${tag(TYPE_LABEL[a.type])}<span id="answer-count" class="count-pill">${view!.aggregate.submitted} / ${view!.aggregate.total}</span></div><h2>${md(a.prompt)}</h2><div class="activity-actions" id="activity-actions">${activityActions(a)}</div><div id="aggregate">${aggregateHtml(view!)}</div><div id="practice-board">${practiceBoard(a)}</div>${screen ? '' : `<div id="responses">${responsesHtml(a)}</div>`}${!screen && a.aiAllowed && ['short', 'numeric', 'canvas'].includes(a.type) ? btn('AI 整理全班迷思', 'summarize', 'quiet full', 'spark') : ''}</section>`
     : `<div class="quiet-moment">${icon('sigma')}<h2>這一頁沒有題目</h2><p>可以用畫筆在圖上標示，或抽籤請同學說明。</p></div>`;
-  return `<div class="panel-scroll">${activity}<section class="seat-map" id="seat-map" data-testid="seat-map">${seatMapInner()}</section>${gradable && !screen ? gradingBar(a!) : ''}<section class="class-tools">${screen && a ? drawFilterBar() : ''}<div class="tool-row">${btn(drawLabel(a), 'draw', 'secondary', 'dice', 'data-testid="draw-seat"')}${btn('搶答', 'buzz-open', 'secondary', 'bolt', 'data-testid="buzz-open"')}</div><div id="danmaku-tools">${danmakuTools()}</div><div id="class-events">${eventsHtml()}</div></section>${screen ? '' : `<section class="room-options">${btn(s.followTeacher ? '同步翻頁中' : '學生自主瀏覽', 'toggle-follow', 'quiet', s.followTeacher ? 'screen' : 'book', s.ended ? 'disabled' : '')}${btn('學生加入', 'join-info', 'quiet', 'users')}${btn('結束課堂', 'end-session', 'quiet danger', 'logout', s.ended ? 'disabled' : '')}</section>${view!.lesson.slides[s.slideIndex]?.notes ? `<details class="teacher-notes"><summary>教師備註（學生看不到）</summary><p>${esc(view!.lesson.slides[s.slideIndex].notes)}</p></details>` : ''}`}</div>`;
+  // 測驗或 PK 進行中：控制區放最上面，不用往下捲
+  const quizBusy = !!(s.quiz || s.pkLobby);
+  const quizSection = `<section class="quiz-tools" id="quiz-panel">${quizPanel()}</section>`;
+  return `<div class="panel-scroll">${quizBusy ? quizSection : ''}${activity}<section class="seat-map" id="seat-map" data-testid="seat-map">${seatMapInner()}</section>${gradable && !screen ? gradingBar(a!) : ''}${quizBusy ? '' : quizSection}<section class="class-tools">${screen && a ? drawFilterBar() : ''}<div class="tool-row">${btn(drawLabel(a), 'draw', 'secondary', 'dice', 'data-testid="draw-seat"')}${btn('搶答', 'buzz-open', 'secondary', 'bolt', 'data-testid="buzz-open"')}</div><div id="danmaku-tools">${danmakuTools()}</div><div id="class-events">${eventsHtml()}</div></section>${screen ? '' : `<section class="room-options">${btn(s.followTeacher ? '同步翻頁中' : '學生自主瀏覽', 'toggle-follow', 'quiet', s.followTeacher ? 'screen' : 'book', s.ended ? 'disabled' : '')}${btn('學生加入', 'join-info', 'quiet', 'users')}${btn('結束課堂', 'end-session', 'quiet danger', 'logout', s.ended ? 'disabled' : '')}</section>${view!.lesson.slides[s.slideIndex]?.notes ? `<details class="teacher-notes"><summary>教師備註（學生看不到）</summary><p>${esc(view!.lesson.slides[s.slideIndex].notes)}</p></details>` : ''}`}</div>`;
 }
 /* ───────────── 作答限時與補救練習 ───────────── */
 const TIME_LIMITS: [number, string][] = [
@@ -1060,6 +1070,178 @@ function practiceCard() {
   else body = `<p class="verdict no" data-testid="practice-help">${icon('x')}<span>${retry ? '還有題目沒答對' : `${p.run.rounds} 輪都還沒過`}，老師等一下會來和你一起看。</span></p>`;
   return `<section class="practice-card" data-testid="practice-card">${head}${past ? `<ol class="practice-history">${past}</ol>` : ''}${body}</section>`;
 }
+
+/* ───────────── 課後形成性評量＋PK 戰 ───────────── */
+/** 老師：大螢幕戰況／結果（疊在投影片上）。 */
+let quizBoardOpen = true;
+/** 學生：全班測驗目前看第幾題。 */
+let quizIndex = 0;
+/** 學生：PK 上一題的對錯提示。 */
+let quizFlash = '';
+const EMPTY_SCORE: QuizScore = { answered: 0, correct: 0, timeMs: null, finished: false };
+const quizClassSeconds = () => prefs.get<number>('quizSeconds', 600);
+const pkSeconds = () => prefs.get<number>('pkSeconds', 180);
+const seatName = (n: number) => (n === 0 ? '電腦' : `${n} 號`);
+const secText = (ms: number | null) => (ms === null ? '' : `${(ms / 1000).toFixed(1)} 秒`);
+function quizScoreOf(q: QuizView, seat: number): QuizScore {
+  if (seat === 0 && q.bot) return botScore(q.bot, q.run, serverTime());
+  return q.scores[String(seat)] || { ...EMPTY_SCORE, timeMs: quizOver(q.run, serverTime()) ? q.run.seconds * 1000 : null };
+}
+function matchState(q: QuizView, m: PkMatch) {
+  const a = quizScoreOf(q, m.a),
+    b = quizScoreOf(q, m.b);
+  const over = matchOver(q.run, a, b, serverTime());
+  return { a, b, over, result: over ? decide(a, b) : null };
+}
+function selectHtml(id: string, list: [number, string][], value: number) {
+  return `<select id="${id}">${list.map(([v, l]) => `<option value="${v}" ${v === value ? 'selected' : ''}>${l}</option>`).join('')}</select>`;
+}
+/** 老師面板：派全班測驗、PK 配對、進行中狀態。 */
+function quizPanel(): string {
+  const v = view!,
+    s = v.session,
+    q = v.quiz;
+  if (!v.lesson.quiz && !q && !s.pkLobby) return '';
+  const head = `<header><strong>${icon('target')}課後檢核・PK 戰</strong></header>`;
+  if (s.pkLobby) return head + pkLobbyHtml(s.pkLobby);
+  if (q && s.quiz) return head + (q.run.mode === 'pk' ? pkRunPanel(q) : classRunPanel(q));
+  return `${head}<p class="muted small-text">10 題四選一，每題從 3 題換數字的題目抽 1 題。全班同一份；重新派題或 PK 都會重新抽。</p><div class="tool-row">${btn('派全班測驗', 'quiz-class', 'primary', 'check', 'data-testid="quiz-class"')}<label class="time-limit">${icon('clock')}${selectHtml('quiz-seconds', [[300, '5 分鐘'], [600, '10 分鐘'], [900, '15 分鐘']], quizClassSeconds())}</label></div><div class="tool-row">${btn('PK 戰：開始配對', 'pk-lobby', 'secondary', 'bolt', 'data-testid="pk-lobby"')}</div>`;
+}
+function pkLobbyHtml(l: PkLobby) {
+  const pairs = l.pairs
+    .map(([a, b], i) => `<span class="pk-pair" data-testid="pk-pair"><b>${seatName(a)}</b><i>vs</i><b>${seatName(b)}</b>${btn('', 'pk-remove', 'icon-btn', 'x', `data-index="${i}" aria-label="移除這一組"`)}</span>`)
+    .join('');
+  const waiting = l.waiting !== null ? `<span class="pk-pair waiting" data-testid="pk-waiting"><b>${l.waiting} 號</b><i>vs</i><b>？</b></span>` : '';
+  return `<div class="pk-pairs">${pairs}${waiting}${pairs || waiting ? '' : '<p class="muted small-text">還沒有組別。</p>'}</div><div class="tool-row">${btn('全班隨機配對', 'pk-random', 'secondary', 'users', 'data-testid="pk-random"')}${btn('抽籤', 'pk-draw', 'secondary', 'dice', 'data-testid="pk-draw"')}</div><div class="tool-row">${btn(l.buzz ? '關閉搶答' : '開放搶答上場', 'pk-buzz', l.buzz ? 'primary' : 'secondary', 'bolt', `data-testid="pk-buzz" aria-pressed="${l.buzz}"`)}${l.waiting !== null ? btn('配電腦', 'pk-bot', 'quiet', 'sigma', 'data-testid="pk-bot"') : ''}</div><p class="muted small-text">也可以直接點座位表的號碼：第一下選人，第二下配成一組。抽籤、搶答可以混搭（抽一位＋搶答當對手）。單數時多出來的一位和電腦對戰。</p><div class="tool-row"><label class="time-limit">${icon('clock')}${selectHtml('pk-seconds', [[60, '1 分鐘'], [120, '2 分鐘'], [180, '3 分鐘'], [300, '5 分鐘']], pkSeconds())}</label>${btn(`開始對戰（${l.pairs.length} 組）`, 'pk-start', 'primary', 'play', `data-testid="pk-start" ${l.pairs.length ? '' : 'disabled'}`)}</div>${btn('取消', 'quiz-close', 'quiet', 'x')}`;
+}
+function classRunPanel(q: QuizView) {
+  const over = quizOver(q.run, serverTime());
+  const scores = Object.entries(q.scores).filter(([seat]) => seat !== '0');
+  const done = scores.filter(([, x]) => x.finished).length,
+    online = (view!.roster || []).filter((r) => r.online).length;
+  const list = scores
+    .sort((x, y) => Number(x[0]) - Number(y[0]))
+    .map(([seat, x]) => `<span class="seat-chip ${x.finished ? 'ok' : ''}"><b class="chip-seat">${seat}</b><small>${x.correct}/${q.questions.length}${x.finished ? `・${secText(x.timeMs)}` : `・作答 ${x.answered}`}</small></span>`)
+    .join('');
+  return `<p class="quiz-status" data-testid="quiz-status">${over ? '測驗已結束' : `全班測驗・剩 ${countdown(quizDeadline(q.run))}`}・已交卷 ${done}／上線 ${online}</p><div class="tool-row">${btn(quizBoardOpen ? '收起大螢幕' : '大螢幕顯示', 'quiz-board', 'secondary', 'screen', 'data-testid="quiz-board-toggle"')}${over ? btn('重新派一份', 'quiz-class', 'secondary', 'dice') : btn('結束測驗', 'quiz-end', 'secondary', 'x', 'data-testid="quiz-end"')}</div><details class="answer-list"><summary>個別成績（${scores.length} 人）</summary><div class="seat-chips">${list || '<p class="muted">還沒有人作答。</p>'}</div></details>${btn('關閉', 'quiz-close', 'quiet', 'x')}`;
+}
+function pkRunPanel(q: QuizView) {
+  const now = serverTime(),
+    ms = q.run.matches || [];
+  const allOver = ms.every((m) => matchState(q, m).over);
+  const status = q.run.startedAt > now ? '倒數準備中' : allOver ? '全部比完' : `剩 ${countdown(quizDeadline(q.run))}`;
+  return `<p class="quiz-status" data-testid="quiz-status">PK 戰・${ms.length} 組・${status}</p><div class="tool-row">${btn(quizBoardOpen ? '收起戰況' : '大螢幕戰況', 'quiz-board', 'secondary', 'screen', 'data-testid="quiz-board-toggle"')}${allOver ? '' : btn('結束對戰', 'quiz-end', 'secondary', 'x', 'data-testid="quiz-end"')}</div>${allOver ? `<div class="tool-row">${btn('同組再戰（重新抽題）', 'pk-again', 'primary', 'dice', 'data-testid="pk-again"')}${btn('重新配對', 'pk-lobby', 'secondary', 'users')}</div>` : ''}${btn('關閉', 'quiz-close', 'quiet', 'x')}`;
+}
+/** 大螢幕：PK 每一組的對戰卡，或全班測驗每一題的答對率（不顯示個人成績）。 */
+function quizBoardHtml(): string {
+  const q = view?.quiz;
+  if (!q || !quizBoardOpen || user?.role !== 'teacher' || !view?.session.quiz) return '';
+  const now = serverTime(),
+    n = q.questions.length,
+    close = btn('', 'quiz-board', 'icon-btn', 'x', 'aria-label="收起"');
+  if (q.run.mode === 'pk') {
+    const before = q.run.startedAt > now;
+    const clock = before ? `<span class="pk-count" data-pk-start="${q.run.startedAt}">${Math.ceil((q.run.startedAt - now) / 1000)}</span>` : quizOver(q.run, now) ? '<span class="pk-clock">時間到</span>' : `<span class="pk-clock">${countdown(quizDeadline(q.run))}</span>`;
+    const side = (seat: number, sc: QuizScore, mark: string) =>
+      `<div class="pk-side ${mark}"><strong>${seatName(seat)}</strong><b class="pk-score">${sc.correct}</b><small>答對</small><div class="pk-bar"><i style="width:${(sc.answered / n) * 100}%"></i></div><small>${sc.answered}／${n} 題${sc.finished && sc.timeMs !== null ? `・${secText(sc.timeMs)}` : ''}</small>${mark === 'win' ? '<em class="pk-crown">勝</em>' : ''}</div>`;
+    const cards = (q.run.matches || [])
+      .map((m) => {
+        const st = matchState(q, m);
+        const mark = (who: 'a' | 'b') => (st.result === who ? 'win' : st.result && st.result !== 'draw' ? 'lose' : '');
+        return `<div class="pk-card ${st.over ? 'over' : ''}" data-testid="pk-card">${side(m.a, st.a, mark('a'))}<div class="pk-vs">${st.result === 'draw' ? '平手' : 'VS'}</div>${side(m.b, st.b, mark('b'))}</div>`;
+      })
+      .join('');
+    return `<div class="quiz-board" data-testid="quiz-board"><header><strong>${icon('bolt')}PK 戰</strong><small>答對題數多的贏；一樣多比用時</small>${clock}${close}</header><div class="pk-grid">${cards}</div></div>`;
+  }
+  const over = quizOver(q.run, now);
+  const rows = q.questions
+    .map((x, i) => {
+      const counts = q.picks?.[i] || [],
+        total = counts.reduce((s, c) => s + c, 0),
+        right = x.answer !== undefined ? counts[x.answer] || 0 : 0;
+      const wrong = counts.map((c, k) => [c, k] as const).filter(([, k]) => k !== x.answer).sort((p, r) => r[0] - p[0])[0];
+      const pct = total ? Math.round((right / total) * 100) : 0;
+      return `<div class="qb-row"><span>${i + 1}. ${esc(x.topic)}</span><div class="bar-track"><span style="width:${pct}%"></span></div><b>${total ? `${pct}%` : '—'}</b>${over && wrong && wrong[0] ? `<small>最多人錯選 ${String.fromCharCode(65 + wrong[1])}（${wrong[0]} 人）</small>` : '<small></small>'}</div>`;
+    })
+    .join('');
+  const scores = Object.values(q.scores);
+  const avg = scores.length ? (scores.reduce((s, x) => s + x.correct, 0) / scores.length).toFixed(1) : '—';
+  return `<div class="quiz-board" data-testid="quiz-board"><header><strong>${icon('target')}${esc(q.title)}</strong><small>${scores.length} 人作答・平均答對 ${avg} 題</small>${over ? '<span class="pk-clock">已結束</span>' : `<span class="pk-clock">${countdown(quizDeadline(q.run))}</span>`}${close}</header><div class="qb-rows">${rows}</div></div>`;
+}
+/** 學生：搶答上場 PK。 */
+function pkBuzzCard() {
+  return `<section class="quiz-card pk-buzz-card"><h2>${icon('bolt')}PK 戰搶答上場</h2><p class="muted">最先按的同學上場對戰。</p><button type="button" class="buzz-big" data-action="pk-buzz-in" data-testid="pk-buzz-in">${icon('bolt')}<span>搶答上場</span></button></section>`;
+}
+function pkTakenSeats(l: PkLobby) {
+  const out = new Set<number>(l.pairs.flat());
+  if (l.waiting !== null) out.add(l.waiting);
+  return out;
+}
+/** 學生的測驗卡：全班測驗可以前後翻、改答案再交卷；PK 選了就鎖定、馬上知道對錯。 */
+function quizCard(): string {
+  const q = view!.quiz!,
+    me = user!.seat!,
+    now = serverTime(),
+    n = q.questions.length,
+    over = quizOver(q.run, now);
+  const mine: NonNullable<QuizView['mine']> = q.mine || { answers: Array(n).fill(null), correct: Array(n).fill(null) };
+  const letter = (k: number) => String.fromCharCode(65 + k);
+  const review = () =>
+    `<ol class="quiz-review">${q.questions
+      .map((x, i) => {
+        const pick = mine.answers[i],
+          ok = mine.correct[i];
+        return `<li class="${ok === true ? 'ok' : ok === false ? 'no' : ''}"><div>${md(x.stem)}</div><small>你選 ${pick === null ? '—' : `${letter(pick)}. ${md(x.options[pick])}`}${x.answer !== undefined ? `　正解 ${letter(x.answer)}. ${md(x.options[x.answer])}` : ''}</small>${x.explanation ? `<small class="muted">${md(x.explanation)}</small>` : ''}</li>`;
+      })
+      .join('')}</ol>`;
+  const options = (i: number, chosen: number | null, locked: boolean) =>
+    `<div class="quiz-options">${q.questions[i].options.map((o, k) => `<button class="answer-option ${chosen === k ? 'chosen' : ''}" data-action="quiz-choose" data-q="${i}" data-choice="${k}" data-testid="quiz-option-${k}" ${locked ? 'disabled' : ''}><span class="option-letter">${letter(k)}</span><span>${md(o)}</span></button>`).join('')}</div>`;
+  if (q.run.mode === 'pk') {
+    const m = q.run.matches?.find((x) => x.a === me || x.b === me);
+    const opp = m ? (m.a === me ? m.b : m.a) : null;
+    const title = m ? `PK 戰：你 vs ${seatName(opp!)}` : 'PK 戰：跟著做（不影響勝負）';
+    if (q.run.startedAt > now)
+      return `<section class="quiz-card" data-testid="quiz-card"><h2>${icon('bolt')}${title}</h2><p class="pk-countdown" data-pk-start="${q.run.startedAt}">${Math.ceil((q.run.startedAt - now) / 1000)}</p><p class="muted">準備開始…</p></section>`;
+    const progress = m ? `<p class="pk-progress" id="pk-progress">${pkProgressText(q, me, opp!)}</p>` : '';
+    const next = mine.answers.findIndex((x) => x === null);
+    if (next < 0 || over || mine.done !== undefined) {
+      let result = '';
+      if (m) {
+        const st = matchState(q, m);
+        const r = st.result === 'draw' ? '平手' : st.result ? ((st.result === 'a') === (m.a === me) ? '你贏了！' : '這次輸了，再接再厲') : '';
+        result = st.over ? `<p class="pk-result" data-testid="pk-result">${r}</p>` : `<p class="muted">答完了，等${seatName(opp!)}…</p>`;
+      }
+      const sc = quizScoreOf(q, me);
+      return `<section class="quiz-card" data-testid="quiz-card"><h2>${icon('bolt')}${title}</h2>${progress}${result}<p class="quiz-summary">答對 ${sc.correct}／${n} 題${sc.timeMs !== null ? `，用時 ${secText(sc.timeMs)}` : ''}</p>${review()}</section>`;
+    }
+    return `<section class="quiz-card" data-testid="quiz-card"><h2>${icon('bolt')}${title}　${countdown(quizDeadline(q.run))}</h2>${progress}${quizFlash ? `<p class="quiz-flash">${quizFlash}</p>` : ''}<p class="mini-label">第 ${next + 1}／${n} 題・${esc(q.questions[next].topic)}</p><div class="quiz-stem">${md(q.questions[next].stem)}</div>${options(next, null, false)}</section>`;
+  }
+  // 全班測驗
+  if (mine.done !== undefined || over)
+    return `<section class="quiz-card" data-testid="quiz-card"><h2>${icon('target')}${esc(q.title)}</h2>${over ? `<p class="quiz-summary" data-testid="quiz-summary">答對 ${mine.correct.filter((x) => x === true).length}／${n} 題</p>${review()}` : '<p class="quiz-summary">已交卷，老師結束測驗後就能看到答案與解析。</p>'}</section>`;
+  quizIndex = Math.min(Math.max(0, quizIndex), n - 1);
+  const dots = q.questions.map((_, i) => `<button class="quiz-dot ${mine.answers[i] !== null ? 'done' : ''} ${i === quizIndex ? 'current' : ''}" data-action="quiz-go" data-q="${i}" aria-label="第 ${i + 1} 題">${i + 1}</button>`).join('');
+  const left = mine.answers.filter((x) => x === null).length;
+  return `<section class="quiz-card" data-testid="quiz-card"><h2>${icon('target')}${esc(q.title)}　${countdown(quizDeadline(q.run))}</h2><div class="quiz-dots">${dots}</div><p class="mini-label">第 ${quizIndex + 1}／${n} 題・${esc(q.questions[quizIndex].topic)}</p><div class="quiz-stem">${md(q.questions[quizIndex].stem)}</div>${options(quizIndex, mine.answers[quizIndex], false)}<div class="tool-row">${btn('上一題', 'quiz-go', 'quiet', 'prev', `data-q="${quizIndex - 1}" ${quizIndex ? '' : 'disabled'}`)}${btn('下一題', 'quiz-go', 'quiet', 'next', `data-q="${quizIndex + 1}" ${quizIndex < n - 1 ? '' : 'disabled'}`)}</div>${btn(left ? `交卷（還有 ${left} 題沒作答）` : '交卷', 'quiz-submit', 'primary full', 'check', 'data-testid="quiz-submit"')}</section>`;
+}
+function pkProgressText(q: QuizView, me: number, opp: number) {
+  const a = quizScoreOf(q, me),
+    b = quizScoreOf(q, opp);
+  return `你 ${a.correct}✓（${a.answered} 題）｜${seatName(opp)} ${b.correct}✓（${b.answered} 題）`;
+}
+/** 測驗狀態變了（開始倒數結束、時間到）：重畫面板與大螢幕。 */
+function refreshQuiz() {
+  if (!view) return;
+  if (user?.role === 'teacher') {
+    const panel = document.querySelector('#quiz-panel');
+    if (panel && !panel.contains(document.activeElement)) panel.innerHTML = quizPanel();
+    const host = document.querySelector('#quiz-board-host');
+    if (host) host.innerHTML = quizBoardHtml();
+    return;
+  }
+  const card = document.querySelector('#student-answer');
+  if (card && view.quiz && card.querySelector('[data-testid="quiz-card"]')) card.innerHTML = quizCard();
+}
 /* ───────────── 彈幕 ───────────── */
 /** 老師端：開關、清除、紀錄（紀錄看得到座號，畫面上匿名的不顯示）。 */
 function danmakuTools() {
@@ -1109,14 +1291,30 @@ function tickClocks() {
     el.textContent = clockText(Number(el.dataset.deadline) - now);
     el.classList.toggle('urgent', Number(el.dataset.deadline) - now < 10_000);
   });
+  document.querySelectorAll<HTMLElement>('[data-pk-start]').forEach((el) => {
+    el.textContent = String(Math.max(0, Math.ceil((Number(el.dataset.pkStart) - now) / 1000)));
+  });
+  const qz = view.quiz;
+  const quizPhase = qz && view.session.quiz ? (qz.run.startedAt > now ? 'pre' : quizOver(qz.run, now) ? 'over' : 'on') : '';
+  if (qz && qz.run.mode === 'pk' && quizPhase === 'on') {
+    // 電腦對手的進度由各裝置依時間表自己算
+    if (user.role === 'teacher' && qz.bot) {
+      const host = document.querySelector('#quiz-board-host');
+      if (host) host.innerHTML = quizBoardHtml();
+    }
+    const prog = document.querySelector('#pk-progress');
+    const m = qz.run.matches?.find((x) => x.a === user!.seat || x.b === user!.seat);
+    if (prog && m) prog.textContent = pkProgressText(qz, user.seat!, m.a === user.seat ? m.b : m.a);
+  }
   const mine = myPractice();
   const p = view.practice;
   const teacherStates = user.role === 'teacher' && p ? p.entries.map((e) => { const st = practiceStatus(p.run, e, now); return `${st.status}${st.round}`; }).join() : '';
-  const key = `${timeUp()}|${mine ? `${mine.st.status}${mine.st.round}` : ''}|${teacherStates}`;
+  const key = `${timeUp()}|${mine ? `${mine.st.status}${mine.st.round}` : ''}|${teacherStates}|${quizPhase}`;
   if (key === clockKey) return;
   const first = !clockKey;
   clockKey = key;
   if (first) return;
+  if (quizPhase) refreshQuiz();
   if (user.role === 'teacher') {
     const a = view.lesson.slides[view.session.slideIndex]?.activity;
     const actions = document.querySelector('#activity-actions');
@@ -1363,6 +1561,13 @@ function seatMapInner() {
       const state = a && x.answered ? 'done' : x.online ? 'on' : 'off';
       const label = `${x.seat} 號：${a ? (x.answered ? '已作答' : '未作答') : ''}${a ? '・' : ''}${x.online ? '上線' : '未上線'}`;
       const mark = pick ? (pick.has(x.seat) ? ' pick' : ' faded') : '';
+      // PK 配對中：點號碼選人（第一下選人、第二下配成一組）
+      const lobby = user?.role === 'teacher' ? view!.session.pkLobby : null;
+      if (lobby) {
+        const inPair = lobby.pairs.some(([p, r]) => p === x.seat || r === x.seat),
+          waiting = lobby.waiting === x.seat;
+        return `<button type="button" class="seat ${state} pk-seat ${inPair ? 'paired' : ''} ${waiting ? 'waiting' : ''}" data-action="pk-pick" data-seat="${x.seat}" title="${label}" aria-label="${label}" ${inPair ? 'disabled' : ''}>${x.seat}</button>`;
+      }
       return `<span class="seat ${state}${mark}" title="${label}" aria-label="${label}">${x.seat}</span>`;
     })
     .join('');
@@ -1511,7 +1716,7 @@ function viewSignature(v: SessionView) {
   const s = v.session;
   // 學生端：自己被派到（或結束）補救練習也要整個重畫
   const mine = user?.role === 'student' ? (v.practice?.entries.length ?? 0) : '';
-  return [s.id, s.slideIndex, s.activityOpen, s.resultsVisible, s.followTeacher, s.ended, s.activityDeadline ?? '', s.practice?.startedAt ?? '', s.danmakuOpen ?? false, s.photoOpen ?? false, `${v.danmakuQuota?.limited ?? ''}/${v.danmakuQuota?.eligible ?? ''}`, mine].join(':');
+  return [s.id, s.slideIndex, s.activityOpen, s.resultsVisible, s.followTeacher, s.ended, s.activityDeadline ?? '', s.practice?.startedAt ?? '', s.danmakuOpen ?? false, s.photoOpen ?? false, `${s.quiz?.id ?? ''}/${s.quiz?.endedAt ?? ''}`, s.pkLobby ? JSON.stringify(s.pkLobby) : '', `${v.danmakuQuota?.limited ?? ''}/${v.danmakuQuota?.eligible ?? ''}`, mine].join(':');
 }
 function gradesSignature(v: SessionView) {
   return v.grades.map((g) => `${g.answerId}:${g.total}:${g.released}:${g.gradedAt}`).sort().join('|');
@@ -1691,13 +1896,20 @@ async function applyViewNow(next: SessionView | { session: null }, route: string
         if (user.role === 'student') studentTab = 'slide';
       }
       if (opened && user.role === 'student') studentTab = 'answer';
+      if (user.role === 'student' && n.session.quiz && n.session.quiz.id !== view.session.quiz?.id) {
+        studentTab = 'answer';
+        quizIndex = 0;
+        quizFlash = '';
+      }
       if (user.role === 'student' && n.practice?.entries.length && !view.practice?.entries.length) studentTab = 'answer';
       if (!busy) renderSession();
     } else {
       const gradesChanged = gradesSignature(n) !== gradesSignature(view);
       const answersChanged = n.answers.length !== view.answers.length;
       const practiceChanged = JSON.stringify(n.practice ?? null) !== JSON.stringify(view.practice ?? null);
+      const quizChanged = JSON.stringify(n.quiz ?? null) !== JSON.stringify(view.quiz ?? null);
       view = n;
+      if (quizChanged && !busy) refreshQuiz();
       if (practiceChanged) {
         const a = n.lesson.slides[n.session.slideIndex]?.activity;
         const board = document.querySelector('#practice-board');
@@ -2233,6 +2445,69 @@ async function action(el: HTMLElement) {
     }
     case 'practice-end':
       return control('practice-end');
+    case 'quiz-class':
+      quizBoardOpen = true;
+      return control('quiz-class', { seconds: quizClassSeconds() });
+    case 'quiz-end':
+    case 'quiz-close':
+    case 'pk-lobby':
+    case 'pk-random':
+    case 'pk-draw':
+    case 'pk-bot':
+      return control(act);
+    case 'pk-buzz':
+      return control('pk-buzz', { value: !s.pkLobby?.buzz });
+    case 'pk-remove':
+      return control('pk-remove', { index: Number(el.dataset.index) });
+    case 'pk-pick':
+      return control('pk-pick', { seat: Number(el.dataset.seat) });
+    case 'pk-start':
+    case 'pk-again':
+      quizBoardOpen = true;
+      return control(act, { seconds: pkSeconds() });
+    case 'quiz-board':
+      quizBoardOpen = !quizBoardOpen;
+      return refreshQuiz();
+    case 'pk-buzz-in': {
+      const r = await api<{ paired: boolean }>(`/sessions/${s.id}/pk-buzz`, 'POST', {});
+      toast(r.paired ? '搶到了！準備上場 PK' : '搶到了！等待對手');
+      return refreshSession();
+    }
+    case 'quiz-go':
+      quizIndex = Number(el.dataset.q);
+      return refreshQuiz();
+    case 'quiz-choose': {
+      const q = view.quiz;
+      if (!q) return;
+      const i = Number(el.dataset.q),
+        choice = Number(el.dataset.choice);
+      const r = await api<{ correct?: boolean }>(`/sessions/${s.id}/quiz`, 'POST', { runId: q.run.id, q: i, choice });
+      const n = q.questions.length;
+      q.mine ||= { answers: Array(n).fill(null), correct: Array(n).fill(null) };
+      q.mine.answers[i] = choice;
+      if (q.run.mode === 'pk') {
+        q.mine.correct[i] = r.correct ?? null;
+        if (r.correct) playCorrect();
+        quizFlash = r.correct ? '✓ 上一題答對！' : '✗ 上一題答錯了';
+      } else if (i === quizIndex && quizIndex < n - 1) quizIndex++;
+      refreshQuiz();
+      return refreshSession();
+    }
+    case 'quiz-submit': {
+      const q = view.quiz;
+      if (!q) return;
+      const left = (q.mine?.answers || q.questions.map(() => null)).filter((x) => x === null).length;
+      if (left) return modal('確定交卷？', `<p>還有 ${left} 題沒作答，交卷後就不能再改。</p>${btn('確定交卷', 'quiz-submit-confirm', 'primary', 'check', 'data-testid="quiz-submit-confirm"')}`);
+      await api(`/sessions/${s.id}/quiz`, 'POST', { runId: q.run.id, submit: true });
+      return refreshSession();
+    }
+    case 'quiz-submit-confirm': {
+      closeModal();
+      const q = view.quiz;
+      if (!q) return;
+      await api(`/sessions/${s.id}/quiz`, 'POST', { runId: q.run.id, submit: true });
+      return refreshSession();
+    }
     case 'photo-toggle':
       await control('photo', { value: !s.photoOpen });
       return toast(view.session.photoOpen ? '已派發拍照題：學生可以拍課本上的計算過程' : '已收回拍照題');
@@ -2565,6 +2840,8 @@ document.addEventListener('change', async (e) => {
   }
   if (el.id === 'pref-concurrency') prefs.set('concurrency', Number(el.value));
   if (el.id === 'pref-votes') prefs.set('votes', Number(el.value));
+  if (el.id === 'quiz-seconds') prefs.set('quizSeconds', Number(el.value));
+  if (el.id === 'pk-seconds') prefs.set('pkSeconds', Number(el.value));
   if (el.id === 'preview-slide') document.querySelector<HTMLElement>('[data-action="preview-lesson"]')?.click();
   if (el instanceof HTMLInputElement && el.dataset.actionInput === 'quick-photo' && el.files?.[0] && view) {
     const a = view.lesson.slides[view.session.slideIndex]?.activity;

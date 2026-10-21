@@ -6,6 +6,7 @@ import type {
   InteractiveShape,
   Lesson,
   PracticeQuestion,
+  QuizBank,
   Rubric,
   Stroke,
 } from '../shared/types';
@@ -486,8 +487,38 @@ export function validateLesson(input: unknown): Lesson {
     }),
     updatedAt: new Date().toISOString(),
   };
+  if (l.quiz !== undefined) out.quiz = validateQuiz(l.quiz);
   return out;
 }
+/** 驗證題庫（課程 JSON 的 quiz 欄位）。 */
+export function validateQuiz(input: unknown): QuizBank {
+  const b = record(input);
+  assert(Array.isArray(b.slots) && b.slots.length >= 1 && b.slots.length <= 20, '題庫需要 1–20 個題位');
+  return {
+    title: str(b.title, '題庫名稱', 100, 1),
+    ...(b.source !== undefined ? { source: str(b.source, '題庫來源', 300) } : {}),
+    slots: b.slots.map((s) => {
+      const slot = record(s);
+      assert(Array.isArray(slot.variants) && slot.variants.length >= 1 && slot.variants.length <= 5, '每個題位需要 1–5 題');
+      return {
+        id: identifier(slot.id),
+        topic: str(slot.topic, '題位主題', 100, 1),
+        variants: slot.variants.map((v) => {
+          const it = record(v);
+          assert(Array.isArray(it.options) && it.options.length >= 2 && it.options.length <= 6, '每題需要 2–6 個選項');
+          const options = it.options.map((o) => str(o, '選項', 300, 1));
+          return {
+            stem: str(it.stem, '題目', 1000, 1),
+            options,
+            answer: integer(it.answer, 0, options.length - 1),
+            ...(it.explanation !== undefined ? { explanation: str(it.explanation, '解析', 2000) } : {}),
+          };
+        }),
+      };
+    }),
+  };
+}
+
 /** 畫布／拍照作答：文字說明、圖片、辨識稿。 */
 function canvasValue(value: unknown, photoOnly = false): CanvasAnswer {
   const v = record(value),

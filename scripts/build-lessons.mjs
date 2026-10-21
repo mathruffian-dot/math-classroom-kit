@@ -110,6 +110,19 @@ for (const file of files) {
       continue;
     }
   }
+  // 課後形成性評量題庫放在 content/quizzes/<課程 id>.json（由 scripts/quiz-src/*.py 產生並用 SymPy 核算）
+  let quizNote = '';
+  try {
+    const quiz = JSON.parse(await readFile(join(root, 'content/quizzes', `${raw.id}.json`), 'utf8'));
+    raw.quiz = { title: quiz.title, source: quiz.source, slots: quiz.slots };
+    quizNote = `，形成性評量 ${quiz.slots.length} 題位 × ${quiz.slots[0]?.variants.length ?? 0}`;
+  } catch (e) {
+    if (e.code !== 'ENOENT') {
+      console.error(`✗ ${file}：形成性評量題庫 — ${e.message}`);
+      errors++;
+      continue;
+    }
+  }
   // 補救練習題另外放在 content/practice/<課程 id>.json（{ 題目 ID: [第 1、2、3 輪] }），在這裡併進課程。
   let practiceNote = '';
   try {
@@ -136,7 +149,7 @@ for (const file of files) {
     ids.set(lesson.id, file);
     const warnings = lint(raw);
     warned += warnings.length;
-    console.log(`${warnings.length ? '△' : '✓'} ${file}（${lesson.id}，${lesson.slides.length} 頁${practiceNote}${writtenNote}）`);
+    console.log(`${warnings.length ? '△' : '✓'} ${file}（${lesson.id}，${lesson.slides.length} 頁${practiceNote}${writtenNote}${quizNote}）`);
     for (const w of warnings) console.log(`    · ${w}`);
     lessons.push(raw);
   } catch (e) {
