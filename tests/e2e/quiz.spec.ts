@@ -59,6 +59,10 @@ test('formative quiz for the class, then PK battles picked on the seat map and b
   }
   const [s21, s22] = students.map((s) => s.page);
 
+  // ── 課後檢核・PK 戰是最後另外一頁；其他頁看不到這個區塊 ──
+  await expect(teacher.page.getByTestId('quiz-class')).toHaveCount(0);
+  await teacher.page.locator('.slide-dots button').last().click();
+  await expect(teacher.page.locator('.slide-stage h1')).toContainText('課後檢核・PK 戰');
   // ── 全班測驗 ──
   await teacher.page.getByTestId('quiz-class').click();
   await expect(teacher.page.getByTestId('quiz-board')).toBeVisible();
@@ -91,6 +95,9 @@ test('formative quiz for the class, then PK battles picked on the seat map and b
   await expect(teacher.page.getByTestId('pk-waiting')).toContainText('23 號');
   await teacher.page.getByTestId('pk-bot').click();
   await expect(teacher.page.getByTestId('pk-pair')).toHaveCount(2);
+  // 大螢幕顯示配好的組別
+  await expect(teacher.page.getByTestId('quiz-board')).toContainText('配對中');
+  await expect(teacher.page.getByTestId('quiz-board').locator('.pk-card')).toHaveCount(2);
   await shot(teacher.page, 'teacher-lobby');
   await teacher.page.getByTestId('pk-start').click();
   await expect(teacher.page.getByTestId('pk-card')).toHaveCount(2);
@@ -109,7 +116,30 @@ test('formative quiz for the class, then PK battles picked on the seat map and b
   await expect(teacher.page.getByTestId('pk-card').first()).toHaveClass(/over/);
   await shot(teacher.page, 'teacher-pk-board');
   await shot(s21, 'student-pk-result');
-  // 同組再戰：重新抽一份
+  // 比完（23 號對電腦按「結束對戰」）：大螢幕有每題 ✓／✗、錯題紀錄、PK 戰績
   await teacher.page.getByTestId('quiz-end').click().catch(() => {});
   await expect(teacher.page.getByTestId('pk-again')).toBeVisible({ timeout: 10_000 });
+  await expect(teacher.page.locator('.pk-card .q-strip').first()).toBeVisible();
+  await expect(teacher.page.getByTestId('quiz-record')).toContainText('錯題紀錄');
+  await expect(teacher.page.getByTestId('quiz-record')).toContainText('本堂 PK 戰績');
+  await shot(teacher.page, 'teacher-pk-record');
+  // 錯題練習：每人只做自己錯的題型（換數字），答了馬上看到正解與解析
+  await teacher.page.getByTestId('quiz-review').click();
+  await expect(s21.getByTestId('quiz-card')).toContainText('錯題練習');
+  // 一題一題做：等題號換了（或出現總結）再做下一題。一次讀完畫面狀態（避免讀到一半畫面重畫）
+  const state = () =>
+    s21.evaluate(() => ({
+      done: !!document.querySelector('[data-testid="quiz-summary"]'),
+      label: document.querySelector('#student-answer .mini-label')?.textContent || '',
+    }));
+  for (let rounds = 0; rounds < 10 && !(await state()).done; rounds++) {
+    const before = (await state()).label;
+    await s21.getByTestId('quiz-option-0').click();
+    await expect.poll(async () => { const now = await state(); return now.done || now.label !== before; }, { timeout: 5000 }).toBe(true);
+    await expect(s21.locator('.quiz-flash, [data-testid="quiz-summary"]').first()).toBeVisible();
+  }
+  await expect(s21.getByTestId('quiz-summary')).toBeVisible();
+  await shot(s21, 'student-review');
+  await expect(teacher.page.locator('.review-row').first()).toBeVisible();
+  await shot(teacher.page, 'teacher-review-board');
 });

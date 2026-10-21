@@ -960,10 +960,10 @@ function teacherPanel(a: Activity | undefined, screen: boolean) {
   const activity = a
     ? `<section class="teacher-activity"><div class="activity-top">${tag(TYPE_LABEL[a.type])}<span id="answer-count" class="count-pill">${view!.aggregate.submitted} / ${view!.aggregate.total}</span></div><h2>${md(a.prompt)}</h2><div class="activity-actions" id="activity-actions">${activityActions(a)}</div><div id="aggregate">${aggregateHtml(view!)}</div><div id="practice-board">${practiceBoard(a)}</div>${screen ? '' : `<div id="responses">${responsesHtml(a)}</div>`}${!screen && a.aiAllowed && ['short', 'numeric', 'canvas'].includes(a.type) ? btn('AI 整理全班迷思', 'summarize', 'quiet full', 'spark') : ''}</section>`
     : `<div class="quiet-moment">${icon('sigma')}<h2>這一頁沒有題目</h2><p>可以用畫筆在圖上標示，或抽籤請同學說明。</p></div>`;
-  // 測驗或 PK 進行中：控制區放最上面，不用往下捲
-  const quizBusy = !!(s.quiz || s.pkLobby);
-  const quizSection = `<section class="quiz-tools" id="quiz-panel">${quizPanel()}</section>`;
-  return `<div class="panel-scroll">${quizBusy ? quizSection : ''}${activity}<section class="seat-map" id="seat-map" data-testid="seat-map">${seatMapInner()}</section>${gradable && !screen ? gradingBar(a!) : ''}${quizBusy ? '' : quizSection}<section class="class-tools">${screen && a ? drawFilterBar() : ''}<div class="tool-row">${btn(drawLabel(a), 'draw', 'secondary', 'dice', 'data-testid="draw-seat"')}${btn('搶答', 'buzz-open', 'secondary', 'bolt', 'data-testid="buzz-open"')}</div><div id="danmaku-tools">${danmakuTools()}</div><div id="class-events">${eventsHtml()}</div></section>${screen ? '' : `<section class="room-options">${btn(s.followTeacher ? '同步翻頁中' : '學生自主瀏覽', 'toggle-follow', 'quiet', s.followTeacher ? 'screen' : 'book', s.ended ? 'disabled' : '')}${btn('學生加入', 'join-info', 'quiet', 'users')}${btn('結束課堂', 'end-session', 'quiet danger', 'logout', s.ended ? 'disabled' : '')}</section>${view!.lesson.slides[s.slideIndex]?.notes ? `<details class="teacher-notes"><summary>教師備註（學生看不到）</summary><p>${esc(view!.lesson.slides[s.slideIndex].notes)}</p></details>` : ''}`}</div>`;
+  // 課後檢核・PK 戰在最後另外一頁；測驗或配對進行中時，其他頁也留著控制區（才能結束）
+  const onQuizPage = !!view!.lesson.slides[s.slideIndex]?.quizPage;
+  const quizSection = onQuizPage || s.quiz || s.pkLobby ? `<section class="quiz-tools" id="quiz-panel">${quizPanel()}</section>` : '';
+  return `<div class="panel-scroll">${quizSection}${onQuizPage ? '' : activity}<section class="seat-map" id="seat-map" data-testid="seat-map">${seatMapInner()}</section>${gradable && !screen ? gradingBar(a!) : ''}<section class="class-tools">${screen && a ? drawFilterBar() : ''}<div class="tool-row">${btn(drawLabel(a), 'draw', 'secondary', 'dice', 'data-testid="draw-seat"')}${btn('搶答', 'buzz-open', 'secondary', 'bolt', 'data-testid="buzz-open"')}</div><div id="danmaku-tools">${danmakuTools()}</div><div id="class-events">${eventsHtml()}</div></section>${screen ? '' : `<section class="room-options">${btn(s.followTeacher ? '同步翻頁中' : '學生自主瀏覽', 'toggle-follow', 'quiet', s.followTeacher ? 'screen' : 'book', s.ended ? 'disabled' : '')}${btn('學生加入', 'join-info', 'quiet', 'users')}${btn('結束課堂', 'end-session', 'quiet danger', 'logout', s.ended ? 'disabled' : '')}</section>${view!.lesson.slides[s.slideIndex]?.notes ? `<details class="teacher-notes"><summary>教師備註（學生看不到）</summary><p>${esc(view!.lesson.slides[s.slideIndex].notes)}</p></details>` : ''}`}</div>`;
 }
 /* ───────────── 作答限時與補救練習 ───────────── */
 const TIME_LIMITS: [number, string][] = [
@@ -1071,18 +1071,21 @@ function practiceCard() {
   return `<section class="practice-card" data-testid="practice-card">${head}${past ? `<ol class="practice-history">${past}</ol>` : ''}${body}</section>`;
 }
 
-/* ───────────── 課後形成性評量＋PK 戰 ───────────── */
-/** 老師：大螢幕戰況／結果（疊在投影片上）。 */
+/* ───────────── 課後形成性評量＋PK 戰＋錯題練習 ───────────── */
+/** 老師：大螢幕戰況／結果（課後檢核頁的投影片區）。 */
 let quizBoardOpen = true;
 /** 學生：全班測驗目前看第幾題。 */
 let quizIndex = 0;
-/** 學生：PK 上一題的對錯提示。 */
+/** 學生：PK、錯題練習上一題的對錯（錯題練習附解析）。 */
 let quizFlash = '';
+/** 學生：作答送出中（避免重複點、點到還沒換掉的舊題目）。 */
+let quizSending = false;
 const EMPTY_SCORE: QuizScore = { answered: 0, correct: 0, timeMs: null, finished: false };
 const quizClassSeconds = () => prefs.get<number>('quizSeconds', 600);
 const pkSeconds = () => prefs.get<number>('pkSeconds', 180);
 const seatName = (n: number) => (n === 0 ? '電腦' : `${n} 號`);
 const secText = (ms: number | null) => (ms === null ? '' : `${(ms / 1000).toFixed(1)} 秒`);
+const MODE_NAME = { class: '全班測驗', pk: 'PK 戰', review: '錯題練習' } as const;
 function quizScoreOf(q: QuizView, seat: number): QuizScore {
   if (seat === 0 && q.bot) return botScore(q.bot, q.run, serverTime());
   return q.scores[String(seat)] || { ...EMPTY_SCORE, timeMs: quizOver(q.run, serverTime()) ? q.run.seconds * 1000 : null };
@@ -1096,7 +1099,15 @@ function matchState(q: QuizView, m: PkMatch) {
 function selectHtml(id: string, list: [number, string][], value: number) {
   return `<select id="${id}">${list.map(([v, l]) => `<option value="${v}" ${v === value ? 'selected' : ''}>${l}</option>`).join('')}</select>`;
 }
-/** 老師面板：派全班測驗、PK 配對、進行中狀態。 */
+/** 錯題紀錄的摘要與「派錯題練習」：每個人只做自己錯的題型，換數字。 */
+function reviewButton() {
+  const rec = view?.quizRecord;
+  const people = rec ? Object.keys(rec.wrong).length : 0;
+  return people
+    ? `<div class="tool-row">${btn(`派錯題練習（${people} 人）`, 'quiz-review', 'primary', 'target', 'data-testid="quiz-review"')}</div><p class="muted small-text">每個人只做自己錯的題型，換成沒看過的那一題（同類型換數字），答完馬上看到對錯與解析。</p>`
+    : '';
+}
+/** 老師面板：派全班測驗、PK 配對、錯題練習、進行中狀態。 */
 function quizPanel(): string {
   const v = view!,
     s = v.session,
@@ -1105,7 +1116,7 @@ function quizPanel(): string {
   const head = `<header><strong>${icon('target')}課後檢核・PK 戰</strong></header>`;
   if (s.pkLobby) return head + pkLobbyHtml(s.pkLobby);
   if (q && s.quiz) return head + (q.run.mode === 'pk' ? pkRunPanel(q) : classRunPanel(q));
-  return `${head}<p class="muted small-text">10 題四選一，每題從 3 題換數字的題目抽 1 題。全班同一份；重新派題或 PK 都會重新抽。</p><div class="tool-row">${btn('派全班測驗', 'quiz-class', 'primary', 'check', 'data-testid="quiz-class"')}<label class="time-limit">${icon('clock')}${selectHtml('quiz-seconds', [[300, '5 分鐘'], [600, '10 分鐘'], [900, '15 分鐘']], quizClassSeconds())}</label></div><div class="tool-row">${btn('PK 戰：開始配對', 'pk-lobby', 'secondary', 'bolt', 'data-testid="pk-lobby"')}</div>`;
+  return `${head}<p class="muted small-text">10 題四選一，每題從 3 題換數字的題目抽 1 題。全班同一份；重新派題或 PK 都會重新抽。</p><div class="tool-row">${btn('派全班測驗', 'quiz-class', 'primary', 'check', 'data-testid="quiz-class"')}<label class="time-limit">${icon('clock')}${selectHtml('quiz-seconds', [[300, '5 分鐘'], [600, '10 分鐘'], [900, '15 分鐘']], quizClassSeconds())}</label></div><div class="tool-row">${btn('PK 戰：開始配對', 'pk-lobby', 'secondary', 'bolt', 'data-testid="pk-lobby"')}</div>${reviewButton()}`;
 }
 function pkLobbyHtml(l: PkLobby) {
   const pairs = l.pairs
@@ -1114,46 +1125,93 @@ function pkLobbyHtml(l: PkLobby) {
   const waiting = l.waiting !== null ? `<span class="pk-pair waiting" data-testid="pk-waiting"><b>${l.waiting} 號</b><i>vs</i><b>？</b></span>` : '';
   return `<div class="pk-pairs">${pairs}${waiting}${pairs || waiting ? '' : '<p class="muted small-text">還沒有組別。</p>'}</div><div class="tool-row">${btn('全班隨機配對', 'pk-random', 'secondary', 'users', 'data-testid="pk-random"')}${btn('抽籤', 'pk-draw', 'secondary', 'dice', 'data-testid="pk-draw"')}</div><div class="tool-row">${btn(l.buzz ? '關閉搶答' : '開放搶答上場', 'pk-buzz', l.buzz ? 'primary' : 'secondary', 'bolt', `data-testid="pk-buzz" aria-pressed="${l.buzz}"`)}${l.waiting !== null ? btn('配電腦', 'pk-bot', 'quiet', 'sigma', 'data-testid="pk-bot"') : ''}</div><p class="muted small-text">也可以直接點座位表的號碼：第一下選人，第二下配成一組。抽籤、搶答可以混搭（抽一位＋搶答當對手）。單數時多出來的一位和電腦對戰。</p><div class="tool-row"><label class="time-limit">${icon('clock')}${selectHtml('pk-seconds', [[60, '1 分鐘'], [120, '2 分鐘'], [180, '3 分鐘'], [300, '5 分鐘']], pkSeconds())}</label>${btn(`開始對戰（${l.pairs.length} 組）`, 'pk-start', 'primary', 'play', `data-testid="pk-start" ${l.pairs.length ? '' : 'disabled'}`)}</div>${btn('取消', 'quiz-close', 'quiet', 'x')}`;
 }
+/** 全班測驗與錯題練習的進行狀態（錯題練習每人題數不同）。 */
 function classRunPanel(q: QuizView) {
-  const over = quizOver(q.run, serverTime());
+  const over = quizOver(q.run, serverTime()),
+    review = q.run.mode === 'review';
   const scores = Object.entries(q.scores).filter(([seat]) => seat !== '0');
-  const done = scores.filter(([, x]) => x.finished).length,
-    online = (view!.roster || []).filter((r) => r.online).length;
+  const assigned = review ? Object.keys(q.run.personal || {}).length : (view!.roster || []).filter((r) => r.online).length;
+  const done = scores.filter(([, x]) => x.finished).length;
+  const total = (seat: string) => (review ? q.run.personal?.[seat]?.slots.length ?? 0 : q.questions.length);
   const list = scores
     .sort((x, y) => Number(x[0]) - Number(y[0]))
-    .map(([seat, x]) => `<span class="seat-chip ${x.finished ? 'ok' : ''}"><b class="chip-seat">${seat}</b><small>${x.correct}/${q.questions.length}${x.finished ? `・${secText(x.timeMs)}` : `・作答 ${x.answered}`}</small></span>`)
+    .map(([seat, x]) => `<span class="seat-chip ${x.finished ? 'ok' : ''}"><b class="chip-seat">${seat}</b><small>${x.correct}/${total(seat)}${x.finished ? (review ? '' : `・${secText(x.timeMs)}`) : `・作答 ${x.answered}`}</small></span>`)
     .join('');
-  return `<p class="quiz-status" data-testid="quiz-status">${over ? '測驗已結束' : `全班測驗・剩 ${countdown(quizDeadline(q.run))}`}・已交卷 ${done}／上線 ${online}</p><div class="tool-row">${btn(quizBoardOpen ? '收起大螢幕' : '大螢幕顯示', 'quiz-board', 'secondary', 'screen', 'data-testid="quiz-board-toggle"')}${over ? btn('重新派一份', 'quiz-class', 'secondary', 'dice') : btn('結束測驗', 'quiz-end', 'secondary', 'x', 'data-testid="quiz-end"')}</div><details class="answer-list"><summary>個別成績（${scores.length} 人）</summary><div class="seat-chips">${list || '<p class="muted">還沒有人作答。</p>'}</div></details>${btn('關閉', 'quiz-close', 'quiet', 'x')}`;
+  return `<p class="quiz-status" data-testid="quiz-status">${MODE_NAME[q.run.mode]}${over ? '已結束' : `・剩 ${countdown(quizDeadline(q.run))}`}・${review ? '做完' : '已交卷'} ${done}／${review ? '派給' : '上線'} ${assigned}</p><div class="tool-row">${btn(quizBoardOpen ? '收起大螢幕' : '大螢幕顯示', 'quiz-board', 'secondary', 'screen', 'data-testid="quiz-board-toggle"')}${over ? btn('重新派一份全班測驗', 'quiz-class', 'secondary', 'dice') : btn(`結束${MODE_NAME[q.run.mode]}`, 'quiz-end', 'secondary', 'x', 'data-testid="quiz-end"')}</div>${over ? reviewButton() : ''}<details class="answer-list"><summary>個別成績（${scores.length} 人）</summary><div class="seat-chips">${list || '<p class="muted">還沒有人作答。</p>'}</div></details>${btn('關閉', 'quiz-close', 'quiet', 'x')}`;
 }
 function pkRunPanel(q: QuizView) {
   const now = serverTime(),
     ms = q.run.matches || [];
   const allOver = ms.every((m) => matchState(q, m).over);
   const status = q.run.startedAt > now ? '倒數準備中' : allOver ? '全部比完' : `剩 ${countdown(quizDeadline(q.run))}`;
-  return `<p class="quiz-status" data-testid="quiz-status">PK 戰・${ms.length} 組・${status}</p><div class="tool-row">${btn(quizBoardOpen ? '收起戰況' : '大螢幕戰況', 'quiz-board', 'secondary', 'screen', 'data-testid="quiz-board-toggle"')}${allOver ? '' : btn('結束對戰', 'quiz-end', 'secondary', 'x', 'data-testid="quiz-end"')}</div>${allOver ? `<div class="tool-row">${btn('同組再戰（重新抽題）', 'pk-again', 'primary', 'dice', 'data-testid="pk-again"')}${btn('重新配對', 'pk-lobby', 'secondary', 'users')}</div>` : ''}${btn('關閉', 'quiz-close', 'quiet', 'x')}`;
+  return `<p class="quiz-status" data-testid="quiz-status">PK 戰・${ms.length} 組・${status}</p><div class="tool-row">${btn(quizBoardOpen ? '收起戰況' : '大螢幕戰況', 'quiz-board', 'secondary', 'screen', 'data-testid="quiz-board-toggle"')}${allOver ? '' : btn('結束對戰', 'quiz-end', 'secondary', 'x', 'data-testid="quiz-end"')}</div>${allOver ? `<div class="tool-row">${btn('同組再戰（重新抽題）', 'pk-again', 'primary', 'dice', 'data-testid="pk-again"')}${btn('重新配對', 'pk-lobby', 'secondary', 'users')}</div>${reviewButton()}` : ''}${btn('關閉', 'quiz-close', 'quiet', 'x')}`;
 }
-/** 大螢幕：PK 每一組的對戰卡，或全班測驗每一題的答對率（不顯示個人成績）。 */
+/** 每題 ✓／✗ 一排小格（大螢幕；不含答案）。 */
+function strip(row: (boolean | null)[] | undefined, n: number) {
+  return `<div class="q-strip">${Array.from({ length: n }, (_, i) => {
+    const ok = row?.[i];
+    return `<i class="${ok === true ? 'ok' : ok === false ? 'no' : ''}" title="第 ${i + 1} 題">${ok === true ? '✓' : ok === false ? '✗' : i + 1}</i>`;
+  }).join('')}</div>`;
+}
+/** 錯題紀錄（每一題錯的人）與 PK 戰績：比完、測驗結束、或課後檢核頁閒置時顯示。 */
+function recordHtml() {
+  const rec = view?.quizRecord;
+  if (!rec) return '';
+  const bySlot = rec.topics.map((topic, q) => ({ topic, q, seats: Object.entries(rec.wrong).filter(([, list]) => list.includes(q)).map(([seat]) => Number(seat)).sort((a, b) => a - b) }));
+  const rows = bySlot
+    .map(({ topic, q, seats }) => `<div class="wrong-row"><span>${q + 1}. ${esc(topic)}</span><b class="${seats.length ? 'warn' : 'ok'}">${seats.length ? `${seats.length} 人` : '全對'}</b><small>${seats.map((n) => `${n}`).join('、')}</small></div>`)
+    .join('');
+  const standings = Object.entries(rec.standings)
+    .sort((a, b) => b[1].win - a[1].win || a[1].lose - b[1].lose || Number(a[0]) - Number(b[0]))
+    .map(([seat, s]) => `<span class="standing"><b>${seat} 號</b>${s.win} 勝 ${s.lose} 負${s.draw ? ` ${s.draw} 平` : ''}</span>`)
+    .join('');
+  return `<section class="quiz-record" data-testid="quiz-record"><h3>${icon('target')}錯題紀錄（這堂課最近一次的結果；之後答對就拿掉）</h3><div class="wrong-rows">${rows}</div>${standings ? `<h3>${icon('bolt')}本堂 PK 戰績</h3><div class="standings">${standings}</div>` : ''}</section>`;
+}
+/** 課後檢核頁的投影片區：配對中的組別、PK 對戰卡、全班測驗每題答對率、錯題練習進度、錯題紀錄。 */
 function quizBoardHtml(): string {
-  const q = view?.quiz;
-  if (!q || !quizBoardOpen || user?.role !== 'teacher' || !view?.session.quiz) return '';
+  if (user?.role !== 'teacher' || !view || !view.lesson.slides[view.session.slideIndex]?.quizPage) return '';
+  const lobby = view.session.pkLobby;
+  if (lobby) {
+    const pairs = lobby.pairs.map(([a, b]) => `<div class="pk-card lobby"><div class="pk-side"><strong>${seatName(a)}</strong></div><div class="pk-vs">VS</div><div class="pk-side"><strong>${seatName(b)}</strong></div></div>`).join('');
+    const waiting = lobby.waiting !== null ? `<div class="pk-card lobby waiting"><div class="pk-side"><strong>${lobby.waiting} 號</strong></div><div class="pk-vs">VS</div><div class="pk-side"><strong>？</strong></div></div>` : '';
+    return `<div class="quiz-board" data-testid="quiz-board"><header><strong>${icon('bolt')}PK 戰・配對中</strong><small>${lobby.buzz ? '搶答開放中！最先按的同學上場' : `${lobby.pairs.length} 組`}</small></header><div class="pk-grid">${pairs}${waiting || (pairs ? '' : '<p class="muted">老師配對中…</p>')}</div></div>`;
+  }
+  const q = view.quiz;
+  if (!q || !view.session.quiz) return view.quizRecord ? `<div class="quiz-board" data-testid="quiz-board"><header><strong>${icon('target')}課後檢核・PK 戰</strong><small>${view.quizRecord.runs} 次測驗／對戰</small></header>${recordHtml()}</div>` : '';
+  if (!quizBoardOpen) return '';
   const now = serverTime(),
     n = q.questions.length,
+    over = quizOver(q.run, now),
     close = btn('', 'quiz-board', 'icon-btn', 'x', 'aria-label="收起"');
   if (q.run.mode === 'pk') {
     const before = q.run.startedAt > now;
-    const clock = before ? `<span class="pk-count" data-pk-start="${q.run.startedAt}">${Math.ceil((q.run.startedAt - now) / 1000)}</span>` : quizOver(q.run, now) ? '<span class="pk-clock">時間到</span>' : `<span class="pk-clock">${countdown(quizDeadline(q.run))}</span>`;
-    const side = (seat: number, sc: QuizScore, mark: string) =>
-      `<div class="pk-side ${mark}"><strong>${seatName(seat)}</strong><b class="pk-score">${sc.correct}</b><small>答對</small><div class="pk-bar"><i style="width:${(sc.answered / n) * 100}%"></i></div><small>${sc.answered}／${n} 題${sc.finished && sc.timeMs !== null ? `・${secText(sc.timeMs)}` : ''}</small>${mark === 'win' ? '<em class="pk-crown">勝</em>' : ''}</div>`;
-    const cards = (q.run.matches || [])
+    const clock = before ? `<span class="pk-count" data-pk-start="${q.run.startedAt}">${Math.ceil((q.run.startedAt - now) / 1000)}</span>` : over ? '<span class="pk-clock">時間到</span>' : `<span class="pk-clock">${countdown(quizDeadline(q.run))}</span>`;
+    const side = (seat: number, sc: QuizScore, mark: string) => {
+      const row = seat === 0 && q.bot ? q.bot.times.map((t, i) => (t <= now - q.run.startedAt ? q.bot!.correct[i] : null)) : q.detail?.[String(seat)];
+      return `<div class="pk-side ${mark}"><strong>${seatName(seat)}</strong><b class="pk-score">${sc.correct}</b><small>答對</small><div class="pk-bar"><i style="width:${(sc.answered / n) * 100}%"></i></div><small>${sc.answered}／${n} 題${sc.finished && sc.timeMs !== null ? `・${secText(sc.timeMs)}` : ''}</small>${strip(row, n)}${mark === 'win' ? '<em class="pk-crown">勝</em>' : ''}</div>`;
+    };
+    const matches = q.run.matches || [];
+    const cards = matches
       .map((m) => {
         const st = matchState(q, m);
         const mark = (who: 'a' | 'b') => (st.result === who ? 'win' : st.result && st.result !== 'draw' ? 'lose' : '');
         return `<div class="pk-card ${st.over ? 'over' : ''}" data-testid="pk-card">${side(m.a, st.a, mark('a'))}<div class="pk-vs">${st.result === 'draw' ? '平手' : 'VS'}</div>${side(m.b, st.b, mark('b'))}</div>`;
       })
       .join('');
-    return `<div class="quiz-board" data-testid="quiz-board"><header><strong>${icon('bolt')}PK 戰</strong><small>答對題數多的贏；一樣多比用時</small>${clock}${close}</header><div class="pk-grid">${cards}</div></div>`;
+    const allOver = matches.every((m) => matchState(q, m).over);
+    return `<div class="quiz-board" data-testid="quiz-board"><header><strong>${icon('bolt')}PK 戰</strong><small>答對題數多的贏；一樣多比用時</small>${clock}${close}</header><div class="pk-grid">${cards}</div>${allOver ? recordHtml() : ''}</div>`;
   }
-  const over = quizOver(q.run, now);
+  if (q.run.mode === 'review') {
+    const rows = Object.entries(q.run.personal || {})
+      .sort((a, b) => Number(a[0]) - Number(b[0]))
+      .map(([seat, own]) => {
+        const sc = q.scores[seat] || EMPTY_SCORE;
+        const row = q.detail?.[seat];
+        return `<div class="review-row"><b>${seat} 號</b><span>${own.slots.map((slot) => `<i class="${row?.[slot] === true ? 'ok' : row?.[slot] === false ? 'no' : ''}" title="${esc(q.questions[slot]?.topic || '')}">${slot + 1}</i>`).join('')}</span><small>${sc.correct}／${own.slots.length}${sc.finished ? ' 完成' : ''}</small></div>`;
+      })
+      .join('');
+    return `<div class="quiz-board" data-testid="quiz-board"><header><strong>${icon('target')}錯題練習（換數字）</strong><small>每個人只做自己錯的題型</small>${over ? '<span class="pk-clock">已結束</span>' : `<span class="pk-clock">${countdown(quizDeadline(q.run))}</span>`}${close}</header><div class="review-rows">${rows}</div>${over ? recordHtml() : ''}</div>`;
+  }
   const rows = q.questions
     .map((x, i) => {
       const counts = q.picks?.[i] || [],
@@ -1166,7 +1224,7 @@ function quizBoardHtml(): string {
     .join('');
   const scores = Object.values(q.scores);
   const avg = scores.length ? (scores.reduce((s, x) => s + x.correct, 0) / scores.length).toFixed(1) : '—';
-  return `<div class="quiz-board" data-testid="quiz-board"><header><strong>${icon('target')}${esc(q.title)}</strong><small>${scores.length} 人作答・平均答對 ${avg} 題</small>${over ? '<span class="pk-clock">已結束</span>' : `<span class="pk-clock">${countdown(quizDeadline(q.run))}</span>`}${close}</header><div class="qb-rows">${rows}</div></div>`;
+  return `<div class="quiz-board" data-testid="quiz-board"><header><strong>${icon('target')}${esc(q.title)}</strong><small>${scores.length} 人作答・平均答對 ${avg} 題</small>${over ? '<span class="pk-clock">已結束</span>' : `<span class="pk-clock">${countdown(quizDeadline(q.run))}</span>`}${close}</header><div class="qb-rows">${rows}</div>${over ? recordHtml() : ''}</div>`;
 }
 /** 學生：搶答上場 PK。 */
 function pkBuzzCard() {
@@ -1177,7 +1235,7 @@ function pkTakenSeats(l: PkLobby) {
   if (l.waiting !== null) out.add(l.waiting);
   return out;
 }
-/** 學生的測驗卡：全班測驗可以前後翻、改答案再交卷；PK 選了就鎖定、馬上知道對錯。 */
+/** 學生的測驗卡：全班測驗可以前後翻、改答案再交卷；PK 與錯題練習選了就鎖定、馬上知道對錯。 */
 function quizCard(): string {
   const q = view!.quiz!,
     me = user!.seat!,
@@ -1194,14 +1252,18 @@ function quizCard(): string {
         return `<li class="${ok === true ? 'ok' : ok === false ? 'no' : ''}"><div>${md(x.stem)}</div><small>你選 ${pick === null ? '—' : `${letter(pick)}. ${md(x.options[pick])}`}${x.answer !== undefined ? `　正解 ${letter(x.answer)}. ${md(x.options[x.answer])}` : ''}</small>${x.explanation ? `<small class="muted">${md(x.explanation)}</small>` : ''}</li>`;
       })
       .join('')}</ol>`;
-  const options = (i: number, chosen: number | null, locked: boolean) =>
-    `<div class="quiz-options">${q.questions[i].options.map((o, k) => `<button class="answer-option ${chosen === k ? 'chosen' : ''}" data-action="quiz-choose" data-q="${i}" data-choice="${k}" data-testid="quiz-option-${k}" ${locked ? 'disabled' : ''}><span class="option-letter">${letter(k)}</span><span>${md(o)}</span></button>`).join('')}</div>`;
-  if (q.run.mode === 'pk') {
-    const m = q.run.matches?.find((x) => x.a === me || x.b === me);
+  const options = (i: number, chosen: number | null) =>
+    `<div class="quiz-options">${q.questions[i].options.map((o, k) => `<button class="answer-option ${chosen === k ? 'chosen' : ''}" data-action="quiz-choose" data-q="${i}" data-choice="${k}" data-testid="quiz-option-${k}"><span class="option-letter">${letter(k)}</span><span>${md(o)}</span></button>`).join('')}</div>`;
+  // PK 與錯題練習：一題一題做，選了就鎖定
+  if (q.run.mode === 'pk' || q.run.mode === 'review') {
+    const pk = q.run.mode === 'pk';
+    const m = pk ? q.run.matches?.find((x) => x.a === me || x.b === me) : undefined;
     const opp = m ? (m.a === me ? m.b : m.a) : null;
-    const title = m ? `PK 戰：你 vs ${seatName(opp!)}` : 'PK 戰：跟著做（不影響勝負）';
+    const title = pk ? (m ? `PK 戰：你 vs ${seatName(opp!)}` : 'PK 戰：跟著做（不影響勝負）') : '錯題練習（換數字）';
+    const glyph = icon(pk ? 'bolt' : 'target');
+    if (!n) return `<section class="quiz-card" data-testid="quiz-card"><h2>${glyph}${title}</h2><p class="quiz-summary">你沒有錯題，太棒了！</p></section>`;
     if (q.run.startedAt > now)
-      return `<section class="quiz-card" data-testid="quiz-card"><h2>${icon('bolt')}${title}</h2><p class="pk-countdown" data-pk-start="${q.run.startedAt}">${Math.ceil((q.run.startedAt - now) / 1000)}</p><p class="muted">準備開始…</p></section>`;
+      return `<section class="quiz-card" data-testid="quiz-card"><h2>${glyph}${title}</h2><p class="pk-countdown" data-pk-start="${q.run.startedAt}">${Math.ceil((q.run.startedAt - now) / 1000)}</p><p class="muted">準備開始…</p></section>`;
     const progress = m ? `<p class="pk-progress" id="pk-progress">${pkProgressText(q, me, opp!)}</p>` : '';
     const next = mine.answers.findIndex((x) => x === null);
     if (next < 0 || over || mine.done !== undefined) {
@@ -1211,10 +1273,10 @@ function quizCard(): string {
         const r = st.result === 'draw' ? '平手' : st.result ? ((st.result === 'a') === (m.a === me) ? '你贏了！' : '這次輸了，再接再厲') : '';
         result = st.over ? `<p class="pk-result" data-testid="pk-result">${r}</p>` : `<p class="muted">答完了，等${seatName(opp!)}…</p>`;
       }
-      const sc = quizScoreOf(q, me);
-      return `<section class="quiz-card" data-testid="quiz-card"><h2>${icon('bolt')}${title}</h2>${progress}${result}<p class="quiz-summary">答對 ${sc.correct}／${n} 題${sc.timeMs !== null ? `，用時 ${secText(sc.timeMs)}` : ''}</p>${review()}</section>`;
+      const right = mine.correct.filter((x) => x === true).length;
+      return `<section class="quiz-card" data-testid="quiz-card"><h2>${glyph}${title}</h2>${progress}${result}<p class="quiz-summary" data-testid="quiz-summary">答對 ${right}／${n} 題${pk && quizScoreOf(q, me).timeMs !== null ? `，用時 ${secText(quizScoreOf(q, me).timeMs)}` : ''}</p>${review()}</section>`;
     }
-    return `<section class="quiz-card" data-testid="quiz-card"><h2>${icon('bolt')}${title}　${countdown(quizDeadline(q.run))}</h2>${progress}${quizFlash ? `<p class="quiz-flash">${quizFlash}</p>` : ''}<p class="mini-label">第 ${next + 1}／${n} 題・${esc(q.questions[next].topic)}</p><div class="quiz-stem">${md(q.questions[next].stem)}</div>${options(next, null, false)}</section>`;
+    return `<section class="quiz-card" data-testid="quiz-card"><h2>${glyph}${title}　${countdown(quizDeadline(q.run))}</h2>${progress}${quizFlash ? `<div class="quiz-flash">${quizFlash}</div>` : ''}<p class="mini-label">第 ${next + 1}／${n} 題・${esc(q.questions[next].topic)}</p><div class="quiz-stem">${md(q.questions[next].stem)}</div>${options(next, null)}</section>`;
   }
   // 全班測驗
   if (mine.done !== undefined || over)
@@ -1222,14 +1284,14 @@ function quizCard(): string {
   quizIndex = Math.min(Math.max(0, quizIndex), n - 1);
   const dots = q.questions.map((_, i) => `<button class="quiz-dot ${mine.answers[i] !== null ? 'done' : ''} ${i === quizIndex ? 'current' : ''}" data-action="quiz-go" data-q="${i}" aria-label="第 ${i + 1} 題">${i + 1}</button>`).join('');
   const left = mine.answers.filter((x) => x === null).length;
-  return `<section class="quiz-card" data-testid="quiz-card"><h2>${icon('target')}${esc(q.title)}　${countdown(quizDeadline(q.run))}</h2><div class="quiz-dots">${dots}</div><p class="mini-label">第 ${quizIndex + 1}／${n} 題・${esc(q.questions[quizIndex].topic)}</p><div class="quiz-stem">${md(q.questions[quizIndex].stem)}</div>${options(quizIndex, mine.answers[quizIndex], false)}<div class="tool-row">${btn('上一題', 'quiz-go', 'quiet', 'prev', `data-q="${quizIndex - 1}" ${quizIndex ? '' : 'disabled'}`)}${btn('下一題', 'quiz-go', 'quiet', 'next', `data-q="${quizIndex + 1}" ${quizIndex < n - 1 ? '' : 'disabled'}`)}</div>${btn(left ? `交卷（還有 ${left} 題沒作答）` : '交卷', 'quiz-submit', 'primary full', 'check', 'data-testid="quiz-submit"')}</section>`;
+  return `<section class="quiz-card" data-testid="quiz-card"><h2>${icon('target')}${esc(q.title)}　${countdown(quizDeadline(q.run))}</h2><div class="quiz-dots">${dots}</div><p class="mini-label">第 ${quizIndex + 1}／${n} 題・${esc(q.questions[quizIndex].topic)}</p><div class="quiz-stem">${md(q.questions[quizIndex].stem)}</div>${options(quizIndex, mine.answers[quizIndex])}<div class="tool-row">${btn('上一題', 'quiz-go', 'quiet', 'prev', `data-q="${quizIndex - 1}" ${quizIndex ? '' : 'disabled'}`)}${btn('下一題', 'quiz-go', 'quiet', 'next', `data-q="${quizIndex + 1}" ${quizIndex < n - 1 ? '' : 'disabled'}`)}</div>${btn(left ? `交卷（還有 ${left} 題沒作答）` : '交卷', 'quiz-submit', 'primary full', 'check', 'data-testid="quiz-submit"')}</section>`;
 }
 function pkProgressText(q: QuizView, me: number, opp: number) {
   const a = quizScoreOf(q, me),
     b = quizScoreOf(q, opp);
   return `你 ${a.correct}✓（${a.answered} 題）｜${seatName(opp)} ${b.correct}✓（${b.answered} 題）`;
 }
-/** 測驗狀態變了（開始倒數結束、時間到）：重畫面板與大螢幕。 */
+/** 測驗狀態變了（開始倒數結束、時間到、新的作答）：重畫面板與大螢幕。 */
 function refreshQuiz() {
   if (!view) return;
   if (user?.role === 'teacher') {
@@ -1889,6 +1951,7 @@ async function applyViewNow(next: SessionView | { session: null }, route: string
       const changed = n.session.slideIndex !== view.session.slideIndex;
       // 輪詢可能跳過中間狀態（換頁＋開放作答發生在同一個間隔內），換頁時也視為新開放。
       const opened = n.session.activityOpen && (!view.session.activityOpen || changed);
+      const newQuiz = !!n.session.quiz && n.session.quiz.id !== view.session.quiz?.id;
       view = n;
       if (changedSlide) {
         draft = [];
@@ -1896,7 +1959,8 @@ async function applyViewNow(next: SessionView | { session: null }, route: string
         if (user.role === 'student') studentTab = 'slide';
       }
       if (opened && user.role === 'student') studentTab = 'answer';
-      if (user.role === 'student' && n.session.quiz && n.session.quiz.id !== view.session.quiz?.id) {
+      // 新的一次測驗／PK／錯題練習：清掉上一次的提示，從第 1 題開始
+      if (newQuiz && user.role === 'student') {
         studentTab = 'answer';
         quizIndex = 0;
         quizFlash = '';
@@ -2448,6 +2512,9 @@ async function action(el: HTMLElement) {
     case 'quiz-class':
       quizBoardOpen = true;
       return control('quiz-class', { seconds: quizClassSeconds() });
+    case 'quiz-review':
+      quizBoardOpen = true;
+      return control('quiz-review', { seconds: 600 });
     case 'quiz-end':
     case 'quiz-close':
     case 'pk-lobby':
@@ -2478,20 +2545,42 @@ async function action(el: HTMLElement) {
       return refreshQuiz();
     case 'quiz-choose': {
       const q = view.quiz;
-      if (!q) return;
+      if (!q || quizSending) return;
       const i = Number(el.dataset.q),
         choice = Number(el.dataset.choice);
-      const r = await api<{ correct?: boolean }>(`/sessions/${s.id}/quiz`, 'POST', { runId: q.run.id, q: i, choice });
       const n = q.questions.length;
       q.mine ||= { answers: Array(n).fill(null), correct: Array(n).fill(null) };
-      q.mine.answers[i] = choice;
-      if (q.run.mode === 'pk') {
-        q.mine.correct[i] = r.correct ?? null;
-        if (r.correct) playCorrect();
-        quizFlash = r.correct ? '✓ 上一題答對！' : '✗ 上一題答錯了';
-      } else if (i === quizIndex && quizIndex < n - 1) quizIndex++;
-      refreshQuiz();
-      return refreshSession();
+      if (q.run.mode !== 'class' && q.mine.answers[i] !== null) return; // 已經答過（畫面還沒換）
+      quizSending = true;
+      document.querySelectorAll<HTMLButtonElement>('[data-action="quiz-choose"]').forEach((b) => (b.disabled = true));
+      try {
+        // 送題位（錯題練習每人的題目不同；全班測驗與 PK 題位就是第幾題）
+        const r = await api<{ correct?: boolean; answer?: number; explanation?: string; revision: number }>(`/sessions/${s.id}/quiz`, 'POST', { runId: q.run.id, q: q.questions[i].slot, choice });
+        // 比這次作答更舊的畫面（送出前就在路上的推送或輪詢）一律丟掉
+        view!.session.revision = Math.max(view!.session.revision, r.revision);
+        // 等回應時畫面可能已經換成較舊的推送：結果寫進「現在的」畫面
+        const cur = view?.quiz?.run.id === q.run.id ? view.quiz : q;
+        const k = cur.questions.findIndex((x) => x.slot === q.questions[i].slot);
+        if (k < 0) return;
+        cur.mine ||= { answers: cur.questions.map(() => null), correct: cur.questions.map(() => null) };
+        cur.mine.answers[k] = choice;
+        if (q.run.mode !== 'class') {
+          cur.mine.correct[k] = r.correct ?? null;
+          if (cur.mine.answers.every((x) => x !== null)) cur.mine.done ??= 0;
+          if (r.answer !== undefined) Object.assign(cur.questions[k], { answer: r.answer, ...(r.explanation ? { explanation: r.explanation } : {}) });
+          if (r.correct) playCorrect();
+          const x = cur.questions[k];
+          // 錯題練習附上正解與解析，看懂再做下一題；PK 只說對錯（節奏快）
+          quizFlash =
+            q.run.mode === 'review' && x.answer !== undefined
+              ? `<b>${r.correct ? '✓ 答對了！' : '✗ 答錯了'}</b> 正解 ${String.fromCharCode(65 + x.answer)}. ${md(x.options[x.answer])}${x.explanation ? `<small>${md(x.explanation)}</small>` : ''}`
+              : r.correct ? '✓ 上一題答對！' : '✗ 上一題答錯了';
+        } else if (i === quizIndex && quizIndex < n - 1) quizIndex++;
+      } finally {
+        quizSending = false;
+        refreshQuiz();
+      }
+      return;
     }
     case 'quiz-submit': {
       const q = view.quiz;

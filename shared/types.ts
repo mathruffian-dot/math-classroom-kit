@@ -205,6 +205,8 @@ export interface Animation {
 export interface Slide {
   id: string;
   title: string;
+  /** 課後檢核・PK 戰頁（每堂課最後一頁）：投影片區是對戰／測驗畫面，右側是派題與配對。 */
+  quizPage?: boolean;
   eyebrow?: string;
   body: string;
   bullets?: string[];
@@ -263,8 +265,11 @@ export interface PkMatch {
 /** 一次全班測驗或一場 PK（同一份卷子；PK 時所有組與觀眾都用這一份）。 */
 export interface QuizRun {
   id: string;
-  mode: 'class' | 'pk';
+  /** class：全班測驗；pk：PK 戰；review：錯題練習（每人只做自己錯的題型，換數字）。 */
+  mode: 'class' | 'pk' | 'review';
   paper: QuizPaper;
+  /** 錯題練習：每個人自己的卷子（picks 依題位、slots 是要做的題位）。 */
+  personal?: Record<string, { picks: QuizPaper['picks']; slots: number[] }>;
   /** 開始作答的時間（PK 有 3 秒倒數，所以比建立時間晚）。 */
   startedAt: number;
   seconds: number;
@@ -297,6 +302,8 @@ export interface QuizView {
   run: QuizRun;
   title: string;
   questions: {
+    /** 題位（從 0 起算）；作答時送這個。錯題練習只列自己的題位。 */
+    slot: number;
     topic: string;
     stem: string;
     /** 顯示順序的選項。 */
@@ -313,6 +320,17 @@ export interface QuizView {
   picks?: number[][];
   /** 電腦對手的作答時間表（各裝置自己算即時進度）。 */
   bot?: { correct: boolean[]; times: number[] };
+  /** 老師：每位同學每個題位的對錯（大螢幕的每題 ✓／✗，不含答案）。 */
+  detail?: Record<string, (boolean | null)[]>;
+}
+/** 老師：這堂課所有測驗、PK、錯題練習累計的錯題與 PK 戰績。 */
+export interface QuizRecord {
+  topics: string[];
+  /** 座號 → 目前還錯的題位（最近一次做那個題型是錯的或沒作答）。 */
+  wrong: Record<string, number[]>;
+  /** PK 戰績：座號 → 勝、負、平手。 */
+  standings: Record<string, { win: number; lose: number; draw: number }>;
+  runs: number;
 }
 export interface Classroom {
   id: string;
@@ -522,6 +540,8 @@ export interface SessionView {
   danmaku?: Danmaku[];
   /** 形成性評量／PK（有進行中或剛結束的才有）。 */
   quiz?: QuizView;
+  /** 老師：錯題紀錄與 PK 戰績（這一課有題庫、做過測驗才有）。 */
+  quizRecord?: QuizRecord;
   /**
    * 學生：作答開放中時彈幕有限制（只有答對的同學能送，這一題每人 3 則）。
    * limited 為 false 表示平常時間，不限則數。

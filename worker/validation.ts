@@ -424,6 +424,7 @@ export function validateLesson(input: unknown): Lesson {
               field === 'customHtml' ? 40000 : field === 'phase' ? 40 : 5000,
             );
         if (s.bullets !== undefined) slide.bullets = texts(s.bullets, '重點');
+        if (s.quizPage === true) slide.quizPage = true;
         if (s.visual !== undefined) {
           assert(
             ['balance', 'steps', 'cards', 'bars'].includes(String(s.visual)),

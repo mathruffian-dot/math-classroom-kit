@@ -37,7 +37,7 @@ function lint(lesson) {
   if (!lesson.slides.some((s) => s.activity?.type === 'canvas')) warnings.push('沒有手寫／拍照（canvas）題，無法看到學生的推理過程。');
   for (const [i, s] of lesson.slides.entries()) {
     const where = `第 ${i + 1} 頁「${s.title}」`;
-    if (!s.activity) warnings.push(`${where}沒有 IRS 題目。`);
+    if (!s.activity && !s.quizPage) warnings.push(`${where}沒有 IRS 題目。`);
     if ((s.body || '').length > 90) warnings.push(`${where}內文 ${s.body.length} 字，超過 90 字（分段原則：一頁一重點）。`);
     if (!s.phase) warnings.push(`${where}沒有標 phase（認知設計階段）。`);
     if (s.interactive?.steps?.length && !s.interactive.shapes.some((x) => x.step !== undefined || x.focus))
@@ -115,6 +115,16 @@ for (const file of files) {
   try {
     const quiz = JSON.parse(await readFile(join(root, 'content/quizzes', `${raw.id}.json`), 'utf8'));
     raw.quiz = { title: quiz.title, source: quiz.source, slots: quiz.slots };
+    // 課後檢核・PK 戰另外一頁（最後一頁），不放在上課的頁面底下
+    if (!raw.slides.some((s) => s.quizPage))
+      raw.slides.push({
+        id: 'quiz-pk',
+        phase: '課後檢核',
+        eyebrow: '最後 / 課後檢核・PK 戰',
+        title: '課後檢核・PK 戰',
+        body: '10 題四選一，每題從 3 題換數字的題目抽 1 題。老師可以派全班測驗，或開 PK 戰兩兩對戰。',
+        quizPage: true,
+      });
     quizNote = `，形成性評量 ${quiz.slots.length} 題位 × ${quiz.slots[0]?.variants.length ?? 0}`;
   } catch (e) {
     if (e.code !== 'ENOENT') {

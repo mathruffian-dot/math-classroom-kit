@@ -932,17 +932,35 @@ test('formative quiz: one random paper for the class, answers hidden until the e
   const mine=(await view('student')).quiz;
   assert.equal(mine.questions[0].answer,right(pk,0),'PK: answered question shows the right option');assert.equal(mine.questions[1].answer,undefined);
   assert(mine.scores['1'].answered===1,'students see PK progress');
-  for(let q=1;q<10;q++)await answer('student',{runId:pkRun,q,choice:right(pk,q)});
+  for(let q=1;q<10;q++)await answer('student',{runId:pkRun,q,choice:q===9?(right(pk,q)+1)%4:right(pk,q)});
   assert.equal((await view('teacher')).quiz.scores['1'].finished,true);
+  assert.deepEqual((await view('teacher')).quiz.detail['1'].map(x=>x?1:0),[1,1,1,1,1,1,1,1,1,0],'board shows each question right/wrong');
+  // 錯題紀錄：最近一次的結果（第 1 題在全班測驗錯、PK 答對 → 拿掉；第 10 題 PK 答錯 → 留著）
+  const rec=(await view('teacher')).quizRecord;
+  assert.deepEqual(rec.wrong['1'],[9]);assert.equal(rec.topics.length,10);
+  assert.equal((await view('student')).quizRecord,undefined,'students do not get the record');
   await ctl({action:'pk-again'});
   const again=await view('teacher');assert.notEqual(again.quiz.run.id,pkRun);assert.deepEqual(again.quiz.run.matches.map(m=>[m.a,m.b]),pk.quiz.run.matches.map(m=>[m.a,m.b]));
+  // PK 戰績
+  assert.deepEqual((await view('teacher')).quizRecord.standings['1'].win+(await view('teacher')).quizRecord.standings['1'].lose+(await view('teacher')).quizRecord.standings['1'].draw,1);
+  // 錯題練習：每人只做自己錯的題位、換成沒看過的那一題
+  await ctl({action:'quiz-review'});
+  const rv=await view('student');
+  assert.equal(rv.quiz.run.mode,'review');assert.equal(rv.quiz.run.personal,undefined,'students do not see other papers');
+  assert.deepEqual(rv.quiz.questions.map(x=>x.slot),[9]);
+  const seenStems=[t1.quiz.questions[9].stem,pk.quiz.questions[9].stem];
+  assert(!seenStems.includes(rv.quiz.questions[0].stem)||new Set(seenStems).size===3,'a variant the student has not seen');
+  assert.equal((await answer('student',{runId:rv.quiz.run.id,q:0,choice:0})).status,403,'only own slots');
+  const rr=await answer('student',{runId:rv.quiz.run.id,q:9,choice:right(rv,0)});
+  assert.equal(rr.body.correct,true);
+  assert.equal((await view('teacher')).quizRecord.wrong['1'],undefined,'right in the review → removed from the record');
   // 紀錄：CSV 與備份
   const csv=new TextDecoder().decode((await f.call(`/api/sessions/${s.id}/export?format=csv`)).body);
   assert(csv.includes('"形成性評量"')&&csv.includes('"PK戰"'));
   const backup=(await f.call('/api/backup')).body;
   const bs=backup.sessions.find(x=>x.session.id===s.id);
-  assert.equal(bs.quizRuns.length,4);
+  assert.equal(bs.quizRuns.length,5);
   const g=fixture();await g.call('/api/login','POST',TEACHER);
   const r=await g.call('/api/restore','POST',{backup});assert.equal(r.status,200,JSON.stringify(r.body));
-  assert.equal(g.data.sessions[s.id].quizRuns.length,4);
+  assert.equal(g.data.sessions[s.id].quizRuns.length,5);assert(g.data.sessions[s.id].quizRuns.some(r=>r.mode==='review'&&r.personal['1']));
 });

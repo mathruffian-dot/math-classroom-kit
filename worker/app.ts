@@ -18,7 +18,7 @@ import catalog from '../content/catalog.generated.json';
 import { normalizeChars, parseNumberAnswer } from '../shared/expr';
 import { PRACTICE_GRACE_MS, practiceStatus, practiceTotal } from '../shared/practice';
 import { PK_COUNTDOWN_MS, QUIZ_GRACE_MS, decide, quizOver } from '../shared/quiz';
-import { drawPaper, isCorrect, makeBot, newMatch, quizView, restoreQuiz, score, type QuizStore } from './quiz';
+import { drawPaper, drawReview, instantFeedback, isCorrect, makeBot, newMatch, paperFor, quizRecord, quizView, restoreQuiz, score, type QuizStore } from './quiz';
 import {
   HttpError,
   assert,
@@ -185,19 +185,21 @@ function quizCsvRows(s: StoredSession): (string | number)[][] {
       end = run.endedAt ?? run.startedAt + run.seconds * 1000;
     for (const [seat, sheet] of Object.entries(sheets)) {
       if (seat === '0') continue;
-      const mine = score(bank, run, sheet, end);
+      const mine = score(bank, run, sheet, end, seat),
+        own = paperFor(bank, run, seat);
       let note = run.mode === 'pk' ? '觀眾（跟著做）' : '';
       const m = run.matches?.find((x) => String(x.a) === seat || String(x.b) === seat);
       if (m) {
         const other = String(m.a) === seat ? m.b : m.a;
-        const theirs = other === 0 ? score(bank, run, sheets['0'], end) : score(bank, run, sheets[String(other)], end);
+        const theirs = score(bank, run, sheets[String(other)], end, other);
         const r = decide(mine, theirs);
         note = `對手 ${other === 0 ? '電腦' : `${other} 號`}・${r === 'draw' ? '平手' : r === 'a' ? '勝' : '負'}`;
       }
       sheet.answers.forEach((x, q) => {
         if (x === null) return;
-        const it = bank.slots[q].variants[run.paper.picks[q].variant];
-        rows.push([run.mode === 'pk' ? 'PK戰' : '形成性評量', seat, bank.slots[q].id, q + 1, it.options[x], isCorrect(bank, run.paper, q, x) ? 'Y' : 'N', mine.correct, bank.slots.length, note, new Date(run.startedAt + (sheet.times[q] || 0)).toISOString()]);
+        const it = bank.slots[q].variants[own.picks[q].variant];
+        const kind = run.mode === 'pk' ? 'PK戰' : run.mode === 'review' ? '錯題練習' : '形成性評量';
+        rows.push([kind, seat, bank.slots[q].id, q + 1, it.options[x], isCorrect(bank, own.picks, q, x) ? 'Y' : 'N', mine.correct, own.slots.length, note, new Date(run.startedAt + (sheet.times[q] || 0)).toISOString()]);
       });
     }
   }
@@ -211,7 +213,17 @@ function quizBank(state: State, s: StoredSession) {
   assert(s.lesson.quiz, '這一課還沒有形成性評量題庫', 409);
   return s.lesson.quiz;
 }
+/** 結束目前這一次（開新的一次、關閉時）：沒結束的記上結束時間，錯題紀錄與戰績才算得到。 */
+function endQuiz(s: StoredSession) {
+  const current = s.session.quiz;
+  if (!current) return;
+  const at = Math.min(Date.now(), current.startedAt + current.seconds * 1000);
+  current.endedAt ??= Math.max(current.startedAt, at);
+  const kept = s.quizRuns?.find((r) => r.id === current.id);
+  if (kept) kept.endedAt ??= current.endedAt;
+}
 function startQuiz(s: StoredSession, run: QuizRun) {
+  endQuiz(s);
   const session = s.session;
   session.activityOpen = false;
   session.activityDeadline = null;
@@ -554,6 +566,7 @@ export function sessionView(state: State, stored: StoredSession, user: User, onl
     const q = quizView(stored.lesson, stored, session.quiz, user, view.serverNow);
     if (q) view.quiz = q;
   }
+  if (teacher && stored.lesson.quiz && stored.quizRuns?.length) view.quizRecord = quizRecord(stored.lesson.quiz, stored, view.serverNow);
   return view;
 }
 /** 補救練習的畫面資料：老師看全部；學生只看自己，答案只公布已結束的輪次。 */
@@ -1297,6 +1310,15 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
             startQuiz(s, run);
             break;
           }
+          case 'quiz-review': {
+            // 錯題練習：每人只做自己的錯題題位，換成沒看過的那一題（同類型換數字）
+            const bank = quizBank(state, s);
+            const wrong = quizRecord(bank, s, Date.now()).wrong;
+            assert(Object.keys(wrong).length, '目前沒有人有錯題', 409);
+            const run: QuizRun = { id: uuid(), mode: 'review', paper: drawPaper(bank), personal: drawReview(bank, s, wrong), startedAt: Date.now(), seconds: integer(body.seconds ?? 600, 60, 3600) };
+            startQuiz(s, run);
+            break;
+          }
           case 'quiz-end': {
             assert(session.quiz, '目前沒有測驗', 409);
             const at = Date.now();
@@ -1306,12 +1328,14 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
             break;
           }
           case 'quiz-close':
+            endQuiz(s);
             session.quiz = null;
             session.pkLobby = null;
             break;
           // ── PK 戰：先配對（隨機、點選、抽籤、搶答、配電腦），再一起開始，所有組與觀眾同一份卷子 ──
           case 'pk-lobby':
             quizBank(state, s);
+            endQuiz(s);
             session.quiz = null;
             session.pkLobby = { pairs: [], waiting: null, buzz: false };
             break;
@@ -1718,21 +1742,28 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
         assert(sheet.done === undefined, '已經交卷', 409);
         const elapsed = Math.max(0, Math.min(t - run.startedAt, run.seconds * 1000));
         if (body.submit === true) {
-          sheet.done = run.mode === 'pk' ? Math.max(0, ...sheet.times.filter((x): x is number => x !== null)) : elapsed;
+          sheet.done = instantFeedback(run) ? Math.max(0, ...sheet.times.filter((x): x is number => x !== null)) : elapsed;
           session.revision++;
-          return save({ done: sheet.done });
+          return save({ done: sheet.done, revision: session.revision });
         }
-        const q = integer(body.q, 0, n - 1),
-          order = run.paper.picks[q].order,
+        // 錯題練習：只能作答自己的錯題題位
+        const own = paperFor(bank, run, String(user.seat));
+        const q = integer(body.q, 0, n - 1);
+        assert(own.slots.includes(q), '這一題不在你的卷子裡', 403);
+        const order = own.picks[q].order,
           original = order[integer(body.choice, 0, order.length - 1)];
-        if (run.mode === 'pk') assert(sheet.answers[q] === null, '這題已經作答', 409);
+        if (instantFeedback(run)) assert(sheet.answers[q] === null, '這題已經作答', 409);
         sheet.answers[q] = original;
         sheet.times[q] = elapsed;
-        if (run.mode === 'pk' && sheet.answers.every((x) => x !== null)) sheet.done = elapsed;
+        if (instantFeedback(run) && own.slots.every((x) => sheet.answers[x] !== null)) sheet.done = elapsed;
         s.seen[String(user.seat)] = now();
         session.revision++;
-        const correct = isCorrect(bank, run.paper, q, original);
-        return save(run.mode === 'pk' ? { correct, score: score(bank, run, sheet, t) } : { ok: true });
+        const correct = isCorrect(bank, own.picks, q, original);
+        // PK、錯題練習：直接回傳正解（顯示位置）與解析，學生端不用再等畫面更新
+        const it = bank.slots[q].variants[own.picks[q].variant];
+        const reveal = instantFeedback(run) ? { correct, answer: order.indexOf(it.answer), ...(it.explanation ? { explanation: it.explanation } : {}), score: score(bank, run, sheet, t, String(user.seat)) } : { ok: true };
+        // revision：學生端用它丟掉比這次作答更舊的畫面（避免已答的題目又出現）
+        return save({ ...reveal, revision: session.revision });
       }
       if (action === 'pk-buzz' && method === 'POST') {
         // 搶答上場 PK：搶到的人成為等待中那一位的對手（沒有人等待就成為第一位）
