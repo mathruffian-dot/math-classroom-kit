@@ -1,0 +1,3092 @@
+{
+  "hostLesson": "g8-2-2d",
+  "title": "2-2 根式的運算：魔王戰",
+  "section": "2-2",
+  "source": "八年級 2-2(1)～(4) 課後檢核題（依類型分配）＋新增換數字題與綜合應用題；範圍含 2-1、第 1 章乘法公式；答案已用 SymPy 核算",
+  "pools": {
+    "attack": [
+      {
+        "id": "g8-2-2a-q1-1",
+        "topic": "簡記：整數 × 根式",
+        "stem": "$(-5)\\times2\\sqrt{3}=$？",
+        "options": [
+          "$-10\\sqrt{3}$",
+          "$10\\sqrt{3}$",
+          "$-2\\sqrt{15}$",
+          "$-3\\sqrt{3}$"
+        ],
+        "answer": 0,
+        "explanation": "整數乘係數：$(-5)\\times2=-10$，根號不變，得 $-10\\sqrt{3}$。"
+      },
+      {
+        "id": "g8-2-2a-q1-2",
+        "topic": "簡記：整數 × 根式",
+        "stem": "$4\\times(-3\\sqrt{2})=$？",
+        "options": [
+          "$-12\\sqrt{2}$",
+          "$12\\sqrt{2}$",
+          "$-3\\sqrt{8}$",
+          "$\\sqrt{2}$"
+        ],
+        "answer": 0,
+        "explanation": "$4\\times(-3)=-12$，根號不變，得 $-12\\sqrt{2}$。"
+      },
+      {
+        "id": "g8-2-2a-q1-3",
+        "topic": "簡記：整數 × 根式",
+        "stem": "$(-6)\\times5\\sqrt{7}=$？",
+        "options": [
+          "$-30\\sqrt{7}$",
+          "$30\\sqrt{7}$",
+          "$-5\\sqrt{42}$",
+          "$-\\sqrt{7}$"
+        ],
+        "answer": 0,
+        "explanation": "$(-6)\\times5=-30$，根號不變，得 $-30\\sqrt{7}$。"
+      },
+      {
+        "id": "g8-2-2a-q2-1",
+        "topic": "簡記：根式 ÷ 整數",
+        "stem": "$(-4\\sqrt{2})\\div6=$？",
+        "options": [
+          "$-\\dfrac{2}{3}\\sqrt{2}$",
+          "$-\\dfrac{3}{2}\\sqrt{2}$",
+          "$-24\\sqrt{2}$",
+          "$\\dfrac{2}{3}\\sqrt{2}$"
+        ],
+        "answer": 0,
+        "explanation": "係數相除：$-4\\div6=-\\dfrac{2}{3}$，根號不變。"
+      },
+      {
+        "id": "g8-2-2a-q2-2",
+        "topic": "簡記：根式 ÷ 整數",
+        "stem": "$(-6\\sqrt{5})\\div4=$？",
+        "options": [
+          "$-\\dfrac{3}{2}\\sqrt{5}$",
+          "$-\\dfrac{2}{3}\\sqrt{5}$",
+          "$-24\\sqrt{5}$",
+          "$\\dfrac{3}{2}\\sqrt{5}$"
+        ],
+        "answer": 0,
+        "explanation": "$-6\\div4=-\\dfrac{3}{2}$，根號不變。"
+      },
+      {
+        "id": "g8-2-2a-q2-3",
+        "topic": "簡記：根式 ÷ 整數",
+        "stem": "$9\\sqrt{3}\\div(-6)=$？",
+        "options": [
+          "$-\\dfrac{3}{2}\\sqrt{3}$",
+          "$-\\dfrac{2}{3}\\sqrt{3}$",
+          "$-54\\sqrt{3}$",
+          "$\\dfrac{3}{2}\\sqrt{3}$"
+        ],
+        "answer": 0,
+        "explanation": "$9\\div(-6)=-\\dfrac{3}{2}$，根號不變。"
+      },
+      {
+        "id": "g8-2-2a-q3-1",
+        "topic": "根式乘法：√a × √b",
+        "stem": "$\\sqrt{3}\\times\\sqrt{7}=$？",
+        "options": [
+          "$\\sqrt{21}$",
+          "$\\sqrt{10}$",
+          "$21$",
+          "$10$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{a}\\times\\sqrt{b}=\\sqrt{a\\times b}$：$\\sqrt{3\\times7}=\\sqrt{21}$，不是根號內相加。"
+      },
+      {
+        "id": "g8-2-2a-q3-2",
+        "topic": "根式乘法：√a × √b",
+        "stem": "$\\sqrt{5}\\times\\sqrt{6}=$？",
+        "options": [
+          "$\\sqrt{30}$",
+          "$\\sqrt{11}$",
+          "$30$",
+          "$11$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{5\\times6}=\\sqrt{30}$。"
+      },
+      {
+        "id": "g8-2-2a-q3-3",
+        "topic": "根式乘法：√a × √b",
+        "stem": "$\\sqrt{2}\\times\\sqrt{11}=$？",
+        "options": [
+          "$\\sqrt{22}$",
+          "$\\sqrt{13}$",
+          "$22$",
+          "$13$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{2\\times11}=\\sqrt{22}$。"
+      },
+      {
+        "id": "g8-2-2a-q4-1",
+        "topic": "係數乘係數、根號乘根號",
+        "stem": "$3\\sqrt{3}\\times(-2\\sqrt{5})=$？",
+        "options": [
+          "$-6\\sqrt{15}$",
+          "$6\\sqrt{15}$",
+          "$\\sqrt{15}$",
+          "$-6\\sqrt{8}$"
+        ],
+        "answer": 0,
+        "explanation": "係數 $3\\times(-2)=-6$，根號 $\\sqrt{3}\\times\\sqrt{5}=\\sqrt{15}$，得 $-6\\sqrt{15}$。"
+      },
+      {
+        "id": "g8-2-2a-q4-2",
+        "topic": "係數乘係數、根號乘根號",
+        "stem": "$(-2\\sqrt{3})\\times4\\sqrt{2}=$？",
+        "options": [
+          "$-8\\sqrt{6}$",
+          "$8\\sqrt{6}$",
+          "$2\\sqrt{6}$",
+          "$-8\\sqrt{5}$"
+        ],
+        "answer": 0,
+        "explanation": "係數 $(-2)\\times4=-8$，根號 $\\sqrt{3\\times2}=\\sqrt{6}$。"
+      },
+      {
+        "id": "g8-2-2a-q4-3",
+        "topic": "係數乘係數、根號乘根號",
+        "stem": "$5\\sqrt{2}\\times(-3\\sqrt{7})=$？",
+        "options": [
+          "$-15\\sqrt{14}$",
+          "$15\\sqrt{14}$",
+          "$2\\sqrt{14}$",
+          "$-15\\sqrt{9}$"
+        ],
+        "answer": 0,
+        "explanation": "係數 $5\\times(-3)=-15$，根號 $\\sqrt{2\\times7}=\\sqrt{14}$。"
+      },
+      {
+        "id": "g8-2-2a-q5-1",
+        "topic": "乘完要化簡",
+        "stem": "$\\sqrt{2}\\times\\sqrt{8}=$？",
+        "options": [
+          "$4$",
+          "$\\sqrt{10}$",
+          "$16$",
+          "$2\\sqrt{2}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{2\\times8}=\\sqrt{16}=4$。"
+      },
+      {
+        "id": "g8-2-2a-q5-2",
+        "topic": "乘完要化簡",
+        "stem": "$\\sqrt{3}\\times\\sqrt{12}=$？",
+        "options": [
+          "$6$",
+          "$\\sqrt{15}$",
+          "$36$",
+          "$2\\sqrt{3}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{3\\times12}=\\sqrt{36}=6$。"
+      },
+      {
+        "id": "g8-2-2a-q5-3",
+        "topic": "乘完要化簡",
+        "stem": "$\\sqrt{5}\\times\\sqrt{20}=$？",
+        "options": [
+          "$10$",
+          "$100$",
+          "$2\\sqrt{5}$",
+          "$5$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{5\\times20}=\\sqrt{100}=10$。"
+      },
+      {
+        "id": "g8-2-2a-q8-1",
+        "topic": "根式除法：√a ÷ √b",
+        "stem": "$\\sqrt{35}\\div\\sqrt{7}=$？",
+        "options": [
+          "$\\sqrt{5}$",
+          "$\\sqrt{28}$",
+          "$5$",
+          "$7\\sqrt{5}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{a}\\div\\sqrt{b}=\\sqrt{a\\div b}$：$\\sqrt{35\\div7}=\\sqrt{5}$。"
+      },
+      {
+        "id": "g8-2-2a-q8-2",
+        "topic": "根式除法：√a ÷ √b",
+        "stem": "$\\sqrt{48}\\div\\sqrt{8}=$？",
+        "options": [
+          "$\\sqrt{6}$",
+          "$\\sqrt{40}$",
+          "$6$",
+          "$8\\sqrt{6}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{48\\div8}=\\sqrt{6}$。"
+      },
+      {
+        "id": "g8-2-2a-q8-3",
+        "topic": "根式除法：√a ÷ √b",
+        "stem": "$\\sqrt{54}\\div\\sqrt{6}=$？",
+        "options": [
+          "$3$",
+          "$\\sqrt{48}$",
+          "$9$",
+          "$18$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{54\\div6}=\\sqrt{9}=3$。"
+      },
+      {
+        "id": "g8-2-2b-q1-1",
+        "topic": "最簡根式：搬出最大的平方因數",
+        "stem": "把 $\\sqrt{72}$ 化成最簡根式。",
+        "options": [
+          "$6\\sqrt{2}$",
+          "$36\\sqrt{2}$",
+          "$2\\sqrt{18}$",
+          "$3\\sqrt{2}$"
+        ],
+        "answer": 0,
+        "explanation": "找最大的平方因數：$\\sqrt{72}=\\sqrt{36\\times2}=6\\sqrt{2}$。平方因數要開方才搬出來，而且要用最大的。"
+      },
+      {
+        "id": "g8-2-2b-q1-2",
+        "topic": "最簡根式：搬出最大的平方因數",
+        "stem": "把 $\\sqrt{48}$ 化成最簡根式。",
+        "options": [
+          "$4\\sqrt{3}$",
+          "$16\\sqrt{3}$",
+          "$2\\sqrt{12}$",
+          "$8\\sqrt{3}$"
+        ],
+        "answer": 0,
+        "explanation": "找最大的平方因數：$\\sqrt{48}=\\sqrt{16\\times3}=4\\sqrt{3}$。平方因數要開方才搬出來，而且要用最大的。"
+      },
+      {
+        "id": "g8-2-2b-q1-3",
+        "topic": "最簡根式：搬出最大的平方因數",
+        "stem": "把 $\\sqrt{108}$ 化成最簡根式。",
+        "options": [
+          "$6\\sqrt{3}$",
+          "$36\\sqrt{3}$",
+          "$3\\sqrt{12}$",
+          "$9\\sqrt{3}$"
+        ],
+        "answer": 0,
+        "explanation": "找最大的平方因數：$\\sqrt{108}=\\sqrt{36\\times3}=6\\sqrt{3}$。平方因數要開方才搬出來，而且要用最大的。"
+      },
+      {
+        "id": "g8-2-2b-q2-1",
+        "topic": "最簡根式：次方的形式",
+        "stem": "把 $\\sqrt{3^{5}}$ 化成最簡根式。",
+        "options": [
+          "$9\\sqrt{3}$",
+          "$27\\sqrt{3}$",
+          "$3\\sqrt{27}$",
+          "$5\\sqrt{3}$"
+        ],
+        "answer": 0,
+        "explanation": "$3^{5}=3^{4}\\times3$，$\\sqrt{3^{4}}=9$，所以 $\\sqrt{3^{5}}=9\\sqrt{3}$。"
+      },
+      {
+        "id": "g8-2-2b-q2-2",
+        "topic": "最簡根式：次方的形式",
+        "stem": "把 $\\sqrt{5^{3}}$ 化成最簡根式。",
+        "options": [
+          "$5\\sqrt{5}$",
+          "$25\\sqrt{5}$",
+          "$\\sqrt{125}$",
+          "$15$"
+        ],
+        "answer": 0,
+        "explanation": "$5^{3}=5^{2}\\times5$，$\\sqrt{5^{2}}=5$，所以 $\\sqrt{5^{3}}=5\\sqrt{5}$。"
+      },
+      {
+        "id": "g8-2-2b-q2-3",
+        "topic": "最簡根式：次方的形式",
+        "stem": "把 $\\sqrt{2^{7}}$ 化成最簡根式。",
+        "options": [
+          "$8\\sqrt{2}$",
+          "$16\\sqrt{2}$",
+          "$2\\sqrt{32}$",
+          "$7\\sqrt{2}$"
+        ],
+        "answer": 0,
+        "explanation": "$2^{7}=2^{6}\\times2$，$\\sqrt{2^{6}}=8$，所以 $\\sqrt{2^{7}}=8\\sqrt{2}$。"
+      },
+      {
+        "id": "g8-2-2b-q3-1",
+        "topic": "分母有理化：a ÷ √n",
+        "stem": "把 $\\dfrac{5}{\\sqrt{2}}$ 化成最簡根式（分母有理化）。",
+        "options": [
+          "$\\dfrac{5\\sqrt{2}}{2}$",
+          "$5\\sqrt{2}$",
+          "$\\dfrac{5}{\\sqrt{2}}$",
+          "$\\dfrac{\\sqrt{10}}{2}$"
+        ],
+        "answer": 0,
+        "explanation": "分子分母同乘 $\\sqrt{2}$：$\\dfrac{5}{\\sqrt{2}}=\\dfrac{5\\sqrt{2}}{\\sqrt{2}\\times\\sqrt{2}}=\\dfrac{5\\sqrt{2}}{2}$。分子也要乘。"
+      },
+      {
+        "id": "g8-2-2b-q3-2",
+        "topic": "分母有理化：a ÷ √n",
+        "stem": "把 $\\dfrac{6}{\\sqrt{3}}$ 化成最簡根式（分母有理化）。",
+        "options": [
+          "$2\\sqrt{3}$",
+          "$6\\sqrt{3}$",
+          "$\\dfrac{6\\sqrt{3}}{3}$",
+          "$3\\sqrt{2}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\dfrac{6}{\\sqrt{3}}=\\dfrac{6\\sqrt{3}}{3}=2\\sqrt{3}$。有理化後還要約分。"
+      },
+      {
+        "id": "g8-2-2b-q3-3",
+        "topic": "分母有理化：a ÷ √n",
+        "stem": "把 $\\dfrac{3}{2\\sqrt{6}}$ 化成最簡根式（分母有理化）。",
+        "options": [
+          "$\\dfrac{\\sqrt{6}}{4}$",
+          "$\\dfrac{3\\sqrt{6}}{12}$",
+          "$\\dfrac{3\\sqrt{6}}{2}$",
+          "$\\dfrac{\\sqrt{6}}{2}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\dfrac{3}{2\\sqrt{6}}=\\dfrac{3\\sqrt{6}}{2\\sqrt{6}\\times\\sqrt{6}}=\\dfrac{3\\sqrt{6}}{12}=\\dfrac{\\sqrt{6}}{4}$。分母 $2\\sqrt{6}\\times\\sqrt{6}=12$。"
+      },
+      {
+        "id": "g8-2-2b-q4-1",
+        "topic": "根號內是分數",
+        "stem": "把 $\\sqrt{\\dfrac{3}{8}}$ 化成最簡根式。",
+        "options": [
+          "$\\dfrac{\\sqrt{6}}{4}$",
+          "$\\dfrac{\\sqrt{3}}{8}$",
+          "$\\dfrac{\\sqrt{3}}{2\\sqrt{2}}$",
+          "$\\dfrac{\\sqrt{6}}{8}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{\\dfrac{3}{8}}=\\dfrac{\\sqrt{3}}{\\sqrt{8}}=\\dfrac{\\sqrt{3}}{2\\sqrt{2}}=\\dfrac{\\sqrt{6}}{4}$。根號內的分母也要開方，再有理化。"
+      },
+      {
+        "id": "g8-2-2b-q4-2",
+        "topic": "根號內是分數",
+        "stem": "把 $\\sqrt{\\dfrac{5}{12}}$ 化成最簡根式。",
+        "options": [
+          "$\\dfrac{\\sqrt{15}}{6}$",
+          "$\\dfrac{\\sqrt{5}}{12}$",
+          "$\\dfrac{\\sqrt{5}}{2\\sqrt{3}}$",
+          "$\\dfrac{\\sqrt{15}}{12}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{\\dfrac{5}{12}}=\\dfrac{\\sqrt{5}}{2\\sqrt{3}}=\\dfrac{\\sqrt{15}}{6}$。"
+      },
+      {
+        "id": "g8-2-2b-q4-3",
+        "topic": "根號內是分數",
+        "stem": "把 $\\sqrt{\\dfrac{2}{27}}$ 化成最簡根式。",
+        "options": [
+          "$\\dfrac{\\sqrt{6}}{9}$",
+          "$\\dfrac{\\sqrt{2}}{27}$",
+          "$\\dfrac{\\sqrt{2}}{3\\sqrt{3}}$",
+          "$\\dfrac{\\sqrt{6}}{3}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{\\dfrac{2}{27}}=\\dfrac{\\sqrt{2}}{3\\sqrt{3}}=\\dfrac{\\sqrt{6}}{9}$。"
+      },
+      {
+        "id": "g8-2-2b-q5-1",
+        "topic": "根號內是小數",
+        "stem": "把 $\\sqrt{0.3}$ 化成最簡根式。",
+        "options": [
+          "$\\dfrac{\\sqrt{30}}{10}$",
+          "$\\dfrac{\\sqrt{3}}{10}$",
+          "$0.3$",
+          "$\\dfrac{\\sqrt{3}}{\\sqrt{10}}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{0.3}=\\sqrt{\\dfrac{3}{10}}=\\dfrac{\\sqrt{3}}{\\sqrt{10}}=\\dfrac{\\sqrt{30}}{10}$。根號內不能留小數。"
+      },
+      {
+        "id": "g8-2-2b-q5-2",
+        "topic": "根號內是小數",
+        "stem": "把 $\\sqrt{0.5}$ 化成最簡根式。",
+        "options": [
+          "$\\dfrac{\\sqrt{2}}{2}$",
+          "$\\dfrac{\\sqrt{5}}{10}$",
+          "$0.5$",
+          "$\\dfrac{1}{\\sqrt{2}}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{0.5}=\\sqrt{\\dfrac{1}{2}}=\\dfrac{1}{\\sqrt{2}}=\\dfrac{\\sqrt{2}}{2}$。"
+      },
+      {
+        "id": "g8-2-2b-q5-3",
+        "topic": "根號內是小數",
+        "stem": "把 $\\sqrt{1.2}$ 化成最簡根式。",
+        "options": [
+          "$\\dfrac{\\sqrt{30}}{5}$",
+          "$\\dfrac{\\sqrt{12}}{10}$",
+          "$1.2$",
+          "$\\sqrt{\\dfrac{6}{5}}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{1.2}=\\sqrt{\\dfrac{6}{5}}=\\dfrac{\\sqrt{6}}{\\sqrt{5}}=\\dfrac{\\sqrt{30}}{5}$。"
+      },
+      {
+        "id": "g8-2-2c-q1-1",
+        "topic": "同類方根合併",
+        "stem": "$7\\sqrt{3}-3\\sqrt{3}=$？",
+        "options": [
+          "$4\\sqrt{3}$",
+          "$4$",
+          "$10\\sqrt{3}$",
+          "$4\\sqrt{6}$"
+        ],
+        "answer": 0,
+        "explanation": "同類方根像同類項：$(7-3)\\sqrt{3}=4\\sqrt{3}$，根號部分不變。"
+      },
+      {
+        "id": "g8-2-2c-q1-2",
+        "topic": "同類方根合併",
+        "stem": "$5\\sqrt{2}+3\\sqrt{2}=$？",
+        "options": [
+          "$8\\sqrt{2}$",
+          "$8\\sqrt{4}$",
+          "$15\\sqrt{2}$",
+          "$8$"
+        ],
+        "answer": 0,
+        "explanation": "$(5+3)\\sqrt{2}=8\\sqrt{2}$。根號內不相加。"
+      },
+      {
+        "id": "g8-2-2c-q1-3",
+        "topic": "同類方根合併",
+        "stem": "$3\\sqrt{11}-8\\sqrt{11}=$？",
+        "options": [
+          "$-5\\sqrt{11}$",
+          "$5\\sqrt{11}$",
+          "$-5$",
+          "$-24\\sqrt{11}$"
+        ],
+        "answer": 0,
+        "explanation": "$(3-8)\\sqrt{11}=-5\\sqrt{11}$。"
+      },
+      {
+        "id": "g8-2-2c-q3-1",
+        "topic": "先化成最簡根式再合併",
+        "stem": "$\\sqrt{8}+\\sqrt{18}=$？",
+        "options": [
+          "$5\\sqrt{2}$",
+          "$\\sqrt{26}$",
+          "$6\\sqrt{2}$",
+          "$2\\sqrt{5}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{8}=2\\sqrt{2}$、$\\sqrt{18}=3\\sqrt{2}$，是同類方根：$2\\sqrt{2}+3\\sqrt{2}=5\\sqrt{2}$。"
+      },
+      {
+        "id": "g8-2-2c-q3-2",
+        "topic": "先化成最簡根式再合併",
+        "stem": "$\\sqrt{50}-\\sqrt{32}=$？",
+        "options": [
+          "$\\sqrt{2}$",
+          "$\\sqrt{18}$",
+          "$9\\sqrt{2}$",
+          "$2$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{50}=5\\sqrt{2}$、$\\sqrt{32}=4\\sqrt{2}$，$5\\sqrt{2}-4\\sqrt{2}=\\sqrt{2}$。根號內不能直接相減。"
+      },
+      {
+        "id": "g8-2-2c-q3-3",
+        "topic": "先化成最簡根式再合併",
+        "stem": "$\\sqrt{12}+\\sqrt{27}=$？",
+        "options": [
+          "$5\\sqrt{3}$",
+          "$\\sqrt{39}$",
+          "$13\\sqrt{3}$",
+          "$6\\sqrt{3}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{12}=2\\sqrt{3}$、$\\sqrt{27}=3\\sqrt{3}$，合計 $5\\sqrt{3}$。"
+      },
+      {
+        "id": "g8-2-2d-q1-1",
+        "topic": "和的平方 (a+b)²",
+        "stem": "$(2+\\sqrt{3})^2=$？",
+        "options": [
+          "$7+4\\sqrt{3}$",
+          "$7$",
+          "$7+2\\sqrt{3}$",
+          "$4+4\\sqrt{3}$"
+        ],
+        "answer": 0,
+        "explanation": "$2^2+2\\times 2\\times\\sqrt{3}+(\\sqrt{3})^2=4+4\\sqrt{3}+3=7+4\\sqrt{3}$，中間的 $2ab$ 不能漏。"
+      },
+      {
+        "id": "g8-2-2d-q1-2",
+        "topic": "和的平方 (a+b)²",
+        "stem": "$(\\sqrt{5}+2)^2=$？",
+        "options": [
+          "$9+4\\sqrt{5}$",
+          "$9$",
+          "$9+2\\sqrt{5}$",
+          "$7+4\\sqrt{5}$"
+        ],
+        "answer": 0,
+        "explanation": "$(\\sqrt{5})^2+2\\times\\sqrt{5}\\times 2+2^2=5+4\\sqrt{5}+4=9+4\\sqrt{5}$。"
+      },
+      {
+        "id": "g8-2-2d-q1-3",
+        "topic": "和的平方 (a+b)²",
+        "stem": "$(3+2\\sqrt{5})^2=$？",
+        "options": [
+          "$29+12\\sqrt{5}$",
+          "$29$",
+          "$19+12\\sqrt{5}$",
+          "$29+6\\sqrt{5}$"
+        ],
+        "answer": 0,
+        "explanation": "$3^2+2\\times 3\\times 2\\sqrt{5}+(2\\sqrt{5})^2=9+12\\sqrt{5}+20=29+12\\sqrt{5}$。$(2\\sqrt{5})^2=20$，不是 $10$。"
+      },
+      {
+        "id": "g8-2-2d-q2-1",
+        "topic": "差的平方 (a−b)²",
+        "stem": "$(\\sqrt{7}-\\sqrt{3})^2=$？",
+        "options": [
+          "$10-2\\sqrt{21}$",
+          "$4$",
+          "$10+2\\sqrt{21}$",
+          "$10-\\sqrt{21}$"
+        ],
+        "answer": 0,
+        "explanation": "$7-2\\sqrt{21}+3=10-2\\sqrt{21}$。不是 $7-3=4$。"
+      },
+      {
+        "id": "g8-2-2d-q2-2",
+        "topic": "差的平方 (a−b)²",
+        "stem": "$(\\sqrt{5}-1)^2=$？",
+        "options": [
+          "$6-2\\sqrt{5}$",
+          "$4$",
+          "$6+2\\sqrt{5}$",
+          "$4-2\\sqrt{5}$"
+        ],
+        "answer": 0,
+        "explanation": "$(\\sqrt{5})^2-2\\times\\sqrt{5}\\times 1+1^2=6-2\\sqrt{5}$。"
+      },
+      {
+        "id": "g8-2-2d-q2-3",
+        "topic": "差的平方 (a−b)²",
+        "stem": "$(3-\\sqrt{2})^2=$？",
+        "options": [
+          "$11-6\\sqrt{2}$",
+          "$7$",
+          "$11+6\\sqrt{2}$",
+          "$11-3\\sqrt{2}$"
+        ],
+        "answer": 0,
+        "explanation": "$9-6\\sqrt{2}+2=11-6\\sqrt{2}$。"
+      },
+      {
+        "id": "g8-2-2d-q3-1",
+        "topic": "平方差 (a+b)(a−b)：整數與根式",
+        "stem": "$(3+\\sqrt{5})(3-\\sqrt{5})=$？",
+        "options": [
+          "$4$",
+          "$14$",
+          "$-4$",
+          "$9-\\sqrt{5}$"
+        ],
+        "answer": 0,
+        "explanation": "$(a+b)(a-b)=a^2-b^2$：$3^2-(\\sqrt{5})^2=9-5=4$，根號不見了。"
+      },
+      {
+        "id": "g8-2-2d-q3-2",
+        "topic": "平方差 (a+b)(a−b)：整數與根式",
+        "stem": "$(\\sqrt{7}+2)(\\sqrt{7}-2)=$？",
+        "options": [
+          "$3$",
+          "$11$",
+          "$-3$",
+          "$7-2\\sqrt{7}$"
+        ],
+        "answer": 0,
+        "explanation": "$(\\sqrt{7})^2-2^2=7-4=3$。"
+      },
+      {
+        "id": "g8-2-2d-q3-3",
+        "topic": "平方差 (a+b)(a−b)：整數與根式",
+        "stem": "$(2\\sqrt{2}+1)(2\\sqrt{2}-1)=$？",
+        "options": [
+          "$7$",
+          "$9$",
+          "$3$",
+          "$-7$"
+        ],
+        "answer": 0,
+        "explanation": "$(2\\sqrt{2})^2-1^2=8-1=7$。$(2\\sqrt{2})^2=8$。"
+      },
+      {
+        "id": "g8-2-2d-q4-1",
+        "topic": "平方差：兩個根式",
+        "stem": "$(\\sqrt{3}+\\sqrt{5})(\\sqrt{3}-\\sqrt{5})=$？",
+        "options": [
+          "$-2$",
+          "$2$",
+          "$8$",
+          "$\\sqrt{15}$"
+        ],
+        "answer": 0,
+        "explanation": "$(\\sqrt{3})^2-(\\sqrt{5})^2=3-5=-2$。前面減後面，順序不能反。"
+      },
+      {
+        "id": "g8-2-2d-q4-2",
+        "topic": "平方差：兩個根式",
+        "stem": "$(\\sqrt{6}+\\sqrt{2})(\\sqrt{6}-\\sqrt{2})=$？",
+        "options": [
+          "$4$",
+          "$8$",
+          "$-4$",
+          "$2\\sqrt{3}$"
+        ],
+        "answer": 0,
+        "explanation": "$6-2=4$。"
+      },
+      {
+        "id": "g8-2-2d-q4-3",
+        "topic": "平方差：兩個根式",
+        "stem": "$(\\sqrt{10}+\\sqrt{3})(\\sqrt{10}-\\sqrt{3})=$？",
+        "options": [
+          "$7$",
+          "$13$",
+          "$-7$",
+          "$\\sqrt{30}$"
+        ],
+        "answer": 0,
+        "explanation": "$10-3=7$。"
+      },
+      {
+        "id": "new-attack-根式乘法-1",
+        "topic": "根式乘法",
+        "stem": "$\\sqrt{2}\\times\\sqrt{3}=$？",
+        "options": [
+          "$\\sqrt{6}$",
+          "$\\sqrt{5}$",
+          "$6$",
+          "$2\\sqrt{3}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{2}\\times\\sqrt{3}=\\sqrt{6}$。"
+      },
+      {
+        "id": "new-attack-根式乘法-2",
+        "topic": "根式乘法",
+        "stem": "$\\sqrt{3}\\times\\sqrt{5}=$？",
+        "options": [
+          "$\\sqrt{15}$",
+          "$2\\sqrt{2}$",
+          "$15$",
+          "$3\\sqrt{5}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{3}\\times\\sqrt{5}=\\sqrt{15}$。"
+      },
+      {
+        "id": "new-attack-根式乘法-3",
+        "topic": "根式乘法",
+        "stem": "$\\sqrt{2}\\times\\sqrt{7}=$？",
+        "options": [
+          "$\\sqrt{14}$",
+          "$3$",
+          "$14$",
+          "$2\\sqrt{7}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{2}\\times\\sqrt{7}=\\sqrt{14}$。"
+      },
+      {
+        "id": "new-attack-根式乘法-4",
+        "topic": "根式乘法",
+        "stem": "$\\sqrt{5}\\times\\sqrt{7}=$？",
+        "options": [
+          "$\\sqrt{35}$",
+          "$2\\sqrt{3}$",
+          "$35$",
+          "$5\\sqrt{7}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{5}\\times\\sqrt{7}=\\sqrt{35}$。"
+      },
+      {
+        "id": "new-attack-根式乘法-5",
+        "topic": "根式乘法",
+        "stem": "$\\sqrt{3}\\times\\sqrt{7}=$？",
+        "options": [
+          "$\\sqrt{21}$",
+          "$\\sqrt{10}$",
+          "$21$",
+          "$3\\sqrt{7}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{3}\\times\\sqrt{7}=\\sqrt{21}$。"
+      },
+      {
+        "id": "new-attack-根式乘法-6",
+        "topic": "根式乘法",
+        "stem": "$\\sqrt{2}\\times\\sqrt{11}=$？",
+        "options": [
+          "$\\sqrt{22}$",
+          "$\\sqrt{13}$",
+          "$22$",
+          "$2\\sqrt{11}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{2}\\times\\sqrt{11}=\\sqrt{22}$。"
+      },
+      {
+        "id": "new-attack-根式乘法-7",
+        "topic": "根式乘法",
+        "stem": "$\\sqrt{5}\\times\\sqrt{6}=$？",
+        "options": [
+          "$\\sqrt{30}$",
+          "$\\sqrt{11}$",
+          "$30$",
+          "$5\\sqrt{6}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{5}\\times\\sqrt{6}=\\sqrt{30}$。"
+      },
+      {
+        "id": "new-attack-根式乘法-8",
+        "topic": "根式乘法",
+        "stem": "$\\sqrt{3}\\times\\sqrt{10}=$？",
+        "options": [
+          "$\\sqrt{30}$",
+          "$\\sqrt{13}$",
+          "$30$",
+          "$3\\sqrt{10}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{3}\\times\\sqrt{10}=\\sqrt{30}$。"
+      },
+      {
+        "id": "new-attack-化成最簡根式-1",
+        "topic": "化成最簡根式",
+        "stem": "把 $\\sqrt{12}$ 化成最簡根式。",
+        "options": [
+          "$2\\sqrt{3}$",
+          "$3\\sqrt{2}$",
+          "$4\\sqrt{3}$",
+          "$\\sqrt{6}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{12}=\\sqrt{4\\times3}=2\\sqrt{3}$，把平方因數 $4$ 開出來變成 $2$。"
+      },
+      {
+        "id": "new-attack-化成最簡根式-2",
+        "topic": "化成最簡根式",
+        "stem": "把 $\\sqrt{18}$ 化成最簡根式。",
+        "options": [
+          "$3\\sqrt{2}$",
+          "$2\\sqrt{3}$",
+          "$9\\sqrt{2}$",
+          "$\\sqrt{6}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{18}=\\sqrt{9\\times2}=3\\sqrt{2}$，把平方因數 $9$ 開出來變成 $3$。"
+      },
+      {
+        "id": "new-attack-化成最簡根式-3",
+        "topic": "化成最簡根式",
+        "stem": "把 $\\sqrt{20}$ 化成最簡根式。",
+        "options": [
+          "$2\\sqrt{5}$",
+          "$5\\sqrt{2}$",
+          "$4\\sqrt{5}$",
+          "$\\sqrt{10}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{20}=\\sqrt{4\\times5}=2\\sqrt{5}$，把平方因數 $4$ 開出來變成 $2$。"
+      },
+      {
+        "id": "new-attack-化成最簡根式-4",
+        "topic": "化成最簡根式",
+        "stem": "把 $\\sqrt{32}$ 化成最簡根式。",
+        "options": [
+          "$4\\sqrt{2}$",
+          "$5\\sqrt{2}$",
+          "$16\\sqrt{2}$",
+          "$\\sqrt{8}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{32}=\\sqrt{16\\times2}=4\\sqrt{2}$，把平方因數 $16$ 開出來變成 $4$。"
+      },
+      {
+        "id": "new-attack-化成最簡根式-5",
+        "topic": "化成最簡根式",
+        "stem": "把 $\\sqrt{45}$ 化成最簡根式。",
+        "options": [
+          "$3\\sqrt{5}$",
+          "$5\\sqrt{3}$",
+          "$9\\sqrt{5}$",
+          "$\\sqrt{15}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{45}=\\sqrt{9\\times5}=3\\sqrt{5}$，把平方因數 $9$ 開出來變成 $3$。"
+      },
+      {
+        "id": "new-attack-化成最簡根式-6",
+        "topic": "化成最簡根式",
+        "stem": "把 $\\sqrt{50}$ 化成最簡根式。",
+        "options": [
+          "$5\\sqrt{2}$",
+          "$2\\sqrt{5}$",
+          "$25\\sqrt{2}$",
+          "$\\sqrt{10}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{50}=\\sqrt{25\\times2}=5\\sqrt{2}$，把平方因數 $25$ 開出來變成 $5$。"
+      },
+      {
+        "id": "new-attack-化成最簡根式-7",
+        "topic": "化成最簡根式",
+        "stem": "把 $\\sqrt{28}$ 化成最簡根式。",
+        "options": [
+          "$2\\sqrt{7}$",
+          "$7\\sqrt{2}$",
+          "$4\\sqrt{7}$",
+          "$\\sqrt{14}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{28}=\\sqrt{4\\times7}=2\\sqrt{7}$，把平方因數 $4$ 開出來變成 $2$。"
+      },
+      {
+        "id": "new-attack-化成最簡根式-8",
+        "topic": "化成最簡根式",
+        "stem": "把 $\\sqrt{48}$ 化成最簡根式。",
+        "options": [
+          "$4\\sqrt{3}$",
+          "$5\\sqrt{3}$",
+          "$16\\sqrt{3}$",
+          "$\\sqrt{12}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{48}=\\sqrt{16\\times3}=4\\sqrt{3}$，把平方因數 $16$ 開出來變成 $4$。"
+      },
+      {
+        "id": "new-attack-化成最簡根式-9",
+        "topic": "化成最簡根式",
+        "stem": "把 $\\sqrt{72}$ 化成最簡根式。",
+        "options": [
+          "$6\\sqrt{2}$",
+          "$2\\sqrt{6}$",
+          "$36\\sqrt{2}$",
+          "$\\sqrt{12}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{72}=\\sqrt{36\\times2}=6\\sqrt{2}$，把平方因數 $36$ 開出來變成 $6$。"
+      },
+      {
+        "id": "new-attack-化成最簡根式-10",
+        "topic": "化成最簡根式",
+        "stem": "把 $\\sqrt{54}$ 化成最簡根式。",
+        "options": [
+          "$3\\sqrt{6}$",
+          "$6\\sqrt{3}$",
+          "$9\\sqrt{6}$",
+          "$\\sqrt{18}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{54}=\\sqrt{9\\times6}=3\\sqrt{6}$，把平方因數 $9$ 開出來變成 $3$。"
+      },
+      {
+        "id": "new-attack-同類方根相加-1",
+        "topic": "同類方根相加",
+        "stem": "$2\\sqrt{5}+3\\sqrt{5}=$？",
+        "options": [
+          "$5\\sqrt{5}$",
+          "$5\\sqrt{10}$",
+          "$6\\sqrt{5}$",
+          "$5$"
+        ],
+        "answer": 0,
+        "explanation": "同類方根，係數相加、根號不變：$(2+3)\\sqrt{5}=5\\sqrt{5}$。"
+      },
+      {
+        "id": "new-attack-同類方根相加-2",
+        "topic": "同類方根相加",
+        "stem": "$4\\sqrt{3}+\\sqrt{3}=$？",
+        "options": [
+          "$5\\sqrt{3}$",
+          "$5\\sqrt{6}$",
+          "$4\\sqrt{3}$",
+          "$5$"
+        ],
+        "answer": 0,
+        "explanation": "同類方根，係數相加、根號不變：$(4+1)\\sqrt{3}=5\\sqrt{3}$。"
+      },
+      {
+        "id": "new-attack-同類方根相加-3",
+        "topic": "同類方根相加",
+        "stem": "$3\\sqrt{2}+5\\sqrt{2}=$？",
+        "options": [
+          "$8\\sqrt{2}$",
+          "$8\\sqrt{4}$",
+          "$15\\sqrt{2}$",
+          "$8$"
+        ],
+        "answer": 0,
+        "explanation": "同類方根，係數相加、根號不變：$(3+5)\\sqrt{2}=8\\sqrt{2}$。"
+      },
+      {
+        "id": "new-attack-同類方根相加-4",
+        "topic": "同類方根相加",
+        "stem": "$6\\sqrt{7}+2\\sqrt{7}=$？",
+        "options": [
+          "$8\\sqrt{7}$",
+          "$8\\sqrt{14}$",
+          "$12\\sqrt{7}$",
+          "$8$"
+        ],
+        "answer": 0,
+        "explanation": "同類方根，係數相加、根號不變：$(6+2)\\sqrt{7}=8\\sqrt{7}$。"
+      },
+      {
+        "id": "new-attack-同類方根相加-5",
+        "topic": "同類方根相加",
+        "stem": "$2\\sqrt{6}+7\\sqrt{6}=$？",
+        "options": [
+          "$9\\sqrt{6}$",
+          "$9\\sqrt{12}$",
+          "$14\\sqrt{6}$",
+          "$9$"
+        ],
+        "answer": 0,
+        "explanation": "同類方根，係數相加、根號不變：$(2+7)\\sqrt{6}=9\\sqrt{6}$。"
+      },
+      {
+        "id": "new-attack-同類方根相加-6",
+        "topic": "同類方根相加",
+        "stem": "$5\\sqrt{11}+3\\sqrt{11}=$？",
+        "options": [
+          "$8\\sqrt{11}$",
+          "$8\\sqrt{22}$",
+          "$15\\sqrt{11}$",
+          "$8$"
+        ],
+        "answer": 0,
+        "explanation": "同類方根，係數相加、根號不變：$(5+3)\\sqrt{11}=8\\sqrt{11}$。"
+      }
+    ],
+    "shield": [
+      {
+        "id": "g8-2-2a-q7-1",
+        "topic": "比較大小（係數移進根號）",
+        "stem": "$3\\sqrt{2}$ 和 $2\\sqrt{3}$ 的大小關係？",
+        "options": [
+          "$3\\sqrt{2}>2\\sqrt{3}$",
+          "$3\\sqrt{2}<2\\sqrt{3}$",
+          "$3\\sqrt{2}=2\\sqrt{3}$",
+          "無法比較"
+        ],
+        "answer": 0,
+        "explanation": "$3\\sqrt{2}=\\sqrt{18}$、$2\\sqrt{3}=\\sqrt{12}$，$18>12$。"
+      },
+      {
+        "id": "g8-2-2a-q7-2",
+        "topic": "比較大小（係數移進根號）",
+        "stem": "$6\\sqrt{2}$ 和 $5\\sqrt{3}$ 的大小關係？",
+        "options": [
+          "$6\\sqrt{2}<5\\sqrt{3}$",
+          "$6\\sqrt{2}>5\\sqrt{3}$",
+          "$6\\sqrt{2}=5\\sqrt{3}$",
+          "無法比較"
+        ],
+        "answer": 0,
+        "explanation": "$6\\sqrt{2}=\\sqrt{72}$、$5\\sqrt{3}=\\sqrt{75}$，$72<75$。"
+      },
+      {
+        "id": "g8-2-2a-q7-3",
+        "topic": "比較大小（係數移進根號）",
+        "stem": "$4\\sqrt{3}$ 和 $3\\sqrt{5}$ 的大小關係？",
+        "options": [
+          "$4\\sqrt{3}>3\\sqrt{5}$",
+          "$4\\sqrt{3}<3\\sqrt{5}$",
+          "$4\\sqrt{3}=3\\sqrt{5}$",
+          "無法比較"
+        ],
+        "answer": 0,
+        "explanation": "$4\\sqrt{3}=\\sqrt{48}$、$3\\sqrt{5}=\\sqrt{45}$，$48>45$。"
+      },
+      {
+        "id": "g8-2-2a-q10-1",
+        "topic": "哪一個算對了？（常見錯誤）",
+        "stem": "下列哪一個計算是正確的？",
+        "options": [
+          "$\\sqrt{2}\\times\\sqrt{3}=\\sqrt{6}$",
+          "$\\sqrt{2}+\\sqrt{3}=\\sqrt{5}$",
+          "$\\sqrt{12}\\div\\sqrt{3}=\\sqrt{9}$",
+          "$2\\sqrt{3}\\times3\\sqrt{2}=6\\sqrt{5}$"
+        ],
+        "answer": 0,
+        "explanation": "根號乘根號，根號內相乘；根號不能直接相加；$\\sqrt{12}\\div\\sqrt{3}=\\sqrt{4}=2$。"
+      },
+      {
+        "id": "g8-2-2a-q10-2",
+        "topic": "哪一個算對了？（常見錯誤）",
+        "stem": "下列哪一個計算是正確的？",
+        "options": [
+          "$\\sqrt{20}\\div\\sqrt{5}=2$",
+          "$\\sqrt{2}\\times\\sqrt{8}=\\sqrt{10}$",
+          "$3\\sqrt{2}\\times2\\sqrt{2}=6\\sqrt{2}$",
+          "$\\sqrt{3}\\times\\sqrt{3}=9$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{20\\div5}=\\sqrt{4}=2$；$3\\sqrt{2}\\times2\\sqrt{2}=6\\times2=12$；$\\sqrt{3}\\times\\sqrt{3}=3$。"
+      },
+      {
+        "id": "g8-2-2a-q10-3",
+        "topic": "哪一個算對了？（常見錯誤）",
+        "stem": "下列哪一個計算是正確的？",
+        "options": [
+          "$(-2\\sqrt{3})\\times4\\sqrt{2}=-8\\sqrt{6}$",
+          "$\\sqrt{18}\\div\\sqrt{2}=\\sqrt{16}$",
+          "$\\sqrt{5}\\times\\sqrt{5}=25$",
+          "$4\\sqrt{2}\\div2=2$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{18\\div2}=\\sqrt{9}=3$；$\\sqrt{5}\\times\\sqrt{5}=5$；$4\\sqrt{2}\\div2=2\\sqrt{2}$。"
+      },
+      {
+        "id": "g8-2-2b-q9-1",
+        "topic": "有理化前後比大小",
+        "stem": "$\\dfrac{1}{\\sqrt{2}}$ 和 $\\dfrac{\\sqrt{2}}{2}$ 的大小關係？",
+        "options": [
+          "$\\dfrac{1}{\\sqrt{2}}=\\dfrac{\\sqrt{2}}{2}$",
+          "$\\dfrac{1}{\\sqrt{2}}>\\dfrac{\\sqrt{2}}{2}$",
+          "$\\dfrac{1}{\\sqrt{2}}<\\dfrac{\\sqrt{2}}{2}$",
+          "無法比較"
+        ],
+        "answer": 0,
+        "explanation": "$\\dfrac{1}{\\sqrt{2}}=\\dfrac{1\\times\\sqrt{2}}{\\sqrt{2}\\times\\sqrt{2}}=\\dfrac{\\sqrt{2}}{2}$，乘以 $1$ 值不變，所以一樣大。"
+      },
+      {
+        "id": "g8-2-2b-q9-2",
+        "topic": "有理化前後比大小",
+        "stem": "$\\dfrac{3}{\\sqrt{2}}$ 和 $2$ 的大小關係？",
+        "options": [
+          "$\\dfrac{3}{\\sqrt{2}}>2$",
+          "$\\dfrac{3}{\\sqrt{2}}<2$",
+          "$\\dfrac{3}{\\sqrt{2}}=2$",
+          "無法比較"
+        ],
+        "answer": 0,
+        "explanation": "$\\dfrac{3}{\\sqrt{2}}=\\dfrac{3\\sqrt{2}}{2}=\\sqrt{\\dfrac{18}{4}}=\\sqrt{4.5}$，$2=\\sqrt{4}$，$4.5>4$。"
+      },
+      {
+        "id": "g8-2-2b-q9-3",
+        "topic": "有理化前後比大小",
+        "stem": "$\\dfrac{\\sqrt{3}}{3}$ 和 $\\dfrac{1}{2}$ 的大小關係？",
+        "options": [
+          "$\\dfrac{\\sqrt{3}}{3}>\\dfrac{1}{2}$",
+          "$\\dfrac{\\sqrt{3}}{3}<\\dfrac{1}{2}$",
+          "$\\dfrac{\\sqrt{3}}{3}=\\dfrac{1}{2}$",
+          "無法比較"
+        ],
+        "answer": 0,
+        "explanation": "$\\dfrac{\\sqrt{3}}{3}=\\sqrt{\\dfrac{3}{9}}=\\sqrt{\\dfrac{1}{3}}$，$\\dfrac{1}{2}=\\sqrt{\\dfrac{1}{4}}$，$\\dfrac{1}{3}>\\dfrac{1}{4}$。"
+      },
+      {
+        "id": "g8-2-2b-q10-1",
+        "topic": "哪一個是最簡根式？",
+        "stem": "下列哪一個是最簡根式？",
+        "options": [
+          "$3\\sqrt{2}$",
+          "$\\sqrt{12}$",
+          "$\\sqrt{\\dfrac{2}{3}}$",
+          "$\\dfrac{1}{\\sqrt{5}}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{12}=2\\sqrt{3}$ 有平方因數；$\\sqrt{\\dfrac{2}{3}}$ 根號內有分數；$\\dfrac{1}{\\sqrt{5}}$ 分母有根號。"
+      },
+      {
+        "id": "g8-2-2b-q10-2",
+        "topic": "哪一個是最簡根式？",
+        "stem": "下列哪一個是最簡根式？",
+        "options": [
+          "$\\dfrac{2\\sqrt{6}}{3}$",
+          "$\\dfrac{\\sqrt{24}}{2}$",
+          "$\\dfrac{\\sqrt{5}}{\\sqrt{3}}$",
+          "$\\sqrt{0.5}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\dfrac{\\sqrt{24}}{2}=\\sqrt{6}$；$\\dfrac{\\sqrt{5}}{\\sqrt{3}}$ 分母有根號；$\\sqrt{0.5}$ 根號內是小數。"
+      },
+      {
+        "id": "g8-2-2b-q10-3",
+        "topic": "哪一個是最簡根式？",
+        "stem": "下列哪一個是最簡根式？",
+        "options": [
+          "$5\\sqrt{7}$",
+          "$\\sqrt{18}$",
+          "$\\dfrac{2}{\\sqrt{2}}$",
+          "$\\sqrt{\\dfrac{1}{3}}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{18}=3\\sqrt{2}$；$\\dfrac{2}{\\sqrt{2}}=\\sqrt{2}$；$\\sqrt{\\dfrac{1}{3}}=\\dfrac{\\sqrt{3}}{3}$。"
+      },
+      {
+        "id": "g8-2-2c-q2-1",
+        "topic": "不是同類方根不能合併",
+        "stem": "$\\sqrt{2}-5\\sqrt{2}+\\sqrt{3}=$？",
+        "options": [
+          "$-4\\sqrt{2}+\\sqrt{3}$",
+          "$-4\\sqrt{5}$",
+          "$-3\\sqrt{2}$",
+          "$-4\\sqrt{2}-\\sqrt{3}$"
+        ],
+        "answer": 0,
+        "explanation": "只合併 $\\sqrt{2}$ 的項：$(1-5)\\sqrt{2}=-4\\sqrt{2}$，$\\sqrt{3}$ 留著。"
+      },
+      {
+        "id": "g8-2-2c-q2-2",
+        "topic": "不是同類方根不能合併",
+        "stem": "$7\\sqrt{2}-2\\sqrt{3}-3\\sqrt{2}=$？",
+        "options": [
+          "$4\\sqrt{2}-2\\sqrt{3}$",
+          "$4\\sqrt{2}+2\\sqrt{3}$",
+          "$2\\sqrt{2}$",
+          "$10\\sqrt{2}-2\\sqrt{3}$"
+        ],
+        "answer": 0,
+        "explanation": "$7\\sqrt{2}-3\\sqrt{2}=4\\sqrt{2}$，$-2\\sqrt{3}$ 不能和 $\\sqrt{2}$ 合併。"
+      },
+      {
+        "id": "g8-2-2c-q2-3",
+        "topic": "不是同類方根不能合併",
+        "stem": "$5\\sqrt{5}+2\\sqrt{7}-\\sqrt{5}=$？",
+        "options": [
+          "$4\\sqrt{5}+2\\sqrt{7}$",
+          "$6\\sqrt{5}+2\\sqrt{7}$",
+          "$4\\sqrt{5}-2\\sqrt{7}$",
+          "$6\\sqrt{7}$"
+        ],
+        "answer": 0,
+        "explanation": "$5\\sqrt{5}-\\sqrt{5}=4\\sqrt{5}$，$2\\sqrt{7}$ 留著。"
+      },
+      {
+        "id": "g8-2-2c-q9-1",
+        "topic": "比較大小：根號不能直接相加",
+        "stem": "$\\sqrt{2}+\\sqrt{3}$ 和 $\\sqrt{5}$ 的大小關係？",
+        "options": [
+          "$\\sqrt{2}+\\sqrt{3}>\\sqrt{5}$",
+          "$\\sqrt{2}+\\sqrt{3}<\\sqrt{5}$",
+          "$\\sqrt{2}+\\sqrt{3}=\\sqrt{5}$",
+          "無法比較"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{2}+\\sqrt{3}\\approx1.414+1.732=3.146$，$\\sqrt{5}\\approx2.236$。根號不能這樣相加。"
+      },
+      {
+        "id": "g8-2-2c-q9-2",
+        "topic": "比較大小：根號不能直接相加",
+        "stem": "$\\sqrt{3}+\\sqrt{12}$ 和 $\\sqrt{27}$ 的大小關係？",
+        "options": [
+          "$\\sqrt{3}+\\sqrt{12}=\\sqrt{27}$",
+          "$\\sqrt{3}+\\sqrt{12}>\\sqrt{27}$",
+          "$\\sqrt{3}+\\sqrt{12}<\\sqrt{27}$",
+          "無法比較"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{3}+\\sqrt{12}=\\sqrt{3}+2\\sqrt{3}=3\\sqrt{3}=\\sqrt{27}$，剛好相等（化簡後是同類方根）。"
+      },
+      {
+        "id": "g8-2-2c-q9-3",
+        "topic": "比較大小：根號不能直接相加",
+        "stem": "$2\\sqrt{2}$ 和 $\\sqrt{2}+\\sqrt{3}$ 的大小關係？",
+        "options": [
+          "$2\\sqrt{2}<\\sqrt{2}+\\sqrt{3}$",
+          "$2\\sqrt{2}>\\sqrt{2}+\\sqrt{3}$",
+          "$2\\sqrt{2}=\\sqrt{2}+\\sqrt{3}$",
+          "無法比較"
+        ],
+        "answer": 0,
+        "explanation": "$2\\sqrt{2}=\\sqrt{2}+\\sqrt{2}$，而 $\\sqrt{2}<\\sqrt{3}$，所以 $2\\sqrt{2}<\\sqrt{2}+\\sqrt{3}$。"
+      },
+      {
+        "id": "g8-2-2c-q10-1",
+        "topic": "哪一個算對了？（常見錯誤）",
+        "stem": "下列哪一個計算是正確的？",
+        "options": [
+          "$\\sqrt{2}+\\sqrt{8}=3\\sqrt{2}$",
+          "$\\sqrt{2}+\\sqrt{8}=\\sqrt{10}$",
+          "$2\\sqrt{3}+3\\sqrt{2}=5\\sqrt{5}$",
+          "$\\sqrt{12}-\\sqrt{3}=3$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{8}=2\\sqrt{2}$，所以 $\\sqrt{2}+\\sqrt{8}=3\\sqrt{2}$；不同類方根不能合併；$\\sqrt{12}-\\sqrt{3}=\\sqrt{3}$。"
+      },
+      {
+        "id": "g8-2-2c-q10-2",
+        "topic": "哪一個算對了？（常見錯誤）",
+        "stem": "下列哪一個計算是正確的？",
+        "options": [
+          "$\\sqrt{18}-\\sqrt{8}=\\sqrt{2}$",
+          "$5\\sqrt{2}-\\sqrt{2}=5$",
+          "$\\sqrt{3}+\\sqrt{3}=\\sqrt{6}$",
+          "$3+\\sqrt{2}=3\\sqrt{2}$"
+        ],
+        "answer": 0,
+        "explanation": "$3\\sqrt{2}-2\\sqrt{2}=\\sqrt{2}$；$5\\sqrt{2}-\\sqrt{2}=4\\sqrt{2}$；$\\sqrt{3}+\\sqrt{3}=2\\sqrt{3}$；整數和根式不能合併。"
+      },
+      {
+        "id": "g8-2-2c-q10-3",
+        "topic": "哪一個算對了？（常見錯誤）",
+        "stem": "下列哪一個計算是正確的？",
+        "options": [
+          "$\\sqrt{27}+\\sqrt{12}=5\\sqrt{3}$",
+          "$\\sqrt{27}+\\sqrt{12}=\\sqrt{39}$",
+          "$2\\sqrt{5}+\\sqrt{5}=2\\sqrt{10}$",
+          "$\\sqrt{50}-\\sqrt{2}=\\sqrt{48}$"
+        ],
+        "answer": 0,
+        "explanation": "$3\\sqrt{3}+2\\sqrt{3}=5\\sqrt{3}$；$2\\sqrt{5}+\\sqrt{5}=3\\sqrt{5}$；$\\sqrt{50}-\\sqrt{2}=5\\sqrt{2}-\\sqrt{2}=4\\sqrt{2}$。"
+      },
+      {
+        "id": "g8-2-2d-q8-1",
+        "topic": "平方後判斷相等或大小",
+        "stem": "$\\sqrt{3}+\\sqrt{2}$ 和 $\\sqrt{5}$ 的大小關係？",
+        "options": [
+          "$\\sqrt{3}+\\sqrt{2}>\\sqrt{5}$",
+          "$\\sqrt{3}+\\sqrt{2}<\\sqrt{5}$",
+          "$\\sqrt{3}+\\sqrt{2}=\\sqrt{5}$",
+          "無法比較"
+        ],
+        "answer": 0,
+        "explanation": "都是正數，比平方：$(\\sqrt{3}+\\sqrt{2})^2=5+2\\sqrt{6}$，$(\\sqrt{5})^2=5$，多了 $2\\sqrt{6}$。"
+      },
+      {
+        "id": "g8-2-2d-q8-2",
+        "topic": "平方後判斷相等或大小",
+        "stem": "$\\sqrt{7}-\\sqrt{5}$ 和 $\\sqrt{2}$ 的大小關係？",
+        "options": [
+          "$\\sqrt{7}-\\sqrt{5}<\\sqrt{2}$",
+          "$\\sqrt{7}-\\sqrt{5}>\\sqrt{2}$",
+          "$\\sqrt{7}-\\sqrt{5}=\\sqrt{2}$",
+          "無法比較"
+        ],
+        "answer": 0,
+        "explanation": "$(\\sqrt{7}-\\sqrt{5})^2=12-2\\sqrt{35}\\approx0.17$，$(\\sqrt{2})^2=2$，所以 $\\sqrt{7}-\\sqrt{5}<\\sqrt{2}$（不是相等）。"
+      },
+      {
+        "id": "g8-2-2d-q8-3",
+        "topic": "平方後判斷相等或大小",
+        "stem": "$\\sqrt{2}+\\sqrt{8}$ 和 $\\sqrt{18}$ 的大小關係？",
+        "options": [
+          "$\\sqrt{2}+\\sqrt{8}=\\sqrt{18}$",
+          "$\\sqrt{2}+\\sqrt{8}>\\sqrt{18}$",
+          "$\\sqrt{2}+\\sqrt{8}<\\sqrt{18}$",
+          "無法比較"
+        ],
+        "answer": 0,
+        "explanation": "$(\\sqrt{2}+\\sqrt{8})^2=2+2\\sqrt{16}+8=18$，兩數都是正數、平方相等，所以相等（也可以化成 $3\\sqrt{2}$）。"
+      },
+      {
+        "id": "g8-2-2d-q10-1",
+        "topic": "哪一個算對了？（常見錯誤）",
+        "stem": "下列哪一個計算是正確的？",
+        "options": [
+          "$(\\sqrt{3}+\\sqrt{2})^2=5+2\\sqrt{6}$",
+          "$(\\sqrt{3}+\\sqrt{2})^2=5$",
+          "$(\\sqrt{5}-1)^2=4$",
+          "$\\dfrac{1}{\\sqrt{2}+1}=\\sqrt{2}+1$"
+        ],
+        "answer": 0,
+        "explanation": "中間的 $2ab$ 不能漏；$\\dfrac{1}{\\sqrt{2}+1}=\\sqrt{2}-1$（共軛要變號）。"
+      },
+      {
+        "id": "g8-2-2d-q10-2",
+        "topic": "哪一個算對了？（常見錯誤）",
+        "stem": "下列哪一個計算是正確的？",
+        "options": [
+          "$(2+\\sqrt{3})(2-\\sqrt{3})=1$",
+          "$(2+\\sqrt{3})(2-\\sqrt{3})=7$",
+          "$(1+\\sqrt{2})^2=3$",
+          "$\\dfrac{2}{\\sqrt{3}+1}=\\sqrt{3}+1$"
+        ],
+        "answer": 0,
+        "explanation": "$4-3=1$；$(1+\\sqrt{2})^2=3+2\\sqrt{2}$；$\\dfrac{2}{\\sqrt{3}+1}=\\sqrt{3}-1$。"
+      },
+      {
+        "id": "g8-2-2d-q10-3",
+        "topic": "哪一個算對了？（常見錯誤）",
+        "stem": "下列哪一個計算是正確的？",
+        "options": [
+          "$\\dfrac{1}{\\sqrt{2}+1}=\\sqrt{2}-1$",
+          "$(\\sqrt{6}-\\sqrt{2})^2=4$",
+          "$(\\sqrt{5}+\\sqrt{3})(\\sqrt{5}-\\sqrt{3})=8$",
+          "$(3+\\sqrt{2})^2=11$"
+        ],
+        "answer": 0,
+        "explanation": "$\\dfrac{\\sqrt{2}-1}{2-1}=\\sqrt{2}-1$；$(\\sqrt{6}-\\sqrt{2})^2=8-4\\sqrt{3}$；平方差是 $5-3=2$；$(3+\\sqrt{2})^2=11+6\\sqrt{2}$。"
+      },
+      {
+        "id": "new-shield-哪一個相等-1",
+        "topic": "哪一個相等",
+        "stem": "下列哪一個和 $2\\sqrt{3}$ 相等？",
+        "options": [
+          "$\\sqrt{12}$",
+          "$\\sqrt{6}$",
+          "$\\sqrt{7}$",
+          "$\\sqrt{18}$"
+        ],
+        "answer": 0,
+        "explanation": "係數移進根號要平方：$2\\sqrt{3}=\\sqrt{2^2\\times3}=\\sqrt{12}$。"
+      },
+      {
+        "id": "new-shield-哪一個相等-2",
+        "topic": "哪一個相等",
+        "stem": "下列哪一個和 $3\\sqrt{2}$ 相等？",
+        "options": [
+          "$\\sqrt{18}$",
+          "$\\sqrt{6}$",
+          "$\\sqrt{11}$",
+          "$\\sqrt{12}$"
+        ],
+        "answer": 0,
+        "explanation": "係數移進根號要平方：$3\\sqrt{2}=\\sqrt{3^2\\times2}=\\sqrt{18}$。"
+      },
+      {
+        "id": "new-shield-哪一個相等-3",
+        "topic": "哪一個相等",
+        "stem": "下列哪一個和 $2\\sqrt{5}$ 相等？",
+        "options": [
+          "$\\sqrt{20}$",
+          "$\\sqrt{10}$",
+          "$\\sqrt{9}$",
+          "$\\sqrt{50}$"
+        ],
+        "answer": 0,
+        "explanation": "係數移進根號要平方：$2\\sqrt{5}=\\sqrt{2^2\\times5}=\\sqrt{20}$。"
+      },
+      {
+        "id": "new-shield-哪一個相等-4",
+        "topic": "哪一個相等",
+        "stem": "下列哪一個和 $2\\sqrt{6}$ 相等？",
+        "options": [
+          "$\\sqrt{24}$",
+          "$\\sqrt{12}$",
+          "$\\sqrt{10}$",
+          "$\\sqrt{72}$"
+        ],
+        "answer": 0,
+        "explanation": "係數移進根號要平方：$2\\sqrt{6}=\\sqrt{2^2\\times6}=\\sqrt{24}$。"
+      },
+      {
+        "id": "new-shield-哪一個相等-5",
+        "topic": "哪一個相等",
+        "stem": "下列哪一個和 $2\\sqrt{7}$ 相等？",
+        "options": [
+          "$\\sqrt{28}$",
+          "$\\sqrt{14}$",
+          "$\\sqrt{11}$",
+          "$\\sqrt{98}$"
+        ],
+        "answer": 0,
+        "explanation": "係數移進根號要平方：$2\\sqrt{7}=\\sqrt{2^2\\times7}=\\sqrt{28}$。"
+      },
+      {
+        "id": "new-shield-哪一個相等-6",
+        "topic": "哪一個相等",
+        "stem": "下列哪一個和 $4\\sqrt{2}$ 相等？",
+        "options": [
+          "$\\sqrt{32}$",
+          "$\\sqrt{8}$",
+          "$\\sqrt{18}$",
+          "$\\sqrt{16}$"
+        ],
+        "answer": 0,
+        "explanation": "係數移進根號要平方：$4\\sqrt{2}=\\sqrt{4^2\\times2}=\\sqrt{32}$。"
+      },
+      {
+        "id": "new-shield-哪一個相等-7",
+        "topic": "哪一個相等",
+        "stem": "下列哪一個和 $3\\sqrt{5}$ 相等？",
+        "options": [
+          "$\\sqrt{45}$",
+          "$\\sqrt{15}$",
+          "$\\sqrt{14}$",
+          "$\\sqrt{75}$"
+        ],
+        "answer": 0,
+        "explanation": "係數移進根號要平方：$3\\sqrt{5}=\\sqrt{3^2\\times5}=\\sqrt{45}$。"
+      },
+      {
+        "id": "new-shield-哪一個相等-8",
+        "topic": "哪一個相等",
+        "stem": "下列哪一個和 $5\\sqrt{2}$ 相等？",
+        "options": [
+          "$\\sqrt{50}$",
+          "$\\sqrt{10}$",
+          "$\\sqrt{27}$",
+          "$\\sqrt{20}$"
+        ],
+        "answer": 0,
+        "explanation": "係數移進根號要平方：$5\\sqrt{2}=\\sqrt{5^2\\times2}=\\sqrt{50}$。"
+      },
+      {
+        "id": "new-shield-哪一個相等-9",
+        "topic": "哪一個相等",
+        "stem": "下列哪一個和 $3\\sqrt{7}$ 相等？",
+        "options": [
+          "$\\sqrt{63}$",
+          "$\\sqrt{21}$",
+          "$\\sqrt{16}$",
+          "$\\sqrt{147}$"
+        ],
+        "answer": 0,
+        "explanation": "係數移進根號要平方：$3\\sqrt{7}=\\sqrt{3^2\\times7}=\\sqrt{63}$。"
+      },
+      {
+        "id": "new-shield-哪一個相等-10",
+        "topic": "哪一個相等",
+        "stem": "下列哪一個和 $5\\sqrt{3}$ 相等？",
+        "options": [
+          "$\\sqrt{75}$",
+          "$\\sqrt{15}$",
+          "$\\sqrt{28}$",
+          "$\\sqrt{45}$"
+        ],
+        "answer": 0,
+        "explanation": "係數移進根號要平方：$5\\sqrt{3}=\\sqrt{5^2\\times3}=\\sqrt{75}$。"
+      },
+      {
+        "id": "new-shield-同類方根-1",
+        "topic": "同類方根",
+        "stem": "下列哪一個和 $\\sqrt{3}$ 是同類方根？",
+        "options": [
+          "$\\sqrt{12}$",
+          "$\\sqrt{6}$",
+          "$\\sqrt{18}$",
+          "$\\sqrt{30}$"
+        ],
+        "answer": 0,
+        "explanation": "化成最簡根式後根號裡一樣才是同類方根：$\\sqrt{12}=2\\sqrt{3}$；其他的化簡後根號裡不是 $3$。"
+      },
+      {
+        "id": "new-shield-同類方根-2",
+        "topic": "同類方根",
+        "stem": "下列哪一個和 $\\sqrt{2}$ 是同類方根？",
+        "options": [
+          "$\\sqrt{18}$",
+          "$\\sqrt{12}$",
+          "$\\sqrt{6}$",
+          "$\\sqrt{27}$"
+        ],
+        "answer": 0,
+        "explanation": "化成最簡根式後根號裡一樣才是同類方根：$\\sqrt{18}=3\\sqrt{2}$；其他的化簡後根號裡不是 $2$。"
+      },
+      {
+        "id": "new-shield-同類方根-3",
+        "topic": "同類方根",
+        "stem": "下列哪一個和 $\\sqrt{5}$ 是同類方根？",
+        "options": [
+          "$\\sqrt{45}$",
+          "$\\sqrt{15}$",
+          "$\\sqrt{50}$",
+          "$\\sqrt{10}$"
+        ],
+        "answer": 0,
+        "explanation": "化成最簡根式後根號裡一樣才是同類方根：$\\sqrt{45}=3\\sqrt{5}$；其他的化簡後根號裡不是 $5$。"
+      },
+      {
+        "id": "new-shield-同類方根-4",
+        "topic": "同類方根",
+        "stem": "下列哪一個和 $\\sqrt{3}$ 是同類方根？",
+        "options": [
+          "$\\sqrt{75}$",
+          "$\\sqrt{24}$",
+          "$\\sqrt{8}$",
+          "$\\sqrt{15}$"
+        ],
+        "answer": 0,
+        "explanation": "化成最簡根式後根號裡一樣才是同類方根：$\\sqrt{75}=5\\sqrt{3}$；其他的化簡後根號裡不是 $3$。"
+      },
+      {
+        "id": "new-shield-同類方根-5",
+        "topic": "同類方根",
+        "stem": "下列哪一個和 $\\sqrt{2}$ 是同類方根？",
+        "options": [
+          "$\\sqrt{50}$",
+          "$\\sqrt{20}$",
+          "$\\sqrt{12}$",
+          "$\\sqrt{45}$"
+        ],
+        "answer": 0,
+        "explanation": "化成最簡根式後根號裡一樣才是同類方根：$\\sqrt{50}=5\\sqrt{2}$；其他的化簡後根號裡不是 $2$。"
+      },
+      {
+        "id": "new-shield-同類方根-6",
+        "topic": "同類方根",
+        "stem": "下列哪一個和 $\\sqrt{7}$ 是同類方根？",
+        "options": [
+          "$\\sqrt{28}$",
+          "$\\sqrt{14}$",
+          "$\\sqrt{21}$",
+          "$\\sqrt{72}$"
+        ],
+        "answer": 0,
+        "explanation": "化成最簡根式後根號裡一樣才是同類方根：$\\sqrt{28}=2\\sqrt{7}$；其他的化簡後根號裡不是 $7$。"
+      },
+      {
+        "id": "new-shield-估算-1",
+        "topic": "估算",
+        "stem": "$\\sqrt{20}$ 介於哪兩個連續整數之間？",
+        "options": [
+          "$4$ 和 $5$ 之間",
+          "$3$ 和 $4$ 之間",
+          "$5$ 和 $6$ 之間",
+          "$10$ 和 $11$ 之間"
+        ],
+        "answer": 0,
+        "explanation": "$4^2=16$、$5^2=25$，$16<20<25$，所以 $4<\\sqrt{20}<5$。"
+      },
+      {
+        "id": "new-shield-估算-2",
+        "topic": "估算",
+        "stem": "$\\sqrt{40}$ 介於哪兩個連續整數之間？",
+        "options": [
+          "$6$ 和 $7$ 之間",
+          "$5$ 和 $6$ 之間",
+          "$7$ 和 $8$ 之間",
+          "$20$ 和 $21$ 之間"
+        ],
+        "answer": 0,
+        "explanation": "$6^2=36$、$7^2=49$，$36<40<49$，所以 $6<\\sqrt{40}<7$。"
+      },
+      {
+        "id": "new-shield-估算-3",
+        "topic": "估算",
+        "stem": "$\\sqrt{55}$ 介於哪兩個連續整數之間？",
+        "options": [
+          "$7$ 和 $8$ 之間",
+          "$6$ 和 $7$ 之間",
+          "$8$ 和 $9$ 之間",
+          "$27$ 和 $28$ 之間"
+        ],
+        "answer": 0,
+        "explanation": "$7^2=49$、$8^2=64$，$49<55<64$，所以 $7<\\sqrt{55}<8$。"
+      },
+      {
+        "id": "new-shield-估算-4",
+        "topic": "估算",
+        "stem": "$\\sqrt{70}$ 介於哪兩個連續整數之間？",
+        "options": [
+          "$8$ 和 $9$ 之間",
+          "$7$ 和 $8$ 之間",
+          "$9$ 和 $10$ 之間",
+          "$35$ 和 $36$ 之間"
+        ],
+        "answer": 0,
+        "explanation": "$8^2=64$、$9^2=81$，$64<70<81$，所以 $8<\\sqrt{70}<9$。"
+      },
+      {
+        "id": "new-shield-估算-5",
+        "topic": "估算",
+        "stem": "$\\sqrt{90}$ 介於哪兩個連續整數之間？",
+        "options": [
+          "$9$ 和 $10$ 之間",
+          "$8$ 和 $9$ 之間",
+          "$10$ 和 $11$ 之間",
+          "$45$ 和 $46$ 之間"
+        ],
+        "answer": 0,
+        "explanation": "$9^2=81$、$10^2=100$，$81<90<100$，所以 $9<\\sqrt{90}<10$。"
+      },
+      {
+        "id": "new-shield-估算-6",
+        "topic": "估算",
+        "stem": "$\\sqrt{110}$ 介於哪兩個連續整數之間？",
+        "options": [
+          "$10$ 和 $11$ 之間",
+          "$9$ 和 $10$ 之間",
+          "$11$ 和 $12$ 之間",
+          "$55$ 和 $56$ 之間"
+        ],
+        "answer": 0,
+        "explanation": "$10^2=100$、$11^2=121$，$100<110<121$，所以 $10<\\sqrt{110}<11$。"
+      },
+      {
+        "id": "new-shield-估算-7",
+        "topic": "估算",
+        "stem": "$\\sqrt{130}$ 介於哪兩個連續整數之間？",
+        "options": [
+          "$11$ 和 $12$ 之間",
+          "$10$ 和 $11$ 之間",
+          "$12$ 和 $13$ 之間",
+          "$65$ 和 $66$ 之間"
+        ],
+        "answer": 0,
+        "explanation": "$11^2=121$、$12^2=144$，$121<130<144$，所以 $11<\\sqrt{130}<12$。"
+      },
+      {
+        "id": "new-shield-估算-8",
+        "topic": "估算",
+        "stem": "$\\sqrt{150}$ 介於哪兩個連續整數之間？",
+        "options": [
+          "$12$ 和 $13$ 之間",
+          "$11$ 和 $12$ 之間",
+          "$13$ 和 $14$ 之間",
+          "$75$ 和 $76$ 之間"
+        ],
+        "answer": 0,
+        "explanation": "$12^2=144$、$13^2=169$，$144<150<169$，所以 $12<\\sqrt{150}<13$。"
+      },
+      {
+        "id": "new-shield-比大小-1",
+        "topic": "比大小",
+        "stem": "下列哪一個最大？",
+        "options": [
+          "$2\\sqrt{5}$",
+          "$\\sqrt{19}$",
+          "$3\\sqrt{2}$",
+          "$4$"
+        ],
+        "answer": 0,
+        "explanation": "把係數移進根號再比：$2\\sqrt{5}=\\sqrt{20}$、$\\sqrt{19}=\\sqrt{19}$、$3\\sqrt{2}=\\sqrt{18}$、$4=\\sqrt{16}$。"
+      },
+      {
+        "id": "new-shield-比大小-2",
+        "topic": "比大小",
+        "stem": "下列哪一個最大？",
+        "options": [
+          "$3\\sqrt{2}$",
+          "$\\sqrt{17}$",
+          "$2\\sqrt{3}$",
+          "$\\sqrt{10}$"
+        ],
+        "answer": 0,
+        "explanation": "把係數移進根號再比：$3\\sqrt{2}=\\sqrt{18}$、$\\sqrt{17}=\\sqrt{17}$、$2\\sqrt{3}=\\sqrt{12}$、$\\sqrt{10}=\\sqrt{10}$。"
+      },
+      {
+        "id": "new-shield-比大小-3",
+        "topic": "比大小",
+        "stem": "下列哪一個最大？",
+        "options": [
+          "$5\\sqrt{2}$",
+          "$7$",
+          "$4\\sqrt{3}$",
+          "$3\\sqrt{5}$"
+        ],
+        "answer": 0,
+        "explanation": "把係數移進根號再比：$5\\sqrt{2}=\\sqrt{50}$、$7=\\sqrt{49}$、$4\\sqrt{3}=\\sqrt{48}$、$3\\sqrt{5}=\\sqrt{45}$。"
+      },
+      {
+        "id": "new-shield-比大小-4",
+        "topic": "比大小",
+        "stem": "下列哪一個最大？",
+        "options": [
+          "$2\\sqrt{7}$",
+          "$3\\sqrt{3}$",
+          "$\\sqrt{26}$",
+          "$5$"
+        ],
+        "answer": 0,
+        "explanation": "把係數移進根號再比：$2\\sqrt{7}=\\sqrt{28}$、$3\\sqrt{3}=\\sqrt{27}$、$\\sqrt{26}=\\sqrt{26}$、$5=\\sqrt{25}$。"
+      },
+      {
+        "id": "new-shield-比大小-5",
+        "topic": "比大小",
+        "stem": "下列哪一個最大？",
+        "options": [
+          "$2\\sqrt{10}$",
+          "$6$",
+          "$4\\sqrt{2}$",
+          "$3\\sqrt{3}$"
+        ],
+        "answer": 0,
+        "explanation": "把係數移進根號再比：$2\\sqrt{10}=\\sqrt{40}$、$6=\\sqrt{36}$、$4\\sqrt{2}=\\sqrt{32}$、$3\\sqrt{3}=\\sqrt{27}$。"
+      },
+      {
+        "id": "new-shield-分母有理化的結果-1",
+        "topic": "分母有理化的結果",
+        "stem": "下列哪一個等於 $\\dfrac{6}{\\sqrt{3}}$？",
+        "options": [
+          "$2\\sqrt{3}$",
+          "$6\\sqrt{3}$",
+          "$\\sqrt{\\dfrac{1}{2}}$",
+          "$\\dfrac{\\sqrt{6}}{3}$"
+        ],
+        "answer": 0,
+        "explanation": "分子分母同乘 $\\sqrt{3}$：$\\dfrac{6\\sqrt{3}}{3}$，再約分。"
+      },
+      {
+        "id": "new-shield-分母有理化的結果-2",
+        "topic": "分母有理化的結果",
+        "stem": "下列哪一個等於 $\\dfrac{10}{\\sqrt{5}}$？",
+        "options": [
+          "$2\\sqrt{5}$",
+          "$10\\sqrt{5}$",
+          "$\\sqrt{\\dfrac{1}{2}}$",
+          "$\\dfrac{\\sqrt{10}}{5}$"
+        ],
+        "answer": 0,
+        "explanation": "分子分母同乘 $\\sqrt{5}$：$\\dfrac{10\\sqrt{5}}{5}$，再約分。"
+      },
+      {
+        "id": "new-shield-分母有理化的結果-3",
+        "topic": "分母有理化的結果",
+        "stem": "下列哪一個等於 $\\dfrac{14}{\\sqrt{7}}$？",
+        "options": [
+          "$2\\sqrt{7}$",
+          "$14\\sqrt{7}$",
+          "$\\sqrt{\\dfrac{1}{2}}$",
+          "$\\dfrac{\\sqrt{14}}{7}$"
+        ],
+        "answer": 0,
+        "explanation": "分子分母同乘 $\\sqrt{7}$：$\\dfrac{14\\sqrt{7}}{7}$，再約分。"
+      },
+      {
+        "id": "new-shield-分母有理化的結果-4",
+        "topic": "分母有理化的結果",
+        "stem": "下列哪一個等於 $\\dfrac{3}{\\sqrt{6}}$？",
+        "options": [
+          "$\\dfrac{\\sqrt{6}}{2}$",
+          "$3\\sqrt{6}$",
+          "$\\sqrt{2}$",
+          "$\\dfrac{\\sqrt{3}}{6}$"
+        ],
+        "answer": 0,
+        "explanation": "分子分母同乘 $\\sqrt{6}$：$\\dfrac{3\\sqrt{6}}{6}$，再約分。"
+      },
+      {
+        "id": "new-shield-分母有理化的結果-5",
+        "topic": "分母有理化的結果",
+        "stem": "下列哪一個等於 $\\dfrac{5}{\\sqrt{10}}$？",
+        "options": [
+          "$\\dfrac{\\sqrt{10}}{2}$",
+          "$5\\sqrt{10}$",
+          "$\\sqrt{2}$",
+          "$\\dfrac{\\sqrt{5}}{10}$"
+        ],
+        "answer": 0,
+        "explanation": "分子分母同乘 $\\sqrt{10}$：$\\dfrac{5\\sqrt{10}}{10}$，再約分。"
+      },
+      {
+        "id": "new-shield-分母有理化的結果-6",
+        "topic": "分母有理化的結果",
+        "stem": "下列哪一個等於 $\\dfrac{12}{\\sqrt{6}}$？",
+        "options": [
+          "$2\\sqrt{6}$",
+          "$12\\sqrt{6}$",
+          "$\\sqrt{\\dfrac{1}{2}}$",
+          "$\\dfrac{\\sqrt{12}}{6}$"
+        ],
+        "answer": 0,
+        "explanation": "分子分母同乘 $\\sqrt{6}$：$\\dfrac{12\\sqrt{6}}{6}$，再約分。"
+      },
+      {
+        "id": "new-shield-哪一個正確（運算規則）-1",
+        "topic": "哪一個正確（運算規則）",
+        "stem": "下列哪一個正確？",
+        "options": [
+          "$\\sqrt{2}\\times\\sqrt{3}=\\sqrt{6}$",
+          "$\\sqrt{2}+\\sqrt{3}=\\sqrt{5}$",
+          "$(\\sqrt{2}+\\sqrt{3})^2=5$",
+          "$\\sqrt{2}\\times\\sqrt{2}=4$"
+        ],
+        "answer": 0,
+        "explanation": "根號可以相乘：$\\sqrt{2}\\times\\sqrt{3}=\\sqrt{6}$；但根號不能相加，$(\\sqrt{2}+\\sqrt{3})^2$ 還有中間項，$\\sqrt{2}\\times\\sqrt{2}=2$。"
+      },
+      {
+        "id": "new-shield-哪一個正確（運算規則）-2",
+        "topic": "哪一個正確（運算規則）",
+        "stem": "下列哪一個正確？",
+        "options": [
+          "$\\sqrt{5}\\times\\sqrt{3}=\\sqrt{15}$",
+          "$\\sqrt{5}+\\sqrt{3}=\\sqrt{8}$",
+          "$(\\sqrt{5}+\\sqrt{3})^2=8$",
+          "$\\sqrt{5}\\times\\sqrt{5}=25$"
+        ],
+        "answer": 0,
+        "explanation": "根號可以相乘：$\\sqrt{5}\\times\\sqrt{3}=\\sqrt{15}$；但根號不能相加，$(\\sqrt{5}+\\sqrt{3})^2$ 還有中間項，$\\sqrt{5}\\times\\sqrt{5}=5$。"
+      },
+      {
+        "id": "new-shield-哪一個正確（運算規則）-3",
+        "topic": "哪一個正確（運算規則）",
+        "stem": "下列哪一個正確？",
+        "options": [
+          "$(\\sqrt{7}+\\sqrt{2})(\\sqrt{7}-\\sqrt{2})=5$",
+          "$\\sqrt{7}-\\sqrt{2}=\\sqrt{5}$",
+          "$(\\sqrt{7}-\\sqrt{2})^2=5$",
+          "$2\\sqrt{7}=\\sqrt{14}$"
+        ],
+        "answer": 0,
+        "explanation": "平方差：$(\\sqrt{7}+\\sqrt{2})(\\sqrt{7}-\\sqrt{2})=7-2=5$；$2\\sqrt{7}=\\sqrt{28}$，不是 $\\sqrt{14}$。"
+      },
+      {
+        "id": "new-shield-哪一個正確（運算規則）-4",
+        "topic": "哪一個正確（運算規則）",
+        "stem": "下列哪一個正確？",
+        "options": [
+          "$(\\sqrt{11}+\\sqrt{3})(\\sqrt{11}-\\sqrt{3})=8$",
+          "$\\sqrt{11}-\\sqrt{3}=\\sqrt{8}$",
+          "$(\\sqrt{11}-\\sqrt{3})^2=8$",
+          "$2\\sqrt{11}=\\sqrt{22}$"
+        ],
+        "answer": 0,
+        "explanation": "平方差：$(\\sqrt{11}+\\sqrt{3})(\\sqrt{11}-\\sqrt{3})=11-3=8$；$2\\sqrt{11}=\\sqrt{44}$，不是 $\\sqrt{22}$。"
+      },
+      {
+        "id": "new-shield-哪一個正確（運算規則）-5",
+        "topic": "哪一個正確（運算規則）",
+        "stem": "下列哪一個正確？",
+        "options": [
+          "$\\dfrac{1}{\\sqrt{5}}=\\dfrac{\\sqrt{5}}{5}$",
+          "$\\dfrac{1}{\\sqrt{5}}=\\sqrt{5}$",
+          "$\\sqrt{5}\\div\\sqrt{2}=\\sqrt{3}$",
+          "$\\sqrt{10}=\\sqrt{5}+\\sqrt{2}$"
+        ],
+        "answer": 0,
+        "explanation": "分母有理化：分子分母同乘 $\\sqrt{5}$，$\\dfrac{1}{\\sqrt{5}}=\\dfrac{\\sqrt{5}}{5}$。"
+      },
+      {
+        "id": "new-shield-哪一個正確（運算規則）-6",
+        "topic": "哪一個正確（運算規則）",
+        "stem": "下列哪一個正確？",
+        "options": [
+          "$\\dfrac{1}{\\sqrt{7}}=\\dfrac{\\sqrt{7}}{7}$",
+          "$\\dfrac{1}{\\sqrt{7}}=\\sqrt{7}$",
+          "$\\sqrt{7}\\div\\sqrt{2}=\\sqrt{5}$",
+          "$\\sqrt{14}=\\sqrt{7}+\\sqrt{2}$"
+        ],
+        "answer": 0,
+        "explanation": "分母有理化：分子分母同乘 $\\sqrt{7}$，$\\dfrac{1}{\\sqrt{7}}=\\dfrac{\\sqrt{7}}{7}$。"
+      }
+    ],
+    "ultimate": [
+      {
+        "id": "g8-2-2a-q6-1",
+        "topic": "長方形面積（課本隨堂 2）",
+        "stem": "長 $\\sqrt{13}$ 公分、寬 $\\sqrt{5}$ 公分的長方形，面積是幾平方公分？",
+        "options": [
+          "$\\sqrt{65}$",
+          "$\\sqrt{18}$",
+          "$65$",
+          "$2\\sqrt{13}+2\\sqrt{5}$"
+        ],
+        "answer": 0,
+        "explanation": "面積＝長 × 寬＝$\\sqrt{13}\\times\\sqrt{5}=\\sqrt{65}$。$2\\sqrt{13}+2\\sqrt{5}$ 是周長。"
+      },
+      {
+        "id": "g8-2-2a-q6-2",
+        "topic": "長方形面積（課本隨堂 2）",
+        "stem": "長 $\\sqrt{7}$ 公分、寬 $\\sqrt{3}$ 公分的長方形，面積是幾平方公分？",
+        "options": [
+          "$\\sqrt{21}$",
+          "$\\sqrt{10}$",
+          "$21$",
+          "$2\\sqrt{7}+2\\sqrt{3}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{7}\\times\\sqrt{3}=\\sqrt{21}$。"
+      },
+      {
+        "id": "g8-2-2a-q6-3",
+        "topic": "長方形面積（課本隨堂 2）",
+        "stem": "長 $2\\sqrt{3}$ 公分、寬 $\\sqrt{5}$ 公分的長方形，面積是幾平方公分？",
+        "options": [
+          "$2\\sqrt{15}$",
+          "$2\\sqrt{8}$",
+          "$4\\sqrt{3}+2\\sqrt{5}$",
+          "$15$"
+        ],
+        "answer": 0,
+        "explanation": "$2\\sqrt{3}\\times\\sqrt{5}=2\\sqrt{15}$。"
+      },
+      {
+        "id": "g8-2-2a-q9-1",
+        "topic": "除以分數形式的根式",
+        "stem": "$\\dfrac{\\sqrt{6}}{\\sqrt{3}}\\div\\sqrt{\\dfrac{2}{3}}=$？",
+        "options": [
+          "$\\sqrt{3}$",
+          "$\\dfrac{2}{\\sqrt{3}}$",
+          "$3$",
+          "$\\sqrt{2}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\dfrac{\\sqrt{6}}{\\sqrt{3}}=\\sqrt{2}$，$\\sqrt{2}\\div\\sqrt{\\dfrac{2}{3}}=\\sqrt{2\\times\\dfrac{3}{2}}=\\sqrt{3}$（除以分數要乘倒數）。"
+      },
+      {
+        "id": "g8-2-2a-q9-2",
+        "topic": "除以分數形式的根式",
+        "stem": "$\\sqrt{\\dfrac{7}{2}}\\div\\dfrac{\\sqrt{3}}{\\sqrt{6}}=$？",
+        "options": [
+          "$\\sqrt{7}$",
+          "$\\dfrac{\\sqrt{7}}{2}$",
+          "$7$",
+          "$\\sqrt{14}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\dfrac{\\sqrt{3}}{\\sqrt{6}}=\\sqrt{\\dfrac{1}{2}}$，$\\sqrt{\\dfrac{7}{2}\\div\\dfrac{1}{2}}=\\sqrt{7}$。"
+      },
+      {
+        "id": "g8-2-2a-q9-3",
+        "topic": "除以分數形式的根式",
+        "stem": "$\\sqrt{\\dfrac{5}{3}}\\div\\sqrt{\\dfrac{1}{6}}=$？",
+        "options": [
+          "$\\sqrt{10}$",
+          "$\\sqrt{\\dfrac{5}{18}}$",
+          "$10$",
+          "$\\sqrt{5}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{\\dfrac{5}{3}\\times6}=\\sqrt{10}$。"
+      },
+      {
+        "id": "g8-2-2b-q6-1",
+        "topic": "乘完再化成最簡",
+        "stem": "$\\sqrt{6}\\times\\sqrt{8}=$？（最簡根式）",
+        "options": [
+          "$4\\sqrt{3}$",
+          "$\\sqrt{14}$",
+          "$\\sqrt{48}$",
+          "$16\\sqrt{3}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{6\\times8}=\\sqrt{48}=\\sqrt{16\\times3}=4\\sqrt{3}$。"
+      },
+      {
+        "id": "g8-2-2b-q6-2",
+        "topic": "乘完再化成最簡",
+        "stem": "$\\sqrt{10}\\times\\sqrt{15}=$？（最簡根式）",
+        "options": [
+          "$5\\sqrt{6}$",
+          "$\\sqrt{25}$",
+          "$\\sqrt{150}$",
+          "$25\\sqrt{6}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{10\\times15}=\\sqrt{150}=\\sqrt{25\\times6}=5\\sqrt{6}$。"
+      },
+      {
+        "id": "g8-2-2b-q6-3",
+        "topic": "乘完再化成最簡",
+        "stem": "$\\sqrt{12}\\times\\sqrt{6}=$？（最簡根式）",
+        "options": [
+          "$6\\sqrt{2}$",
+          "$\\sqrt{18}$",
+          "$2\\sqrt{18}$",
+          "$36\\sqrt{2}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{12\\times6}=\\sqrt{72}=\\sqrt{36\\times2}=6\\sqrt{2}$。"
+      },
+      {
+        "id": "g8-2-2b-q7-1",
+        "topic": "除完再有理化",
+        "stem": "$\\sqrt{45}\\div\\sqrt{30}=$？（最簡根式）",
+        "options": [
+          "$\\dfrac{\\sqrt{6}}{2}$",
+          "$\\sqrt{\\dfrac{3}{2}}$",
+          "$\\sqrt{6}$",
+          "$\\dfrac{\\sqrt{3}}{2}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{\\dfrac{45}{30}}=\\sqrt{\\dfrac{3}{2}}=\\dfrac{\\sqrt{3}}{\\sqrt{2}}=\\dfrac{\\sqrt{6}}{2}$。"
+      },
+      {
+        "id": "g8-2-2b-q7-2",
+        "topic": "除完再有理化",
+        "stem": "$\\sqrt{2}\\div\\sqrt{11}=$？（最簡根式）",
+        "options": [
+          "$\\dfrac{\\sqrt{22}}{11}$",
+          "$\\dfrac{\\sqrt{2}}{\\sqrt{11}}$",
+          "$\\sqrt{22}$",
+          "$\\dfrac{\\sqrt{2}}{11}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\dfrac{\\sqrt{2}}{\\sqrt{11}}=\\dfrac{\\sqrt{2}\\times\\sqrt{11}}{11}=\\dfrac{\\sqrt{22}}{11}$。"
+      },
+      {
+        "id": "g8-2-2b-q7-3",
+        "topic": "除完再有理化",
+        "stem": "$\\sqrt{20}\\div\\sqrt{35}=$？（最簡根式）",
+        "options": [
+          "$\\dfrac{2\\sqrt{7}}{7}$",
+          "$\\dfrac{2}{\\sqrt{7}}$",
+          "$2\\sqrt{7}$",
+          "$\\dfrac{\\sqrt{7}}{7}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{\\dfrac{20}{35}}=\\sqrt{\\dfrac{4}{7}}=\\dfrac{2}{\\sqrt{7}}=\\dfrac{2\\sqrt{7}}{7}$。"
+      },
+      {
+        "id": "g8-2-2b-q8-1",
+        "topic": "乘除混合：合成一個根號再化簡",
+        "stem": "$\\sqrt{\\dfrac{8}{3}}\\times\\sqrt{\\dfrac{27}{16}}=$？（最簡根式）",
+        "options": [
+          "$\\dfrac{3\\sqrt{2}}{2}$",
+          "$\\dfrac{3}{\\sqrt{2}}$",
+          "$3\\sqrt{2}$",
+          "$\\sqrt{\\dfrac{9}{2}}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{\\dfrac{8}{3}\\times\\dfrac{27}{16}}=\\sqrt{\\dfrac{9}{2}}=\\dfrac{3}{\\sqrt{2}}=\\dfrac{3\\sqrt{2}}{2}$。"
+      },
+      {
+        "id": "g8-2-2b-q8-2",
+        "topic": "乘除混合：合成一個根號再化簡",
+        "stem": "$\\sqrt{\\dfrac{3}{5}}\\times\\sqrt{\\dfrac{10}{9}}=$？（最簡根式）",
+        "options": [
+          "$\\dfrac{\\sqrt{6}}{3}$",
+          "$\\sqrt{\\dfrac{2}{3}}$",
+          "$\\sqrt{6}$",
+          "$\\dfrac{2}{3}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{\\dfrac{3}{5}\\times\\dfrac{10}{9}}=\\sqrt{\\dfrac{2}{3}}=\\dfrac{\\sqrt{2}}{\\sqrt{3}}=\\dfrac{\\sqrt{6}}{3}$。"
+      },
+      {
+        "id": "g8-2-2b-q8-3",
+        "topic": "乘除混合：合成一個根號再化簡",
+        "stem": "$\\sqrt{\\dfrac{7}{2}}\\times\\sqrt{\\dfrac{3}{14}}=$？（最簡根式）",
+        "options": [
+          "$\\dfrac{\\sqrt{3}}{2}$",
+          "$\\sqrt{\\dfrac{3}{4}}$",
+          "$\\dfrac{\\sqrt{3}}{4}$",
+          "$\\dfrac{3}{4}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{\\dfrac{7}{2}\\times\\dfrac{3}{14}}=\\sqrt{\\dfrac{3}{4}}=\\dfrac{\\sqrt{3}}{2}$。"
+      },
+      {
+        "id": "g8-2-2c-q4-1",
+        "topic": "有理化後合併",
+        "stem": "$\\dfrac{6}{\\sqrt{3}}+\\sqrt{3}=$？",
+        "options": [
+          "$3\\sqrt{3}$",
+          "$7\\sqrt{3}$",
+          "$2\\sqrt{3}$",
+          "$\\dfrac{7}{\\sqrt{3}}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\dfrac{6}{\\sqrt{3}}=\\dfrac{6\\sqrt{3}}{3}=2\\sqrt{3}$，$2\\sqrt{3}+\\sqrt{3}=3\\sqrt{3}$。"
+      },
+      {
+        "id": "g8-2-2c-q4-2",
+        "topic": "有理化後合併",
+        "stem": "$\\dfrac{4}{\\sqrt{2}}+\\sqrt{2}=$？",
+        "options": [
+          "$3\\sqrt{2}$",
+          "$5\\sqrt{2}$",
+          "$2\\sqrt{2}$",
+          "$\\dfrac{5}{\\sqrt{2}}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\dfrac{4}{\\sqrt{2}}=2\\sqrt{2}$，$2\\sqrt{2}+\\sqrt{2}=3\\sqrt{2}$。"
+      },
+      {
+        "id": "g8-2-2c-q4-3",
+        "topic": "有理化後合併",
+        "stem": "$\\dfrac{1}{\\sqrt{5}}+\\dfrac{4}{5}\\sqrt{5}=$？",
+        "options": [
+          "$\\sqrt{5}$",
+          "$5\\sqrt{5}$",
+          "$\\dfrac{4}{5}\\sqrt{5}$",
+          "$\\dfrac{\\sqrt{5}}{5}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\dfrac{1}{\\sqrt{5}}=\\dfrac{\\sqrt{5}}{5}$，$\\dfrac{\\sqrt{5}}{5}+\\dfrac{4\\sqrt{5}}{5}=\\dfrac{5\\sqrt{5}}{5}=\\sqrt{5}$。"
+      },
+      {
+        "id": "g8-2-2c-q5-1",
+        "topic": "分配律：根式乘括號",
+        "stem": "$\\sqrt{6}(\\sqrt{3}+2\\sqrt{2})=$？（最簡根式）",
+        "options": [
+          "$3\\sqrt{2}+4\\sqrt{3}$",
+          "$\\sqrt{18}+2\\sqrt{12}$",
+          "$3\\sqrt{2}+2\\sqrt{3}$",
+          "$\\sqrt{9}+2\\sqrt{8}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{6}\\times\\sqrt{3}=\\sqrt{18}=3\\sqrt{2}$，$\\sqrt{6}\\times2\\sqrt{2}=2\\sqrt{12}=4\\sqrt{3}$。"
+      },
+      {
+        "id": "g8-2-2c-q5-2",
+        "topic": "分配律：根式乘括號",
+        "stem": "$-2\\sqrt{3}(\\sqrt{6}-\\sqrt{2})=$？（最簡根式）",
+        "options": [
+          "$-6\\sqrt{2}+2\\sqrt{6}$",
+          "$-6\\sqrt{2}-2\\sqrt{6}$",
+          "$-2\\sqrt{18}+2\\sqrt{6}$",
+          "$6\\sqrt{2}-2\\sqrt{6}$"
+        ],
+        "answer": 0,
+        "explanation": "$-2\\sqrt{3}\\times\\sqrt{6}=-2\\sqrt{18}=-6\\sqrt{2}$，$-2\\sqrt{3}\\times(-\\sqrt{2})=+2\\sqrt{6}$，負號要分配到每一項。"
+      },
+      {
+        "id": "g8-2-2c-q5-3",
+        "topic": "分配律：根式乘括號",
+        "stem": "$\\sqrt{2}(\\sqrt{6}-\\sqrt{10})=$？（最簡根式）",
+        "options": [
+          "$2\\sqrt{3}-2\\sqrt{5}$",
+          "$\\sqrt{12}-\\sqrt{20}$",
+          "$2\\sqrt{3}+2\\sqrt{5}$",
+          "$\\sqrt{12}-\\sqrt{10}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{2}\\times\\sqrt{6}=\\sqrt{12}=2\\sqrt{3}$，$\\sqrt{2}\\times\\sqrt{10}=\\sqrt{20}=2\\sqrt{5}$。括號裡每一項都要乘。"
+      },
+      {
+        "id": "g8-2-2c-q6-1",
+        "topic": "兩個括號相乘（逐項乘開）",
+        "stem": "$(\\sqrt{3}-\\sqrt{2})(\\sqrt{6}+1)=$？",
+        "options": [
+          "$2\\sqrt{2}-\\sqrt{3}$",
+          "$3\\sqrt{2}-2\\sqrt{3}$",
+          "$\\sqrt{6}-\\sqrt{2}$",
+          "$2\\sqrt{2}+\\sqrt{3}$"
+        ],
+        "answer": 0,
+        "explanation": "逐項乘：$\\sqrt{18}+\\sqrt{3}-\\sqrt{12}-\\sqrt{2}=3\\sqrt{2}+\\sqrt{3}-2\\sqrt{3}-\\sqrt{2}=2\\sqrt{2}-\\sqrt{3}$。"
+      },
+      {
+        "id": "g8-2-2c-q6-2",
+        "topic": "兩個括號相乘（逐項乘開）",
+        "stem": "$(\\sqrt{2}-1)(\\sqrt{6}+\\sqrt{3})=$？",
+        "options": [
+          "$\\sqrt{3}$",
+          "$2\\sqrt{3}$",
+          "$2\\sqrt{3}+\\sqrt{6}$",
+          "$\\sqrt{3}-\\sqrt{6}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{12}+\\sqrt{6}-\\sqrt{6}-\\sqrt{3}=2\\sqrt{3}-\\sqrt{3}=\\sqrt{3}$。"
+      },
+      {
+        "id": "g8-2-2c-q6-3",
+        "topic": "兩個括號相乘（逐項乘開）",
+        "stem": "$(\\sqrt{3}+1)(\\sqrt{3}+2)=$？",
+        "options": [
+          "$5+3\\sqrt{3}$",
+          "$3+3\\sqrt{3}$",
+          "$5+2\\sqrt{3}$",
+          "$2+3\\sqrt{3}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{3}\\times\\sqrt{3}+2\\sqrt{3}+\\sqrt{3}+2=3+3\\sqrt{3}+2=5+3\\sqrt{3}$。"
+      },
+      {
+        "id": "g8-2-2c-q7-1",
+        "topic": "括號除以根式",
+        "stem": "$(6\\sqrt{3}+\\sqrt{6})\\div\\sqrt{3}=$？",
+        "options": [
+          "$6+\\sqrt{2}$",
+          "$6+\\sqrt{6}$",
+          "$6\\sqrt{2}$",
+          "$2\\sqrt{3}+\\sqrt{2}$"
+        ],
+        "answer": 0,
+        "explanation": "每一項都除以 $\\sqrt{3}$：$6\\sqrt{3}\\div\\sqrt{3}=6$，$\\sqrt{6}\\div\\sqrt{3}=\\sqrt{2}$。"
+      },
+      {
+        "id": "g8-2-2c-q7-2",
+        "topic": "括號除以根式",
+        "stem": "$(4\\sqrt{6}-2)\\div\\sqrt{2}=$？",
+        "options": [
+          "$4\\sqrt{3}-\\sqrt{2}$",
+          "$4\\sqrt{3}-2$",
+          "$2\\sqrt{3}-\\sqrt{2}$",
+          "$4\\sqrt{3}-2\\sqrt{2}$"
+        ],
+        "answer": 0,
+        "explanation": "$4\\sqrt{6}\\div\\sqrt{2}=4\\sqrt{3}$，$2\\div\\sqrt{2}=\\dfrac{2}{\\sqrt{2}}=\\sqrt{2}$。"
+      },
+      {
+        "id": "g8-2-2c-q7-3",
+        "topic": "括號除以根式",
+        "stem": "$(4\\sqrt{2}+\\sqrt{6})\\div\\sqrt{3}=$？",
+        "options": [
+          "$\\dfrac{4\\sqrt{6}}{3}+\\sqrt{2}$",
+          "$\\dfrac{4\\sqrt{6}}{3}+\\sqrt{6}$",
+          "$4\\sqrt{6}+\\sqrt{2}$",
+          "$\\dfrac{4\\sqrt{2}}{3}+\\sqrt{2}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\dfrac{4\\sqrt{2}}{\\sqrt{3}}=\\dfrac{4\\sqrt{6}}{3}$，$\\dfrac{\\sqrt{6}}{\\sqrt{3}}=\\sqrt{2}$。"
+      },
+      {
+        "id": "g8-2-2c-q8-1",
+        "topic": "乘除混合：合成一個根號",
+        "stem": "$\\sqrt{\\dfrac{1}{3}}\\times\\sqrt{\\dfrac{2}{3}}\\div\\sqrt{\\dfrac{1}{4}}=$？（最簡根式）",
+        "options": [
+          "$\\dfrac{2\\sqrt{2}}{3}$",
+          "$\\sqrt{\\dfrac{8}{9}}$",
+          "$\\dfrac{\\sqrt{2}}{18}$",
+          "$\\dfrac{\\sqrt{2}}{3}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{\\dfrac{1}{3}\\times\\dfrac{2}{3}\\times4}=\\sqrt{\\dfrac{8}{9}}=\\dfrac{2\\sqrt{2}}{3}$。除以 $\\sqrt{\\dfrac{1}{4}}$ 就是乘 $\\sqrt{4}$。"
+      },
+      {
+        "id": "g8-2-2c-q8-2",
+        "topic": "乘除混合：合成一個根號",
+        "stem": "$\\sqrt{\\dfrac{3}{4}}\\times\\sqrt{\\dfrac{1}{2}}\\div\\sqrt{\\dfrac{3}{2}}=$？（最簡根式）",
+        "options": [
+          "$\\dfrac{1}{2}$",
+          "$\\sqrt{\\dfrac{1}{4}}$",
+          "$\\dfrac{3}{8}$",
+          "$\\dfrac{1}{4}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{\\dfrac{3}{4}\\times\\dfrac{1}{2}\\times\\dfrac{2}{3}}=\\sqrt{\\dfrac{1}{4}}=\\dfrac{1}{2}$。"
+      },
+      {
+        "id": "g8-2-2c-q8-3",
+        "topic": "乘除混合：合成一個根號",
+        "stem": "$\\sqrt{\\dfrac{2}{5}}\\times\\sqrt{\\dfrac{5}{6}}\\div\\sqrt{\\dfrac{1}{3}}=$？（最簡根式）",
+        "options": [
+          "$1$",
+          "$\\sqrt{3}$",
+          "$\\dfrac{1}{9}$",
+          "$\\dfrac{\\sqrt{3}}{3}$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{\\dfrac{2}{5}\\times\\dfrac{5}{6}\\times3}=\\sqrt{1}=1$。"
+      },
+      {
+        "id": "g8-2-2d-q5-1",
+        "topic": "共軛有理化：1 ÷ (√a ± √b)",
+        "stem": "把 $\\dfrac{1}{\\sqrt{5}-\\sqrt{3}}$ 的分母有理化。",
+        "options": [
+          "$\\dfrac{\\sqrt{5}+\\sqrt{3}}{2}$",
+          "$\\dfrac{\\sqrt{5}-\\sqrt{3}}{2}$",
+          "$\\sqrt{5}+\\sqrt{3}$",
+          "$\\dfrac{\\sqrt{5}+\\sqrt{3}}{8}$"
+        ],
+        "answer": 0,
+        "explanation": "分子分母同乘 $\\sqrt{5}+\\sqrt{3}$：分母 $(\\sqrt{5})^2-(\\sqrt{3})^2=2$，得 $\\dfrac{\\sqrt{5}+\\sqrt{3}}{2}$。"
+      },
+      {
+        "id": "g8-2-2d-q5-2",
+        "topic": "共軛有理化：1 ÷ (√a ± √b)",
+        "stem": "把 $\\dfrac{1}{\\sqrt{3}+\\sqrt{2}}$ 的分母有理化。",
+        "options": [
+          "$\\sqrt{3}-\\sqrt{2}$",
+          "$\\sqrt{3}+\\sqrt{2}$",
+          "$\\dfrac{\\sqrt{3}-\\sqrt{2}}{5}$",
+          "$\\dfrac{\\sqrt{3}-\\sqrt{2}}{3-2}$"
+        ],
+        "answer": 0,
+        "explanation": "同乘 $\\sqrt{3}-\\sqrt{2}$：分母 $3-2=1$，得 $\\sqrt{3}-\\sqrt{2}$。"
+      },
+      {
+        "id": "g8-2-2d-q5-3",
+        "topic": "共軛有理化：1 ÷ (√a ± √b)",
+        "stem": "把 $\\dfrac{2}{\\sqrt{5}+\\sqrt{3}}$ 的分母有理化。",
+        "options": [
+          "$\\sqrt{5}-\\sqrt{3}$",
+          "$\\sqrt{5}+\\sqrt{3}$",
+          "$\\dfrac{\\sqrt{5}-\\sqrt{3}}{4}$",
+          "$2(\\sqrt{5}-\\sqrt{3})$"
+        ],
+        "answer": 0,
+        "explanation": "同乘 $\\sqrt{5}-\\sqrt{3}$：$\\dfrac{2(\\sqrt{5}-\\sqrt{3})}{5-3}=\\sqrt{5}-\\sqrt{3}$。"
+      },
+      {
+        "id": "g8-2-2d-q6-1",
+        "topic": "共軛有理化：a ÷ (√b ± c)",
+        "stem": "把 $\\dfrac{3}{\\sqrt{7}-2}$ 的分母有理化。",
+        "options": [
+          "$\\sqrt{7}+2$",
+          "$\\sqrt{7}-2$",
+          "$\\dfrac{3(\\sqrt{7}+2)}{5}$",
+          "$3(\\sqrt{7}+2)$"
+        ],
+        "answer": 0,
+        "explanation": "同乘 $\\sqrt{7}+2$：分母 $7-4=3$，$\\dfrac{3(\\sqrt{7}+2)}{3}=\\sqrt{7}+2$。分母是 $7-2^2$，不是 $7-2$。"
+      },
+      {
+        "id": "g8-2-2d-q6-2",
+        "topic": "共軛有理化：a ÷ (√b ± c)",
+        "stem": "把 $\\dfrac{1}{\\sqrt{3}+2}$ 的分母有理化。",
+        "options": [
+          "$2-\\sqrt{3}$",
+          "$\\sqrt{3}-2$",
+          "$\\dfrac{2-\\sqrt{3}}{7}$",
+          "$\\sqrt{3}+2$"
+        ],
+        "answer": 0,
+        "explanation": "同乘 $2-\\sqrt{3}$：分母 $4-3=1$，得 $2-\\sqrt{3}$。"
+      },
+      {
+        "id": "g8-2-2d-q6-3",
+        "topic": "共軛有理化：a ÷ (√b ± c)",
+        "stem": "把 $\\dfrac{2}{\\sqrt{5}+1}$ 的分母有理化。",
+        "options": [
+          "$\\dfrac{\\sqrt{5}-1}{2}$",
+          "$\\dfrac{\\sqrt{5}+1}{2}$",
+          "$\\sqrt{5}-1$",
+          "$\\dfrac{2\\sqrt{5}-2}{4}$"
+        ],
+        "answer": 0,
+        "explanation": "同乘 $\\sqrt{5}-1$：$\\dfrac{2(\\sqrt{5}-1)}{5-1}=\\dfrac{2(\\sqrt{5}-1)}{4}=\\dfrac{\\sqrt{5}-1}{2}$，記得約分。"
+      },
+      {
+        "id": "g8-2-2d-q7-1",
+        "topic": "共軛有理化：分子也有根號",
+        "stem": "把 $\\dfrac{\\sqrt{2}}{\\sqrt{6}+\\sqrt{5}}$ 的分母有理化。",
+        "options": [
+          "$2\\sqrt{3}-\\sqrt{10}$",
+          "$\\sqrt{12}-\\sqrt{10}$",
+          "$2\\sqrt{3}+\\sqrt{10}$",
+          "$\\dfrac{2\\sqrt{3}-\\sqrt{10}}{11}$"
+        ],
+        "answer": 0,
+        "explanation": "同乘 $\\sqrt{6}-\\sqrt{5}$：分母 $6-5=1$，分子 $\\sqrt{12}-\\sqrt{10}=2\\sqrt{3}-\\sqrt{10}$。"
+      },
+      {
+        "id": "g8-2-2d-q7-2",
+        "topic": "共軛有理化：分子也有根號",
+        "stem": "把 $\\dfrac{\\sqrt{3}}{\\sqrt{6}-\\sqrt{2}}$ 的分母有理化。",
+        "options": [
+          "$\\dfrac{3\\sqrt{2}+\\sqrt{6}}{4}$",
+          "$\\dfrac{\\sqrt{18}+\\sqrt{6}}{4}$",
+          "$\\dfrac{3\\sqrt{2}-\\sqrt{6}}{4}$",
+          "$\\dfrac{3\\sqrt{2}+\\sqrt{6}}{8}$"
+        ],
+        "answer": 0,
+        "explanation": "同乘 $\\sqrt{6}+\\sqrt{2}$：分母 $6-2=4$，分子 $\\sqrt{18}+\\sqrt{6}=3\\sqrt{2}+\\sqrt{6}$。"
+      },
+      {
+        "id": "g8-2-2d-q7-3",
+        "topic": "共軛有理化：分子也有根號",
+        "stem": "把 $\\dfrac{\\sqrt{2}}{\\sqrt{3}-1}$ 的分母有理化。",
+        "options": [
+          "$\\dfrac{\\sqrt{6}+\\sqrt{2}}{2}$",
+          "$\\dfrac{\\sqrt{6}-\\sqrt{2}}{2}$",
+          "$\\sqrt{6}+\\sqrt{2}$",
+          "$\\dfrac{\\sqrt{6}+\\sqrt{2}}{4}$"
+        ],
+        "answer": 0,
+        "explanation": "同乘 $\\sqrt{3}+1$：分母 $3-1=2$，分子 $\\sqrt{6}+\\sqrt{2}$。"
+      },
+      {
+        "id": "g8-2-2d-q9-1",
+        "topic": "公式綜合",
+        "stem": "$(\\sqrt{3}+1)^2-(\\sqrt{3}-1)^2=$？",
+        "options": [
+          "$4\\sqrt{3}$",
+          "$0$",
+          "$8$",
+          "$2\\sqrt{3}$"
+        ],
+        "answer": 0,
+        "explanation": "$(4+2\\sqrt{3})-(4-2\\sqrt{3})=4\\sqrt{3}$。"
+      },
+      {
+        "id": "g8-2-2d-q9-2",
+        "topic": "公式綜合",
+        "stem": "$(2+\\sqrt{5})^2+(2-\\sqrt{5})^2=$？",
+        "options": [
+          "$18$",
+          "$18+8\\sqrt{5}$",
+          "$-2$",
+          "$9$"
+        ],
+        "answer": 0,
+        "explanation": "$(9+4\\sqrt{5})+(9-4\\sqrt{5})=18$。"
+      },
+      {
+        "id": "g8-2-2d-q9-3",
+        "topic": "公式綜合",
+        "stem": "$(\\sqrt{6}+\\sqrt{2})(\\sqrt{6}-\\sqrt{2})+(\\sqrt{2})^2=$？",
+        "options": [
+          "$6$",
+          "$10$",
+          "$4$",
+          "$8$"
+        ],
+        "answer": 0,
+        "explanation": "$(6-2)+2=6$。"
+      },
+      {
+        "id": "new-ultimate-長方形的周長-1",
+        "topic": "長方形的周長",
+        "stem": "長方形的長 $\\sqrt{27}$ 公分、寬 $\\sqrt{12}$ 公分，周長是幾公分？",
+        "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 420 220\" width=\"420\" height=\"220\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"66.5,176.0 264.5,176.0 264.5,44.0 66.5,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"75.5,176.0 75.5,167.0 66.5,167.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"165.5\" y=\"195.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">√27</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"273.5\" y=\"115.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"start\" fill=\"#1b1b1b\" font-weight=\"600\">√12</text></svg>",
+        "options": [
+          "$10\\sqrt{3}$",
+          "$2\\sqrt{39}$",
+          "$5\\sqrt{3}$",
+          "$18$"
+        ],
+        "answer": 0,
+        "explanation": "先化簡：$\\sqrt{27}=3\\sqrt{3}$、$\\sqrt{12}=2\\sqrt{3}$，周長 $2(3\\sqrt{3}+2\\sqrt{3})=10\\sqrt{3}$。"
+      },
+      {
+        "id": "new-ultimate-長方形的周長-2",
+        "topic": "長方形的周長",
+        "stem": "長方形的長 $\\sqrt{18}$ 公分、寬 $\\sqrt{8}$ 公分，周長是幾公分？",
+        "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 420 220\" width=\"420\" height=\"220\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"66.5,176.0 264.4,176.0 264.4,44.0 66.5,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"75.5,176.0 75.5,167.0 66.5,167.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"165.4\" y=\"195.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">√18</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"273.4\" y=\"115.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"start\" fill=\"#1b1b1b\" font-weight=\"600\">√8</text></svg>",
+        "options": [
+          "$10\\sqrt{2}$",
+          "$2\\sqrt{26}$",
+          "$5\\sqrt{2}$",
+          "$12$"
+        ],
+        "answer": 0,
+        "explanation": "先化簡：$\\sqrt{18}=3\\sqrt{2}$、$\\sqrt{8}=2\\sqrt{2}$，周長 $2(3\\sqrt{2}+2\\sqrt{2})=10\\sqrt{2}$。"
+      },
+      {
+        "id": "new-ultimate-長方形的周長-3",
+        "topic": "長方形的周長",
+        "stem": "長方形的長 $\\sqrt{45}$ 公分、寬 $\\sqrt{20}$ 公分，周長是幾公分？",
+        "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 420 220\" width=\"420\" height=\"220\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"66.4,176.0 264.4,176.0 264.4,44.0 66.4,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"75.4,176.0 75.4,167.0 66.4,167.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"165.4\" y=\"195.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">√45</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"273.4\" y=\"115.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"start\" fill=\"#1b1b1b\" font-weight=\"600\">√20</text></svg>",
+        "options": [
+          "$10\\sqrt{5}$",
+          "$2\\sqrt{65}$",
+          "$5\\sqrt{5}$",
+          "$30$"
+        ],
+        "answer": 0,
+        "explanation": "先化簡：$\\sqrt{45}=3\\sqrt{5}$、$\\sqrt{20}=2\\sqrt{5}$，周長 $2(3\\sqrt{5}+2\\sqrt{5})=10\\sqrt{5}$。"
+      },
+      {
+        "id": "new-ultimate-長方形的周長-4",
+        "topic": "長方形的周長",
+        "stem": "長方形的長 $\\sqrt{54}$ 公分、寬 $\\sqrt{24}$ 公分，周長是幾公分？",
+        "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 420 220\" width=\"420\" height=\"220\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"66.4,176.0 264.4,176.0 264.4,44.0 66.4,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"75.4,176.0 75.4,167.0 66.4,167.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"165.4\" y=\"195.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">√54</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"273.4\" y=\"115.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"start\" fill=\"#1b1b1b\" font-weight=\"600\">√24</text></svg>",
+        "options": [
+          "$10\\sqrt{6}$",
+          "$2\\sqrt{78}$",
+          "$5\\sqrt{6}$",
+          "$36$"
+        ],
+        "answer": 0,
+        "explanation": "先化簡：$\\sqrt{54}=3\\sqrt{6}$、$\\sqrt{24}=2\\sqrt{6}$，周長 $2(3\\sqrt{6}+2\\sqrt{6})=10\\sqrt{6}$。"
+      },
+      {
+        "id": "new-ultimate-長方形的周長-5",
+        "topic": "長方形的周長",
+        "stem": "長方形的長 $\\sqrt{50}$ 公分、寬 $\\sqrt{32}$ 公分，周長是幾公分？",
+        "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 420 220\" width=\"420\" height=\"220\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"90.4,176.0 255.4,176.0 255.4,44.0 90.4,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"99.4,176.0 99.4,167.0 90.4,167.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"172.9\" y=\"195.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">√50</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"264.4\" y=\"115.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"start\" fill=\"#1b1b1b\" font-weight=\"600\">√32</text></svg>",
+        "options": [
+          "$18\\sqrt{2}$",
+          "$2\\sqrt{82}$",
+          "$9\\sqrt{2}$",
+          "$40$"
+        ],
+        "answer": 0,
+        "explanation": "先化簡：$\\sqrt{50}=5\\sqrt{2}$、$\\sqrt{32}=4\\sqrt{2}$，周長 $2(5\\sqrt{2}+4\\sqrt{2})=18\\sqrt{2}$。"
+      },
+      {
+        "id": "new-ultimate-長方形的周長-6",
+        "topic": "長方形的周長",
+        "stem": "長方形的長 $\\sqrt{63}$ 公分、寬 $\\sqrt{28}$ 公分，周長是幾公分？",
+        "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 420 220\" width=\"420\" height=\"220\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"66.5,176.0 264.5,176.0 264.5,44.0 66.5,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"75.5,176.0 75.5,167.0 66.5,167.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"165.5\" y=\"195.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">√63</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"273.5\" y=\"115.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"start\" fill=\"#1b1b1b\" font-weight=\"600\">√28</text></svg>",
+        "options": [
+          "$10\\sqrt{7}$",
+          "$2\\sqrt{91}$",
+          "$5\\sqrt{7}$",
+          "$42$"
+        ],
+        "answer": 0,
+        "explanation": "先化簡：$\\sqrt{63}=3\\sqrt{7}$、$\\sqrt{28}=2\\sqrt{7}$，周長 $2(3\\sqrt{7}+2\\sqrt{7})=10\\sqrt{7}$。"
+      },
+      {
+        "id": "new-ultimate-長方形的面積-1",
+        "topic": "長方形的面積",
+        "stem": "長方形花圃長 $\\sqrt{50}$ 公尺、寬 $\\sqrt{8}$ 公尺，面積是幾平方公尺？",
+        "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 420 220\" width=\"420\" height=\"220\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"44.0,155.8 273.0,155.8 273.0,64.2 44.0,64.2\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"53.0,155.8 53.0,146.8 44.0,146.8\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"158.5\" y=\"174.8\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">√50 m</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"282.0\" y=\"115.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"start\" fill=\"#1b1b1b\" font-weight=\"600\">√8 m</text></svg>",
+        "options": [
+          "$20$",
+          "$400$",
+          "$\\sqrt{58}$",
+          "$10\\sqrt{2}+4\\sqrt{2}$"
+        ],
+        "answer": 0,
+        "explanation": "面積＝長×寬：$\\sqrt{50}\\times\\sqrt{8}=\\sqrt{400}=20$。"
+      },
+      {
+        "id": "new-ultimate-長方形的面積-2",
+        "topic": "長方形的面積",
+        "stem": "長方形花圃長 $\\sqrt{27}$ 公尺、寬 $\\sqrt{12}$ 公尺，面積是幾平方公尺？",
+        "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 420 220\" width=\"420\" height=\"220\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"66.5,176.0 264.5,176.0 264.5,44.0 66.5,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"75.5,176.0 75.5,167.0 66.5,167.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"165.5\" y=\"195.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">√27 m</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"273.5\" y=\"115.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"start\" fill=\"#1b1b1b\" font-weight=\"600\">√12 m</text></svg>",
+        "options": [
+          "$18$",
+          "$324$",
+          "$\\sqrt{39}$",
+          "$6\\sqrt{3}+4\\sqrt{3}$"
+        ],
+        "answer": 0,
+        "explanation": "面積＝長×寬：$\\sqrt{27}\\times\\sqrt{12}=\\sqrt{324}=18$。"
+      },
+      {
+        "id": "new-ultimate-長方形的面積-3",
+        "topic": "長方形的面積",
+        "stem": "長方形花圃長 $\\sqrt{18}$ 公尺、寬 $\\sqrt{6}$ 公尺，面積是幾平方公尺？",
+        "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 420 220\" width=\"420\" height=\"220\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"44.2,176.0 272.9,176.0 272.9,44.0 44.2,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"53.2,176.0 53.2,167.0 44.2,167.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"158.6\" y=\"195.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">√18 m</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"281.9\" y=\"115.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"start\" fill=\"#1b1b1b\" font-weight=\"600\">√6 m</text></svg>",
+        "options": [
+          "$6\\sqrt{3}$",
+          "$108$",
+          "$\\sqrt{24}$",
+          "$6\\sqrt{2}+2\\sqrt{6}$"
+        ],
+        "answer": 0,
+        "explanation": "面積＝長×寬：$\\sqrt{18}\\times\\sqrt{6}=\\sqrt{108}=6\\sqrt{3}$。"
+      },
+      {
+        "id": "new-ultimate-長方形的面積-4",
+        "topic": "長方形的面積",
+        "stem": "長方形花圃長 $\\sqrt{20}$ 公尺、寬 $\\sqrt{15}$ 公尺，面積是幾平方公尺？",
+        "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 420 220\" width=\"420\" height=\"220\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"99.5,176.0 251.9,176.0 251.9,44.0 99.5,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"108.5,176.0 108.5,167.0 99.5,167.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"175.7\" y=\"195.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">√20 m</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"260.9\" y=\"115.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"start\" fill=\"#1b1b1b\" font-weight=\"600\">√15 m</text></svg>",
+        "options": [
+          "$10\\sqrt{3}$",
+          "$300$",
+          "$\\sqrt{35}$",
+          "$4\\sqrt{5}+2\\sqrt{15}$"
+        ],
+        "answer": 0,
+        "explanation": "面積＝長×寬：$\\sqrt{20}\\times\\sqrt{15}=\\sqrt{300}=10\\sqrt{3}$。"
+      },
+      {
+        "id": "new-ultimate-長方形的面積-5",
+        "topic": "長方形的面積",
+        "stem": "長方形花圃長 $\\sqrt{24}$ 公尺、寬 $\\sqrt{6}$ 公尺，面積是幾平方公尺？",
+        "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 420 220\" width=\"420\" height=\"220\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"44.0,167.2 273.0,167.2 273.0,52.8 44.0,52.8\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"53.0,167.2 53.0,158.2 44.0,158.2\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"158.5\" y=\"186.2\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">√24 m</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"282.0\" y=\"115.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"start\" fill=\"#1b1b1b\" font-weight=\"600\">√6 m</text></svg>",
+        "options": [
+          "$12$",
+          "$144$",
+          "$\\sqrt{30}$",
+          "$4\\sqrt{6}+2\\sqrt{6}$"
+        ],
+        "answer": 0,
+        "explanation": "面積＝長×寬：$\\sqrt{24}\\times\\sqrt{6}=\\sqrt{144}=12$。"
+      },
+      {
+        "id": "new-ultimate-長方形的面積-6",
+        "topic": "長方形的面積",
+        "stem": "長方形花圃長 $\\sqrt{40}$ 公尺、寬 $\\sqrt{10}$ 公尺，面積是幾平方公尺？",
+        "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 420 220\" width=\"420\" height=\"220\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"44.0,167.2 273.0,167.2 273.0,52.8 44.0,52.8\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"53.0,167.2 53.0,158.2 44.0,158.2\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"158.5\" y=\"186.2\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">√40 m</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"282.0\" y=\"115.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"start\" fill=\"#1b1b1b\" font-weight=\"600\">√10 m</text></svg>",
+        "options": [
+          "$20$",
+          "$400$",
+          "$\\sqrt{50}$",
+          "$4\\sqrt{10}+2\\sqrt{10}$"
+        ],
+        "answer": 0,
+        "explanation": "面積＝長×寬：$\\sqrt{40}\\times\\sqrt{10}=\\sqrt{400}=20$。"
+      },
+      {
+        "id": "new-ultimate-平方差的面積-1",
+        "topic": "平方差的面積",
+        "stem": "長方形的長是 $(\\sqrt{7}+\\sqrt{2})$、寬是 $(\\sqrt{7}-\\sqrt{2})$，面積是多少？",
+        "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 420 220\" width=\"420\" height=\"220\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"44.0,165.6 273.0,165.6 273.0,54.4 44.0,54.4\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"53.0,165.6 53.0,156.6 44.0,156.6\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"158.5\" y=\"184.6\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">√7＋√2</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"282.0\" y=\"115.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"start\" fill=\"#1b1b1b\" font-weight=\"600\">√7－√2</text></svg>",
+        "options": [
+          "$5$",
+          "$9$",
+          "$\\sqrt{5}$",
+          "$2\\sqrt{7}$"
+        ],
+        "answer": 0,
+        "explanation": "平方差公式：$(\\sqrt{7}+\\sqrt{2})(\\sqrt{7}-\\sqrt{2})=(\\sqrt{7})^2-(\\sqrt{2})^2=7-2=5$。"
+      },
+      {
+        "id": "new-ultimate-平方差的面積-2",
+        "topic": "平方差的面積",
+        "stem": "長方形的長是 $(\\sqrt{11}+\\sqrt{5})$、寬是 $(\\sqrt{11}-\\sqrt{5})$，面積是多少？",
+        "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 420 220\" width=\"420\" height=\"220\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"44.0,145.6 273.0,145.6 273.0,74.4 44.0,74.4\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"53.0,145.6 53.0,136.6 44.0,136.6\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"158.5\" y=\"164.6\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">√11＋√5</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"282.0\" y=\"115.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"start\" fill=\"#1b1b1b\" font-weight=\"600\">√11－√5</text></svg>",
+        "options": [
+          "$6$",
+          "$16$",
+          "$\\sqrt{6}$",
+          "$2\\sqrt{11}$"
+        ],
+        "answer": 0,
+        "explanation": "平方差公式：$(\\sqrt{11}+\\sqrt{5})(\\sqrt{11}-\\sqrt{5})=(\\sqrt{11})^2-(\\sqrt{5})^2=11-5=6$。"
+      },
+      {
+        "id": "new-ultimate-平方差的面積-3",
+        "topic": "平方差的面積",
+        "stem": "長方形的長是 $(\\sqrt{10}+\\sqrt{3})$、寬是 $(\\sqrt{10}-\\sqrt{3})$，面積是多少？",
+        "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 420 220\" width=\"420\" height=\"220\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"44.0,163.5 273.0,163.5 273.0,56.5 44.0,56.5\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"53.0,163.5 53.0,154.5 44.0,154.5\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"158.5\" y=\"182.5\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">√10＋√3</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"282.0\" y=\"115.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"start\" fill=\"#1b1b1b\" font-weight=\"600\">√10－√3</text></svg>",
+        "options": [
+          "$7$",
+          "$13$",
+          "$\\sqrt{7}$",
+          "$2\\sqrt{10}$"
+        ],
+        "answer": 0,
+        "explanation": "平方差公式：$(\\sqrt{10}+\\sqrt{3})(\\sqrt{10}-\\sqrt{3})=(\\sqrt{10})^2-(\\sqrt{3})^2=10-3=7$。"
+      },
+      {
+        "id": "new-ultimate-平方差的面積-4",
+        "topic": "平方差的面積",
+        "stem": "長方形的長是 $(\\sqrt{13}+\\sqrt{2})$、寬是 $(\\sqrt{13}-\\sqrt{2})$，面積是多少？",
+        "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 420 220\" width=\"420\" height=\"220\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"73.0,176.0 262.0,176.0 262.0,44.0 73.0,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"82.0,176.0 82.0,167.0 73.0,167.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"167.5\" y=\"195.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">√13＋√2</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"271.0\" y=\"115.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"start\" fill=\"#1b1b1b\" font-weight=\"600\">√13－√2</text></svg>",
+        "options": [
+          "$11$",
+          "$15$",
+          "$\\sqrt{11}$",
+          "$2\\sqrt{13}$"
+        ],
+        "answer": 0,
+        "explanation": "平方差公式：$(\\sqrt{13}+\\sqrt{2})(\\sqrt{13}-\\sqrt{2})=(\\sqrt{13})^2-(\\sqrt{2})^2=13-2=11$。"
+      },
+      {
+        "id": "new-ultimate-平方差的面積-5",
+        "topic": "平方差的面積",
+        "stem": "長方形的長是 $(\\sqrt{15}+\\sqrt{7})$、寬是 $(\\sqrt{15}-\\sqrt{7})$，面積是多少？",
+        "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 420 220\" width=\"420\" height=\"220\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"44.0,144.5 273.0,144.5 273.0,75.5 44.0,75.5\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"53.0,144.5 53.0,135.5 44.0,135.5\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"158.5\" y=\"163.5\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">√15＋√7</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"282.0\" y=\"115.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"start\" fill=\"#1b1b1b\" font-weight=\"600\">√15－√7</text></svg>",
+        "options": [
+          "$8$",
+          "$22$",
+          "$\\sqrt{8}$",
+          "$2\\sqrt{15}$"
+        ],
+        "answer": 0,
+        "explanation": "平方差公式：$(\\sqrt{15}+\\sqrt{7})(\\sqrt{15}-\\sqrt{7})=(\\sqrt{15})^2-(\\sqrt{7})^2=15-7=8$。"
+      },
+      {
+        "id": "new-ultimate-代入求值-1",
+        "topic": "代入求值",
+        "stem": "若 $x=\\sqrt{3}+1$，則 $x^2-2x=$？",
+        "options": [
+          "$2$",
+          "$4$",
+          "$3$",
+          "$-2$"
+        ],
+        "answer": 0,
+        "explanation": "$x-1=\\sqrt{3}$，兩邊平方：$x^2-2x+1=3$，所以 $x^2-2x=3-1=2$。"
+      },
+      {
+        "id": "new-ultimate-代入求值-2",
+        "topic": "代入求值",
+        "stem": "若 $x=\\sqrt{5}-2$，則 $x^2+4x=$？",
+        "options": [
+          "$1$",
+          "$9$",
+          "$5$",
+          "$-1$"
+        ],
+        "answer": 0,
+        "explanation": "$x+2=\\sqrt{5}$，兩邊平方：$x^2+4x+4=5$，所以 $x^2+4x=5-4=1$。"
+      },
+      {
+        "id": "new-ultimate-代入求值-3",
+        "topic": "代入求值",
+        "stem": "若 $x=\\sqrt{2}+3$，則 $x^2-6x=$？",
+        "options": [
+          "$-7$",
+          "$11$",
+          "$2$",
+          "$7$"
+        ],
+        "answer": 0,
+        "explanation": "$x-3=\\sqrt{2}$，兩邊平方：$x^2-6x+9=2$，所以 $x^2-6x=2-9=-7$。"
+      },
+      {
+        "id": "new-ultimate-代入求值-4",
+        "topic": "代入求值",
+        "stem": "若 $x=\\sqrt{7}-1$，則 $x^2+2x=$？",
+        "options": [
+          "$6$",
+          "$8$",
+          "$7$",
+          "$-6$"
+        ],
+        "answer": 0,
+        "explanation": "$x+1=\\sqrt{7}$，兩邊平方：$x^2+2x+1=7$，所以 $x^2+2x=7-1=6$。"
+      },
+      {
+        "id": "new-ultimate-代入求值-5",
+        "topic": "代入求值",
+        "stem": "若 $x=\\sqrt{6}+2$，則 $x^2-4x=$？",
+        "options": [
+          "$2$",
+          "$10$",
+          "$6$",
+          "$-2$"
+        ],
+        "answer": 0,
+        "explanation": "$x-2=\\sqrt{6}$，兩邊平方：$x^2-4x+4=6$，所以 $x^2-4x=6-4=2$。"
+      },
+      {
+        "id": "new-ultimate-代入求值-6",
+        "topic": "代入求值",
+        "stem": "若 $x=\\sqrt{10}-3$，則 $x^2+6x=$？",
+        "options": [
+          "$1$",
+          "$19$",
+          "$10$",
+          "$-1$"
+        ],
+        "answer": 0,
+        "explanation": "$x+3=\\sqrt{10}$，兩邊平方：$x^2+6x+9=10$，所以 $x^2+6x=10-9=1$。"
+      },
+      {
+        "id": "new-ultimate-x、y 的綜合-1",
+        "topic": "x、y 的綜合",
+        "stem": "若 $x=\\sqrt{5}+\\sqrt{3}$、$y=\\sqrt{5}-\\sqrt{3}$，則 $x^2+y^2=$？",
+        "options": [
+          "$16$",
+          "$8$",
+          "$32$",
+          "$4\\sqrt{15}$"
+        ],
+        "answer": 0,
+        "explanation": "$x^2=(5+3)+2\\sqrt{15}$、$y^2=(5+3)-2\\sqrt{15}$，相加中間項抵消：$2(5+3)=16$。"
+      },
+      {
+        "id": "new-ultimate-x、y 的綜合-2",
+        "topic": "x、y 的綜合",
+        "stem": "若 $x=\\sqrt{7}+\\sqrt{2}$、$y=\\sqrt{7}-\\sqrt{2}$，則 $x^2+y^2=$？",
+        "options": [
+          "$18$",
+          "$9$",
+          "$36$",
+          "$4\\sqrt{14}$"
+        ],
+        "answer": 0,
+        "explanation": "$x^2=(7+2)+2\\sqrt{14}$、$y^2=(7+2)-2\\sqrt{14}$，相加中間項抵消：$2(7+2)=18$。"
+      },
+      {
+        "id": "new-ultimate-x、y 的綜合-3",
+        "topic": "x、y 的綜合",
+        "stem": "若 $x=\\sqrt{6}+\\sqrt{2}$、$y=\\sqrt{6}-\\sqrt{2}$，則 $x^2+y^2=$？",
+        "options": [
+          "$16$",
+          "$8$",
+          "$32$",
+          "$8\\sqrt{3}$"
+        ],
+        "answer": 0,
+        "explanation": "$x^2=(6+2)+4\\sqrt{3}$、$y^2=(6+2)-4\\sqrt{3}$，相加中間項抵消：$2(6+2)=16$。"
+      },
+      {
+        "id": "new-ultimate-x、y 的綜合-4",
+        "topic": "x、y 的綜合",
+        "stem": "若 $x=\\sqrt{5}+\\sqrt{2}$、$y=\\sqrt{5}-\\sqrt{2}$，則 $xy=$？",
+        "options": [
+          "$3$",
+          "$7$",
+          "$2\\sqrt{5}$",
+          "$10$"
+        ],
+        "answer": 0,
+        "explanation": "平方差：$xy=(\\sqrt{5})^2-(\\sqrt{2})^2=3$。"
+      },
+      {
+        "id": "new-ultimate-x、y 的綜合-5",
+        "topic": "x、y 的綜合",
+        "stem": "若 $x=\\sqrt{11}+\\sqrt{3}$、$y=\\sqrt{11}-\\sqrt{3}$，則 $xy=$？",
+        "options": [
+          "$8$",
+          "$14$",
+          "$2\\sqrt{11}$",
+          "$33$"
+        ],
+        "answer": 0,
+        "explanation": "平方差：$xy=(\\sqrt{11})^2-(\\sqrt{3})^2=8$。"
+      },
+      {
+        "id": "new-ultimate-x、y 的綜合-6",
+        "topic": "x、y 的綜合",
+        "stem": "若 $x=\\sqrt{10}+\\sqrt{7}$、$y=\\sqrt{10}-\\sqrt{7}$，則 $xy=$？",
+        "options": [
+          "$3$",
+          "$17$",
+          "$2\\sqrt{10}$",
+          "$70$"
+        ],
+        "answer": 0,
+        "explanation": "平方差：$xy=(\\sqrt{10})^2-(\\sqrt{7})^2=3$。"
+      },
+      {
+        "id": "new-ultimate-共軛有理化後相加-1",
+        "topic": "共軛有理化後相加",
+        "stem": "$\\dfrac{1}{\\sqrt{3}+\\sqrt{2}}+\\dfrac{1}{\\sqrt{3}-\\sqrt{2}}=$？",
+        "options": [
+          "$2\\sqrt{3}$",
+          "$2\\sqrt{2}$",
+          "$0$",
+          "$\\sqrt{3}$"
+        ],
+        "answer": 0,
+        "explanation": "通分（或各自有理化）：分母 $(3)-(2)=1$，分子 $(\\sqrt{3}-\\sqrt{2})+(\\sqrt{3}+\\sqrt{2})=2\\sqrt{3}$。"
+      },
+      {
+        "id": "new-ultimate-共軛有理化後相加-2",
+        "topic": "共軛有理化後相加",
+        "stem": "$\\dfrac{1}{\\sqrt{5}+2}+\\dfrac{1}{\\sqrt{5}-2}=$？",
+        "options": [
+          "$2\\sqrt{5}$",
+          "$4$",
+          "$0$",
+          "$\\sqrt{5}$"
+        ],
+        "answer": 0,
+        "explanation": "通分（或各自有理化）：分母 $(5)-(4)=1$，分子 $(\\sqrt{5}-2)+(\\sqrt{5}+2)=2\\sqrt{5}$。"
+      },
+      {
+        "id": "new-ultimate-共軛有理化後相加-3",
+        "topic": "共軛有理化後相加",
+        "stem": "$\\dfrac{1}{\\sqrt{6}+\\sqrt{5}}+\\dfrac{1}{\\sqrt{6}-\\sqrt{5}}=$？",
+        "options": [
+          "$2\\sqrt{6}$",
+          "$2\\sqrt{5}$",
+          "$0$",
+          "$\\sqrt{6}$"
+        ],
+        "answer": 0,
+        "explanation": "通分（或各自有理化）：分母 $(6)-(5)=1$，分子 $(\\sqrt{6}-\\sqrt{5})+(\\sqrt{6}+\\sqrt{5})=2\\sqrt{6}$。"
+      },
+      {
+        "id": "new-ultimate-共軛有理化後相加-4",
+        "topic": "共軛有理化後相加",
+        "stem": "$\\dfrac{1}{\\sqrt{8}+\\sqrt{7}}+\\dfrac{1}{\\sqrt{8}-\\sqrt{7}}=$？",
+        "options": [
+          "$4\\sqrt{2}$",
+          "$2\\sqrt{7}$",
+          "$0$",
+          "$2\\sqrt{2}$"
+        ],
+        "answer": 0,
+        "explanation": "通分（或各自有理化）：分母 $(8)-(7)=1$，分子 $(\\sqrt{8}-\\sqrt{7})+(\\sqrt{8}+\\sqrt{7})=2\\sqrt{8}$$=4\\sqrt{2}$。"
+      },
+      {
+        "id": "new-ultimate-共軛有理化後相加-5",
+        "topic": "共軛有理化後相加",
+        "stem": "$\\dfrac{1}{\\sqrt{10}+3}+\\dfrac{1}{\\sqrt{10}-3}=$？",
+        "options": [
+          "$2\\sqrt{10}$",
+          "$6$",
+          "$0$",
+          "$\\sqrt{10}$"
+        ],
+        "answer": 0,
+        "explanation": "通分（或各自有理化）：分母 $(10)-(9)=1$，分子 $(\\sqrt{10}-3)+(\\sqrt{10}+3)=2\\sqrt{10}$。"
+      },
+      {
+        "id": "new-ultimate-近似值-1",
+        "topic": "近似值",
+        "stem": "已知 $\\sqrt{2}\\approx 1.414$，則 $\\dfrac{6}{\\sqrt{2}}$ 約是多少？",
+        "options": [
+          "$4.242$",
+          "$42.42$",
+          "$8.484$",
+          "$0.4242$"
+        ],
+        "answer": 0,
+        "explanation": "先有理化：$\\dfrac{6}{\\sqrt{2}}=\\dfrac{6\\sqrt{2}}{2}=3\\sqrt{2}$，再代入：$3\\times1.414=4.242$。"
+      },
+      {
+        "id": "new-ultimate-近似值-2",
+        "topic": "近似值",
+        "stem": "已知 $\\sqrt{3}\\approx 1.732$，則 $\\dfrac{6}{\\sqrt{3}}$ 約是多少？",
+        "options": [
+          "$3.464$",
+          "$34.64$",
+          "$10.392$",
+          "$0.3464$"
+        ],
+        "answer": 0,
+        "explanation": "先有理化：$\\dfrac{6}{\\sqrt{3}}=\\dfrac{6\\sqrt{3}}{3}=2\\sqrt{3}$，再代入：$2\\times1.732=3.464$。"
+      },
+      {
+        "id": "new-ultimate-近似值-3",
+        "topic": "近似值",
+        "stem": "已知 $\\sqrt{2}\\approx 1.414$，則 $\\dfrac{10}{\\sqrt{2}}$ 約是多少？",
+        "options": [
+          "$7.07$",
+          "$70.7$",
+          "$14.14$",
+          "$0.707$"
+        ],
+        "answer": 0,
+        "explanation": "先有理化：$\\dfrac{10}{\\sqrt{2}}=\\dfrac{10\\sqrt{2}}{2}=5\\sqrt{2}$，再代入：$5\\times1.414=7.07$。"
+      },
+      {
+        "id": "new-ultimate-近似值-4",
+        "topic": "近似值",
+        "stem": "已知 $\\sqrt{3}\\approx 1.732$，則 $\\dfrac{12}{\\sqrt{3}}$ 約是多少？",
+        "options": [
+          "$6.928$",
+          "$69.28$",
+          "$20.784$",
+          "$0.6928$"
+        ],
+        "answer": 0,
+        "explanation": "先有理化：$\\dfrac{12}{\\sqrt{3}}=\\dfrac{12\\sqrt{3}}{3}=4\\sqrt{3}$，再代入：$4\\times1.732=6.928$。"
+      },
+      {
+        "id": "new-ultimate-近似值-5",
+        "topic": "近似值",
+        "stem": "已知 $\\sqrt{5}\\approx 2.236$，則 $\\dfrac{15}{\\sqrt{5}}$ 約是多少？",
+        "options": [
+          "$6.708$",
+          "$67.08$",
+          "$33.54$",
+          "$0.6708$"
+        ],
+        "answer": 0,
+        "explanation": "先有理化：$\\dfrac{15}{\\sqrt{5}}=\\dfrac{15\\sqrt{5}}{5}=3\\sqrt{5}$，再代入：$3\\times2.236=6.708$。"
+      },
+      {
+        "id": "new-ultimate-兩個正方形-1",
+        "topic": "兩個正方形",
+        "stem": "兩個正方形的面積分別是 $8$ 和 $18$ 平方公分，並排在一起，底邊全長是幾公分？",
+        "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 420 220\" width=\"420\" height=\"220\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"100.0,176.0 188.0,176.0 188.0,88.0 100.0,88.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polygon points=\"188.0,176.0 320.0,176.0 320.0,44.0 188.0,44.0\" fill=\"#cfd8ee\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"144.0\" y=\"137.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\">8</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"254.0\" y=\"115.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\">18</text></svg>",
+        "options": [
+          "$5\\sqrt{2}$",
+          "$\\sqrt{26}$",
+          "$6\\sqrt{2}$",
+          "$\\sqrt{2}$"
+        ],
+        "answer": 0,
+        "explanation": "邊長是 $\\sqrt{8}=2\\sqrt{2}$、$\\sqrt{18}=3\\sqrt{2}$，合起來 $5\\sqrt{2}$；不能寫成 $\\sqrt{26}$。"
+      },
+      {
+        "id": "new-ultimate-兩個正方形-2",
+        "topic": "兩個正方形",
+        "stem": "兩個正方形的面積分別是 $12$ 和 $27$ 平方公分，並排在一起，底邊全長是幾公分？",
+        "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 420 220\" width=\"420\" height=\"220\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"100.0,176.0 188.0,176.0 188.0,88.0 100.0,88.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polygon points=\"188.0,176.0 320.0,176.0 320.0,44.0 188.0,44.0\" fill=\"#cfd8ee\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"144.0\" y=\"137.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\">12</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"254.0\" y=\"115.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\">27</text></svg>",
+        "options": [
+          "$5\\sqrt{3}$",
+          "$\\sqrt{39}$",
+          "$6\\sqrt{3}$",
+          "$\\sqrt{3}$"
+        ],
+        "answer": 0,
+        "explanation": "邊長是 $\\sqrt{12}=2\\sqrt{3}$、$\\sqrt{27}=3\\sqrt{3}$，合起來 $5\\sqrt{3}$；不能寫成 $\\sqrt{39}$。"
+      },
+      {
+        "id": "new-ultimate-兩個正方形-3",
+        "topic": "兩個正方形",
+        "stem": "兩個正方形的面積分別是 $20$ 和 $5$ 平方公分，並排在一起，底邊全長是幾公分？",
+        "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 420 220\" width=\"420\" height=\"220\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"111.0,176.0 243.0,176.0 243.0,44.0 111.0,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polygon points=\"243.0,176.0 309.0,176.0 309.0,110.0 243.0,110.0\" fill=\"#cfd8ee\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"177.0\" y=\"115.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\">20</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"276.0\" y=\"148.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\">5</text></svg>",
+        "options": [
+          "$3\\sqrt{5}$",
+          "$\\sqrt{25}$",
+          "$2\\sqrt{5}$",
+          "$\\sqrt{5}$"
+        ],
+        "answer": 0,
+        "explanation": "邊長是 $\\sqrt{20}=2\\sqrt{5}$、$\\sqrt{5}=\\sqrt{5}$，合起來 $3\\sqrt{5}$；不能寫成 $\\sqrt{25}$。"
+      },
+      {
+        "id": "new-ultimate-兩個正方形-4",
+        "topic": "兩個正方形",
+        "stem": "兩個正方形的面積分別是 $50$ 和 $2$ 平方公分，大正方形的邊長比小正方形長幾公分？",
+        "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 420 220\" width=\"420\" height=\"220\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"130.8,176.0 262.8,176.0 262.8,44.0 130.8,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polygon points=\"262.8,176.0 289.2,176.0 289.2,149.6 262.8,149.6\" fill=\"#cfd8ee\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"196.8\" y=\"115.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\">50</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"276.0\" y=\"167.8\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\">2</text></svg>",
+        "options": [
+          "$4\\sqrt{2}$",
+          "$\\sqrt{48}$",
+          "$6\\sqrt{2}$",
+          "$48$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{50}-\\sqrt{2}=5\\sqrt{2}-\\sqrt{2}=4\\sqrt{2}$。"
+      },
+      {
+        "id": "new-ultimate-兩個正方形-5",
+        "topic": "兩個正方形",
+        "stem": "兩個正方形的面積分別是 $75$ 和 $12$ 平方公分，大正方形的邊長比小正方形長幾公分？",
+        "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 420 220\" width=\"420\" height=\"220\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"117.6,176.0 249.6,176.0 249.6,44.0 117.6,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polygon points=\"249.6,176.0 302.4,176.0 302.4,123.2 249.6,123.2\" fill=\"#cfd8ee\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"183.6\" y=\"115.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\">75</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"276.0\" y=\"154.6\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\">12</text></svg>",
+        "options": [
+          "$3\\sqrt{3}$",
+          "$\\sqrt{63}$",
+          "$7\\sqrt{3}$",
+          "$63$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{75}-\\sqrt{12}=5\\sqrt{3}-2\\sqrt{3}=3\\sqrt{3}$。"
+      },
+      {
+        "id": "new-ultimate-兩個正方形-6",
+        "topic": "兩個正方形",
+        "stem": "兩個正方形的面積分別是 $98$ 和 $8$ 平方公分，大正方形的邊長比小正方形長幾公分？",
+        "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 420 220\" width=\"420\" height=\"220\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"125.1,176.0 257.1,176.0 257.1,44.0 125.1,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polygon points=\"257.1,176.0 294.9,176.0 294.9,138.3 257.1,138.3\" fill=\"#cfd8ee\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"191.1\" y=\"115.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\">98</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"276.0\" y=\"162.1\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\">8</text></svg>",
+        "options": [
+          "$5\\sqrt{2}$",
+          "$\\sqrt{90}$",
+          "$9\\sqrt{2}$",
+          "$90$"
+        ],
+        "answer": 0,
+        "explanation": "$\\sqrt{98}-\\sqrt{8}=7\\sqrt{2}-2\\sqrt{2}=5\\sqrt{2}$。"
+      },
+      {
+        "id": "new-ultimate-乘法公式綜合-1",
+        "topic": "乘法公式綜合",
+        "stem": "$(2\\sqrt{3}-1)^2+\\sqrt{48}=$？",
+        "options": [
+          "$13$",
+          "$11$",
+          "$13+8\\sqrt{3}$",
+          "$17$"
+        ],
+        "answer": 0,
+        "explanation": "$(2\\sqrt{3}-1)^2=12-4\\sqrt{3}+1$，$\\sqrt{48}=4\\sqrt{3}$，中間項抵消，得 $13$。"
+      },
+      {
+        "id": "new-ultimate-乘法公式綜合-2",
+        "topic": "乘法公式綜合",
+        "stem": "$(\\sqrt{5}-2)^2+\\sqrt{80}=$？",
+        "options": [
+          "$9$",
+          "$1$",
+          "$9+8\\sqrt{5}$",
+          "$13$"
+        ],
+        "answer": 0,
+        "explanation": "$(\\sqrt{5}-2)^2=5-4\\sqrt{5}+4$，$\\sqrt{80}=4\\sqrt{5}$，中間項抵消，得 $9$。"
+      },
+      {
+        "id": "new-ultimate-乘法公式綜合-3",
+        "topic": "乘法公式綜合",
+        "stem": "$(3\\sqrt{2}-1)^2+\\sqrt{72}=$？",
+        "options": [
+          "$19$",
+          "$17$",
+          "$19+12\\sqrt{2}$",
+          "$25$"
+        ],
+        "answer": 0,
+        "explanation": "$(3\\sqrt{2}-1)^2=18-6\\sqrt{2}+1$，$\\sqrt{72}=6\\sqrt{2}$，中間項抵消，得 $19$。"
+      },
+      {
+        "id": "new-ultimate-乘法公式綜合-4",
+        "topic": "乘法公式綜合",
+        "stem": "$(\\sqrt{7}-3)^2+\\sqrt{252}=$？",
+        "options": [
+          "$16$",
+          "$-2$",
+          "$16+12\\sqrt{7}$",
+          "$22$"
+        ],
+        "answer": 0,
+        "explanation": "$(\\sqrt{7}-3)^2=7-6\\sqrt{7}+9$，$\\sqrt{252}=6\\sqrt{7}$，中間項抵消，得 $16$。"
+      },
+      {
+        "id": "new-ultimate-乘法公式綜合-5",
+        "topic": "乘法公式綜合",
+        "stem": "$(2\\sqrt{5}-1)^2+\\sqrt{80}=$？",
+        "options": [
+          "$21$",
+          "$19$",
+          "$21+8\\sqrt{5}$",
+          "$25$"
+        ],
+        "answer": 0,
+        "explanation": "$(2\\sqrt{5}-1)^2=20-4\\sqrt{5}+1$，$\\sqrt{80}=4\\sqrt{5}$，中間項抵消，得 $21$。"
+      }
+    ]
+  }
+}

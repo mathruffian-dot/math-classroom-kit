@@ -7,6 +7,8 @@ import type {
   Lesson,
   PracticeQuestion,
   QuizBank,
+  QuizItem,
+  RaidBank,
   Rubric,
   Stroke,
 } from '../shared/types';
@@ -18,6 +20,7 @@ import {
   parseNumberAnswer,
   variablesOf,
 } from '../shared/expr';
+import type { RaidKind } from '../shared/raid';
 
 export class HttpError extends Error {
   status: number;
@@ -425,6 +428,7 @@ export function validateLesson(input: unknown): Lesson {
             );
         if (s.bullets !== undefined) slide.bullets = texts(s.bullets, '重點');
         if (s.quizPage === true) slide.quizPage = true;
+        if (s.raidPage === true) slide.raidPage = true;
         if (s.visual !== undefined) {
           assert(
             ['balance', 'steps', 'cards', 'bars'].includes(String(s.visual)),
@@ -504,22 +508,48 @@ export function validateQuiz(input: unknown): QuizBank {
       return {
         id: identifier(slot.id),
         topic: str(slot.topic, '題位主題', 100, 1),
-        variants: slot.variants.map((v) => {
-          const it = record(v);
-          assert(Array.isArray(it.options) && it.options.length >= 2 && it.options.length <= 6, '每題需要 2–6 個選項');
-          const options = it.options.map((o) => str(o, '選項', 300, 1));
-          const figure = it.figure === undefined ? undefined : str(it.figure, '附圖', 30000, 10);
-          assert(!figure || (/^<svg[\s>]/.test(figure) && !/<script|on\w+\s*=|javascript:|<foreignObject/i.test(figure)), '附圖只能是單純的 SVG');
-          return {
-            stem: str(it.stem, '題目', 1000, 1),
-            ...(figure ? { figure } : {}),
-            options,
-            answer: integer(it.answer, 0, options.length - 1),
-            ...(it.explanation !== undefined ? { explanation: str(it.explanation, '解析', 2000) } : {}),
-          };
-        }),
+        variants: slot.variants.map(quizItem),
       };
     }),
+  };
+}
+/** 一題四選一（形成性評量與魔王戰共用）。 */
+function quizItem(v: unknown): QuizItem {
+  const it = record(v);
+  assert(Array.isArray(it.options) && it.options.length >= 2 && it.options.length <= 6, '每題需要 2–6 個選項');
+  const options = it.options.map((o) => str(o, '選項', 300, 1));
+  const figure = it.figure === undefined ? undefined : str(it.figure, '附圖', 30000, 10);
+  assert(!figure || (/^<svg[\s>]/.test(figure) && !/<script|on\w+\s*=|javascript:|<foreignObject/i.test(figure)), '附圖只能是單純的 SVG');
+  return {
+    stem: str(it.stem, '題目', 1000, 1),
+    ...(figure ? { figure } : {}),
+    options,
+    answer: integer(it.answer, 0, options.length - 1),
+    ...(it.explanation !== undefined ? { explanation: str(it.explanation, '解析', 2000) } : {}),
+  };
+}
+/** 驗證魔王戰題庫（content/raids/<課程 id>.json）：三類題目各至少 10 題，題目 ID 不重複。 */
+export function validateRaidBank(input: unknown): RaidBank {
+  const b = record(input);
+  const p = record(b.pools);
+  const seen = new Set<string>();
+  const pool = (k: RaidKind) => {
+    const list = p[k];
+    assert(Array.isArray(list) && list.length >= 10 && list.length <= 1000, `魔王戰「${k}」需要 10–1000 題`);
+    return list.map((x) => {
+      const it = record(x);
+      const id = str(it.id, '題目 ID', 120, 1);
+      assert(!seen.has(id), `魔王戰題目 ID「${id}」重複`);
+      seen.add(id);
+      return { id, topic: str(it.topic, '題型', 100, 1), ...quizItem(it) };
+    });
+  };
+  return {
+    hostLesson: identifier(b.hostLesson),
+    title: str(b.title, '魔王戰名稱', 100, 1),
+    ...(b.section !== undefined ? { section: str(b.section, '單元', 20) } : {}),
+    ...(b.source !== undefined ? { source: str(b.source, '題庫來源', 300) } : {}),
+    pools: { attack: pool('attack'), shield: pool('shield'), ultimate: pool('ultimate') },
   };
 }
 

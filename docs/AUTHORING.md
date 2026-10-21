@@ -242,3 +242,17 @@
 - **幾何題要附圖**（`figure`：SVG 文字）。用 `scripts/quiz-src/geom.py` 畫，數字一定要和題目同一組（比例照實際數字；人比大樓矮太多時可以把人的三角形等比例放大，仍然相似）。課本樣式：斜體點名、淺色填色、直角記號、等長記號，題目要求的那一段標「?」。範例：`g9-1-4a.py`～`g9-1-4c.py`，兩個相似三角形的圖在 `similar.py`。
 - 附圖只能是單純的 SVG（不能有 script、事件屬性、javascript: 連結），學生端以圖片顯示。老師結束全班測驗後，在大螢幕點題目可以展開題目、附圖、選項人數與解析。
 - 出完題用 `node scripts/quiz-src/preview.mjs <課程 id> <輸出資料夾>` 產生預覽圖（每張 9 題，含附圖、選項、解析），每張都要看過：圖和題目的數字一致、標籤沒有重疊或被切掉。
+
+## 魔王戰（一節的總複習，放在這一節最後一堂的最後一頁）
+
+- 題庫：`content/raids/<這一節最後一堂的課程 id>.json`，由 `scripts/quiz-src/<節>-raid.py` 產生（範例：`g8-2-2-raid.py` → `g8-2-2d.json`）。`npm run lessons` 會在那一堂最後加一頁「魔王戰」，題庫另外存成 `content/raids.generated.json`，只在伺服器，學生端拿不到答案。
+- 三類題目（學生每一題自己選）：
+  - `attack`（記憶）：普通攻擊，一步就能算完的基本運算。
+  - `shield`（理解）：防護罩，答對一題撐 1 秒。題型是判斷相等、比大小、同類方根、估算、找出正確算法。
+  - `ultimate`（應用）：大招計量，多步驟、綜合題與生活應用。
+- 每類至少 10 題，建議 60 題以上：一場 5–10 分鐘，程度好的同學一場會做 20 題以上。
+- 題庫＝這一節各堂課後檢核題（依類型分配）＋新增的換數字題與較難的應用題。範圍是這一節全部內容，加上先備單元。
+- 每一題都用 `quizlib.check_item` 核算，用 `ONLY=new- node scripts/quiz-src/preview.mjs raid:<課程 id> <資料夾>` 預覽新增的題目，每張都要看過。
+- 戰鬥規則與數值在 `shared/raid.ts`（伺服器與各裝置共用）。改數值後用 `node scripts/raid-sim.ts [人數] [秒數]` 模擬，看三種難度的勝率與稱號分布。
+- 大招 5 種效果（`src/raid-ui.ts` 的 `ULT_SKILLS`、`src/raid-fx.css`），改特效後用 `node scripts/raid-fx-preview.mjs <資料夾>` 截圖逐張看。
+- 圖：`public/raid/`（`hero-knight|mage|archer.webp`、`boss-easy|normal|hard.webp`、`arena.webp`，Codex ImageGen 生成）。沒有圖時畫面自動用圖示代替。

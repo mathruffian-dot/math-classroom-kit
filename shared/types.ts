@@ -1,3 +1,4 @@
+import type { RaidConfig, RaidDifficulty, RaidKind, RaidRole, RaidSeatStats, RaidState } from './raid';
 export type Role = 'teacher' | 'student';
 export interface User {
   id: string;
@@ -207,6 +208,8 @@ export interface Slide {
   title: string;
   /** 課後檢核・PK 戰頁（每堂課最後一頁）：投影片區是對戰／測驗畫面，右側是派題與配對。 */
   quizPage?: boolean;
+  /** 魔王戰頁（一節的最後一堂課才有）：投影片區是戰場，右側是開戰設定。 */
+  raidPage?: boolean;
   eyebrow?: string;
   body: string;
   bullets?: string[];
@@ -253,6 +256,61 @@ export interface QuizItem {
   /** 正確選項（原始順序，從 0 起算）。 */
   answer: number;
   explanation?: string;
+}
+/** 魔王戰的一題（四選一，第 answer 個是正確答案）。 */
+export interface RaidItem extends QuizItem {
+  id: string;
+  topic: string;
+}
+/** 魔王戰題庫：一節（例如 2-2）合起來的三類題目；只在伺服器，不進課程、不送到學生端。 */
+export interface RaidBank {
+  hostLesson: string;
+  title: string;
+  section?: string;
+  source?: string;
+  pools: Record<RaidKind, RaidItem[]>;
+}
+/** 一場魔王戰。 */
+export interface RaidRun {
+  id: string;
+  difficulty: RaidDifficulty;
+  /** 開戰時間（建立後 3 秒倒數）。 */
+  startedAt: number;
+  seconds: number;
+  endedAt?: number;
+  config: RaidConfig;
+}
+/** 一位同學在這一場：角色、目前的題目、答錯鎖住到什麼時候、做過的題目。 */
+export interface RaidSeat {
+  role?: RaidRole;
+  cur?: { kind: RaidKind; id: string; order: number[]; at: number };
+  lockUntil?: number;
+  used: Partial<Record<RaidKind, string[]>>;
+}
+export interface RaidResult {
+  seat: number;
+  score: number;
+  level: number;
+  title: string;
+  badges: string[];
+  stats: RaidSeatStats;
+}
+export interface RaidView {
+  run: RaidRun;
+  title: string;
+  /** 伺服器時間的戰況；學生端的 stats 只有自己的。 */
+  state: RaidState;
+  /** 每個座號選的角色（出招動畫依角色）。 */
+  roles?: Record<string, RaidRole>;
+  /** 各類題目的題數。 */
+  pools: Record<RaidKind, number>;
+  mine?: {
+    role?: RaidRole;
+    question?: { kind: RaidKind; id: string; topic: string; stem: string; figure?: string; options: string[] };
+    lockUntil?: number;
+  };
+  /** 結束後：老師拿到全班，學生只拿到自己的。 */
+  results?: RaidResult[];
 }
 /** 抽好的一份卷子：每個題位抽到第幾題，以及選項的顯示順序（order[顯示位置]＝原始選項）。 */
 export interface QuizPaper {
@@ -454,6 +512,8 @@ export interface Session {
   quiz?: QuizRun | null;
   /** PK 配對中。 */
   pkLobby?: PkLobby | null;
+  /** 目前（或剛結束）的魔王戰。 */
+  raid?: RaidRun | null;
   id: string;
   classId: string;
   className: string;
@@ -545,6 +605,8 @@ export interface SessionView {
   quiz?: QuizView;
   /** 老師：錯題紀錄與 PK 戰績（這一課有題庫、做過測驗才有）。 */
   quizRecord?: QuizRecord;
+  /** 魔王戰（進行中或剛結束）。 */
+  raid?: RaidView;
   /**
    * 學生：作答開放中時彈幕有限制（只有答對的同學能送，這一題每人 3 則）。
    * limited 為 false 表示平常時間，不限則數。

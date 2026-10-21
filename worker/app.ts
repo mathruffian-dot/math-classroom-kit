@@ -19,6 +19,8 @@ import { normalizeChars, parseNumberAnswer } from '../shared/expr';
 import { PRACTICE_GRACE_MS, practiceStatus, practiceTotal } from '../shared/practice';
 import { PK_COUNTDOWN_MS, QUIZ_GRACE_MS, decide, quizOver } from '../shared/quiz';
 import { drawPaper, drawReview, instantFeedback, isCorrect, makeBot, newMatch, paperFor, quizRecord, quizView, restoreQuiz, score, type QuizStore } from './quiz';
+import { answerRaid, newQuestion, questionFor, raidBank, raidCsvRows, raidOver, raidState, raidView, restoreRaid, type RaidStore } from './raid';
+import { RAID_COUNTDOWN_MS, RAID_KINDS, RAID_ROLES, raidConfig, type RaidDifficulty, type RaidKind, type RaidRole } from '../shared/raid';
 import {
   HttpError,
   assert,
@@ -84,7 +86,7 @@ interface StoredClass {
   ownerId: string;
   students: { seat: number; codeHash: string }[];
 }
-export interface StoredSession extends QuizStore {
+export interface StoredSession extends QuizStore, RaidStore {
   session: Session;
   ownerId: string;
   lesson: Lesson;
@@ -222,8 +224,18 @@ function endQuiz(s: StoredSession) {
   const kept = s.quizRuns?.find((r) => r.id === current.id);
   if (kept) kept.endedAt ??= current.endedAt;
 }
+/** 收起魔王戰（記上結束時間，紀錄與結算才算得到）。 */
+function closeRaid(s: StoredSession) {
+  const run = s.session.raid;
+  if (!run) return;
+  run.endedAt ??= Date.now();
+  const kept = s.raidRuns?.find((r) => r.id === run.id);
+  if (kept) kept.endedAt ??= run.endedAt;
+  s.session.raid = null;
+}
 function startQuiz(s: StoredSession, run: QuizRun) {
   endQuiz(s);
+  closeRaid(s);
   const session = s.session;
   session.activityOpen = false;
   session.activityDeadline = null;
@@ -567,6 +579,8 @@ export function sessionView(state: State, stored: StoredSession, user: User, onl
     if (q) view.quiz = q;
   }
   if (teacher && stored.lesson.quiz && stored.quizRuns?.length) view.quizRecord = quizRecord(stored.lesson.quiz, stored, view.serverNow);
+  const raid = session.raid && raidBank(session.lessonId);
+  if (session.raid && raid) view.raid = raidView(raid, session.raid, stored, user, view.serverNow);
   return view;
 }
 /** 補救練習的畫面資料：老師看全部；學生只看自己，答案只公布已結束的輪次。 */
@@ -1204,7 +1218,7 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
       return json(sessionView(state, s, user, ctx.online?.()));
     }
     const sessionMatch = path.match(
-      /^\/api\/sessions\/([\w-]+)(?:\/(control|answers|practice|danmaku|ocr|ocr-work|buzz|whiteboard|export|images|grades|quiz|pk-buzz)(?:\/([\w-]+))?)?$/,
+      /^\/api\/sessions\/([\w-]+)(?:\/(control|answers|practice|danmaku|ocr|ocr-work|buzz|whiteboard|export|images|grades|quiz|pk-buzz|raid)(?:\/([\w-]+))?)?$/,
     );
     if (sessionMatch) {
       const s = ownedSession(state, identifier(sessionMatch[1]), user),
@@ -1303,6 +1317,42 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
             s.danmaku = [];
             session.danmakuClearedAt = Date.now();
             break;
+          // ── 魔王戰：全班合作，依上線人數、難度與時間決定魔王的血量與攻擊 ──
+          case 'raid-start': {
+            assert(raidBank(session.lessonId), '這一課沒有魔王戰題庫', 409);
+            const difficulty = String(body.difficulty || 'normal') as RaidDifficulty;
+            assert(['easy', 'normal', 'hard'].includes(difficulty), '難度不正確');
+            const seconds = integer(body.seconds ?? 300, 300, 600);
+            const players = Math.max(1, onlineSeats(state, s, ctx.online?.()).size);
+            // 開戰時其他活動都先收起來
+            endQuiz(s);
+            session.quiz = null;
+            session.pkLobby = null;
+            session.activityOpen = false;
+            session.activityDeadline = null;
+            session.practice = null;
+            closeRaid(s);
+            const run = { id: uuid(), difficulty, startedAt: Date.now() + RAID_COUNTDOWN_MS, seconds, config: raidConfig(difficulty, players, seconds) };
+            session.raid = run;
+            (s.raidRuns ||= []).push(clone(run));
+            // 上一場選過的角色留著，不用再選一次
+            const before = s.raidRuns.length > 1 ? s.raidPlay?.[s.raidRuns[s.raidRuns.length - 2].id]?.seats : undefined;
+            (s.raidPlay ||= {})[run.id] = {
+              actions: [],
+              seats: Object.fromEntries(Object.entries(before || {}).flatMap(([seat, x]) => (x.role ? [[seat, { role: x.role, used: {} }]] : []))),
+            };
+            break;
+          }
+          case 'raid-end': {
+            assert(session.raid, '目前沒有魔王戰', 409);
+            session.raid.endedAt ??= Date.now();
+            const kept = s.raidRuns?.find((r) => r.id === session.raid!.id);
+            if (kept) kept.endedAt ??= session.raid.endedAt;
+            break;
+          }
+          case 'raid-close':
+            closeRaid(s);
+            break;
           // ── 課後形成性評量：全班同一份卷子（每個題位從 3 題裡抽 1 題） ──
           case 'quiz-class': {
             const bank = quizBank(state, s);
@@ -1336,6 +1386,7 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
           case 'pk-lobby':
             quizBank(state, s);
             endQuiz(s);
+            closeRaid(s);
             session.quiz = null;
             session.pkLobby = { pairs: [], waiting: null, buzz: false };
             break;
@@ -1765,6 +1816,41 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
         // revision：學生端用它丟掉比這次作答更舊的畫面（避免已答的題目又出現）
         return save({ ...reveal, revision: session.revision });
       }
+      if (action === 'raid' && method === 'POST') {
+        // 魔王戰：選角色、選一類題目（每一題都可以換）、作答（答錯鎖 5 秒）
+        assert(user.role === 'student', '只有學生可以參戰', 403);
+        const run = session.raid;
+        assert(run && run.id === body.runId, '這一場魔王戰已經結束', 409);
+        const bank = raidBank(session.lessonId);
+        assert(bank, '這一課沒有魔王戰題庫', 409);
+        const t = Date.now();
+        const play = ((s.raidPlay ||= {})[run.id] ||= { actions: [], seats: {} });
+        const seat = (play.seats[String(user.seat)] ||= { used: {} });
+        s.seen[String(user.seat)] = now();
+        if (body.op === 'role') {
+          assert(RAID_ROLES.includes(body.role as RaidRole), '角色不正確');
+          seat.role = body.role as RaidRole;
+          session.revision++;
+          return save({ ok: true, revision: session.revision });
+        }
+        assert(seat.role, '請先選角色', 409);
+        // 各裝置的時鐘差一點點：開戰前 1.5 秒內送來的也算（作答時間記在開戰那一刻）
+        assert(t >= run.startedAt - 1500, '還沒開戰', 409);
+        assert(!raidOver(run, raidState(run, s, t)), '戰鬥已經結束', 409);
+        if (body.op === 'draw') {
+          const kind = body.kind as RaidKind;
+          assert(RAID_KINDS.includes(kind), '題目類型不正確');
+          assert(!seat.lockUntil || seat.lockUntil <= t, '答錯了，等一下才能再作答', 409);
+          // 同一類又按一次：給同一題（不能一直換題找簡單的）
+          if (seat.cur?.kind !== kind) newQuestion(bank, seat, kind, t);
+          session.revision++;
+          return save({ question: questionFor(bank, seat.cur!), revision: session.revision });
+        }
+        assert(body.op === 'answer', '未知的操作');
+        const result = answerRaid(bank, run, s, user.seat!, integer(body.choice, 0, 5), t);
+        session.revision++;
+        return save({ ...result, revision: session.revision });
+      }
       if (action === 'pk-buzz' && method === 'POST') {
         // 搶答上場 PK：搶到的人成為等待中那一位的對手（沒有人等待就成為第一位）
         assert(user.role === 'student', '只有學生可搶答', 403);
@@ -1843,6 +1929,8 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
           practice: s.practice || {},
           quizRuns: s.quizRuns || [],
           quizSheets: s.quizSheets || {},
+          raidRuns: s.raidRuns || [],
+          raidPlay: s.raidPlay || {},
         };
         const csvCell = (value: unknown) =>
           `"${String(value)
@@ -1883,6 +1971,8 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
               ),
               // 形成性評量／PK：每一題一列；attempt＝第幾題；score／max＝這份卷子的總答對題數；feedback＝PK 對手與勝負
               ...quizCsvRows(s),
+              // 魔王戰：每一題一列；activityId＝題目類型；score＝貢獻分數；feedback＝稱號
+              ...raidCsvRows(s, () => raidBank(s.session.lessonId)),
               // 彈幕：feedback 欄寫匿名／具名
               ...(s.danmaku || []).map((d) => ['彈幕', d.seat, '', '', d.text, '', '', '', d.anon ? '匿名' : '具名', new Date(d.at).toISOString()]),
             ]
@@ -1912,7 +2002,7 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
             .map((c) => c.classroom),
           sessions: Object.values(state.sessions)
             .filter((s) => s.ownerId === user.id)
-            .map(({ session, lesson, answers, whiteboard, grades, danmaku, practice, quizRuns, quizSheets }) => ({
+            .map(({ session, lesson, answers, whiteboard, grades, danmaku, practice, quizRuns, quizSheets, raidRuns, raidPlay }) => ({
               session,
               lesson,
               answers,
@@ -1922,6 +2012,8 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
               practice: practice || {},
               quizRuns: quizRuns || [],
               quizSheets: quizSheets || {},
+              raidRuns: raidRuns || [],
+              raidPlay: raidPlay || {},
             })),
         },
         200,
@@ -2153,6 +2245,7 @@ function restoreBackup(input: unknown, state: State, user: User): void {
       danmaku: restoreDanmaku(bs.danmaku, cl.classroom.seats),
       practice: restorePractice(bs.practice, lesson, cl.classroom.seats),
       ...restoreQuiz(bs.quizRuns, bs.quizSheets, cl.classroom.seats),
+      ...restoreRaid(bs.raidRuns, bs.raidPlay, cl.classroom.seats),
     };
   }
   Object.assign(state, draft);

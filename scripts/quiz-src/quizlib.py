@@ -71,32 +71,42 @@ def _eq(x, y):
     return simplify(nsimplify(x) - nsimplify(y)) == 0
 
 
+def check_item(v, where):
+    """核算一題（規則見檔案開頭）。"""
+    texts = [o[0] for o in v['options']]
+    assert len(texts) == 4 and len(set(texts)) == 4, f'{where}：要有 4 個不同的選項 {texts}'
+    if v['kind'] == 'value':
+        vals = [o[1] for o in v['options']]
+        assert _eq(vals[0], v['expect']), f'{where}：正確選項 {texts[0]} 不等於題目的值 {v["expect"]}'
+        for t, x in zip(texts[1:], vals[1:]):
+            assert not _eq(x, v['expect']), f'{where}：錯誤選項 {t} 其實也等於答案'
+        for i in range(4):
+            for j in range(i + 1, 4):
+                assert not _eq(vals[i], vals[j]), f'{where}：{texts[i]} 和 {texts[j]} 的值相同'
+    elif v['kind'] == 'form':
+        t0, v0, s0 = v['options'][0]
+        assert _eq(v0, v['expect']) and s0, f'{where}：正確選項 {t0} 要等於答案而且是最簡根式'
+        for t, x, s in v['options'][1:]:
+            assert not _eq(x, v['expect']) or not s, f'{where}：錯誤選項 {t} 也是答案的最簡根式'
+    elif v['kind'] == 'statement':
+        truth = [(_eq(o[1], o[2]) if len(o) == 3 else bool(o[1])) for o in v['options']]
+        assert truth == [True, False, False, False], f'{where}：正確敘述必須剛好一個（{truth}）'
+    elif v['kind'] == 'relation' and 'a' in v:
+        # 正確選項依 a、b 的真實大小產生（2-2(1) 的舊格式只存 truth，產生時已決定）
+        assert not _eq(v['a'], v['b']) or texts[0].count('=') == 1, f'{where}：大小關係'
+
+
 def check(slots):
     assert len(slots) == 10, f'需要 10 個題位，現在 {len(slots)} 個'
     for slot in slots:
         assert len(slot['variants']) == 3, slot['id']
         for k, v in enumerate(slot['variants'], 1):
-            where = f"{slot['id']}-{k}（{slot['topic']}）"
-            texts = [o[0] for o in v['options']]
-            assert len(texts) == 4 and len(set(texts)) == 4, f'{where}：要有 4 個不同的選項 {texts}'
-            if v['kind'] == 'value':
-                vals = [o[1] for o in v['options']]
-                assert _eq(vals[0], v['expect']), f'{where}：正確選項 {texts[0]} 不等於題目的值 {v["expect"]}'
-                for t, x in zip(texts[1:], vals[1:]):
-                    assert not _eq(x, v['expect']), f'{where}：錯誤選項 {t} 其實也等於答案'
-                for i in range(4):
-                    for j in range(i + 1, 4):
-                        assert not _eq(vals[i], vals[j]), f'{where}：{texts[i]} 和 {texts[j]} 的值相同'
-            elif v['kind'] == 'form':
-                t0, v0, s0 = v['options'][0]
-                assert _eq(v0, v['expect']) and s0, f'{where}：正確選項 {t0} 要等於答案而且是最簡根式'
-                for t, x, s in v['options'][1:]:
-                    assert not _eq(x, v['expect']) or not s, f'{where}：錯誤選項 {t} 也是答案的最簡根式'
-            elif v['kind'] == 'statement':
-                truth = [(_eq(o[1], o[2]) if len(o) == 3 else bool(o[1])) for o in v['options']]
-                assert truth == [True, False, False, False], f'{where}：正確敘述必須剛好一個（{truth}）'
-            elif v['kind'] == 'relation':
-                assert not _eq(v['a'], v['b']) or texts[0].count('=') == 1, f'{where}：大小關係'
+            check_item(v, f"{slot['id']}-{k}（{slot['topic']}）")
+
+
+def item_json(v):
+    """匯出用：第 1 個選項是正確答案。"""
+    return dict(stem=v['stem'], **({'figure': v['figure']} if v.get('figure') else {}), options=[o[0] for o in v['options']], answer=0, explanation=v['explanation'])
 
 
 def export(lesson_id, title, source, slots):
@@ -106,8 +116,7 @@ def export(lesson_id, title, source, slots):
         title=title,
         source=source,
         slots=[dict(id=s['id'], topic=s['topic'],
-                    variants=[dict(stem=v['stem'], **({'figure': v['figure']} if v.get('figure') else {}), options=[o[0] for o in v['options']], answer=0, explanation=v['explanation'])
-                              for v in s['variants']])
+                    variants=[item_json(v) for v in s['variants']])
                for s in slots],
     )
     path = ROOT / 'content/quizzes' / f'{lesson_id}.json'

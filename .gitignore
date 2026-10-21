@@ -18,3 +18,4 @@ artifacts/
 content/catalog.generated.json
 # 課本截圖（著作權：只存在雲端硬碟，不進 git；部署時一起上傳，網站上需登入才能看）
 public/lesson-assets/
+content/raids.generated.json

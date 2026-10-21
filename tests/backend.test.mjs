@@ -7,7 +7,7 @@ import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 const dir=await mkdtemp(join(tmpdir(),'classroom-backend-'));
-await build({entryPoints:[resolve('worker/app.ts'),resolve('worker/storage.ts'),resolve('worker/index.ts'),resolve('worker/ai.ts'),resolve('worker/validation.ts'),resolve('shared/expr.ts'),resolve('shared/practice.ts'),resolve('shared/quiz.ts')],outdir:dir,bundle:true,platform:'node',format:'esm',outExtension:{'.js':'.mjs'},logLevel:'silent'});
+await build({entryPoints:[resolve('worker/app.ts'),resolve('worker/storage.ts'),resolve('worker/index.ts'),resolve('worker/ai.ts'),resolve('worker/validation.ts'),resolve('shared/expr.ts'),resolve('shared/practice.ts'),resolve('shared/quiz.ts'),resolve('shared/raid.ts')],outdir:dir,bundle:true,platform:'node',format:'esm',outExtension:{'.js':'.mjs'},logLevel:'silent'});
 const {handleApi,liveTicket,liveView}=await import(pathToFileURL(join(dir,'worker','app.mjs')).href);
 const {SupabaseStore,DurableStore,SessionSplitStore,MAX_SNAPSHOT_BYTES}=await import(pathToFileURL(join(dir,'worker','storage.mjs')).href);
 const {ClassroomDurableObject}=await import(pathToFileURL(join(dir,'worker','index.mjs')).href);
@@ -16,6 +16,7 @@ const {judgePhotoFinals,validateAnswer,validateActivity}=await import(pathToFile
 const expr=await import(pathToFileURL(join(dir,'shared','expr.mjs')).href);
 const {practiceStatus}=await import(pathToFileURL(join(dir,'shared','practice.mjs')).href);
 const quizLib=await import(pathToFileURL(join(dir,'shared','quiz.mjs')).href);
+const raidLib=await import(pathToFileURL(join(dir,'shared','raid.mjs')).href);
 const TEACHER={role:'teacher',account:'teacher',password:'11235813'};
 test.after(()=>rm(dir,{recursive:true,force:true}));
 
@@ -873,6 +874,107 @@ test('quiz scoring: more correct wins, ties go to the faster one; the computer f
   const bot={correct:[true,false,true],times:[5000,9000,14000]};
   assert.deepEqual(quizLib.botScore(bot,run,1000+9500),{answered:2,correct:1,finished:false,timeMs:null});
   assert.deepEqual(quizLib.botScore(bot,run,1000+20000),{answered:3,correct:2,finished:true,timeMs:14000});
+});
+
+test('raid rules: shields name the seats and block, ultimates fire from the seats that charged, wrong answers speed up the boss',()=>{
+  const c={...raidLib.raidConfig('normal',20,480),bossAtkEvery:5000,bossShieldEvery:999999};
+  const S=480;
+  // 3 號、7 號各答對一題理解題（各 1 秒），魔王 5 秒時攻擊：被擋下，記上兩人
+  const s=raidLib.raidReplay(c,[{t:3500,seat:3,kind:'shield',ok:true},{t:4200,seat:7,kind:'shield',ok:true}],S,5000);
+  const block=s.log.find(e=>e.k==='bossBlock');
+  assert.deepEqual(block.seats,[3,7]);
+  assert.equal(s.teamHp,c.teamHp);
+  assert.equal(s.stats['3'].blocks,1);
+  // 防護罩是 1 秒一格接著算：4.2 秒才補的那一格，從 4.5 秒延到 5.5 秒
+  assert.equal(raidLib.raidReplay(c,[{t:3500,seat:3,kind:'shield',ok:true},{t:4200,seat:7,kind:'shield',ok:true}],S,5000).shieldUntil,5500);
+  // 沒有防護罩：扣英雄血
+  assert.equal(raidLib.raidReplay(c,[],S,5000).teamHp,c.teamHp-c.bossAtk);
+  // 大招：4 題應用題答對才發動，寫出參與的座號，無視魔王護盾
+  const acts=[2,5,2,9].map((seat,i)=>({t:1000+i*100,seat,kind:'ultimate',ok:true}));
+  const u=raidLib.raidReplay({...c,bossShieldEvery:500,bossShieldGain:50,bossShieldMax:50},acts,S,1400);
+  const ult=u.log.find(e=>e.k==='ult');
+  assert.deepEqual(ult.seats.sort((a,b)=>a-b),[2,5,9]);
+  assert.equal(u.bossHp,c.bossHp-c.ultDamage);
+  assert.equal(u.stats['2'].ults,1);
+  // 普通攻擊先打魔王護盾
+  const a=raidLib.raidReplay({...c,bossShieldEvery:500,bossShieldGain:6,bossShieldMax:6},[{t:600,seat:1,kind:'attack',ok:true}],S,600);
+  assert.equal(a.bossHp,c.bossHp-(c.heroAtk-6));
+  // 答錯：魔王提早預告大招
+  const calm=raidLib.raidReplay(c,[],S,60000),angry=raidLib.raidReplay(c,Array.from({length:10},(_,i)=>({t:1000+i,seat:1,kind:'attack',ok:false})),S,60000);
+  assert(!calm.log.some(e=>e.k==='bossWarn'));
+  assert(angry.log.some(e=>e.k==='bossWarn'));
+  // 分出勝負
+  const win=raidLib.raidReplay({...c,bossHp:20},[{t:100,seat:4,kind:'attack',ok:true},{t:200,seat:6,kind:'attack',ok:true},{t:300,seat:4,kind:'attack',ok:true}],S,400);
+  assert.equal(win.result,'win');assert(win.stats['6'].lastHit);assert.equal(win.stats['4'].n.attack,1,'after the win nothing counts');
+  // 稱號：9 級，沒作答沒有稱號
+  assert.equal(raidLib.RAID_TITLES.length,9);
+  assert.equal(raidLib.raidLevel(undefined,5),0);
+  assert.equal(raidLib.raidLevel({...win.stats['6'],score:400},5),9);
+});
+
+test('raid flow: start on the last lesson of 2-2, roles, free choice each question, lock after a wrong answer, titles; records in CSV and backup',async()=>{
+  const {f}=await setup();
+  const s=(await f.call('/api/sessions','POST',{lessonId:'g8-2-2d',classId:'demo-class'})).body.session;
+  const lesson=(await f.call(`/api/sessions/${s.id}`)).body.lesson;
+  assert(lesson.slides.at(-1).raidPage,'last page is the boss battle');
+  assert(lesson.slides.at(-2).quizPage);
+  await goOnline(f,[1,2,3]);
+  const ctl=(body)=>f.call(`/api/sessions/${s.id}/control`,'POST',body);
+  assert.equal((await ctl({action:'raid-start',difficulty:'easy',seconds:300})).status,200);
+  const t0=await f.call(`/api/sessions/${s.id}`);
+  const run=t0.body.raid.run;
+  assert.equal(run.difficulty,'easy');assert(run.config.players>=1);
+  const raid=(who,body)=>f.call(`/api/sessions/${s.id}/raid`,'POST',{runId:run.id,...body},who);
+  assert.equal((await raid('seat2',{op:'draw',kind:'attack'})).status,409,'pick a hero first');
+  assert.equal((await raid('seat2',{op:'role',role:'mage'})).status,200);
+  assert.equal((await raid('seat2',{op:'draw',kind:'attack'})).status,409,'countdown');
+  f.data.sessions[s.id].session.raid.startedAt-=4000;
+  const q1=(await raid('seat2',{op:'draw',kind:'shield'})).body.question;
+  assert.equal(q1.kind,'shield');assert.equal(q1.options.length,4);assert.equal(q1.answer,undefined,'no answer before answering');
+  // 同一類再按一次：同一題（不能一直換題找簡單的）；換類型：換題
+  assert.equal((await raid('seat2',{op:'draw',kind:'shield'})).body.question.id,q1.id);
+  const q2=(await raid('seat2',{op:'draw',kind:'attack'})).body.question;
+  assert.equal(q2.kind,'attack');
+  // 從題庫找正解的位置
+  const {readFile}=await import('node:fs/promises');
+  const bank=JSON.parse(await readFile('content/raids/g8-2-2d.json','utf8'));
+  const right=(q)=>{const it=bank.pools[q.kind].find(x=>x.id===q.id);return q.options.indexOf(it.options[it.answer]);};
+  const ok=(await raid('seat2',{op:'answer',choice:right(q2)})).body;
+  assert.equal(ok.correct,true);
+  await raid('seat3',{op:'role',role:'knight'});
+  const q3=(await raid('seat3',{op:'draw',kind:'attack'})).body.question;
+  const bad=(await raid('seat3',{op:'answer',choice:(right(q3)+1)%4})).body;
+  assert.equal(bad.correct,false);assert(bad.lockUntil>Date.now());assert.equal(typeof bad.answer,'number');
+  assert.equal((await raid('seat3',{op:'draw',kind:'attack'})).status,409,'locked for 5 seconds');
+  // 學生看不到別人的成績與角色；老師看得到
+  const st=(await f.call(`/api/sessions/${s.id}`,'GET',null,'seat3')).body.raid;
+  assert.deepEqual(Object.keys(st.state.stats),['3']);assert.equal(st.roles['2'],'mage','roles drive the animations on every screen');assert.equal(st.mine.role,'knight');
+  const tv=(await f.call(`/api/sessions/${s.id}`)).body.raid;
+  assert.equal(tv.roles['2'],'mage');assert(tv.state.log.some(e=>e.k==='atk'&&e.seat===2));
+  assert.equal(JSON.stringify(st).includes('"answer"'),false,'no answers in the student view');
+  // 結束：老師拿到全班稱號，學生只拿到自己的
+  await ctl({action:'raid-end'});
+  const done=(await f.call(`/api/sessions/${s.id}`)).body.raid;
+  assert.deepEqual(done.results.map(r=>r.seat).sort(),[2,3]);
+  assert(done.results.every(r=>r.level>=1&&r.title));
+  const mine=(await f.call(`/api/sessions/${s.id}`,'GET',null,'seat2')).body.raid.results;
+  assert.deepEqual(mine.map(r=>r.seat),[2]);
+  assert.equal((await raid('seat2',{op:'draw',kind:'attack'})).status,409,'battle over');
+  // 再戰一場：角色留著
+  await ctl({action:'raid-start',difficulty:'hard',seconds:600});
+  const again=(await f.call(`/api/sessions/${s.id}`,'GET',null,'seat2')).body.raid;
+  assert.notEqual(again.run.id,run.id);assert.equal(again.mine.role,'mage');
+  // CSV、備份與還原
+  const csv=new TextDecoder().decode((await f.call(`/api/sessions/${s.id}/export?format=csv`)).body);
+  assert(csv.includes('魔王戰'));assert(csv.includes('理解（防護罩）')||csv.includes('記憶（普通攻擊）'));
+  const backup=(await f.call('/api/backup')).body;
+  const bs=backup.sessions.find(x=>x.session.id===s.id);
+  assert.equal(bs.raidRuns.length,2);assert.equal(bs.raidPlay[run.id].actions.length,2);
+  assert.equal((await f.call('/api/restore','POST',{backup})).status,200);
+  assert.equal(f.data.sessions[s.id].raidRuns.length,2);
+  // 開全班測驗會收起魔王戰
+  await ctl({action:'quiz-class'});
+  assert.equal(f.data.sessions[s.id].session.raid,null);
 });
 
 test('quiz figures: a plain SVG reaches the student paper; SVG with script or event handlers is rejected',async()=>{
