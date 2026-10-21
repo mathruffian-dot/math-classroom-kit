@@ -210,6 +210,18 @@
 
   每個 numeric 題目寫 3 題：同技能、同難度、換數字，題目要自足（學生看不到新圖）；`answer` 用半形可解析寫法，沿用原題的 `form`、`unit`、`tolerance`；答案要用 SymPy 獨立驗算。
 
+**會考式手寫題（拍照批改，0–3 分）**
+
+- 需要看計算過程的題目做成 `canvas` 題，評量規準用單一向度 `kai`（會考評分，滿分 3）：3 完整正確／2 觀念正確但有小錯或不完整／1 部分正確／0 空白或錯誤，每一級寫成這一題的具體描述；`reference` 寫完整解法，`graderNotes` 寫可接受的其他做法與常見錯誤。
+- 放在 `content/written/<課程 id>.json`，`npm run lessons` 會插入新頁並換掉規準：
+
+```json
+{ "slides": [{ "after": "<插在哪一頁之後>", "slide": { "id": "a-written", "phase": "會考練習", "activity": { "type": "canvas", "rubric": { "criteria": [{ "id": "kai", "points": 3, "levels": [] }] } } } }],
+  "rubrics": { "<既有 canvas 題 ID>": { "criteria": [{ "id": "kai", "points": 3, "levels": [] }] } } }
+```
+
+- 課堂流程：學生紙本作答 → 拍照 → AI 逐行辨識 → 學生核對 → 送出 → 自動快速批改（只看辨識稿）→ 在辨識稿上圈出錯處、寫原因 → 老師覆核後發回。
+
 ## 五、交給 agent 的提示詞
 
 ```text

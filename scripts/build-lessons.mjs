@@ -66,6 +66,31 @@ for (const file of files) {
     errors++;
     continue;
   }
+  // 會考式手寫題（拍照批改）放在 content/written/<課程 id>.json：
+  // { slides: [{ after: 頁 ID, slide }], rubrics: { 題目 ID: 評量規準（0–3 分） } }，在這裡插入新頁、換掉原本的規準。
+  let writtenNote = '';
+  try {
+    const w = JSON.parse(await readFile(join(root, 'content/written', `${raw.id}.json`), 'utf8'));
+    for (const { after, slide } of w.slides || []) {
+      const at = raw.slides.findIndex((s) => s.id === after);
+      if (at < 0) throw new Error(`手寫題要插在「${after}」之後，但課程裡沒有這一頁`);
+      if (raw.slides.some((s) => s.id === slide.id)) throw new Error(`手寫題頁 ID「${slide.id}」重複`);
+      raw.slides.splice(at + 1, 0, slide);
+    }
+    for (const [id, rubric] of Object.entries(w.rubrics || {})) {
+      const a = raw.slides.find((s) => s.activity?.id === id)?.activity;
+      if (!a) throw new Error(`要換規準的題目「${id}」不在課程裡`);
+      a.rubric = rubric;
+    }
+    const n = raw.slides.filter((s) => s.activity?.rubric?.criteria?.some((c) => c.id === 'kai')).length;
+    writtenNote = `，會考式手寫題 ${n} 題`;
+  } catch (e) {
+    if (e.code !== 'ENOENT') {
+      console.error(`✗ ${file}：手寫題 — ${e.message}`);
+      errors++;
+      continue;
+    }
+  }
   // 補救練習題另外放在 content/practice/<課程 id>.json（{ 題目 ID: [第 1、2、3 輪] }），在這裡併進課程。
   let practiceNote = '';
   try {
@@ -92,7 +117,7 @@ for (const file of files) {
     ids.set(lesson.id, file);
     const warnings = lint(raw);
     warned += warnings.length;
-    console.log(`${warnings.length ? '△' : '✓'} ${file}（${lesson.id}，${lesson.slides.length} 頁${practiceNote}）`);
+    console.log(`${warnings.length ? '△' : '✓'} ${file}（${lesson.id}，${lesson.slides.length} 頁${practiceNote}${writtenNote}）`);
     for (const w of warnings) console.log(`    · ${w}`);
     lessons.push(raw);
   } catch (e) {

@@ -165,7 +165,8 @@ test('teacher and students complete numeric, manipulate and handwritten answers 
   await expect(teacher.page.getByTestId('submission-grid').locator('.submission')).toHaveCount(1);
   // 第 1 層（預設）：只判斷對錯。
   await expect(teacher.page.getByTestId('grade-all')).toContainText('AI 判斷對錯');
-  await teacher.page.getByTestId('grade-all').click();
+  // 預設「收件後自動 AI 批改」：多半已經開始批改；還沒開始就按一下
+  if (await teacher.page.getByTestId('grade-all').isEnabled().catch(() => false)) await teacher.page.getByTestId('grade-all').click();
   await expect(teacher.page.locator('.submission .st.wrong')).toBeVisible({ timeout: 15_000 });
   await teacher.page.locator('.submission').first().click();
   await expect(teacher.page.locator('#grade-form')).toBeVisible();

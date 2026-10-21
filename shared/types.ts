@@ -289,6 +289,13 @@ export interface Annotation {
   y2?: number;
   text: string;
 }
+/** 辨識稿上的批註：line 從 1 起算；quote 是這一行裡出錯的那一段（省略就圈整行）；missing 表示這一行之後少了步驟。 */
+export interface TextMark {
+  line: number;
+  kind: 'error' | 'ok' | 'missing';
+  quote?: string;
+  note?: string;
+}
 export interface Grade {
   answerId: string;
   activityId: string;
@@ -301,6 +308,8 @@ export interface Grade {
   depth?: 'verdict' | 'full';
   /** 'text'：快速批改，只看學生確認過的辨識稿（不看圖、不畫紅筆）。 */
   basis?: 'text' | 'image';
+  /** 快速批改：在辨識稿上的批註（第幾行、哪一段），畫面上把錯的地方圈起來。 */
+  marks?: TextMark[];
   /** 第 1 層的對錯判定；第 2 層以滿分視為答對。 */
   correct?: boolean;
   scores: { criterionId: string; score: number; comment: string }[];

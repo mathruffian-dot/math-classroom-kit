@@ -4187,3 +4187,46 @@ svg.redpen {
 .keypad-timer:empty {
   display: none;
 }
+
+/* ───────── 辨識稿上的批改批註：圈出錯處、打勾、漏掉的步驟 ───────── */
+.mark-circle {
+  display: inline-block;
+  padding: 0 0.3em;
+  border: 2.5px solid #e5484d;
+  border-radius: 999px;
+  box-shadow: 0 0 0 3px rgba(229, 72, 77, 0.12);
+}
+.mark-circle.line {
+  border-radius: 14px;
+}
+.mark-note {
+  display: inline-block;
+  margin-left: 0.5em;
+  padding: 0 0.45em;
+  border-radius: 8px;
+  background: #ffe9e9;
+  color: #b42f33;
+  font-size: 0.82em;
+  font-weight: 700;
+}
+.mark-ok {
+  margin-left: 0.4em;
+  color: var(--green);
+  font-weight: 900;
+}
+.mark-missing {
+  color: #b42f33;
+  font-size: 0.85em;
+  font-weight: 700;
+}
+.work-lines .has-error {
+  background: linear-gradient(transparent 85%, rgba(229, 72, 77, 0.08) 85%);
+}
+.work-lines.clamp {
+  max-height: 128px;
+  overflow: hidden;
+}
+.feedback-card .work-lines.marked {
+  font-size: 17px;
+  margin: 8px 0;
+}

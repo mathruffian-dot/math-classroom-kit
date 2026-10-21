@@ -30,6 +30,7 @@ import type {
   Grade,
   CanvasAnswer,
   Classroom,
+  TextMark,
 } from '../shared/types';
 import { parseNumberAnswer, type Vars } from '../shared/expr';
 import { md, plain, answerHtml } from './math';
@@ -425,18 +426,54 @@ function canvasValuePreview(value: Answer['value']) {
 }
 /* ───────────── 拍照作答：照片 → AI 辨識稿 → 學生確認（可修改）→ 送出 ───────────── */
 /** 一行計算過程：以 = 分段，每段能解析成算式就用課本樣式顯示，其他照原文字。[圖：…] 是圖的描述。 */
-function workLineHtml(line: string) {
-  if (/^\[.*\]$/.test(line.trim())) return `<span class="work-figure">${esc(line.trim())}</span>`;
-  return line
-    .split('=')
+/** 一段算式：以 = 分段，每段能解析就排成課本樣式（分數、根號、次方），不能解析的照原文字。 */
+function mathRunHtml(run: string) {
+  return run
+    .split(/[=＝]/)
     .map((part) => (part.trim() ? answerHtml(part.trim()) : ''))
     .join(' <span class="work-eq">=</span> ');
 }
-function workHtml(work: string) {
+/** 中文和算式混在一起的一段文字：中文照常顯示，夾在中間的算式片段排版。 */
+const CJK_RUN = /([　-〿一-鿿，。：；！？「」、…]+)/;
+function mixedHtml(text: string) {
+  return text
+    .split(CJK_RUN)
+    .map((part, i) => {
+      if (i % 2) return esc(part);
+      // 英文單字（API、key…）照原文；sin、cos、tan 和單一字母的變數才當算式排版
+      const words = (part.match(/[A-Za-z]{2,}/g) || []).filter((w) => !/^(sin|cos|tan)$/i.test(w));
+      if (!/[0-9A-Za-z√]/.test(part) || words.length) return esc(part);
+      return `${/^\s/.test(part) ? ' ' : ''}${mathRunHtml(part)}${/\s$/.test(part) ? ' ' : ''}`;
+    })
+    .join('');
+}
+function workLineHtml(line: string, marks: TextMark[] = []) {
+  const t = line.trim();
+  if (/^\[.*\]$/.test(t)) return `<span class="work-figure">${esc(t)}</span>`;
+  const err = marks.filter((m) => m.kind === 'error');
+  const note = (m: TextMark) => (m.note ? `<span class="mark-note">${mixedHtml(m.note)}</span>` : '');
+  let html = '';
+  // 有 quote 的錯誤：只圈那一段（取第一個有對到原文的）
+  const hit = err.find((m) => m.quote && t.includes(m.quote));
+  if (hit) {
+    const at = t.indexOf(hit.quote!);
+    html = `${mixedHtml(t.slice(0, at))}<span class="mark-circle" data-testid="mark-circle">${mixedHtml(hit.quote!)}</span>${mixedHtml(t.slice(at + hit.quote!.length))}${note(hit)}`;
+    for (const m of err) if (m !== hit) html += note(m);
+  } else if (err.length) html = `<span class="mark-circle line" data-testid="mark-circle">${mixedHtml(t)}</span>${err.map(note).join('')}`;
+  else html = mixedHtml(t);
+  if (marks.some((m) => m.kind === 'ok') && !err.length) html += '<span class="mark-ok" aria-label="正確">✓</span>';
+  return html;
+}
+/** 辨識稿（學生確認過的文字）：每行排版；有批改批註時把錯的地方圈起來、對的打勾、漏掉的步驟補一行提示。 */
+function workHtml(work: string, marks: TextMark[] = []) {
   return work
     .split('\n')
     .filter((l) => l.trim())
-    .map((l) => `<p>${workLineHtml(l)}</p>`)
+    .map((l, i) => {
+      const mine = marks.filter((m) => m.line === i + 1);
+      const missing = mine.filter((m) => m.kind === 'missing').map((m) => `<p class="mark-missing">⌃ 少了：${mixedHtml(m.note || '一個步驟')}</p>`).join('');
+      return `<p class="${mine.some((m) => m.kind === 'error') ? 'has-error' : ''}">${workLineHtml(l, mine)}</p>${missing}`;
+    })
     .join('');
 }
 let photoDraft: {
@@ -764,6 +801,10 @@ function feedbackHtml(a: Activity) {
   const rubric = a.rubric;
   if (g.depth === 'verdict')
     return `<section class="feedback-card ${g.correct ? 'right' : 'wrong'}" data-testid="student-feedback"><header><span>${icon('stamp')}老師的回饋</span><strong class="verdict-mark">${g.correct ? '✓ 正確' : '✗ 再檢查'}</strong></header>${(mine.value as CanvasAnswer).imageId ? `<div class="redpen-host" data-image="${esc((mine.value as CanvasAnswer).imageId!)}"></div>` : ''}${g.feedback ? `<p class="feedback-text">${md(g.feedback)}</p>` : ''}${g.transcript ? `<details><summary>AI 讀到的手寫內容（讀錯請告訴老師）</summary><pre>${esc(g.transcript)}</pre></details>` : ''}</section>`;
+  const work = (mine.value as CanvasAnswer).work;
+  // 快速批改：在自己確認過的辨識稿上看到圈出的錯處（不在照片上畫）
+  if (g.basis === 'text' && work)
+    return `<section class="feedback-card" data-testid="student-feedback"><header><span>${icon('stamp')}老師的回饋</span><strong>${g.total}<small>/ ${g.max}</small></strong></header><div class="work-lines marked" data-testid="feedback-marks">${workHtml(work, g.marks)}</div>${g.feedback ? `<p class="feedback-text">${md(g.feedback)}</p>` : ''}</section>`;
   return `<section class="feedback-card" data-testid="student-feedback"><header><span>${icon('stamp')}老師的回饋</span><strong>${g.total}<small>/ ${g.max}</small></strong></header>${(mine.value as CanvasAnswer).imageId ? `<div class="redpen-host" data-image="${esc((mine.value as CanvasAnswer).imageId!)}"></div>` : ''}<ul class="criteria-scores">${g.scores.map((s) => `<li><span>${md(rubric?.criteria.find((c) => c.id === s.criterionId)?.label || s.criterionId)}</span><b>${s.score}/${rubric?.criteria.find((c) => c.id === s.criterionId)?.points ?? ''}</b>${s.comment ? `<small>${md(s.comment)}</small>` : ''}</li>`).join('')}</ul>${g.feedback ? `<p class="feedback-text">${md(g.feedback)}</p>` : ''}${g.transcript ? `<details><summary>AI 讀到的手寫內容（讀錯請告訴老師）</summary><pre>${esc(g.transcript)}</pre></details>` : ''}</section>`;
 }
 function screenMode() {
@@ -1060,13 +1101,13 @@ function workWallHtml(a: Activity, focusId?: string) {
     if (x) {
       const v = x.value as CanvasAnswer;
       const g = gradeFor(x.id);
-      return `${head}<div class="wall-focus" data-testid="wall-focus"><figure>${v.imageId ? `<img src="/api/images/${esc(v.imageId)}" alt="${who(x.seat, i)}的作答">` : ''}</figure><div class="wall-focus-text"><h3>${who(x.seat, i)} ${wallScore(x.id)}</h3>${v.work ? `<div class="work-lines big">${workHtml(v.work)}</div>` : v.text ? `<p>${md(v.text)}</p>` : '<p class="muted">（沒有辨識稿）</p>'}${g?.feedback ? `<p class="wall-feedback">${md(g.feedback)}</p>` : ''}</div></div><div class="tool-row wall-nav">${btn('上一份', 'wall-focus', 'quiet', 'prev', `data-id="${esc(list[i - 1]?.id || '')}" ${i > 0 ? '' : 'disabled'}`)}${btn('回到全班', 'wall-back', 'secondary', 'grid')}${btn('下一份', 'wall-focus', 'quiet', 'next', `data-id="${esc(list[i + 1]?.id || '')}" ${i < list.length - 1 ? '' : 'disabled'}`)}</div>`;
+      return `${head}<div class="wall-focus" data-testid="wall-focus"><figure>${v.imageId ? `<img src="/api/images/${esc(v.imageId)}" alt="${who(x.seat, i)}的作答">` : ''}</figure><div class="wall-focus-text"><h3>${who(x.seat, i)} ${wallScore(x.id)}</h3>${v.work ? `<div class="work-lines big">${workHtml(v.work, g?.marks)}</div>` : v.text ? `<p>${md(v.text)}</p>` : '<p class="muted">（沒有辨識稿）</p>'}${g?.feedback ? `<p class="wall-feedback">${md(g.feedback)}</p>` : ''}</div></div><div class="tool-row wall-nav">${btn('上一份', 'wall-focus', 'quiet', 'prev', `data-id="${esc(list[i - 1]?.id || '')}" ${i > 0 ? '' : 'disabled'}`)}${btn('回到全班', 'wall-back', 'secondary', 'grid')}${btn('下一份', 'wall-focus', 'quiet', 'next', `data-id="${esc(list[i + 1]?.id || '')}" ${i < list.length - 1 ? '' : 'disabled'}`)}</div>`;
     }
   }
   const cards = list
     .map((x, i) => {
       const v = x.value as CanvasAnswer;
-      return `<button class="wall-card" data-action="wall-focus" data-id="${esc(x.id)}" data-testid="wall-card"><header><b>${who(x.seat, i)}</b>${wallScore(x.id)}</header>${v.imageId ? `<img src="/api/images/${esc(v.imageId)}" alt="" loading="lazy">` : ''}${v.work ? `<div class="work-lines small">${workHtml(v.work.split('\n').slice(-3).join('\n'))}</div>` : ''}</button>`;
+      return `<button class="wall-card" data-action="wall-focus" data-id="${esc(x.id)}" data-testid="wall-card"><header><b>${who(x.seat, i)}</b>${wallScore(x.id)}</header>${v.imageId ? `<img src="/api/images/${esc(v.imageId)}" alt="" loading="lazy">` : ''}${v.work ? `<div class="work-lines small clamp">${workHtml(v.work, gradeFor(x.id)?.marks)}</div>` : ''}</button>`;
     })
     .join('');
   return `${head}<div class="wall-grid">${cards || '<p class="muted">還沒有作答。</p>'}</div>`;
@@ -1116,7 +1157,7 @@ function gradingBar(a: Activity) {
   const graded = answers.filter((x) => gradeFor(x.id));
   const released = graded.filter((x) => gradeFor(x.id)!.released).length;
   const review = graded.filter((x) => gradeFor(x.id)!.needsReview).length;
-  const auto = prefs.get('autoGrade', false);
+  const auto = prefs.get('autoGrade', true);
   return `<section class="grading-bar" id="grading-bar"><div class="grading-status"><strong>${icon('stamp')}${redpen ? '第 2 層：紅筆批改' : '第 1 層：判斷對錯'}</strong><span>${graded.length}/${answers.length} 已批改${graded.length ? `・答對 ${right}` : ''}${review ? `・<b class="warn">${review} 需覆核</b>` : ''}${released ? `・${released} 已發回` : ''}</span>${grading.total ? `<span class="grading-progress"><i style="width:${Math.round((grading.done / grading.total) * 100)}%"></i></span>` : ''}</div><div class="tool-row">${btn(`${fastGrade() && answers.some((x) => hasWork(x.id)) ? 'AI 快速批改' : redpen ? 'AI 紅筆批改' : 'AI 判斷對錯'}${ungraded ? `（${ungraded}）` : ''}`, 'grade-all', 'primary', 'wand', `${ungraded ? '' : 'disabled'} data-testid="grade-all"`)}${btn(released && released === graded.length ? '收回批改' : '發回批改', 'release-grades', 'secondary', 'arrow', graded.length ? '' : 'disabled')}</div><label class="switch"><input type="checkbox" data-pref="redpen" ${redpen ? 'checked' : ''} data-testid="toggle-redpen"><span></span>第 2 層：依規準給分＋紅筆批註</label><label class="switch"><input type="checkbox" data-pref="autoGrade" ${auto ? 'checked' : ''}><span></span>收件後自動 AI 批改</label><label class="switch"><input type="checkbox" data-pref="fastGrade" ${fastGrade() ? 'checked' : ''} data-testid="toggle-fast"><span></span>快速批改：拍照作答依學生確認的辨識稿給分（不看圖、不畫紅筆）</label>${config.aiConfigured ? '' : '<p class="muted small-text">尚未設定 API key：會產生「模擬批改」供試用流程。</p>'}</section>`;
 }
 function toolbar() {
@@ -1250,7 +1291,7 @@ function pumpGrades() {
   }
 }
 function autoGradeCheck() {
-  if (!view || user?.role !== 'teacher' || screenMode() || !prefs.get('autoGrade', false)) return;
+  if (!view || user?.role !== 'teacher' || screenMode() || !prefs.get('autoGrade', true)) return;
   const a = view.lesson.slides[view.session.slideIndex]?.activity;
   if (!a?.rubric) return;
   const ids = latestBySeat(view, a.id)
@@ -1284,7 +1325,7 @@ function openGrade(answerId: string) {
   const pos = list.findIndex((x) => x.id === answerId);
   modal(
     `${answer.seat} 號作答`,
-    `<div class="grade-layout"><div class="grade-work">${v.imageId ? `<div class="redpen-host big" data-image="${esc(v.imageId)}"></div>` : ''}${v.work ? `<section class="work-confirmed"><h3>學生確認的辨識稿${workEdited(v) ? '<em class="st edited">學生改過</em>' : ''}</h3><div class="work-lines">${workHtml(v.work)}</div>${workEdited(v) ? `<details><summary>AI 原始辨識</summary><pre>${esc(v.ocr!)}</pre></details>` : ''}</section>` : ''}${text ? `<blockquote class="student-text">${md(text)}</blockquote>` : ''}${g?.transcript && !v.work ? `<details><summary>AI 轉寫的手寫內容</summary><pre>${esc(g.transcript)}</pre></details>` : ''}${g?.basis === 'text' ? '<p class="muted small-text">快速批改：依辨識稿給分（沒有看圖、沒有紅筆）。需要時按「AI 紅筆批改」看圖重改。</p>' : ''}</div><form id="grade-form" class="grade-form" data-answer="${esc(answerId)}">${g ? `<p class="grade-meta">${tag(g.depth === 'verdict' ? '第 1 層・對錯' : '第 2 層・紅筆')}${tag(g.mode === 'live' ? 'AI 初評' : g.mode === 'mock' ? '模擬批改' : '教師批改', g.mode === 'teacher' ? 'green' : '')}${g.confidence !== undefined ? tag(`信心 ${g.confidence}`, g.needsReview ? 'warn' : '') : ''}${g.votes && g.votes.length > 1 ? tag(`投票 ${g.votes.join('、')}`) : ''}${g.released ? tag('已發回', 'green') : ''}</p>` : '<p class="muted">尚未批改。</p>'}<section class="layer1"><h3>第 1 層：判斷對錯</h3>${g?.depth === 'verdict' ? `<p class="verdict ${g.correct ? 'ok' : 'no'}">${icon(g.correct ? 'check' : 'x')}<span>${g.correct ? '判定：正確' : '判定：不正確'}</span></p>` : ''}<label>給學生的一句話<textarea name="feedback" rows="2" maxlength="600">${esc(g?.feedback || '')}</textarea></label><div class="grade-actions"><button type="submit" class="btn primary" name="mode" value="right" data-testid="judge-right">${icon('check')}<span>判對</span></button><button type="submit" class="btn secondary" name="mode" value="wrong" data-testid="judge-wrong">${icon('x')}<span>判錯</span></button>${btn('AI 判斷', 'regrade', 'quiet', 'wand', `data-id="${esc(answerId)}" data-depth="verdict"`)}</div></section><details class="layer2" ${g?.depth === 'full' || prefs.get('redpen', false) ? 'open' : ''}><summary>第 2 層：依規準給分＋紅筆批註</summary>${a.rubric.criteria
+    `<div class="grade-layout"><div class="grade-work">${v.imageId ? `<div class="redpen-host big" data-image="${esc(v.imageId)}"></div>` : ''}${v.work ? `<section class="work-confirmed"><h3>學生確認的辨識稿${workEdited(v) ? '<em class="st edited">學生改過</em>' : ''}</h3><div class="work-lines">${workHtml(v.work, g?.marks)}</div>${workEdited(v) ? `<details><summary>AI 原始辨識</summary><pre>${esc(v.ocr!)}</pre></details>` : ''}</section>` : ''}${text ? `<blockquote class="student-text">${md(text)}</blockquote>` : ''}${g?.transcript && !v.work ? `<details><summary>AI 轉寫的手寫內容</summary><pre>${esc(g.transcript)}</pre></details>` : ''}${g?.basis === 'text' ? '<p class="muted small-text">快速批改：依辨識稿給分（沒有看圖、沒有紅筆）。需要時按「AI 紅筆批改」看圖重改。</p>' : ''}</div><form id="grade-form" class="grade-form" data-answer="${esc(answerId)}">${g ? `<p class="grade-meta">${tag(g.depth === 'verdict' ? '第 1 層・對錯' : '第 2 層・紅筆')}${tag(g.mode === 'live' ? 'AI 初評' : g.mode === 'mock' ? '模擬批改' : '教師批改', g.mode === 'teacher' ? 'green' : '')}${g.confidence !== undefined ? tag(`信心 ${g.confidence}`, g.needsReview ? 'warn' : '') : ''}${g.votes && g.votes.length > 1 ? tag(`投票 ${g.votes.join('、')}`) : ''}${g.released ? tag('已發回', 'green') : ''}</p>` : '<p class="muted">尚未批改。</p>'}<section class="layer1"><h3>第 1 層：判斷對錯</h3>${g?.depth === 'verdict' ? `<p class="verdict ${g.correct ? 'ok' : 'no'}">${icon(g.correct ? 'check' : 'x')}<span>${g.correct ? '判定：正確' : '判定：不正確'}</span></p>` : ''}<label>給學生的一句話<textarea name="feedback" rows="2" maxlength="600">${esc(g?.feedback || '')}</textarea></label><div class="grade-actions"><button type="submit" class="btn primary" name="mode" value="right" data-testid="judge-right">${icon('check')}<span>判對</span></button><button type="submit" class="btn secondary" name="mode" value="wrong" data-testid="judge-wrong">${icon('x')}<span>判錯</span></button>${btn('AI 判斷', 'regrade', 'quiet', 'wand', `data-id="${esc(answerId)}" data-depth="verdict"`)}</div></section><details class="layer2" ${g?.depth === 'full' || prefs.get('redpen', false) ? 'open' : ''}><summary>第 2 層：依規準給分＋紅筆批註</summary>${a.rubric.criteria
       .map((c) => {
         const s = g?.scores.find((x) => x.criterionId === c.id);
         return `<fieldset class="criterion"><legend>${md(c.label)}<small>${c.points} 分</small></legend>${c.levels

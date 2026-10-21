@@ -1,0 +1,60 @@
+{
+  "slides": [
+    {
+      "after": "b-ex4-practice",
+      "slide": {
+        "id": "b-written",
+        "phase": "會考練習",
+        "eyebrow": "寫出完整過程",
+        "title": "由邊長比求面積",
+        "body": "寫在紙上：先寫相似比，再寫面積比，最後列式求面積，寫出每一步。寫完拍照上傳，核對辨識稿再送出。",
+        "source": "對應課本 1-4 p.66–67 相似三角形的面積比（數字自編）",
+        "activity": {
+          "id": "b-written-q",
+          "type": "canvas",
+          "prompt": "△ABC ～ △DEF，AB＝6、DE＝9，△ABC 的面積是 20，求 △DEF 的面積。寫出相似比、面積比與計算過程。",
+          "canvas": "grid",
+          "allowPhoto": true,
+          "aiAllowed": true,
+          "rubric": {
+            "criteria": [
+              {
+                "id": "kai",
+                "label": "會考評分（0–3 分）",
+                "points": 3,
+                "levels": [
+                  { "score": 3, "description": "相似比 6 : 9 ＝ 2 : 3，面積比 4 : 9，列式 20 : x ＝ 4 : 9，求得 x ＝ 45" },
+                  { "score": 2, "description": "知道面積比是相似比的平方，但計算有一處小錯；或答案正確但缺相似比或面積比的說明" },
+                  { "score": 1, "description": "只寫出相似比 2 : 3，或把面積比當成 2 : 3（得 30）" },
+                  { "score": 0, "description": "空白、只寫答案沒有過程，或過程完全錯誤" }
+                ]
+              }
+            ],
+            "reference": "相似比 AB : DE ＝ 6 : 9 ＝ 2 : 3，面積比 ＝ 2² : 3² ＝ 4 : 9。20 : x ＝ 4 : 9，4x ＝ 180，x ＝ 45。",
+            "graderNotes": "接受直接寫 x ＝ 20 × (9/4) ＝ 45。常見錯誤：面積比寫成 2 : 3（得 30）、比例式顛倒（20 : x ＝ 9 : 4 得 80/9）。"
+          }
+        },
+        "notes": "會考式非選題（0–3 分）。收件後 AI 依辨識稿快速批改並圈出錯誤，老師覆核後發回。"
+      }
+    }
+  ],
+  "rubrics": {
+    "b-error-q": {
+      "criteria": [
+        {
+          "id": "kai",
+          "label": "會考評分（0–3 分）",
+          "points": 3,
+          "levels": [
+            { "score": 3, "description": "圈出把面積比當成相似比的錯誤，寫出面積比 4 : 9、8 : x ＝ 4 : 9、x ＝ 18，並說明面積比是相似比的平方" },
+            { "score": 2, "description": "答案 18 正確但理由不完整，或理由正確但計算有一處小錯" },
+            { "score": 1, "description": "只指出「錯了」或只寫出面積比 4 : 9，沒有正確答案" },
+            { "score": 0, "description": "空白、同意 x ＝ 12，或沒有任何正確內容" }
+          ]
+        }
+      ],
+      "reference": "面積比＝對應邊長平方的比＝4：9，8：x＝4：9，4x＝72，x＝18。小美把面積比當成相似比。",
+      "graderNotes": "接受用「邊長 k 倍、面積 k² 倍」的說法說明。"
+    }
+  }
+}

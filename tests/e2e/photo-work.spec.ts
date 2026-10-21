@@ -106,7 +106,8 @@ test('photo work: AI transcript to confirm, fast grading on the text, projector 
   await expect(teacher.page.getByTestId('submission-grid').locator('.submission')).toHaveCount(2);
   await expect(teacher.page.getByTestId('submission-grid')).toContainText('改過辨識');
   await expect(teacher.page.getByTestId('toggle-fast')).toBeChecked();
-  await teacher.page.getByTestId('grade-all').click();
+  // 預設「收件後自動 AI 批改」：收到就開始快速批改（還沒開始的話按一下）
+  if (await teacher.page.getByTestId('grade-all').isEnabled().catch(() => false)) await teacher.page.getByTestId('grade-all').click();
   await expect.poll(async () => {
     const v = await (await teacher.page.request.get(`/api/sessions/${sessionId}`)).json();
     return v.grades.map((g: { basis?: string }) => g.basis).sort();
@@ -117,7 +118,14 @@ test('photo work: AI transcript to confirm, fast grading on the text, projector 
   await teacher.page.getByTestId('wall-card').first().click();
   await expect(teacher.page.getByTestId('wall-focus')).toBeVisible();
   await expect(teacher.page.getByTestId('wall-focus')).toContainText('14 號');
+  // 批註圈在辨識稿上（不是照片上）
+  await expect(teacher.page.getByTestId('wall-focus').getByTestId('mark-circle').first()).toBeVisible();
   await teacher.page.locator('#wall-anon').check();
   await expect(teacher.page.getByTestId('wall-focus')).not.toContainText('14 號');
   await shot(teacher.page, 'teacher-wall-focus');
+  // 發回後，學生在自己的辨識稿上看到圈出的錯處
+  await teacher.page.keyboard.press('Escape');
+  await teacher.page.getByRole('button', { name: '發回批改' }).click();
+  await expect(students[0].page.getByTestId('feedback-marks').getByTestId('mark-circle').first()).toBeVisible();
+  await shot(students[0].page, 'student-feedback-marks');
 });

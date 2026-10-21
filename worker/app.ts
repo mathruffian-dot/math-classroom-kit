@@ -47,6 +47,8 @@ import {
   type Vault,
   GRADER_SYSTEM,
   FAST_GRADER_SYSTEM,
+  numberedWork,
+  parseMarks,
   LESSON_SYSTEM,
   aiSettings,
   chat,
@@ -1796,7 +1798,8 @@ async function analyze(
     // 第 1 層（預設）只判對錯；第 2 層依規準給分並加紅筆批註。
     const full = body.depth === 'full' || fast;
     system = fast ? FAST_GRADER_SYSTEM : full ? GRADER_SYSTEM : VERDICT_SYSTEM;
-    const said = fast ? [redact(work!), text ? `（學生另外的說明：${text}）` : ''].filter(Boolean).join('\n') : text;
+    // 快速批改：辨識稿每行加上行號，AI 才能指出「第幾行的哪一段」錯了
+    const said = fast ? [numberedWork(redact(work!)), text ? `（學生另外的說明：${text}）` : ''].filter(Boolean).join('\n') : text;
     content = [{ type: 'text', text: gradingPrompt(activity, rubric, said) }];
     if (image) content.push({ type: 'image_url', image_url: { url: image } });
     maxTokens = fast ? 700 : full ? 2500 : 900;
@@ -1804,10 +1807,12 @@ async function analyze(
     votes = Math.min(3, Math.max(1, Math.round(Number(body.votes) || 1)));
     finish = (reply) => {
       if (!full) return normalizeVerdict(extractJson(reply), rubric, base, 'live');
-      const g = normalizeGrade(extractJson(reply), rubric, base, 'live', !!image);
+      const raw = extractJson(reply);
+      const g = normalizeGrade(raw, rubric, base, 'live', !!image);
       if (fast) {
         g.basis = 'text';
         g.transcript = work;
+        g.marks = parseMarks(raw, work!);
       }
       return g;
     };
@@ -1828,6 +1833,9 @@ async function analyze(
       if (fast) {
         grade.basis = 'text';
         grade.transcript = work;
+        // 示範：圈最後一行，讓老師看得到批註的樣子
+        const lines = work!.split('\n').filter((l) => l.trim());
+        grade.marks = [{ line: lines.length, kind: 'error', note: '（模擬批註）設定 API key 後由 AI 標出錯處' }];
       }
       s.grades![answerId] = grade;
       s.session.revision++;

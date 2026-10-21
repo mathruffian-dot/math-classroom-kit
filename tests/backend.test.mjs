@@ -11,7 +11,7 @@ await build({entryPoints:[resolve('worker/app.ts'),resolve('worker/storage.ts'),
 const {handleApi,liveTicket,liveView}=await import(pathToFileURL(join(dir,'worker','app.mjs')).href);
 const {SupabaseStore,DurableStore,MAX_SNAPSHOT_BYTES}=await import(pathToFileURL(join(dir,'worker','storage.mjs')).href);
 const {ClassroomDurableObject}=await import(pathToFileURL(join(dir,'worker','index.mjs')).href);
-const {aggregateVotes,normalizeGrade,extractJson,isReasoning}=await import(pathToFileURL(join(dir,'worker','ai.mjs')).href);
+const {aggregateVotes,normalizeGrade,extractJson,isReasoning,numberedWork,parseMarks}=await import(pathToFileURL(join(dir,'worker','ai.mjs')).href);
 const expr=await import(pathToFileURL(join(dir,'shared','expr.mjs')).href);
 const {practiceStatus}=await import(pathToFileURL(join(dir,'shared','practice.mjs')).href);
 const TEACHER={role:'teacher',account:'teacher',password:'11235813'};
@@ -387,10 +387,10 @@ test('canvas answers: photo ownership, mock grading, teacher edit and release on
   const answer=await f.call(`/api/sessions/${session.id}/answers`,'POST',{submissionId:'c1',activityId:'error-canvas',value:{imageId,text:'少了 12x',source:'photo'}},'student');
   assert.equal(answer.status,200);
   const graded=await f.call('/api/ai','POST',{task:'grade',sessionId:session.id,answerId:answer.body.answer.id});
-  assert.equal(graded.body.mode,'mock');assert.equal(graded.body.grade.max,8);assert.equal(graded.body.grade.needsReview,true);
+  assert.equal(graded.body.mode,'mock');assert.equal(graded.body.grade.max,3);assert.equal(graded.body.grade.needsReview,true);
   assert.equal((await f.call(`/api/sessions/${session.id}`,'GET',null,'student')).body.grades.length,0,'unreleased grade hidden');
-  const edit=await f.call(`/api/sessions/${session.id}/grades/${answer.body.answer.id}`,'PUT',{scores:[{criterionId:'find',score:2},{criterionId:'expand',score:3},{criterionId:'model',score:99}],feedback:'很好'});
-  assert.equal(edit.body.grade.total,8,'scores snap to the nearest rubric level');assert.equal(edit.body.grade.mode,'teacher');
+  const edit=await f.call(`/api/sessions/${session.id}/grades/${answer.body.answer.id}`,'PUT',{scores:[{criterionId:'kai',score:99}],feedback:'很好'});
+  assert.equal(edit.body.grade.total,3,'scores snap to the nearest rubric level');assert.equal(edit.body.grade.mode,'teacher');
   await f.call(`/api/sessions/${session.id}/control`,'POST',{action:'release-grades',activityId:'error-canvas',value:true});
   const own=(await f.call(`/api/sessions/${session.id}`,'GET',null,'student')).body;
   assert.equal(own.grades.length,1);assert.equal(own.grades[0].feedback,'很好');
@@ -424,15 +424,15 @@ test('live grading runs parallel votes outside the queue and commits the consens
     let n=0;
     globalThis.fetch=async(url,options)=>{
       const body=JSON.parse(options.body);bodies.push(body);
-      const scores=[2,3,n++===2?1:3];
-      const reply={transcript:'(2x+3)^2=4x^2+12x+9',scores:[{criterionId:'find',score:scores[0]},{criterionId:'expand',score:scores[1]},{criterionId:'model',score:scores[2]}],feedback:'做得好',confidence:0.9,annotations:[{mark:'circle',x:.1,y:.2,x2:.5,y2:.3},{mark:'note',x:.6,y:.2,text:'這裡'}]};
+      const kai=n++===2?2:3;
+      const reply={transcript:'(2x+3)^2=4x^2+12x+9',scores:[{criterionId:'kai',score:kai}],feedback:'做得好',confidence:0.9,annotations:[{mark:'circle',x:.1,y:.2,x2:.5,y2:.3},{mark:'note',x:.6,y:.2,text:'這裡'}]};
       return Response.json({choices:[{message:{content:'```json\n'+JSON.stringify(reply)+'\n```'}}]});
     };
     const result=await call('/api/ai','POST',{task:'grade',sessionId:session.id,answerId:answer.id,votes:3,depth:'full'},t);
     assert.equal(bodies.length,3);
     assert(bodies.every(b=>b.max_completion_tokens&&!('temperature' in b)&&!('max_tokens' in b)),'reasoning models use max_completion_tokens');
     assert.equal(bodies[0].messages[1].content[1].image_url.url,PNG);
-    assert.equal(result.grade.total,8);assert.deepEqual([...result.grade.votes].sort(),[6,8,8]);
+    assert.equal(result.grade.total,3);assert.deepEqual([...result.grade.votes].sort(),[2,3,3]);
     assert.equal(result.grade.needsReview,true,'disagreeing votes require review');
     assert.equal(result.grade.annotations.length,2);assert.equal(result.grade.annotations[0].x2,.5);
     const view=await call(`/api/sessions/${session.id}`,'GET',null,t);
@@ -506,7 +506,7 @@ test('layer 1 (default) only judges right/wrong; teacher can set the verdict; la
   const own=(await f.call(`/api/sessions/${session.id}`,'GET',null,'student')).body.grades[0];
   assert.equal(own.correct,true);assert.equal(own.depth,'verdict');
   const full=(await f.call('/api/ai','POST',{task:'grade',sessionId:session.id,answerId:answer.id,depth:'full'})).body.grade;
-  assert.equal(full.depth,'full');assert.equal(full.scores.length,3);
+  assert.equal(full.depth,'full');assert.equal(full.scores.length,1);
 });
 
 test('plain textbook notation converts to LaTeX that keeps radicals, fractions, parentheses, × and ÷',()=>{
@@ -668,5 +668,25 @@ test('photo work OCR: own photo only; confirmed transcript kept with the AI orig
   const stored=(await f.call(`/api/sessions/${session.id}`)).body.answers.find(a=>a.id===answer.id).value;
   assert.deepEqual([stored.work,stored.ocr],[value.work,value.ocr]);
   const g=(await f.call('/api/ai','POST',{task:'grade',sessionId:session.id,answerId:answer.id,depth:'fast'})).body.grade;
-  assert.equal(g.basis,'text');assert.equal(g.transcript,value.work);assert.equal(g.annotations.length,0);assert.equal(g.scores.length,3);
+  assert.equal(g.basis,'text');assert.equal(g.transcript,value.work);assert.equal(g.annotations.length,0);assert.equal(g.scores.length,1);assert.equal(g.max,3);assert(g.marks.length>=1,'fast grading marks the transcript');
+});
+
+test('fast grading marks: numbered lines for the model; marks must point at a real line and a real quote',()=>{
+  const work='2√3 × 3√2\n\n= 6√5\n所以答案 6√5';
+  assert.equal(numberedWork(work),'1| 2√3 × 3√2\n2| = 6√5\n3| 所以答案 6√5');
+  const marks=parseMarks({marks:[
+    {line:2,kind:'error',quote:'6√5',note:'根號內要相乘'},
+    {line:3,kind:'error',quote:'6√7',note:'quote 不在這一行'},
+    {line:1,kind:'ok'},
+    {line:9,kind:'error',note:'行號超出範圍'},
+    {line:1,kind:'missing',note:'少了 √3×√2＝√6'},
+    'not an object',
+  ]},work);
+  assert.deepEqual(marks,[
+    {line:2,kind:'error',quote:'6√5',note:'根號內要相乘'},
+    {line:3,kind:'error',note:'quote 不在這一行'},
+    {line:1,kind:'ok'},
+    {line:1,kind:'missing',note:'少了 √3×√2＝√6'},
+  ]);
+  assert.deepEqual(parseMarks({},work),[]);
 });
