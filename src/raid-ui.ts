@@ -12,7 +12,13 @@ import {
   RAID_TITLES,
   RAID_ULT_NEED,
   ROLE_NAME,
+  BOSS_ATTACKS,
+  BOSS_ULTS,
+  RAID_SKIP_COOLDOWN_MS,
+  RAID_ULT_BLOCK_MS,
   advance,
+  raidEffect,
+  shieldMs,
   type RaidEvent,
   type RaidKind,
   type RaidRole,
@@ -104,6 +110,16 @@ const seatsText = (by: Record<string, number> | number[]) => {
   const list = Array.isArray(by) ? by.map(String) : Object.keys(by);
   return list.length ? list.map((x) => `${x}`).join('、') + ' 號' : '';
 };
+const bossMove = (id?: string) => [...BOSS_ATTACKS, ...BOSS_ULTS].find((m) => m.id === id);
+/** 防護罩存量是誰存的（依先後、不重複）。 */
+function bankSeats(s: RaidState) {
+  const out: number[] = [];
+  for (const x of s.shieldBank) if (!out.includes(x.seat)) out.push(x.seat);
+  return out;
+}
+function shortSeats(list: number[], max = 8) {
+  return list.length > max ? `${list.slice(0, max).join('、')}…等 ${list.length} 人` : seatsText(list);
+}
 function eventKey(e: RaidEvent) {
   return `${e.t}:${e.k}:${e.seat ?? ''}`;
 }
@@ -121,7 +137,7 @@ export function raidBoardHtml(v: RaidView): string {
   const heroes = RAID_ROLES.map((r) => `<div class="raid-hero" data-role="${r}">${heroArt(r)}<small>${ROLE_NAME[r]} ×<b id="rb-n-${r}">${roles.filter((x) => x === r).length}</b></small></div>`).join('');
   return `<div class="raid-board" data-testid="raid-board" data-difficulty="${d}">
 <div class="raid-top"><strong class="raid-boss-name">${BOSS_NAME[d]}<small>${DIFFICULTY_NAME[d]}</small></strong><div class="raid-bar boss" title="魔王血量"><i class="hp" id="rb-boss-hp"></i><i class="sh" id="rb-boss-sh"></i><span id="rb-boss-text"></span></div><div class="raid-bar charge" title="魔王蓄力（滿了會預告大招）"><i id="rb-charge"></i><span>魔王蓄力</span></div><span class="raid-clock" id="rb-clock"></span></div>
-<div class="raid-arena" id="rb-arena"><div class="raid-ambient" aria-hidden="true">${AMBIENT}</div><div class="raid-heroes" id="rb-heroes">${heroes}<div class="raid-shield" id="rb-shield"></div></div><div class="raid-boss" id="rb-boss"><i class="raid-aura"></i>${bossArt(d)}</div><div class="raid-fx" id="rb-fx"></div><div class="raid-warn" id="rb-warn" hidden></div></div>
+<div class="raid-arena" id="rb-arena"><div class="raid-ambient" aria-hidden="true">${AMBIENT}</div><div class="raid-heroes" id="rb-heroes">${heroes}<div class="raid-shield" id="rb-shield"></div></div><div class="raid-boss" id="rb-boss"><i class="raid-aura"></i>${bossArt(d)}</div><div class="raid-fx" id="rb-fx"></div><div class="raid-warn" id="rb-warn" hidden></div><div class="raid-resist" id="rb-resist" hidden></div></div>
 <div class="raid-bottom"><div class="raid-bar team" title="英雄血量（全班共用）"><i id="rb-team"></i><span id="rb-team-text"></span></div><div class="raid-info" id="rb-shield-info"></div><div class="raid-bar ult" title="大招計量"><i id="rb-ult"></i><span id="rb-ult-text"></span></div><ol class="raid-feed" id="rb-feed"></ol></div>
 <div class="raid-overlay" id="rb-overlay"></div></div>`;
 }
@@ -153,14 +169,24 @@ export function updateRaidBoard(root: HTMLElement, v: RaidView, now: number) {
   $('rb-team-text')!.textContent = `英雄血量 ${s.teamHp} / ${c.teamHp}`;
   $('rb-ult')!.style.width = pct(s.ult, RAID_ULT_NEED);
   $('rb-ult-text')!.textContent = `大招計量 ${Math.round((s.ult / RAID_ULT_NEED) * 100)}%${Object.keys(s.ultBy).length ? `｜${seatsText(s.ultBy)}` : ''}`;
-  const shieldLeft = Math.max(0, s.shieldUntil - s.t);
-  $('rb-shield')!.classList.toggle('on', shieldLeft > 0);
-  $('rb-shield-info')!.innerHTML = shieldLeft > 0 ? `<b>🛡 防護罩 ${(shieldLeft / 1000).toFixed(1)} 秒</b><span>${seatsText(s.shieldBy)}提供</span>` : '<span class="muted">防護罩未開啟（做理解題，答對一題 1 秒）</span>';
+  const bank = shieldMs(s);
+  $('rb-shield')!.classList.toggle('on', bank > 0);
+  const charging = v.charging || [];
+  $('rb-shield-info')!.innerHTML =
+    (bank > 0 ? `<b>🛡 防護罩存量 ${bank / 1000} 秒</b><span>${shortSeats(bankSeats(s))}提供</span>` : '<span class="muted">🛡 防護罩存量 0（做理解題存防護罩，魔王攻擊時自動擋下）</span>') +
+    (charging.length ? `<span class="raid-charging">🔥 正在算大招：${shortSeats(charging)}</span>` : '');
   const warn = $('rb-warn')!;
   if (s.bossUltAt !== null && !s.result) {
+    const m = bossMove(s.bossUltMove || undefined);
     warn.hidden = false;
-    warn.textContent = `⚠ 魔王大招 ${Math.max(0, Math.ceil((s.bossUltAt - s.t) / 1000))} 秒後落下！快做防護罩題！`;
+    warn.innerHTML = `⚠ 魔王大招「${m?.name || ''}」${Math.max(0, Math.ceil((s.bossUltAt - s.t) / 1000))} 秒後落下！<small>${m?.tip || ''}｜存滿 ${RAID_ULT_BLOCK_MS / 1000} 秒防護罩就能擋下（目前 ${bank / 1000} 秒）</small>`;
   } else warn.hidden = true;
+  const resist = $('rb-resist');
+  const rt = resistText(s, c.players);
+  if (resist) {
+    resist.hidden = !rt;
+    resist.textContent = rt;
+  }
   const left = v.run.seconds * 1000 - Math.max(0, t);
   $('rb-clock')!.textContent = now < v.run.startedAt ? '準備' : `${Math.floor(Math.max(0, left) / 60000)}:${String(Math.floor((Math.max(0, left) % 60000) / 1000)).padStart(2, '0')}`;
   for (const r of RAID_ROLES) {
@@ -183,7 +209,7 @@ export function updateRaidBoard(root: HTMLElement, v: RaidView, now: number) {
   // 倒數、結算
   const overlay = $('rb-overlay')!;
   const phase = raidPhase(v, s, now);
-  const want = phase === 'pre' ? `pre:${Math.ceil((v.run.startedAt - now) / 1000)}` : phase === 'over' ? `over:${v.results ? v.results.length : 'x'}:${s.result}` : '';
+  const want = phase === 'pre' ? `pre:${Math.ceil((v.run.startedAt - now) / 1000)}` : phase === 'over' ? `over:${v.results ? v.results.length : 'x'}:${s.result}:${v.run.endedAt ?? ''}` : '';
   if (overlay.dataset.key !== want) {
     overlay.dataset.key = want;
     overlay.className = `raid-overlay ${phase}`;
@@ -195,27 +221,41 @@ export function updateRaidBoard(root: HTMLElement, v: RaidView, now: number) {
           : '';
   }
 }
+/** 魔王適應：某一類出招太多時的提示（沒有就空字串）。 */
+function resistText(s: RaidState, players: number) {
+  const parts = (['attack', 'ultimate'] as const)
+    .map((k) => [k, raidEffect(s, k, s.t, players)] as const)
+    .filter(([, e]) => e < 1)
+    .map(([k, e]) => `${KIND_NAME[k]}效果只剩 ${Math.round(e * 100)}%`);
+  return parts.length ? `🧬 魔王適應了！${parts.join('、')}，換別的招！` : '';
+}
 function feedText(e: RaidEvent, v: RaidView) {
   const who = e.seat ? `${e.seat} 號${v.roles?.[String(e.seat)] ? ROLE_NAME[v.roles[String(e.seat)]] : ''}` : '';
   switch (e.k) {
     case 'atk':
-      return e.n ? `⚔ ${who} 攻擊 −${e.n}${e.absorbed ? `（魔王護甲擋下 ${e.absorbed}）` : ''}` : `⚔ ${who} 攻擊，被魔王護甲擋下 ${e.absorbed}`;
+      return (e.n ? `⚔ ${who} 攻擊 −${e.n}${e.absorbed ? `（魔王護甲擋下 ${e.absorbed}）` : ''}` : `⚔ ${who} 攻擊，被魔王護甲擋下 ${e.absorbed}`) + (e.eff ? `（魔王抗性 ${Math.round(e.eff * 100)}%）` : '');
     case 'shield':
-      return `🛡 ${who} 防護罩 +1 秒`;
+      return `🛡 ${who} 存了 1 秒防護罩（共 ${(e.n || 0) / 1000} 秒）`;
     case 'ult':
-      return `💥 大招・${ultSkill(e).name} −${e.n}！由 ${seatsText(e.seats || [])}共同發動`;
+      return `💥 大招・${ultSkill(e).name} −${e.n}！${shortSeats(e.seats || [])}共同發動${(e.combo || 1) > 1 ? `（全班 ${e.team} 人合擊 ×${e.combo}）` : ''}`;
     case 'bossAtk':
-      return `👊 魔王攻擊 −${e.n}`;
+      return `👊 魔王${bossMove(e.move)?.name || '攻擊'} −${e.n}${e.blocked ? `（防護罩擋掉 ${e.blocked / 1000} 秒）` : ''}`;
     case 'bossBlock':
-      return `✨ 擋下魔王攻擊！（${seatsText(e.seats || [])}的防護罩）`;
+      return `✨ 防護罩擋下魔王${bossMove(e.move)?.name || '攻擊'}！（${shortSeats(e.seats || [])}的防護罩）`;
     case 'bossShield':
       return `🔰 魔王護甲 +${e.n}`;
     case 'bossWarn':
-      return `⚠ 魔王開始蓄力大招！`;
+      return `⚠ 魔王開始蓄力大招「${bossMove(e.move)?.name || ''}」！`;
     case 'bossUlt':
-      return `☄ 魔王大招 −${e.n}`;
+      return `☄ 魔王大招・${bossMove(e.move)?.name || ''} −${e.n}${e.blocked ? `（防護罩擋掉 ${e.blocked / 1000} 秒）` : ''}`;
     case 'bossUltBlock':
-      return `🌟 防護罩擋下魔王大招！（${seatsText(e.seats || [])}）`;
+      return `🌟 防護罩擋下魔王大招・${bossMove(e.move)?.name || ''}！（${shortSeats(e.seats || [])}）`;
+    case 'bossBreak':
+      return `💔 破盾重錘打碎了 ${(e.n || 0) / 1000} 秒防護罩`;
+    case 'bossHeal':
+      return `🩸 魔王吸血，回復 ${e.n} 血`;
+    case 'bossSeal':
+      return `🌫 封印之霧：英雄的大招計量歸零`;
     case 'win':
       return '🎉 魔王被打倒了！';
     case 'lose':
@@ -262,21 +302,39 @@ function fx(root: HTMLElement, e: RaidEvent, v: RaidView) {
     // 大招：5 種效果隨機（每台裝置同一招），名稱「大招・四個字」
     const sk = ultSkill(e);
     pulse(arena, 'ult-flash');
-    add(`raid-ult fx-${sk.id}`, `<div class="ult-fx">${ultParticles(sk.id)}</div><div class="ult-banner"><b>大招・${sk.name}</b><span>${seatsText(e.seats || [])}共同發動</span><strong>−${e.n}</strong></div>`, 3800);
+    const combo = (e.combo || 1) > 1 ? `・全班 ${e.team} 人合擊 ×${e.combo}` : '';
+    add(`raid-ult fx-${sk.id}`, `<div class="ult-fx">${ultParticles(sk.id)}</div><div class="ult-banner"><b>大招・${sk.name}</b><span>${shortSeats(e.seats || [], 10)}共同發動${combo}</span><strong>−${e.n}</strong></div>`, 3800);
     setTimeout(() => {
       pulse(boss, 'hit-big');
       pulse(arena, 'shake-big');
       add(`raid-burst big fx-${sk.id}`, burst(22, true), 1300);
     }, 1100);
-  } else if (e.k === 'bossAtk' || e.k === 'bossUlt') {
-    pulse(boss, 'boss-attack');
-    pulse(arena, e.k === 'bossUlt' ? 'shake-big' : 'shake');
-    add(`raid-hurt ${e.k === 'bossUlt' ? 'big' : ''}`, `−${e.n}`, 1300);
-  } else if (e.k === 'bossBlock' || e.k === 'bossUltBlock') {
-    pulse(boss, 'boss-attack');
+  } else if (e.k === 'bossAtk' || e.k === 'bossUlt' || e.k === 'bossBlock' || e.k === 'bossUltBlock') {
+    // 魔王出招：每一招的動畫不同（爪擊、衝撞、連擊；4 種大招）
+    const m = bossMove(e.move);
+    const ult = e.k === 'bossUlt' || e.k === 'bossUltBlock';
+    const blocked = e.k === 'bossBlock' || e.k === 'bossUltBlock';
+    pulse(boss, e.move === 'charge' ? 'boss-charge' : 'boss-attack');
+    add(`raid-boss-move mv-${e.move || 'claw'}`, ult ? `<b>${m?.name || ''}</b>` : '<i></i><i></i><i></i>', ult ? 2400 : 900);
+    setTimeout(() => {
+      if (blocked) {
+        const sh = root.querySelector<HTMLElement>('#rb-shield');
+        if (sh) pulse(sh, 'flash');
+        add(`raid-blocked ${ult ? 'big' : ''}`, `擋下${m?.name || ''}！<em>${shortSeats(e.seats || [])}的防護罩</em>`, 1600);
+      } else {
+        pulse(arena, ult || e.move === 'charge' ? 'shake-big' : 'shake');
+        add(`raid-hurt ${ult ? 'big' : ''}`, `−${e.n}${e.blocked ? `<small>防護罩擋 ${e.blocked / 1000} 秒</small>` : ''}`, 1300);
+      }
+    }, ult ? 900 : 300);
+  } else if (e.k === 'bossBreak') {
     const sh = root.querySelector<HTMLElement>('#rb-shield');
-    if (sh) pulse(sh, 'flash');
-    add(`raid-blocked ${e.k === 'bossUltBlock' ? 'big' : ''}`, `擋下！<em>${seatsText(e.seats || [])}</em>`, 1600);
+    if (sh) pulse(sh, 'shatter');
+    add('raid-blocked big broken', `💔 防護罩被打碎 ${(e.n || 0) / 1000} 秒`, 1600);
+  } else if (e.k === 'bossHeal') {
+    pulse(boss, 'boss-heal');
+    add('raid-heal', `+${e.n}`, 1500);
+  } else if (e.k === 'bossSeal') {
+    add('raid-seal', '<b>🌫 大招計量被封印</b>', 2200);
   } else if (e.k === 'bossShield') {
     pulse(boss, 'boss-guard');
   } else if (e.k === 'win') {
@@ -294,6 +352,7 @@ function resultsHtml(v: RaidView, s: RaidState) {
         `<tr><td>${i + 1}</td><td><b>${r.seat} 號</b></td><td><span class="raid-title lv${r.level}">Lv${r.level} ${H.esc(r.title)}</span>${r.badges.map((b) => `<span class="raid-badge">${H.esc(b)}</span>`).join('')}</td><td>${r.score}</td><td>${r.stats.ok.attack}/${r.stats.n.attack}</td><td>${r.stats.ok.shield}/${r.stats.n.shield}</td><td>${r.stats.ok.ultimate}/${r.stats.n.ultimate}</td></tr>`,
     )
     .join('');
+  if (!v.results) return `<div class="raid-result ${s.result || 'ended'}" data-testid="raid-result"><h2>${resultTitle(s, v)}</h2><p class="raid-sum">結算中…</p></div>`;
   return `<div class="raid-result ${s.result || 'ended'}" data-testid="raid-result"><h2>${resultTitle(s, v)}</h2><p class="raid-sum">${minutes}・限時 ${v.run.seconds / 60} 分鐘・攻擊 ${tally.atk || 0} 次・防護罩擋下 ${(tally.bossBlock || 0) + (tally.bossUltBlock || 0)} 次・大招 ${tally.ult || 0} 次・魔王剩 ${s.bossHp} 血</p>${
     rows
       ? `<div class="raid-table-wrap"><table class="raid-table"><thead><tr><th></th><th>座號</th><th>稱號</th><th>貢獻</th><th>記憶</th><th>理解</th><th>應用</th></tr></thead><tbody>${rows}</tbody></table></div>`
@@ -308,7 +367,7 @@ export function raidPanelHtml(v: RaidView | undefined, prefs: { difficulty: stri
   const now = H.serverTime();
   const setup = `<div class="tool-row"><label class="time-limit">難度 <select id="raid-difficulty">${(['easy', 'normal', 'hard'] as const).map((d) => `<option value="${d}" ${prefs.difficulty === d ? 'selected' : ''}>${DIFFICULTY_NAME[d]}</option>`).join('')}</select></label><label class="time-limit">${H.icon('clock')}<select id="raid-seconds">${[300, 360, 420, 480, 540, 600].map((x) => `<option value="${x}" ${prefs.seconds === x ? 'selected' : ''}>${x / 60} 分鐘</option>`).join('')}</select></label></div>`;
   if (!v) {
-    return `${head}<p class="muted small-text">全班合作打魔王。學生每一題自己選：記憶題＝普通攻擊、理解題＝防護罩（答對 1 題撐 1 秒，擋魔王的攻擊）、應用題＝大招計量（無視魔王護甲）。答錯鎖 5 秒，魔王蓄力加快。<b>時間到還沒打倒魔王，就算魔王獲勝。</b>魔王的血量依上線人數、難度和時間調整。</p>${setup}<div class="tool-row">${H.btn('開戰', 'raid-start', 'primary', 'bolt', 'data-testid="raid-start"')}</div>`;
+    return `${head}<p class="muted small-text">全班合作打魔王。學生每一題自己選：記憶題＝普通攻擊、理解題＝防護罩（答對 1 題存 1 秒，魔王攻擊時自動擋下；沒人存很容易輸）、應用題＝大招計量（無視魔王護甲，越多人一起做合擊加成越高，最多 2 倍；不會做可以換一題、答錯只鎖 3 秒）。全班一直只做記憶題，魔王會適應、普通攻擊效果變差。答錯鎖 5 秒，魔王蓄力加快。魔王有 3 種普通攻擊、4 種大招，大招落下前 30 秒預告。<b>時間到還沒打倒魔王，就算魔王獲勝。</b>魔王的血量依上線人數、難度和時間調整。</p>${setup}<div class="tool-row">${H.btn('開戰', 'raid-start', 'primary', 'bolt', 'data-testid="raid-start"')}</div>`;
   }
   const s = liveState(v, now),
     phase = raidPhase(v, s, now);
@@ -331,16 +390,19 @@ export const raidLocal: RaidLocal = { flash: '', sending: false };
 export function raidMiniHtml(v: RaidView, now: number) {
   const s = liveState(v, now),
     c = v.run.config;
-  const shieldLeft = Math.max(0, s.shieldUntil - s.t);
+  const bank = shieldMs(s);
   return `<div class="raid-mini-bars"><div class="raid-bar boss small"><i class="hp" style="width:${pct(s.bossHp, c.bossHp)}"></i><span>魔王 ${s.bossHp}</span></div><div class="raid-bar team small"><i style="width:${pct(s.teamHp, c.teamHp)}"></i><span>英雄 ${s.teamHp}</span></div></div><div class="raid-mini-info">${
-    shieldLeft > 0 ? `<span class="on">🛡 ${(shieldLeft / 1000).toFixed(1)} 秒・${seatsText(s.shieldBy)}</span>` : '<span>🛡 防護罩未開啟</span>'
-  }<span>💥 大招 ${Math.round((s.ult / RAID_ULT_NEED) * 100)}%</span></div>${s.bossUltAt !== null && !s.result ? `<p class="raid-mini-warn">⚠ 魔王大招 ${Math.max(0, Math.ceil((s.bossUltAt - s.t) / 1000))} 秒後落下！做理解題撐防護罩！</p>` : ''}`;
+    bank > 0 ? `<span class="on">🛡 存量 ${bank / 1000} 秒</span>` : '<span>🛡 存量 0</span>'
+  }<span>💥 大招 ${Math.round((s.ult / RAID_ULT_NEED) * 100)}%</span></div>${resistText(s, c.players) ? `<p class="raid-mini-resist">${resistText(s, c.players)}</p>` : ''}${s.bossUltAt !== null && !s.result ? `<p class="raid-mini-warn">⚠ 魔王大招「${bossMove(s.bossUltMove || undefined)?.name || ''}」${Math.max(0, Math.ceil((s.bossUltAt - s.t) / 1000))} 秒後落下！防護罩存量 ${bank / 1000}／${RAID_ULT_BLOCK_MS / 1000} 秒，做理解題存防護罩！</p>` : ''}`;
 }
 /** 作答卡的主體會變的時候才重畫（題目、結果、鎖住、階段），避免每次推送都重排數學式。 */
 export function raidCardKey(v: RaidView, now: number) {
   const s = liveState(v, now);
   const lock = v.mine?.lockUntil && v.mine.lockUntil > now ? 'lock' : '';
-  return [v.run.id, raidPhase(v, s, now), v.mine?.role || '', v.mine?.question?.id || '', lock, raidLocal.flash, v.results ? 'r' : ''].join('|');
+  const skipReady = !v.mine?.skipAt || now - v.mine.skipAt >= RAID_SKIP_COOLDOWN_MS ? 'skip' : '';
+  // 抗性變了（每 10% 一級）也要重畫選招按鈕
+  const eff = (['attack', 'ultimate'] as const).map((k) => Math.round(raidEffect(s, k, s.t, v.run.config.players) * 10)).join('');
+  return [v.run.id, raidPhase(v, s, now), v.mine?.role || '', v.mine?.question?.id || '', lock, raidLocal.flash, v.results ? 'r' : '', eff, skipReady].join('|');
 }
 export function raidCardHtml(v: RaidView, now: number): string {
   const s = liveState(v, now),
@@ -349,26 +411,35 @@ export function raidCardHtml(v: RaidView, now: number): string {
   let body = '';
   if (phase === 'over') {
     const r = v.results?.[0];
-    body = `<div class="raid-end-card" data-testid="raid-my-result"><h2>${resultTitle(s, v)}</h2>${r ? myTitle(r) : '<p class="muted">這一場你沒有作答。</p>'}<p class="muted small-text">稱號依每分鐘的貢獻分數決定，一共 9 級：${RAID_TITLES.join('、')}。</p></div>`;
+    // 結算還沒從伺服器回來（時間到的那一刻）：先顯示結算中
+    const mineHtml = !v.results ? '<p class="muted" data-testid="raid-settling">結算中…</p>' : r ? myTitle(r) : '<p class="muted">這一場你沒有作答。</p>';
+    body = `<div class="raid-end-card" data-testid="raid-my-result"><h2>${resultTitle(s, v)}</h2>${mineHtml}<p class="muted small-text">稱號依每分鐘的貢獻分數決定，一共 9 級：${RAID_TITLES.join('、')}。</p></div>`;
   } else if (!v.mine?.role) {
     body = `<h3 class="raid-h">選你的英雄</h3><div class="raid-roles">${RAID_ROLES.map((r) => `<button type="button" class="raid-role" data-action="raid-role" data-role="${r}" data-testid="raid-role-${r}">${heroArt(r)}<b>${ROLE_NAME[r]}</b><small>${ROLE_SKILL[r]}</small></button>`).join('')}</div>`;
   } else if (phase === 'pre') {
     body = `<div class="raid-wait">${heroArt(v.mine.role, 'big')}<p>你是<b>${ROLE_NAME[v.mine.role]}</b>，<span data-pk-start="${v.run.startedAt}">${Math.max(0, Math.ceil((v.run.startedAt - now) / 1000))}</span> 秒後開戰！</p></div>`;
   } else if (v.mine.lockUntil && v.mine.lockUntil > now) {
-    body = `${raidLocal.flash}<div class="raid-lock" data-testid="raid-lock">✗ 答錯了，<b data-lock-until="${v.mine.lockUntil}">${Math.ceil((v.mine.lockUntil - now) / 1000)}</b> 秒後再出招（魔王蓄力加快了）</div>`;
+    body = `${raidLocal.flash}<div class="raid-lock" data-testid="raid-lock">✗ 答錯了，<b data-lock-until="${v.mine.lockUntil}">${Math.ceil((v.mine.lockUntil - now) / 1000)}</b> 秒後再出招（魔王蓄力加快了）。看懂解析，下一題再拚！</div>`;
   } else if (v.mine.question) {
     const q = v.mine.question;
+    // 應用題不會做：可以換一題（不算答錯，每 30 秒一次）
+    const wait = v.mine.skipAt ? Math.max(0, Math.ceil((v.mine.skipAt + RAID_SKIP_COOLDOWN_MS - now) / 1000)) : 0;
+    const skip =
+      q.kind === 'ultimate'
+        ? `<div class="raid-skip"><span>不會做也沒關係：</span>${H.btn(wait ? `換一題（${wait} 秒後）` : '換一題', 'raid-skip', 'quiet', 'dice', `data-testid="raid-skip" ${wait || raidLocal.sending ? 'disabled' : ''}`)}<small>不算答錯；也可以先做理解題幫忙存防護罩</small></div>`
+        : '';
     body = `<div class="raid-q-head"><span class="raid-kind k-${q.kind}">${KIND_LEVEL[q.kind]}・${KIND_NAME[q.kind]}</span>${kindSwitch(q.kind)}</div><div class="quiz-stem">${H.md(q.stem)}</div>${H.figure(q.figure)}<div class="quiz-options">${q.options
       .map((o, i) => `<button type="button" class="answer-option" data-action="raid-answer" data-choice="${i}" data-testid="raid-option-${i}" ${raidLocal.sending ? 'disabled' : ''}><span class="option-letter">${String.fromCharCode(65 + i)}</span><span>${H.md(o)}</span></button>`)
-      .join('')}</div>`;
+      .join('')}</div>${skip}`;
   } else {
-    body = `${raidLocal.flash}<h3 class="raid-h">選下一招</h3><div class="raid-kinds">${RAID_KINDS.map(
-      (k) => `<button type="button" class="raid-kind-btn k-${k}" data-action="raid-draw" data-kind="${k}" data-testid="raid-kind-${k}"><b>${KIND_NAME[k]}</b><small>${KIND_LEVEL[k]}題・${KIND_TIP[k]}</small></button>`,
-    ).join('')}</div>`;
+    body = `${raidLocal.flash}<h3 class="raid-h">選下一招</h3><div class="raid-kinds">${RAID_KINDS.map((k) => {
+      const e = raidEffect(s, k, s.t, v.run.config.players);
+      return `<button type="button" class="raid-kind-btn k-${k} ${e < 1 ? 'weak' : ''}" data-action="raid-draw" data-kind="${k}" data-testid="raid-kind-${k}"><b>${KIND_NAME[k]}${e < 1 ? `<i class="raid-eff">效果 ${Math.round(e * 100)}%</i>` : ''}</b><small>${KIND_LEVEL[k]}題・${KIND_TIP[k]}</small></button>`;
+    }).join('')}</div>`;
   }
   return `<section class="raid-card" data-testid="raid-card"><h2>${H.icon('bolt')}${H.esc(v.title)}</h2>${mini}<div class="raid-body">${body}</div></section>`;
 }
-const KIND_TIP: Record<RaidKind, string> = { attack: '答對就攻擊（先打掉魔王護甲）', shield: '答對撐 1 秒防護罩，擋魔王攻擊', ultimate: '答對累積大招，無視魔王護甲' };
+const KIND_TIP: Record<RaidKind, string> = { attack: '答對就攻擊（先打掉魔王護甲）', shield: '答對存 1 秒防護罩，魔王攻擊時自動擋下', ultimate: '答對累積大招，越多人一起做威力越大' };
 function kindSwitch(cur: RaidKind) {
   return `<span class="raid-switch">換成${RAID_KINDS.filter((k) => k !== cur)
     .map((k) => `<button type="button" class="link-btn" data-action="raid-draw" data-kind="${k}">${KIND_NAME[k]}</button>`)

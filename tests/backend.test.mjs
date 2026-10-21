@@ -876,35 +876,56 @@ test('quiz scoring: more correct wins, ties go to the faster one; the computer f
   assert.deepEqual(quizLib.botScore(bot,run,1000+20000),{answered:3,correct:2,finished:true,timeMs:14000});
 });
 
-test('raid rules: shields name the seats and block, ultimates fire from the seats that charged, wrong answers speed up the boss',()=>{
+test('raid rules: banked shields block the boss and name the seats, boss moves, combo ultimates, recall-only resistance',()=>{
   const c={...raidLib.raidConfig('normal',20,480),bossAtkEvery:5000,bossShieldEvery:999999};
   const S=480;
-  // 3 號、7 號各答對一題理解題（各 1 秒），魔王 5 秒時攻擊：被擋下，記上兩人
-  const s=raidLib.raidReplay(c,[{t:3500,seat:3,kind:'shield',ok:true},{t:4200,seat:7,kind:'shield',ok:true}],S,5000);
-  const block=s.log.find(e=>e.k==='bossBlock');
-  assert.deepEqual(block.seats,[3,7]);
-  assert.equal(s.teamHp,c.teamHp);
+  const move=raidLib.bossAttackAt(5000);
+  // 3 號、7 號各存 1 秒防護罩（存量不會倒數），魔王 5 秒時出招：自動扣存量擋下
+  const two=[{t:1500,seat:3,kind:'shield',ok:true},{t:2200,seat:7,kind:'shield',ok:true}];
+  const s=raidLib.raidReplay(c,two,S,5000);
+  const hit=s.log.find(e=>e.k==='bossBlock'||e.k==='bossAtk');
+  assert.equal(hit.move,move.id);
+  if(move.cost<=1000&&move.hits===1){assert.equal(hit.k,'bossBlock');assert.deepEqual(hit.seats,[3]);assert.equal(raidLib.shieldMs(s),1000,'one second left');}
+  else assert(hit.k==='bossBlock'||hit.blocked>0,'shields used');
   assert.equal(s.stats['3'].blocks,1);
-  // 防護罩是 1 秒一格接著算：4.2 秒才補的那一格，從 4.5 秒延到 5.5 秒
-  assert.equal(raidLib.raidReplay(c,[{t:3500,seat:3,kind:'shield',ok:true},{t:4200,seat:7,kind:'shield',ok:true}],S,5000).shieldUntil,5500);
-  // 沒有防護罩：扣英雄血
-  assert.equal(raidLib.raidReplay(c,[],S,5000).teamHp,c.teamHp-c.bossAtk);
-  // 大招：4 題應用題答對才發動，寫出參與的座號，無視魔王護盾
+  // 沒有防護罩：依招式扣英雄血
+  const bare=raidLib.raidReplay(c,[],S,5000);
+  assert.equal(bare.teamHp,c.teamHp-Math.round(c.bossAtk*move.mult)*move.hits);
+  // 存量不夠：擋掉一部分（衝撞要 2 秒，只有 1 秒就擋一半）
+  const charge=raidLib.BOSS_ATTACKS.find(m=>m.id==='charge');
+  let tc=1000;while(raidLib.bossAttackAt(tc).id!=='charge')tc+=1000;
+  const half=raidLib.raidReplay({...c,bossAtkEvery:tc},[{t:500,seat:4,kind:'shield',ok:true}],S,tc);
+  const h=half.log.find(e=>e.k==='bossAtk');
+  assert.equal(h.blocked,1000);assert.equal(h.n,Math.round(Math.round(c.bossAtk*charge.mult)*0.5));
+  // 魔王大招：預告時就知道是哪一招；存滿 3 秒完全擋下
+  const calm=raidLib.raidReplay(c,[],S,c.bossChargeMs+1);
+  const warn=calm.log.find(e=>e.k==='bossWarn');
+  assert(raidLib.BOSS_ULTS.some(m=>m.id===warn.move));
+  const guard=Array.from({length:3},(_,i)=>({t:c.bossChargeMs+1000+i*100,seat:10+i,kind:'shield',ok:true}));
+  const blocked=raidLib.raidReplay({...c,bossAtkEvery:9e9},guard,S,c.bossChargeMs+c.bossWarnMs+1);
+  if(warn.move!=='break')assert(blocked.log.some(e=>e.k==='bossUltBlock'),'3 seconds of shield block the ultimate');
+  // 答錯：魔王提早預告大招（應用題答錯只加一半）
+  const angry=raidLib.raidReplay(c,Array.from({length:10},(_,i)=>({t:1000+i,seat:1,kind:'attack',ok:false})),S,60000);
+  assert(angry.log.some(e=>e.k==='bossWarn'&&e.t<c.bossChargeMs));
+  const wrong=(kind)=>raidLib.raidReplay(c,Array.from({length:10},(_,i)=>({t:1000+i,seat:1,kind,ok:false})),S,2000).chargeBonus;
+  assert.equal(wrong('attack'),10*c.wrongChargeMs);assert.equal(wrong('ultimate'),10*Math.round(c.wrongChargeMs/2));
+  // 大招：4 題應用題答對才發動，寫出參與的座號，合擊加成（3 人 ×1.2），無視魔王護甲
   const acts=[2,5,2,9].map((seat,i)=>({t:1000+i*100,seat,kind:'ultimate',ok:true}));
   const u=raidLib.raidReplay({...c,bossShieldEvery:500,bossShieldGain:50,bossShieldMax:50},acts,S,1400);
   const ult=u.log.find(e=>e.k==='ult');
   assert.deepEqual(ult.seats.sort((a,b)=>a-b),[2,5,9]);
-  assert.equal(u.bossHp,c.bossHp-c.ultDamage);
-  assert.equal(u.stats['2'].ults,1);
-  // 普通攻擊先打魔王護盾
+  assert.equal(ult.team,3);assert.equal(ult.combo,1.2);assert.equal(u.bossHp,c.bossHp-Math.round(c.ultDamage*1.2));
+  assert.equal(raidLib.raidCombo(1),1);assert.equal(raidLib.raidCombo(30),2);
+  // 普通攻擊先打魔王護甲
   const a=raidLib.raidReplay({...c,bossShieldEvery:500,bossShieldGain:6,bossShieldMax:6},[{t:600,seat:1,kind:'attack',ok:true}],S,600);
   assert.equal(a.bossHp,c.bossHp-(c.heroAtk-6));
-  // 答錯：魔王提早預告大招
-  const calm=raidLib.raidReplay(c,[],S,60000),angry=raidLib.raidReplay(c,Array.from({length:10},(_,i)=>({t:1000+i,seat:1,kind:'attack',ok:false})),S,60000);
-  assert(!calm.log.some(e=>e.k==='bossWarn'));
-  assert(angry.log.some(e=>e.k==='bossWarn'));
+  // 全班只做記憶題：魔王適應，普通攻擊效果變差；應用題不會被適應
+  const spam=Array.from({length:12},(_,i)=>({t:1000+i*500,seat:1+i,kind:'attack',ok:true}));
+  const r=raidLib.raidReplay({...c,bossShieldEvery:9e9},spam,S,8000);
+  assert(raidLib.raidEffect(r,'attack',8000,c.players)<1);
+  assert.equal(raidLib.raidEffect(r,'ultimate',8000,c.players),1);
   // 分出勝負
-  const win=raidLib.raidReplay({...c,bossHp:20},[{t:100,seat:4,kind:'attack',ok:true},{t:200,seat:6,kind:'attack',ok:true},{t:300,seat:4,kind:'attack',ok:true}],S,400);
+  const win=raidLib.raidReplay({...c,bossHp:24},[{t:100,seat:4,kind:'attack',ok:true},{t:200,seat:6,kind:'attack',ok:true},{t:300,seat:4,kind:'attack',ok:true}],S,400);
   assert.equal(win.result,'win');assert(win.stats['6'].lastHit);assert.equal(win.stats['4'].n.attack,1,'after the win nothing counts');
   // 稱號：9 級，沒作答沒有稱號
   assert.equal(raidLib.RAID_TITLES.length,9);
@@ -918,7 +939,7 @@ test('raid flow: start on the last lesson of 2-2, roles, free choice each questi
   const lesson=(await f.call(`/api/sessions/${s.id}`)).body.lesson;
   assert(lesson.slides.at(-1).raidPage,'last page is the boss battle');
   assert(lesson.slides.at(-2).quizPage);
-  await goOnline(f,[1,2,3]);
+  await goOnline(f,[1,2,3,4]);
   const ctl=(body)=>f.call(`/api/sessions/${s.id}/control`,'POST',body);
   assert.equal((await ctl({action:'raid-start',difficulty:'easy',seconds:300})).status,200);
   const t0=await f.call(`/api/sessions/${s.id}`);
@@ -946,6 +967,16 @@ test('raid flow: start on the last lesson of 2-2, roles, free choice each questi
   const bad=(await raid('seat3',{op:'answer',choice:(right(q3)+1)%4})).body;
   assert.equal(bad.correct,false);assert(bad.lockUntil>Date.now());assert.equal(typeof bad.answer,'number');
   assert.equal((await raid('seat3',{op:'draw',kind:'attack'})).status,409,'locked for 5 seconds');
+  // 應用題：不會做可以換一題（不算答錯、每 30 秒一次）；答錯只鎖 3 秒；大螢幕看得到誰正在算
+  await raid('seat4',{op:'role',role:'archer'});
+  const u1=(await raid('seat4',{op:'draw',kind:'ultimate'})).body.question;
+  assert((await f.call(`/api/sessions/${s.id}`)).body.raid.charging.includes(4));
+  const sk=(await raid('seat4',{op:'skip'})).body;
+  assert.notEqual(sk.question.id,u1.id);assert.equal(sk.question.kind,'ultimate');
+  assert.equal((await raid('seat4',{op:'skip'})).status,429,'one skip per 30 seconds');
+  const u2=(await raid('seat4',{op:'answer',choice:(right(sk.question)+1)%4})).body;
+  assert(u2.lockUntil-Date.now()<=3100&&u2.lockUntil-Date.now()>2000,'3-second lock for application');
+  assert.equal(f.data.sessions[s.id].raidPlay[run.id].seats['4'].skips,1);
   // 學生看不到別人的成績與角色；老師看得到
   const st=(await f.call(`/api/sessions/${s.id}`,'GET',null,'seat3')).body.raid;
   assert.deepEqual(Object.keys(st.state.stats),['3']);assert.equal(st.roles['2'],'mage','roles drive the animations on every screen');assert.equal(st.mine.role,'knight');
@@ -955,7 +986,7 @@ test('raid flow: start on the last lesson of 2-2, roles, free choice each questi
   // 結束：老師拿到全班稱號，學生只拿到自己的
   await ctl({action:'raid-end'});
   const done=(await f.call(`/api/sessions/${s.id}`)).body.raid;
-  assert.deepEqual(done.results.map(r=>r.seat).sort(),[2,3]);
+  assert.deepEqual(done.results.map(r=>r.seat).sort(),[2,3,4]);
   assert(done.results.every(r=>r.level>=1&&r.title));
   const mine=(await f.call(`/api/sessions/${s.id}`,'GET',null,'seat2')).body.raid.results;
   assert.deepEqual(mine.map(r=>r.seat),[2]);
@@ -969,7 +1000,7 @@ test('raid flow: start on the last lesson of 2-2, roles, free choice each questi
   assert(csv.includes('魔王戰'));assert(csv.includes('理解（防護罩）')||csv.includes('記憶（普通攻擊）'));
   const backup=(await f.call('/api/backup')).body;
   const bs=backup.sessions.find(x=>x.session.id===s.id);
-  assert.equal(bs.raidRuns.length,2);assert.equal(bs.raidPlay[run.id].actions.length,2);
+  assert.equal(bs.raidRuns.length,2);assert.equal(bs.raidPlay[run.id].actions.length,3);
   assert.equal((await f.call('/api/restore','POST',{backup})).status,200);
   assert.equal(f.data.sessions[s.id].raidRuns.length,2);
   // 開全班測驗會收起魔王戰

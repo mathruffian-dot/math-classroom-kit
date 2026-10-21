@@ -336,8 +336,8 @@
   color: #ffe066;
 }
 .raid-shield-pop {
-  left: 22%;
-  top: 46%;
+  left: 30%;
+  top: 40%;
   color: #9fd3ff;
   font-size: clamp(20px, 2.4vw, 36px);
 }
@@ -489,6 +489,11 @@
   justify-content: center;
   background: rgba(10, 8, 24, 0.72);
   z-index: 5;
+  padding: 3vh 3vw;
+}
+/* 結算：底下的戰場幾乎蓋掉，表格才看得清楚 */
+.raid-overlay.over {
+  background: rgba(10, 8, 24, 0.94);
   padding: 3vh 3vw;
 }
 .raid-overlay.pre p {
@@ -810,4 +815,39 @@
   margin: 0;
   font-size: 13px;
   opacity: 0.9;
+}
+
+/* 魔王適應（某一類出招太多）：提示與選招按鈕上的效果 */
+.raid-resist {
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  transform: translateX(-50%);
+  padding: 6px 16px;
+  border-radius: 12px;
+  background: rgba(120, 40, 200, 0.85);
+  font-size: clamp(14px, 1.7vw, 24px);
+  font-weight: 800;
+  text-align: center;
+  max-width: 96%;
+  box-shadow: 0 0 18px rgba(170, 90, 255, 0.7);
+}
+.raid-mini-resist {
+  margin: 0;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: #6b2bc4;
+  font-weight: 800;
+  font-size: 13px;
+}
+.raid-kind-btn.weak {
+  filter: saturate(0.45) brightness(0.9);
+}
+.raid-eff {
+  margin-left: 8px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.35);
+  font-size: 13px;
+  font-style: normal;
 }

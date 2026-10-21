@@ -1265,10 +1265,16 @@ function raidPanel() {
 }
 let raidPanelKey = '';
 /** 推送進來、或每 0.25 秒：更新戰場、控制區與學生作答卡。 */
+let raidResultFetch = 0;
 function refreshRaid() {
   const v = view;
   if (!v || !user) return;
   const now = serverTime();
+  // 時間到、或魔王打倒英雄時沒有人作答，伺服器不會推送：本機算出已經結束就去拿結算（每 2 秒最多一次）
+  if (v.raid && !v.raid.results && raidPhase(v.raid, liveState(v.raid, now), now) === 'over' && Date.now() - raidResultFetch > 2000) {
+    raidResultFetch = Date.now();
+    setTimeout(() => void refreshSession(), 600);
+  }
   const host = document.querySelector<HTMLElement>('#raid-board-host');
   {
     if (host) {
@@ -1330,6 +1336,11 @@ async function raidAct(act: string, el: HTMLElement) {
       const r = await api<{ revision: number }>(path, 'POST', { runId: v.run.id, op: 'role', role: el.dataset.role });
       raidRevision = Math.max(raidRevision, r.revision);
       mineNow().role = el.dataset.role as NonNullable<typeof v.mine>['role'];
+    } else if (act === 'raid-skip') {
+      const r = await api<{ question: NonNullable<NonNullable<typeof v.mine>['question']>; skipAt: number; revision: number }>(path, 'POST', { runId: v.run.id, op: 'skip' });
+      raidRevision = Math.max(raidRevision, r.revision);
+      mineNow().question = r.question;
+      mineNow().skipAt = r.skipAt;
     } else if (act === 'raid-draw') {
       const r = await api<{ question: NonNullable<NonNullable<typeof v.mine>['question']>; revision: number }>(path, 'POST', { runId: v.run.id, op: 'draw', kind: el.dataset.kind as RaidKind });
       raidRevision = Math.max(raidRevision, r.revision);
@@ -2647,6 +2658,7 @@ async function action(el: HTMLElement) {
       return control(act);
     case 'raid-role':
     case 'raid-draw':
+    case 'raid-skip':
     case 'raid-answer':
       return raidAct(act, el);
     case 'quiz-class':

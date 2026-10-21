@@ -509,3 +509,170 @@
     opacity: 0;
   }
 }
+
+/* ───────── 魔王的招式動畫 ───────── */
+.raid-boss.boss-charge .raid-art {
+  animation: boss-charge 0.8s cubic-bezier(0.5, 0, 0.6, 1.4);
+}
+@keyframes boss-charge {
+  45% {
+    transform: translateX(-38vw) scale(1.15) rotate(-6deg);
+  }
+}
+/* 爪擊／連擊：英雄那一側出現爪痕 */
+.raid-boss-move {
+  position: absolute;
+  left: 4%;
+  top: 18%;
+  width: 26%;
+  height: 64%;
+  pointer-events: none;
+}
+.raid-boss-move i {
+  position: absolute;
+  top: 10%;
+  width: 10px;
+  height: 80%;
+  border-radius: 6px;
+  background: linear-gradient(180deg, transparent, #ff4d6d 30%, #fff 50%, #ff4d6d 70%, transparent);
+  filter: drop-shadow(0 0 10px #ff2050);
+  transform: rotate(28deg) scaleY(0);
+  animation: claw 0.45s ease-out forwards;
+}
+.raid-boss-move i:nth-child(1) {
+  left: 30%;
+}
+.raid-boss-move i:nth-child(2) {
+  left: 50%;
+  animation-delay: 0.05s;
+}
+.raid-boss-move i:nth-child(3) {
+  left: 70%;
+  animation-delay: 0.1s;
+}
+.raid-boss-move.mv-combo i {
+  animation: claw 0.4s ease-out 2 alternate;
+}
+.raid-boss-move.mv-charge i {
+  width: 18px;
+  background: linear-gradient(180deg, transparent, #ffa94d 30%, #fff 50%, #ffa94d 70%, transparent);
+}
+@keyframes claw {
+  0% {
+    transform: rotate(28deg) scaleY(0);
+    opacity: 1;
+  }
+  60% {
+    transform: rotate(28deg) scaleY(1);
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(28deg) scaleY(1);
+    opacity: 0;
+  }
+}
+/* 魔王大招：名稱與畫面 */
+.raid-boss-move.mv-doom,
+.raid-boss-move.mv-drain,
+.raid-boss-move.mv-seal,
+.raid-boss-move.mv-break {
+  inset: 0;
+  width: auto;
+  height: auto;
+  display: grid;
+  place-items: center;
+}
+.raid-boss-move b {
+  font-size: clamp(34px, 5vw, 80px);
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: 0.08em;
+  text-shadow: 0 0 20px #ff1744, 0 0 40px #ff1744;
+  animation: banner 2.3s ease forwards;
+}
+.raid-boss-move.mv-doom {
+  background: radial-gradient(circle at 30% 50%, rgba(255, 40, 40, 0.55), transparent 60%);
+  animation: fx-fade 2.3s ease forwards;
+}
+.raid-boss-move.mv-drain {
+  background: linear-gradient(90deg, rgba(220, 0, 60, 0.45), transparent 40%, rgba(220, 0, 60, 0.25));
+  animation: fx-fade 2.3s ease forwards;
+}
+.raid-boss-move.mv-seal {
+  background: radial-gradient(ellipse at 50% 90%, rgba(130, 60, 200, 0.7), transparent 70%);
+  animation: fx-fade 2.3s ease forwards;
+}
+.raid-boss-move.mv-break {
+  background: repeating-linear-gradient(115deg, transparent 0 40px, rgba(255, 255, 255, 0.18) 40px 44px);
+  animation: fx-fade 2.3s ease forwards;
+}
+.raid-boss-move.mv-seal b {
+  text-shadow: 0 0 20px #9b5cff, 0 0 40px #9b5cff;
+}
+.raid-shield.shatter {
+  animation: shatter 0.8s ease;
+}
+@keyframes shatter {
+  30% {
+    transform: scale(1.1);
+    filter: brightness(2);
+    border-style: dashed;
+  }
+  100% {
+    opacity: 0.4;
+  }
+}
+.raid-blocked.broken {
+  color: #ff8fa3;
+}
+.raid-boss.boss-heal .raid-art {
+  animation: boss-heal 1.2s ease;
+}
+@keyframes boss-heal {
+  50% {
+    filter: drop-shadow(0 0 30px #ff2050) brightness(1.4);
+  }
+}
+.raid-heal {
+  position: absolute;
+  left: 66%;
+  top: 26%;
+  font-size: clamp(28px, 3.4vw, 54px);
+  font-weight: 900;
+  color: #ff4d6d;
+  text-shadow: 0 3px 6px rgba(0, 0, 0, 0.8);
+  animation: float-up 1.4s ease-out forwards;
+}
+.raid-seal {
+  position: absolute;
+  left: 50%;
+  bottom: 4%;
+  transform: translateX(-50%);
+  padding: 8px 18px;
+  border-radius: 12px;
+  background: rgba(100, 40, 170, 0.85);
+  font-size: clamp(16px, 2vw, 28px);
+  animation: fx-fade 2.2s ease forwards;
+}
+.raid-charging {
+  color: #ffb86b;
+  font-weight: 700;
+}
+.raid-warn small {
+  display: block;
+  font-size: 0.6em;
+  font-weight: 700;
+  opacity: 0.95;
+}
+.raid-skip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  color: var(--muted, #666);
+  font-size: 14px;
+}
+.raid-skip small {
+  flex-basis: 100%;
+}

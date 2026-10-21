@@ -16,6 +16,8 @@ const acc: Record<Level, Record<RaidKind, number>> = {
   mid: { attack: 0.85, shield: 0.75, ultimate: 0.55 },
   strong: { attack: 0.95, shield: 0.9, ultimate: 0.8 },
 };
+/** 應用題「會做」的機率（不會做就換一題）。 */
+const KNOW: Record<Level, number> = { weak: 0.6, mid: 0.85, strong: 1 };
 const time: Record<RaidKind, [number, number]> = { attack: [12, 25], shield: [18, 32], ultimate: [30, 60] };
 function pick<T>(list: [T, number][]): T {
   let r = Math.random();
@@ -32,22 +34,36 @@ function game(difficulty: RaidDifficulty): RaidState {
     level: (i < N * 0.3 ? 'weak' : i < N * 0.75 ? 'mid' : 'strong') as Level,
     at: 0,
     kind: 'attack' as RaidKind,
+    skip: false,
+    skipAt: -1e9,
   }));
+  // STRAT=attack／shield／ultimate：全班都只做這一類（測試極端策略）
+  // 用 + 連起來＝在這幾類裡平均選（例如 attack+ultimate：都不撐防護罩）
+  const only = process.env.STRAT ? (process.env.STRAT.split('+') as RaidKind[]) : undefined;
   const plan = (p: (typeof people)[number], from: number) => {
-    let kind = pick(choose[p.level]);
+    let kind = only ? only[Math.floor(Math.random() * only.length)] : pick(choose[p.level]);
     // 魔王預告大招：中等以上的同學一半改做防護罩
-    if (s.bossUltAt !== null && p.level !== 'weak' && Math.random() < 0.5) kind = 'shield';
+    // 魔王預告大招：中等以上的同學一半、程度弱的三成改做防護罩（策略裡沒有防護罩就不改）
+    if ((!only || only.includes('shield')) && s.bossUltAt !== null && Math.random() < (p.level === 'weak' ? 0.3 : 0.5)) kind = 'shield';
     const [a, b] = time[kind];
     p.kind = kind;
-    p.at = Math.round(from + (a + Math.random() * (b - a)) * 1000 * (p.level === 'weak' ? 1.25 : 1));
+    // 應用題不會做：想一陣子（35–50 秒）後按「換一題」（每 30 秒一次），這一題不作答
+    p.skip = kind === 'ultimate' && Math.random() > KNOW[p.level] && from - p.skipAt >= 30000;
+    p.at = Math.round(from + (p.skip ? 35 + Math.random() * 15 : a + Math.random() * (b - a)) * 1000 * (p.level === 'weak' ? 1.25 : 1));
+    if (p.skip) p.skipAt = p.at;
   };
   for (const p of people) plan(p, 1000 + Math.random() * 4000);
   while (!s.result) {
     const p = people.reduce((x, y) => (y.at < x.at ? y : x));
     if (p.at >= limit) break;
+    if (p.skip) {
+      plan(p, p.at + 1000);
+      continue;
+    }
     const ok = Math.random() < acc[p.level][p.kind];
     act(c, s, { t: p.at, seat: p.seat, kind: p.kind, ok }, SECONDS);
-    plan(p, p.at + (ok ? 1500 : 5000));
+    // 答錯鎖住：應用題 3 秒、其他 5 秒
+    plan(p, p.at + (ok ? 1500 : p.kind === 'ultimate' ? 3000 : 5000));
   }
   return advance(c, s, limit, SECONDS);
 }

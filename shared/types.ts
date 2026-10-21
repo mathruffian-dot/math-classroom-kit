@@ -285,6 +285,9 @@ export interface RaidSeat {
   role?: RaidRole;
   cur?: { kind: RaidKind; id: string; order: number[]; at: number };
   lockUntil?: number;
+  /** 上一次「換一題」的時間與總共換了幾次。 */
+  skipAt?: number;
+  skips?: number;
   used: Partial<Record<RaidKind, string[]>>;
 }
 export interface RaidResult {
@@ -308,7 +311,12 @@ export interface RaidView {
     role?: RaidRole;
     question?: { kind: RaidKind; id: string; topic: string; stem: string; figure?: string; options: string[] };
     lockUntil?: number;
+    skipAt?: number;
   };
+  /** 正在算應用題（大招）的座號。 */
+  charging?: number[];
+  /** 只給老師：每個座號按了幾次「換一題」。 */
+  skips?: Record<string, number>;
   /** 結束後：老師拿到全班，學生只拿到自己的。 */
   results?: RaidResult[];
 }

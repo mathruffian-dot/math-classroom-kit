@@ -4,6 +4,8 @@ import type { RaidBank, RaidItem, RaidResult, RaidRun, RaidSeat, RaidView, User 
 import {
   RAID_KINDS,
   RAID_LOCK_MS,
+  RAID_LOCK_ULT_MS,
+  RAID_SKIP_COOLDOWN_MS,
   RAID_TITLES,
   raidBadges,
   raidLevel,
@@ -99,8 +101,26 @@ export function answerRaid(bank: RaidBank, run: RaidRun, store: RaidStore, seatN
   const t = Math.max(0, raidElapsed(run, now));
   play.actions.push({ t, seat: seatNo, kind: cur.kind, ok });
   delete seat.cur;
-  if (!ok) seat.lockUntil = now + RAID_LOCK_MS;
+  if (!ok) seat.lockUntil = now + (cur.kind === 'ultimate' ? RAID_LOCK_ULT_MS : RAID_LOCK_MS);
   return { correct: ok, answer: cur.order.indexOf(item.answer), ...(item.explanation ? { explanation: item.explanation } : {}), kind: cur.kind, ...(ok ? {} : { lockUntil: seat.lockUntil }) };
+}
+
+/** 不會做：換同一類的另一題（不算答錯；每 30 秒一次）。 */
+export function skipRaid(bank: RaidBank, seat: RaidSeat, now: number) {
+  const cur = seat.cur;
+  assert(cur, '目前沒有題目', 409);
+  assert(!seat.skipAt || now - seat.skipAt >= RAID_SKIP_COOLDOWN_MS, '換題太快了，等一下再換', 429);
+  seat.skipAt = now;
+  seat.skips = (seat.skips || 0) + 1;
+  newQuestion(bank, seat, cur.kind, now);
+  return questionFor(bank, seat.cur!);
+}
+/** 正在算應用題的座號（大螢幕顯示「正在算大招」）。 */
+export function chargingSeats(store: RaidStore, run: RaidRun): number[] {
+  return Object.entries(store.raidPlay?.[run.id]?.seats || {})
+    .filter(([, s]) => s.cur?.kind === 'ultimate')
+    .map(([seat]) => Number(seat))
+    .sort((a, b) => a - b);
 }
 
 /** 結算：每個人的貢獻分數、9 級稱號與特別稱號。 */
@@ -127,8 +147,10 @@ export function raidView(bank: RaidBank, run: RaidRun, store: RaidStore, user: U
   const all = over ? raidResults(run, state) : undefined;
   // 角色給所有人（學生平板也顯示戰場，出招動畫依角色不同）
   const roles = Object.fromEntries(Object.entries(play?.seats || {}).flatMap(([seat, s]) => (s.role ? [[seat, s.role]] : [])));
+  const charging = over ? [] : chargingSeats(store, run);
   if (teacher) {
-    return { run, title: bankTitle, state, roles, pools, ...(all ? { results: all } : {}) };
+    const skips = Object.fromEntries(Object.entries(play?.seats || {}).flatMap(([seat, s]) => (s.skips ? [[seat, s.skips]] : [])));
+    return { run, title: bankTitle, state, roles, charging, skips, pools, ...(all ? { results: all } : {}) };
   }
   const me = String(user.seat);
   const seat = play?.seats[me];
@@ -140,12 +162,14 @@ export function raidView(bank: RaidBank, run: RaidRun, store: RaidStore, user: U
     if (q) mine.question = q;
   }
   if (seat?.lockUntil && seat.lockUntil > now && !over) mine.lockUntil = seat.lockUntil;
+  if (seat?.skipAt) mine.skipAt = seat.skipAt;
   return {
     run,
     title: bankTitle,
     // 學生端：只留最近的戰況，成績只有自己的
     state: { ...rest, log: rest.log.slice(-12), stats: stats[me] ? { [me]: stats[me] } : {} },
     roles,
+    charging,
     pools,
     mine,
     ...(all ? { results: all.filter((r) => String(r.seat) === me) } : {}),

@@ -19,7 +19,7 @@ import { normalizeChars, parseNumberAnswer } from '../shared/expr';
 import { PRACTICE_GRACE_MS, practiceStatus, practiceTotal } from '../shared/practice';
 import { PK_COUNTDOWN_MS, QUIZ_GRACE_MS, decide, quizOver } from '../shared/quiz';
 import { drawPaper, drawReview, instantFeedback, isCorrect, makeBot, newMatch, paperFor, quizRecord, quizView, restoreQuiz, score, type QuizStore } from './quiz';
-import { answerRaid, newQuestion, questionFor, raidBank, raidCsvRows, raidOver, raidState, raidView, restoreRaid, type RaidStore } from './raid';
+import { answerRaid, newQuestion, questionFor, raidBank, skipRaid, raidCsvRows, raidOver, raidState, raidView, restoreRaid, type RaidStore } from './raid';
 import { RAID_COUNTDOWN_MS, RAID_KINDS, RAID_ROLES, raidConfig, type RaidDifficulty, type RaidKind, type RaidRole } from '../shared/raid';
 import {
   HttpError,
@@ -1845,6 +1845,12 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
           if (seat.cur?.kind !== kind) newQuestion(bank, seat, kind, t);
           session.revision++;
           return save({ question: questionFor(bank, seat.cur!), revision: session.revision });
+        }
+        if (body.op === 'skip') {
+          // 不會做：換一題（不算答錯，每 30 秒一次）
+          const question = skipRaid(bank, seat, t);
+          session.revision++;
+          return save({ question, skipAt: seat.skipAt, revision: session.revision });
         }
         assert(body.op === 'answer', '未知的操作');
         const result = answerRaid(bank, run, s, user.seat!, integer(body.choice, 0, 5), t);
