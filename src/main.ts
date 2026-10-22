@@ -357,7 +357,7 @@ function figureFocusHtml(slide: Slide) {
     const a = slide.animation;
     if (!a?.src) return '';
     const poster = a.poster ? ` poster="/api/assets/lessons/${esc(a.poster)}"` : '';
-    return `<div class="fig-focus anim-focus" data-testid="animation-focus"><figure><video class="anim-player" src="/api/assets/lessons/${esc(a.src)}"${poster} controls autoplay muted playsinline preload="auto" data-testid="animation-player"></video><figcaption>🎬 ${md(a.caption)}</figcaption></figure></div>${close('關閉動畫')}`;
+    return `<div class="fig-focus anim-focus" data-testid="animation-focus"><figure><video class="anim-player" src="/api/assets/lessons/${esc(a.src)}"${poster} controls playsinline preload="auto" data-testid="animation-player"></video><figcaption>🎬 ${md(a.caption)}</figcaption></figure></div>${close('關閉動畫')}`;
   }
   const f = figZoom && slide.figures?.[figZoom.index];
   if (!f) return '';
@@ -397,7 +397,9 @@ function workAnswers(v: SessionView, a: Activity): Answer[] {
 function gradeFor(answerId: string): Grade | undefined {
   return view?.grades.find((g) => g.answerId === answerId);
 }
-function answerText(value: Answer['value']): string {
+function answerText(value: Answer['value'], a?: Activity): string {
+  // 單選題存的是選項序號（0 起算），顯示成字母
+  if (a?.type === 'single' && typeof value === 'number') return String.fromCharCode(65 + value);
   if (typeof value === 'string' || typeof value === 'number') return String(value);
   if (Array.isArray(value))
     return value
@@ -407,11 +409,11 @@ function answerText(value: Answer['value']): string {
   return (value as CanvasAnswer).text || '';
 }
 /** 送出的答案用課本樣式顯示：算式排版、選項字母、操作數值。 */
-function answerDisplay(value: Answer['value']): string {
+function answerDisplay(value: Answer['value'], a?: Activity): string {
   if (typeof value === 'string') return answerHtml(value);
   if (Array.isArray(value) && typeof value[0] === 'string')
     return (value as string[]).map((x, i) => `(${i + 1}) ${answerHtml(x)}`).join('　');
-  return esc(answerText(value));
+  return esc(answerText(value, a));
 }
 /** 輸入框下方的即時預覽：讓學生確認系統讀到的算式。 */
 function previewHtml(value: string): string {
@@ -611,7 +613,7 @@ function answerForm(a: Activity) {
     fields = `${criteriaHint(a)}<button type="button" class="canvas-launch ${preview ? 'has-preview' : ''}" data-action="open-sketch" data-testid="open-sketch" ${dis}>${preview ? `<img src="${preview}" alt="畫布預覽">` : `<span>${icon('pen')}<strong>開啟畫布作答</strong><small>手寫、作圖${a.allowPhoto !== false ? '，或寫在紙上拍照' : ''}</small></span>`}</button>${sk?.text ? `<p class="answer-note">${esc(sk.text)}</p>` : ''}${a.allowPhoto !== false ? `<label class="btn secondary full photo-quick ${locked ? 'disabled' : ''}">${icon('camera')}<span>直接拍照作答</span><input type="file" accept="image/*" capture="environment" data-action-input="quick-photo" ${dis}></label>` : ''}`;
   }
   const saved = answered
-    ? `<div class="saved-answer">${icon('check')}<div><strong>已送出</strong>${a.type === 'canvas' || isPhotoValue(answered.value) ? canvasValuePreview(answered.value) : `<span>${answerDisplay(answered.value)}</span>`}</div>${open && !editing ? `<button class="text-button" data-action="edit-answer">修改</button>` : ''}</div>`
+    ? `<div class="saved-answer">${icon('check')}<div><strong>已送出</strong>${a.type === 'canvas' || isPhotoValue(answered.value) ? canvasValuePreview(answered.value) : `<span>${answerDisplay(answered.value, a)}</span>`}</div>${open && !editing ? `<button class="text-button" data-action="edit-answer">修改</button>` : ''}</div>`
     : '';
   const submit = (!answered || editing) ? btn(over ? '時間到' : open ? (a.type === 'manipulate' ? '送出我的操作' : '送出答案') : '等待老師開放', 'submit-answer', 'primary full', 'check', `data-testid="submit-answer" ${!open ? 'disabled' : ''}`) : '';
   const keys = a.type === 'numeric' && (!answered || editing); // 作答鍵盤浮在答案框下方（#keypad），這裡只留送出鈕
@@ -886,7 +888,9 @@ function renderSession() {
   const panel = teacher ? teacherPanel(a, screen) : studentPanel(a, index);
   // 重畫時（例如按「公布結果」）保留動畫的播放位置
   const oldVideo = document.querySelector<HTMLVideoElement>('.anim-focus video');
-  const resume = oldVideo ? { t: oldVideo.currentTime, paused: oldVideo.paused } : null;
+  const resume = oldVideo
+    ? { t: oldVideo.currentTime, paused: oldVideo.paused, muted: oldVideo.muted, volume: oldVideo.volume }
+    : null;
   app.innerHTML = `<header class="room-bar"><div class="room-identity">${teacher ? btn('返回', 'dashboard', 'icon-btn', 'back', 'aria-label="返回課程"') : `<span class="brand-mark small">${icon('sigma')}</span>`}<div><strong>${esc(teacher ? s.title : `${s.className}・${user.seat} 號`)}</strong><small>${teacher ? esc(s.className) : esc(view.lesson.title)}</small></div></div><div class="room-progress" aria-label="第 ${index + 1} 頁，共 ${total} 頁"><span>${index + 1}</span>/<span>${total}</span></div><div class="room-actions"><span id="sync-status" class="sync-status"><i></i>已連線</span>${teacher ? `${btn(screen ? '一般' : '大屏', 'screen', 'quiet', 'screen', 'title="切換大屏授課"')}` : ''}${btn('', 'fullscreen', 'icon-btn', 'expand', 'aria-label="全螢幕" title="全螢幕"')}${!teacher && s.danmakuOpen && !s.ended ? btn('彈幕', 'danmaku-bar', `quiet danmaku-btn ${danmakuBar ? 'selected' : ''}`, 'spark', 'data-testid="danmaku-open"') : ''}${teacher ? '' : btn('', 'logout', 'icon-btn', 'logout', 'aria-label="登出" title="登出"')}</div></header><div class="room-main"><main class="stage-col"><article class="slide-stage" data-testid="session-slide" id="slide-stage">${slideMarkup(slide, index, total)}<div id="quiz-board-host">${teacher ? quizBoardHtml() : ''}</div><div id="raid-board-host">${showRaidBoard() ? raidBoardHtml(view.raid!) : ''}</div></article><nav class="slide-nav" aria-label="翻頁與白板工具">${btn('', 'prev-slide', 'icon-btn nav-btn', 'prev', `aria-label="上一頁" ${index === 0 || (!teacher && s.followTeacher) ? 'disabled' : ''}`)}${teacher ? toolbar() : ''}<div class="slide-dots">${view.lesson.slides.map((sl, i) => `<button class="${i === index ? 'active' : ''} ${sl.activity ? 'has-q' : ''} ${i === s.slideIndex && !teacher ? 'live' : ''}" data-action="go-slide" data-index="${i}" aria-label="第 ${i + 1} 頁${sl.phase ? `・${esc(sl.phase)}` : ''}" title="${esc(sl.phase || sl.title)}" ${!teacher && s.followTeacher ? 'disabled' : ''}><span></span></button>`).join('')}</div>${btn('', 'next-slide', 'icon-btn nav-btn primary', 'next', `aria-label="下一頁" data-testid="next-slide" ${index === total - 1 || (!teacher && s.followTeacher) ? 'disabled' : ''}`)}</nav></main><aside class="panel-col" aria-label="${teacher ? '課堂互動' : '作答區'}">${panel}</aside></div>${teacher ? '' : `<nav class="phone-tabs" aria-label="切換"><button class="${studentTab === 'slide' ? 'selected' : ''}" data-action="student-tab" data-tab="slide">${icon('book')}教材</button><button class="${studentTab === 'answer' ? 'selected' : ''}" data-action="student-tab" data-tab="answer">${icon('pen')}作答${a && s.activityOpen && (!own || editing) ? '<i class="badge-dot"></i>' : ''}</button></nav>`}<div id="buzz-root"></div><div id="danmaku-root">${teacher ? '' : danmakuStudentHtml()}</div>${teacher ? '' : keypadHtml()}`;
   const stage = document.querySelector<HTMLElement>('#slide-stage')!;
   renderBuzzLayer();
@@ -900,8 +904,16 @@ function renderSession() {
   if (figZoom) stage.insertAdjacentHTML('beforeend', figureFocusHtml(slide));
   const video = stage.querySelector<HTMLVideoElement>('.anim-focus video');
   if (video && resume) {
+    video.muted = resume.muted;
+    video.volume = resume.volume;
     video.autoplay = !resume.paused;
     video.addEventListener('loadedmetadata', () => (video.currentTime = resume.t), { once: true });
+  } else if (video) {
+    // 剛點開：先有聲播放（有旁白的短片）；瀏覽器擋下有聲自動播放時改成靜音播放
+    video.play().catch(() => {
+      video.muted = true;
+      return video.play().catch(() => {});
+    });
   }
   const vizHost = stage.querySelector<HTMLElement>('.viz-host');
   if (vizHost && slide.interactive)
@@ -1609,7 +1621,7 @@ function filteredResponses(a: Activity): { summary: string; body: string; wall: 
     summary: `個別作答（${label}${answers.length} 人${!pick && (right || wrong) ? `・✓ ${right}・✗ ${wrong}` : ''}）`,
     wall: photos.length > 0,
     body: answers.length
-      ? `<div class="seat-chips">${answers.map((x) => `<span class="seat-chip ${x.correct ? 'ok' : x.note ? 'warn' : x.correct === undefined ? '' : 'no'}" title="${esc(answerText(x.value))}${x.note ? `（${esc(x.note)}）` : ''}"><b class="chip-seat">${x.seat}${x.correct === undefined ? '' : x.correct ? ' ✓' : ' ✗'}${tries(x.seat) > 1 ? `<small>改 ${tries(x.seat) - 1} 次</small>` : ''}</b>${chipAnswer(x, a)}</span>`).join('')}</div>${grid}`
+      ? `<div class="seat-chips">${answers.map((x) => `<span class="seat-chip ${x.correct ? 'ok' : x.note ? 'warn' : x.correct === undefined ? '' : 'no'}" title="${esc(answerText(x.value, a))}${x.note ? `（${esc(x.note)}）` : ''}"><b class="chip-seat">${x.seat}${x.correct === undefined ? '' : x.correct ? ' ✓' : ' ✗'}${tries(x.seat) > 1 ? `<small>改 ${tries(x.seat) - 1} 次</small>` : ''}</b>${chipAnswer(x, a)}</span>`).join('')}</div>${grid}`
       : empty,
   };
 }
@@ -1642,7 +1654,7 @@ function chipAnswer(x: Answer, a?: Activity) {
     const items = x.itemsCorrect?.map((ok, i) => (ok ? `<b>✓(${i + 1})</b>` : '')).join('') || '';
     return `<span class="chip-items"><span class="chip-item">📷${g ? ` ${g.total}/${g.max}` : ' 批改中'}</span>${items ? `<span class="chip-item ok">${items}</span>` : ''}</span>`;
   }
-  return `<small>${esc(answerText(x.value)).slice(0, 14)}</small>`;
+  return `<small>${esc(answerText(x.value, a)).slice(0, 14)}</small>`;
 }
 function gradingBar(a: Activity) {
   const answers = workAnswers(view!, a);

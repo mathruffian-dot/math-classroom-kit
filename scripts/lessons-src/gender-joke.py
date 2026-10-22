@@ -84,7 +84,7 @@ def main():
             slide['animation'] = {
                 'src': 'gender-joke/anim-decision.mp4',
                 'poster': 'gender-joke/anim-decision.png',
-                'caption': '決策短片（25 秒，有旁白，播放時請開聲音）',
+                'caption': '決策短片（25 秒，有旁白）',
                 'seconds': 25,
                 'reveal': 'always',
             }
@@ -92,7 +92,7 @@ def main():
             if not m['title'].startswith(activities[n]['id'][4:].upper()):
                 sys.exit(f'第 {n} 頁「{m["title"]}」不是 {activities[n]["id"]} 的題目頁')
             slide['activity'] = activities[n]
-            slide['source'] += '；IRS 取自原教材 07_IRS/IRS題庫.json'
+            slide['source'] += f'；IRS 為原教材 {activities[n]["id"][4:].upper()}'
         slides.append(slide)
 
     lesson = {
