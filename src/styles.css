@@ -1226,6 +1226,31 @@ td small {
 .figure-only .textbook-fig img {
   max-height: 44cqh;
 }
+/* 整頁簡報圖（fullSlide）：簡報頁本身就有標題，圖填滿投影片區；動畫卡（若有）縮到同一排 */
+.slide-head.full-slide h1 {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+.full-slide .textbook-figs {
+  flex-direction: row;
+  align-items: center;
+}
+.full-slide .textbook-fig {
+  flex: 1 1 auto;
+}
+.full-slide .textbook-fig button {
+  padding: 0;
+  overflow: hidden;
+}
+.full-slide .textbook-fig button::after {
+  content: none;
+}
+.full-slide .textbook-fig img {
+  max-height: calc(100cqh - 4px);
+}
 /* 動畫卡：16:9 縮圖，和課本截圖同一排；點一下用大視窗播放 */
 .anim-card {
   margin: 0;

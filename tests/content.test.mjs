@@ -45,8 +45,8 @@ test('example lessons have unique stable IDs and valid activity options', async 
     assert.ok(lesson.slides.length >= 3, `${lesson.id}: show several different slide examples`);
     const ids = lesson.slides.map(s => s.id);
     assert.equal(new Set(ids).size, ids.length, 'Slide IDs must be unique');
-    // 每一頁都要有依該頁內容設計的 IRS。
-    for (const s of lesson.slides) assert.ok(s.activity, `${lesson.id}/${s.id}: every slide needs an IRS activity`);
+    // 每一頁都要有依該頁內容設計的 IRS（整頁簡報圖 fullSlide 是先放上來的現成簡報，IRS 之後再補）。
+    for (const s of lesson.slides) assert.ok(s.activity || s.fullSlide,`${lesson.id}/${s.id}: every slide needs an IRS activity`);
     const activities = lesson.slides.flatMap(s => s.activity ? [s.activity] : []);
     assert.equal(new Set(activities.map(a => a.id)).size, activities.length, 'Activity IDs must be unique');
     for (const activity of activities) {

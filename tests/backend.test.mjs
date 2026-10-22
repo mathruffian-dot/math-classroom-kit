@@ -12,7 +12,7 @@ const {handleApi,liveTicket,liveView}=await import(pathToFileURL(join(dir,'worke
 const {SupabaseStore,DurableStore,SessionSplitStore,MAX_SNAPSHOT_BYTES}=await import(pathToFileURL(join(dir,'worker','storage.mjs')).href);
 const {ClassroomDurableObject}=await import(pathToFileURL(join(dir,'worker','index.mjs')).href);
 const {aggregateVotes,normalizeGrade,extractJson,isReasoning,numberedWork,parseMarks,chat}=await import(pathToFileURL(join(dir,'worker','ai.mjs')).href);
-const {judgePhotoFinals,validateAnswer,validateActivity}=await import(pathToFileURL(join(dir,'worker','validation.mjs')).href);
+const {judgePhotoFinals,validateAnswer,validateActivity,validateLesson}=await import(pathToFileURL(join(dir,'worker','validation.mjs')).href);
 const expr=await import(pathToFileURL(join(dir,'shared','expr.mjs')).href);
 const {practiceStatus}=await import(pathToFileURL(join(dir,'shared','practice.mjs')).href);
 const quizLib=await import(pathToFileURL(join(dir,'shared','quiz.mjs')).href);
@@ -1111,4 +1111,12 @@ test('formative quiz: one random paper for the class, answers hidden until the e
   const g=fixture();await g.call('/api/login','POST',TEACHER);
   const r=await g.call('/api/restore','POST',{backup});assert.equal(r.status,200,JSON.stringify(r.body));
   assert.equal(g.data.sessions[s.id].quizRuns.length,5);assert(g.data.sessions[s.id].quizRuns.some(r=>r.mode==='review'&&r.personal['1']));
+});
+
+test('fullSlide: one figure fills the slide; zero or several figures are rejected',()=>{
+  const lesson=(figures)=>({schemaVersion:1,id:'deck',title:'簡報',slides:[{id:'p01',title:'封面',body:'',fullSlide:true,figures}]});
+  const fig={src:'deck/p01.jpg',alt:'簡報第 1 頁'};
+  assert.equal(validateLesson(lesson([fig])).slides[0].fullSlide,true);
+  assert.throws(()=>validateLesson(lesson([])),/fullSlide/);
+  assert.throws(()=>validateLesson(lesson([fig,{...fig,src:'deck/p02.jpg'}])),/fullSlide/);
 });

@@ -218,6 +218,8 @@ export interface Slide {
   visual?: 'balance' | 'steps' | 'cards' | 'bars';
   interactive?: Interactive;
   figures?: Figure[];
+  /** 整頁簡報圖：唯一一張 figure 填滿投影片區（不加「課本」標籤），標題只留給頁碼點與備註，不另外顯示。 */
+  fullSlide?: boolean;
   animation?: Animation;
   activity?: Activity;
   notes?: string;

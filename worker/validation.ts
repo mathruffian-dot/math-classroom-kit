@@ -454,6 +454,11 @@ export function validateLesson(input: unknown): Lesson {
             return fig;
           });
         }
+        if (s.fullSlide === true) {
+          assert(slide.figures?.length === 1, '整頁簡報圖（fullSlide）要剛好 1 張 figure');
+          assert(!slide.interactive && !slide.customHtml, '整頁簡報圖（fullSlide）不能和 interactive／customHtml 一起用');
+          slide.fullSlide = true;
+        }
         if (s.animation !== undefined) {
           const a = record(s.animation);
           const asset = (v: unknown, label: string, ext: RegExp) => {
