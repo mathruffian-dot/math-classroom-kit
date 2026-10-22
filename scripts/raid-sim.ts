@@ -61,7 +61,9 @@ function game(difficulty: RaidDifficulty): RaidState {
       continue;
     }
     const ok = Math.random() < acc[p.level][p.kind];
-    act(c, s, { t: p.at, seat: p.seat, kind: p.kind, ok }, SECONDS);
+    // 角色：程度弱的多選弓箭手（記憶題）、中等選劍士（防護罩）、程度好的選法師（大招）
+    const role = p.level === 'weak' ? 'archer' : p.level === 'mid' ? 'knight' : 'mage';
+    act(c, s, { t: p.at, seat: p.seat, kind: p.kind, ok, role }, SECONDS);
     // 答錯鎖住：應用題 3 秒、其他 5 秒
     plan(p, p.at + (ok ? 1500 : p.kind === 'ultimate' ? 3000 : 5000));
   }

@@ -34,7 +34,8 @@ export type ActivityType =
   | 'short'
   | 'numeric'
   | 'canvas'
-  | 'manipulate';
+  | 'manipulate'
+  | 'make';
 
 export interface Activity {
   id: string;
@@ -58,6 +59,9 @@ export interface Activity {
   items?: NumericItem[];
   /** numeric：'simplest-radical' 表示答案須化成最簡根式（數值相同但未化簡判錯並說明）。 */
   form?: 'simplest-radical';
+  /** make（根式湊數挑戰）：數字卡（3–5 張，例如 "√2"、"3"）與目標數（例如 "6"、"5√3"）。學生每張卡用一次，加上四則與括號湊出目標。 */
+  cards?: string[];
+  target?: string;
   tolerance?: number;
   unit?: string;
   /** manipulate：以互動變數判斷正確的運算式，例如 "a==4 && b==3"。 */
@@ -281,12 +285,16 @@ export interface RaidRun {
   seconds: number;
   endedAt?: number;
   config: RaidConfig;
+  /** 開戰時每個座號之前的個人最佳（答對題數）。 */
+  prevBest?: Record<string, number>;
 }
 /** 一位同學在這一場：角色、目前的題目、答錯鎖住到什麼時候、做過的題目。 */
 export interface RaidSeat {
   role?: RaidRole;
   cur?: { kind: RaidKind; id: string; order: number[]; at: number };
   lockUntil?: number;
+  /** 這一場的個人目標（答對幾題）。 */
+  goal?: number;
   /** 上一次「換一題」的時間與總共換了幾次。 */
   skipAt?: number;
   skips?: number;
@@ -299,6 +307,10 @@ export interface RaidResult {
   title: string;
   badges: string[];
   stats: RaidSeatStats;
+  /** 答對題數、這一場的目標、之前的個人最佳。 */
+  correct: number;
+  goal?: number;
+  prevBest?: number;
 }
 export interface RaidView {
   run: RaidRun;
@@ -314,6 +326,8 @@ export interface RaidView {
     question?: { kind: RaidKind; id: string; topic: string; stem: string; figure?: string; options: string[] };
     lockUntil?: number;
     skipAt?: number;
+    goal?: number;
+    prevBest?: number;
   };
   /** 正在算應用題（大招）的座號。 */
   charging?: number[];
@@ -335,9 +349,13 @@ export interface PkMatch {
 /** 一次全班測驗或一場 PK（同一份卷子；PK 時所有組與觀眾都用這一份）。 */
 export interface QuizRun {
   id: string;
-  /** class：全班測驗；pk：PK 戰；review：錯題練習（每人只做自己錯的題型，換數字）。 */
-  mode: 'class' | 'pk' | 'review';
+  /** class：全班測驗；pk：PK 戰；review：錯題練習（每人只做自己錯的題型，換數字）；spaced：間隔複習（上一課錯最多的題型）。 */
+  mode: 'class' | 'pk' | 'review' | 'spaced';
   paper: QuizPaper;
+  /** 間隔複習：題目來自上一課，題庫另外存在這一次（只在伺服器；送給師生的畫面會拿掉）。 */
+  bank?: QuizBank;
+  /** 間隔複習：上一課的名稱。 */
+  from?: string;
   /** 錯題練習：每個人自己的卷子（picks 依題位、slots 是要做的題位）。 */
   personal?: Record<string, { picks: QuizPaper['picks']; slots: number[] }>;
   /** 開始作答的時間（PK 有 3 秒倒數，所以比建立時間晚）。 */
@@ -352,6 +370,8 @@ export interface QuizSheet {
   times: (number | null)[];
   /** 交卷（全部答完）的時間，從開始算起的毫秒。 */
   done?: number;
+  /** 信心下注（全班測驗）：1＝有把握、0＝不太確定。 */
+  conf?: (number | null)[];
 }
 /** 學生、大螢幕看到的成績摘要（只有題數，不含答案）。 */
 export interface QuizScore {
@@ -384,7 +404,11 @@ export interface QuizView {
     explanation?: string;
   }[];
   /** 自己的作答（顯示位置）。 */
-  mine?: { answers: (number | null)[]; correct: (boolean | null)[]; done?: number };
+  mine?: { answers: (number | null)[]; correct: (boolean | null)[]; done?: number; conf?: (number | null)[] };
+  /** 全班測驗：上一次全班測驗的成績（老師拿到全班，學生只拿到自己的）。 */
+  prev?: Record<string, { correct: number; total: number }>;
+  /** 老師：全班測驗結束後每個人的信心下注分數。 */
+  bets?: Record<string, number>;
   /** 每位同學的成績摘要（座號 → 摘要；0＝電腦）。學生只在 PK 時看得到。 */
   scores: Record<string, QuizScore>;
   /** 老師：每一題每個選項（顯示位置）有幾人選。 */
@@ -600,6 +624,8 @@ export interface SessionView {
     submitted: number;
     total: number;
     correct?: number;
+    /** 上線人數（全班目標條的分母；老師、或公布結果後的學生才有）。 */
+    online?: number;
   };
   whiteboard: Record<string, Stroke[]>;
   grades: Grade[];
@@ -615,8 +641,12 @@ export interface SessionView {
   quiz?: QuizView;
   /** 老師：錯題紀錄與 PK 戰績（這一課有題庫、做過測驗才有）。 */
   quizRecord?: QuizRecord;
+  /** 老師：可以派的間隔複習（上一課錯最多的題型）。 */
+  spaced?: { title: string; topics: string[] };
   /** 魔王戰（進行中或剛結束）。 */
   raid?: RaidView;
+  /** 老師：這一節魔王戰的冒險地圖（全班打倒過哪幾隻魔王、最快幾毫秒）。 */
+  raidMap?: { title: string; section?: string; wins: Partial<Record<RaidDifficulty, { at: number; ms: number }>> };
   /**
    * 學生：作答開放中時彈幕有限制（只有答對的同學能送，這一題每人 3 則）。
    * limited 為 false 表示平常時間，不限則數。

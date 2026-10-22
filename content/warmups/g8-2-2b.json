@@ -1,0 +1,27 @@
+{
+  "slides": [
+    {
+      "id": "warmup",
+      "phase": "暖身",
+      "eyebrow": "暖身 / 估一估",
+      "title": "估一估：$2\\sqrt{3}$ 大約是多少？",
+      "body": "不用計算機，寫到小數點後一位。",
+      "visual": "steps",
+      "bullets": [
+        "$\\sqrt{3}$ 在哪兩個整數之間？",
+        "$\\sqrt{3}$ 大約是多少？",
+        "再乘以 2"
+      ],
+      "activity": {
+        "id": "warmup-est",
+        "type": "numeric",
+        "prompt": "$2\\sqrt{3}\\approx$？（寫到小數點後一位）",
+        "answer": "2√3",
+        "tolerance": 0.1,
+        "explanation": "$\\sqrt{3}\\approx1.73$，所以 $2\\sqrt{3}\\approx3.46$，寫 3.5、3.4 都可以。也可以想成 $2\\sqrt{3}=\\sqrt{12}$，在 $\\sqrt{9}=3$ 和 $\\sqrt{16}=4$ 之間。"
+      },
+      "notes": "容許誤差 ±0.1：3.4、3.5、3.46 都算對。先看全班答案的分布，再請估得最近、最遠的同學說怎麼想。",
+      "source": "暖身：估一估（複習 2-2(1) 根式的乘法）"
+    }
+  ]
+}

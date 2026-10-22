@@ -12,6 +12,7 @@ import {
   RAID_TITLES,
   RAID_ULT_NEED,
   ROLE_NAME,
+  ROLE_PASSIVE,
   BOSS_ATTACKS,
   BOSS_ULTS,
   RAID_SKIP_COOLDOWN_MS,
@@ -128,6 +129,20 @@ function resultTitle(s: RaidState, v: RaidView) {
   if (s.result === 'lose') return '英雄們倒下了…';
   if (s.result === 'timeout') return '⏰ 時間到！魔王獲勝';
   return v.run.endedAt ? '戰鬥提前結束（不分勝負）' : '';
+}
+
+/* ───────── 老師：冒險地圖（魔王戰頁、還沒開戰時） ───────── */
+export function raidMapHtml(map: NonNullable<import('../shared/types').SessionView['raidMap']>): string {
+  const order = ['easy', 'normal', 'hard'] as const;
+  const nodes = order
+    .map((d, i) => {
+      const w = map.wins[d];
+      const time = w ? `${Math.floor(w.ms / 60000)} 分 ${Math.round((w.ms % 60000) / 1000)} 秒` : '';
+      return `<div class="raid-map-node ${w ? 'won' : ''}" data-testid="raid-map-${d}">${bossArt(d)}<b>${BOSS_NAME[d]}</b><small>${DIFFICULTY_NAME[d]}</small><span>${w ? `✓ 已擊敗・最快 ${time}` : i > 0 && !map.wins[order[i - 1]] ? '先打倒前一隻吧' : '等待挑戰'}</span></div>`;
+    })
+    .join('<i class="raid-map-path"></i>');
+  const done = order.filter((d) => map.wins[d]).length;
+  return `<div class="raid-board raid-map" data-testid="raid-map"><div class="raid-map-head"><strong>🗺 冒險地圖・${H.esc(map.section || '')} ${H.esc(map.title)}</strong><small>全班已擊敗 ${done}／3 位魔王｜在右邊選難度和時間，按「開戰」</small></div><div class="raid-map-nodes">${nodes}</div><p class="raid-map-tip">記憶題＝普通攻擊・理解題＝存防護罩・應用題＝大招（越多人一起做越強）</p></div>`;
 }
 
 /* ───────── 老師：大螢幕戰場 ───────── */
@@ -349,13 +364,13 @@ function resultsHtml(v: RaidView, s: RaidState) {
   const rows = res
     .map(
       (r, i) =>
-        `<tr><td>${i + 1}</td><td><b>${r.seat} 號</b></td><td><span class="raid-title lv${r.level}">Lv${r.level} ${H.esc(r.title)}</span>${r.badges.map((b) => `<span class="raid-badge">${H.esc(b)}</span>`).join('')}</td><td>${r.score}</td><td>${r.stats.ok.attack}/${r.stats.n.attack}</td><td>${r.stats.ok.shield}/${r.stats.n.shield}</td><td>${r.stats.ok.ultimate}/${r.stats.n.ultimate}</td></tr>`,
+        `<tr><td>${i + 1}</td><td><b>${r.seat} 號</b></td><td><span class="raid-title lv${r.level}">Lv${r.level} ${H.esc(r.title)}</span>${r.badges.map((b) => `<span class="raid-badge">${H.esc(b)}</span>`).join('')}</td><td>${r.score}</td><td>${r.correct}${r.goal ? `／${r.goal}${r.correct >= r.goal ? ' ✓' : ''}` : ''}</td><td>${r.stats.ok.attack}/${r.stats.n.attack}</td><td>${r.stats.ok.shield}/${r.stats.n.shield}</td><td>${r.stats.ok.ultimate}/${r.stats.n.ultimate}</td></tr>`,
     )
     .join('');
   if (!v.results) return `<div class="raid-result ${s.result || 'ended'}" data-testid="raid-result"><h2>${resultTitle(s, v)}</h2><p class="raid-sum">結算中…</p></div>`;
   return `<div class="raid-result ${s.result || 'ended'}" data-testid="raid-result"><h2>${resultTitle(s, v)}</h2><p class="raid-sum">${minutes}・限時 ${v.run.seconds / 60} 分鐘・攻擊 ${tally.atk || 0} 次・防護罩擋下 ${(tally.bossBlock || 0) + (tally.bossUltBlock || 0)} 次・大招 ${tally.ult || 0} 次・魔王剩 ${s.bossHp} 血</p>${
     rows
-      ? `<div class="raid-table-wrap"><table class="raid-table"><thead><tr><th></th><th>座號</th><th>稱號</th><th>貢獻</th><th>記憶</th><th>理解</th><th>應用</th></tr></thead><tbody>${rows}</tbody></table></div>`
+      ? `<div class="raid-table-wrap"><table class="raid-table"><thead><tr><th></th><th>座號</th><th>稱號</th><th>貢獻</th><th>答對／目標</th><th>記憶</th><th>理解</th><th>應用</th></tr></thead><tbody>${rows}</tbody></table></div>`
       : '<p class="muted">這一場沒有人作答。</p>'
   }</div>`;
 }
@@ -384,8 +399,15 @@ export function raidPanelHtml(v: RaidView | undefined, prefs: { difficulty: stri
 export interface RaidLocal {
   flash: string;
   sending: boolean;
+  /** 學生按了「先不設定目標」（這一場）。 */
+  noGoal: string;
 }
-export const raidLocal: RaidLocal = { flash: '', sending: false };
+export const raidLocal: RaidLocal = { flash: '', sending: false, noGoal: '' };
+/** 目標的建議：有個人最佳就追平、突破、挑戰；沒有就 3、5、8 題。 */
+function goalChoices(prev?: number): [number, string][] {
+  if (prev === undefined || prev < 1) return [[3, '穩穩來'], [5, '拚一下'], [8, '挑戰']];
+  return [[prev, '追平紀錄'], [prev + 2, '突破紀錄'], [prev + 4, '大挑戰']];
+}
 /** 上方的小戰況（每 0.25 秒更新）。 */
 export function raidMiniHtml(v: RaidView, now: number) {
   const s = liveState(v, now),
@@ -393,7 +415,15 @@ export function raidMiniHtml(v: RaidView, now: number) {
   const bank = shieldMs(s);
   return `<div class="raid-mini-bars"><div class="raid-bar boss small"><i class="hp" style="width:${pct(s.bossHp, c.bossHp)}"></i><span>魔王 ${s.bossHp}</span></div><div class="raid-bar team small"><i style="width:${pct(s.teamHp, c.teamHp)}"></i><span>英雄 ${s.teamHp}</span></div></div><div class="raid-mini-info">${
     bank > 0 ? `<span class="on">🛡 存量 ${bank / 1000} 秒</span>` : '<span>🛡 存量 0</span>'
-  }<span>💥 大招 ${Math.round((s.ult / RAID_ULT_NEED) * 100)}%</span></div>${resistText(s, c.players) ? `<p class="raid-mini-resist">${resistText(s, c.players)}</p>` : ''}${s.bossUltAt !== null && !s.result ? `<p class="raid-mini-warn">⚠ 魔王大招「${bossMove(s.bossUltMove || undefined)?.name || ''}」${Math.max(0, Math.ceil((s.bossUltAt - s.t) / 1000))} 秒後落下！防護罩存量 ${bank / 1000}／${RAID_ULT_BLOCK_MS / 1000} 秒，做理解題存防護罩！</p>` : ''}`;
+  }<span>💥 大招 ${Math.round((s.ult / RAID_ULT_NEED) * 100)}%</span></div>${myLine(v, s)}${resistText(s, c.players) ? `<p class="raid-mini-resist">${resistText(s, c.players)}</p>` : ''}${s.bossUltAt !== null && !s.result ? `<p class="raid-mini-warn">⚠ 魔王大招「${bossMove(s.bossUltMove || undefined)?.name || ''}」${Math.max(0, Math.ceil((s.bossUltAt - s.t) / 1000))} 秒後落下！防護罩存量 ${bank / 1000}／${RAID_ULT_BLOCK_MS / 1000} 秒，做理解題存防護罩！</p>` : ''}`;
+}
+/** 自己的進度：目標、答對題數、連對。 */
+function myLine(v: RaidView, s: RaidState) {
+  const me = Object.values(s.stats)[0];
+  const ok = me ? me.ok.attack + me.ok.shield + me.ok.ultimate : 0;
+  const goal = v.mine?.goal;
+  if (!goal && !me) return '';
+  return `<div class="raid-mini-me">${goal ? `<span>🎯 目標 ${goal} 題：已答對 <b>${ok}</b>${ok >= goal ? ' ✓ 達成！' : ''}</span>` : `<span>已答對 <b>${ok}</b> 題</span>`}${me && me.streak >= 2 ? `<span>🔥 連對 ${me.streak}${me.saved ? '' : '・有保護'}</span>` : ''}</div>`;
 }
 /** 作答卡的主體會變的時候才重畫（題目、結果、鎖住、階段），避免每次推送都重排數學式。 */
 export function raidCardKey(v: RaidView, now: number) {
@@ -402,7 +432,7 @@ export function raidCardKey(v: RaidView, now: number) {
   const skipReady = !v.mine?.skipAt || now - v.mine.skipAt >= RAID_SKIP_COOLDOWN_MS ? 'skip' : '';
   // 抗性變了（每 10% 一級）也要重畫選招按鈕
   const eff = (['attack', 'ultimate'] as const).map((k) => Math.round(raidEffect(s, k, s.t, v.run.config.players) * 10)).join('');
-  return [v.run.id, raidPhase(v, s, now), v.mine?.role || '', v.mine?.question?.id || '', lock, raidLocal.flash, v.results ? 'r' : '', eff, skipReady].join('|');
+  return [v.run.id, raidPhase(v, s, now), v.mine?.role || '', v.mine?.goal || raidLocal.noGoal, v.mine?.question?.id || '', lock, raidLocal.flash, v.results ? 'r' : '', eff, skipReady].join('|');
 }
 export function raidCardHtml(v: RaidView, now: number): string {
   const s = liveState(v, now),
@@ -415,7 +445,13 @@ export function raidCardHtml(v: RaidView, now: number): string {
     const mineHtml = !v.results ? '<p class="muted" data-testid="raid-settling">結算中…</p>' : r ? myTitle(r) : '<p class="muted">這一場你沒有作答。</p>';
     body = `<div class="raid-end-card" data-testid="raid-my-result"><h2>${resultTitle(s, v)}</h2>${mineHtml}<p class="muted small-text">稱號依每分鐘的貢獻分數決定，一共 9 級：${RAID_TITLES.join('、')}。</p></div>`;
   } else if (!v.mine?.role) {
-    body = `<h3 class="raid-h">選你的英雄</h3><div class="raid-roles">${RAID_ROLES.map((r) => `<button type="button" class="raid-role" data-action="raid-role" data-role="${r}" data-testid="raid-role-${r}">${heroArt(r)}<b>${ROLE_NAME[r]}</b><small>${ROLE_SKILL[r]}</small></button>`).join('')}</div>`;
+    body = `<h3 class="raid-h">選你的英雄</h3><div class="raid-roles">${RAID_ROLES.map((r) => `<button type="button" class="raid-role" data-action="raid-role" data-role="${r}" data-testid="raid-role-${r}">${heroArt(r)}<b>${ROLE_NAME[r]}</b><small>${ROLE_SKILL[r]}</small><em class="raid-passive">被動「${ROLE_PASSIVE[r].name}」：${ROLE_PASSIVE[r].tip}</em></button>`).join('')}</div>`;
+  } else if (!v.mine.goal && raidLocal.noGoal !== v.run.id) {
+    // 個人目標：和自己比（個人最佳），不和別人比
+    const prev = v.mine.prevBest;
+    body = `<h3 class="raid-h">這一場的目標</h3><p class="muted small-text">${prev ? `你的個人最佳是一場答對 <b>${prev}</b> 題。` : '設一個自己的目標，和自己比就好。'}</p><div class="raid-goals">${goalChoices(prev)
+      .map(([n, label]) => `<button type="button" class="raid-goal" data-action="raid-goal" data-goal="${n}" data-testid="raid-goal-${n}"><b>${n} 題</b><small>${label}</small></button>`)
+      .join('')}</div><button type="button" class="link-btn" data-action="raid-goal" data-goal="0" data-testid="raid-goal-skip">先不設定</button>`;
   } else if (phase === 'pre') {
     body = `<div class="raid-wait">${heroArt(v.mine.role, 'big')}<p>你是<b>${ROLE_NAME[v.mine.role]}</b>，<span data-pk-start="${v.run.startedAt}">${Math.max(0, Math.ceil((v.run.startedAt - now) / 1000))}</span> 秒後開戰！</p></div>`;
   } else if (v.mine.lockUntil && v.mine.lockUntil > now) {
@@ -434,7 +470,8 @@ export function raidCardHtml(v: RaidView, now: number): string {
   } else {
     body = `${raidLocal.flash}<h3 class="raid-h">選下一招</h3><div class="raid-kinds">${RAID_KINDS.map((k) => {
       const e = raidEffect(s, k, s.t, v.run.config.players);
-      return `<button type="button" class="raid-kind-btn k-${k} ${e < 1 ? 'weak' : ''}" data-action="raid-draw" data-kind="${k}" data-testid="raid-kind-${k}"><b>${KIND_NAME[k]}${e < 1 ? `<i class="raid-eff">效果 ${Math.round(e * 100)}%</i>` : ''}</b><small>${KIND_LEVEL[k]}題・${KIND_TIP[k]}</small></button>`;
+      const mine = v.mine?.role && ROLE_PASSIVE[v.mine.role].kind === k ? `<i class="raid-eff passive">★ ${ROLE_PASSIVE[v.mine.role].name}</i>` : '';
+      return `<button type="button" class="raid-kind-btn k-${k} ${e < 1 ? 'weak' : ''}" data-action="raid-draw" data-kind="${k}" data-testid="raid-kind-${k}"><b>${KIND_NAME[k]}${mine}${e < 1 ? `<i class="raid-eff">效果 ${Math.round(e * 100)}%</i>` : ''}</b><small>${KIND_LEVEL[k]}題・${KIND_TIP[k]}</small></button>`;
     }).join('')}</div>`;
   }
   return `<section class="raid-card" data-testid="raid-card"><h2>${H.icon('bolt')}${H.esc(v.title)}</h2>${mini}<div class="raid-body">${body}</div></section>`;
@@ -446,10 +483,18 @@ function kindSwitch(cur: RaidKind) {
     .join('')}</span>`;
 }
 function myTitle(r: RaidResult) {
-  return `<div class="raid-my-title lv${r.level}"><small>你的稱號</small><strong>Lv${r.level} ${H.esc(r.title)}</strong>${r.badges.length ? `<span>${r.badges.map((b) => `<i class="raid-badge">${H.esc(b)}</i>`).join('')}</span>` : ''}<p>貢獻 ${r.score} 分｜記憶 ${r.stats.ok.attack}/${r.stats.n.attack}、理解 ${r.stats.ok.shield}/${r.stats.n.shield}、應用 ${r.stats.ok.ultimate}/${r.stats.n.ultimate}｜最長連對 ${r.stats.best} 題</p></div>`;
+  const goal = r.goal ? `<p class="raid-goal-line">🎯 目標 ${r.goal} 題：答對 ${r.correct} 題${r.correct >= r.goal ? '，達成！' : `，還差 ${r.goal - r.correct} 題，下次再拚`}</p>` : '';
+  const pb = r.prevBest !== undefined ? `<p class="raid-goal-line">${r.correct > r.prevBest ? `🏆 突破個人紀錄！${r.prevBest} → ${r.correct} 題` : `個人最佳 ${r.prevBest} 題（這場 ${r.correct} 題）`}</p>` : '';
+  return `<div class="raid-my-title lv${r.level}"><small>你的稱號</small><strong>Lv${r.level} ${H.esc(r.title)}</strong>${r.badges.length ? `<span>${r.badges.map((b) => `<i class="raid-badge">${H.esc(b)}</i>`).join('')}</span>` : ''}${goal}${pb}<p>貢獻 ${r.score} 分｜記憶 ${r.stats.ok.attack}/${r.stats.n.attack}、理解 ${r.stats.ok.shield}/${r.stats.n.shield}、應用 ${r.stats.ok.ultimate}/${r.stats.n.ultimate}｜最長連對 ${r.stats.best} 題</p></div>`;
 }
 /** 作答結果（下一張卡上方顯示）。 */
-export function raidFlashHtml(r: { correct: boolean; answer: number; explanation?: string; kind: RaidKind }, options: string[]) {
+export function raidFlashHtml(r: { correct: boolean; answer: number; explanation?: string; kind: RaidKind; streak?: number; saved?: boolean; redeemed?: boolean }, options: string[]) {
   const right = options[r.answer];
-  return `<div class="raid-flash ${r.correct ? 'ok' : 'no'}" data-testid="raid-flash"><b>${r.correct ? `✓ 答對！${{ attack: '發動攻擊', shield: '防護罩 +1 秒', ultimate: '大招計量 +25%' }[r.kind]}` : '✗ 答錯了'}</b>${r.correct ? '' : `<span>正解 ${String.fromCharCode(65 + r.answer)}. ${H.md(right)}</span>`}${!r.correct && r.explanation ? `<small>${H.md(r.explanation)}</small>` : ''}</div>`;
+  const extra = [
+    r.redeemed ? '♻ 贖回成功！上一題的分數拿回一半' : '',
+    r.saved ? `🛡 連對保護：連對 ${r.streak} 沒有中斷（每場一次）` : '',
+    r.correct && (r.streak || 0) >= 3 ? `🔥 連對 ${r.streak} 題` : '',
+    !r.correct && !r.saved ? `下一題做${KIND_NAME[r.kind]}答對，可以贖回一半分數` : '',
+  ].filter(Boolean);
+  return `<div class="raid-flash ${r.correct ? 'ok' : 'no'}" data-testid="raid-flash"><b>${r.correct ? `✓ 答對！${{ attack: '發動攻擊', shield: '防護罩 +1 秒', ultimate: '大招計量 +25%' }[r.kind]}` : '✗ 答錯了'}</b>${extra.map((x) => `<span class="raid-flash-extra">${x}</span>`).join('')}${r.correct ? '' : `<span>正解 ${String.fromCharCode(65 + r.answer)}. ${H.md(right)}</span>`}${!r.correct && r.explanation ? `<small>${H.md(r.explanation)}</small>` : ''}</div>`;
 }

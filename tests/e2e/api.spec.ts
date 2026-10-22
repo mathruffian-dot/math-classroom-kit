@@ -1,6 +1,6 @@
 import { test, expect, request, type APIRequestContext } from '@playwright/test';
 
-const baseURL = process.env.E2E_BASE_URL || 'http://127.0.0.1:8787';
+const baseURL = process.env.E2E_BASE_URL || `http://127.0.0.1:${process.env.MCK_PORT || 8787}`;
 const contexts: APIRequestContext[] = [];
 const classCache = new Map<number, { classroom: any; credentials: any[] }>();
 const created = { lessons: [] as string[], sessions: [] as string[], classes: [] as string[] };

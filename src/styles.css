@@ -4889,3 +4889,323 @@ svg.redpen {
   background: rgba(46, 157, 91, 0.12);
   font-weight: 700;
 }
+
+/* 信心下注、進步分數、間隔複習 */
+.conf-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: var(--soft, #f4f2fb);
+}
+.conf-row > span {
+  flex: 1 1 100%;
+  font-size: 14px;
+  font-weight: 700;
+}
+.conf-row.ask {
+  outline: 2px solid #f59f00;
+  animation: conf-pulse 1.2s ease-in-out infinite;
+}
+@keyframes conf-pulse {
+  50% {
+    outline-color: transparent;
+  }
+}
+.conf-btn {
+  flex: 1 1 0;
+  min-height: 48px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border-radius: 10px;
+  border: 2px solid var(--line, #ddd);
+  background: var(--surface, #fff);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.conf-btn small {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted, #667);
+}
+.conf-btn.selected {
+  border-color: #7b2ff7;
+  background: #efe7ff;
+}
+.bet-summary {
+  margin: 8px 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #fff7e0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.bet-summary b {
+  font-size: 18px;
+}
+.bet-summary p {
+  margin: 0;
+  font-size: 14px;
+}
+.growth-line {
+  margin: 6px 0;
+  font-weight: 700;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.growth-line.up {
+  color: #138a4b;
+}
+.growth-line small {
+  font-weight: 500;
+  color: var(--muted, #667);
+}
+.seat-chip .trend {
+  font-style: normal;
+  margin-left: 4px;
+  font-weight: 700;
+}
+.seat-chip .trend.up {
+  color: #138a4b;
+}
+.seat-chip .trend.down {
+  color: #c92a2a;
+}
+
+/* 全班目標條（投影片右上角）與達標彩帶 */
+#class-goal-host:empty {
+  display: none;
+}
+#class-goal-host {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  z-index: 5;
+  width: min(440px, 46%);
+}
+.class-goal {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 4px 10px;
+  padding: 8px 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 2px solid var(--line, #ddd);
+  box-shadow: 0 6px 18px rgba(20, 20, 60, 0.12);
+}
+.student-results .class-goal {
+  margin-bottom: 10px;
+  box-shadow: none;
+}
+.cg-label {
+  font-weight: 800;
+  white-space: nowrap;
+}
+.cg-track {
+  position: relative;
+  height: 14px;
+  border-radius: 7px;
+  background: #eceaf5;
+  overflow: visible;
+}
+.cg-track i {
+  display: block;
+  height: 100%;
+  border-radius: 7px;
+  background: linear-gradient(90deg, #7b2ff7, #f107a3);
+  transition: width 0.6s ease;
+}
+.cg-track b {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  width: 3px;
+  border-radius: 2px;
+  background: #1f2a5a;
+}
+.cg-num {
+  grid-column: 1 / -1;
+  font-size: 14px;
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+.cg-num small {
+  color: var(--muted, #667);
+}
+.class-goal.hit {
+  border-color: #f59f00;
+  background: #fff8e1;
+  animation: goal-glow 1.4s ease-in-out infinite;
+}
+.class-goal.hit .cg-track i {
+  background: linear-gradient(90deg, #f59f00, #12b886);
+}
+@keyframes goal-glow {
+  50% {
+    box-shadow: 0 0 22px rgba(245, 159, 0, 0.55);
+  }
+}
+.confetti-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 60;
+  overflow: hidden;
+}
+.confetti-layer i {
+  position: absolute;
+  top: -20px;
+  width: 10px;
+  height: 16px;
+  border-radius: 2px;
+  animation: confetti-fall 2.4s cubic-bezier(0.3, 0.6, 0.5, 1) forwards;
+}
+@keyframes confetti-fall {
+  to {
+    transform: translate(var(--x), 105vh) rotate(calc(var(--r) + 540deg));
+    opacity: 0.6;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .confetti-layer {
+    display: none;
+  }
+  .class-goal.hit {
+    animation: none;
+  }
+}
+
+/* 根式湊數挑戰 */
+.make-visual {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(12px, 2.4vh, 28px);
+  height: 100%;
+}
+.make-goal {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 10px 28px;
+  border-radius: 18px;
+  background: #fff3d6;
+  border: 3px solid #f59f00;
+}
+.make-goal small {
+  font-weight: 800;
+  color: #b06d00;
+}
+.make-goal b {
+  font-size: clamp(32px, 6vh, 64px);
+}
+.make-goal.small {
+  padding: 6px 14px;
+  border-width: 2px;
+  align-self: flex-start;
+}
+.make-goal.small b {
+  font-size: 26px;
+}
+.make-deck {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: clamp(10px, 1.6vw, 24px);
+}
+.make-card {
+  min-width: 72px;
+  min-height: 64px;
+  padding: 8px 12px;
+  border-radius: 14px;
+  border: 2px solid #7b2ff7;
+  background: #f4efff;
+  font: inherit;
+  font-size: 22px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.make-card.big {
+  min-width: clamp(90px, 12vw, 160px);
+  min-height: clamp(90px, 16vh, 150px);
+  font-size: clamp(28px, 5vh, 52px);
+  cursor: default;
+  box-shadow: 0 8px 18px rgba(80, 40, 160, 0.15);
+}
+.make-card:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.make-rule {
+  margin: 0;
+  color: var(--muted, #667);
+  font-weight: 700;
+}
+.make-board {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.make-expr {
+  min-height: 56px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 2px dashed var(--line, #ccc);
+  background: var(--surface, #fff);
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.make-expr.ok {
+  border-style: solid;
+  border-color: #12b886;
+  background: #e6fcf5;
+}
+.make-status {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--muted, #667);
+}
+.make-status.ok {
+  color: #138a4b;
+}
+.make-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+  gap: 8px;
+}
+.make-ops {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.make-op {
+  min-height: 48px;
+  border-radius: 12px;
+  border: 1px solid var(--line, #ddd);
+  background: var(--soft, #f4f2fb);
+  font: inherit;
+  font-size: 22px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.make-op.wide {
+  font-size: 16px;
+}

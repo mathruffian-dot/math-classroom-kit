@@ -1,7 +1,7 @@
 // 課後形成性評量、PK 戰、錯題練習：抽題、電腦對手、成績、錯題紀錄、給師生的畫面。
 import type { Lesson, PkMatch, QuizBank, QuizPaper, QuizRecord, QuizRun, QuizScore, QuizSheet, QuizView, User } from '../shared/types';
-import { botScore, decide, quizOver } from '../shared/quiz';
-import { assert, identifier, integer, record } from './validation';
+import { betSummary, botScore, decide, quizOver } from '../shared/quiz';
+import { assert, identifier, integer, record, validateQuiz } from './validation';
 
 export interface QuizStore {
   /** 每一次測驗／PK／錯題練習（含已結束的），依時間先後。 */
@@ -70,12 +70,28 @@ export function score(bank: QuizBank, run: QuizRun, sheet: QuizSheet | undefined
     timeMs: sheet?.done ?? (finished ? last : quizOver(run, now) ? run.seconds * 1000 : null),
   };
 }
-/** 作答後馬上知道對錯：PK 與錯題練習。 */
-export const instantFeedback = (run: QuizRun) => run.mode === 'pk' || run.mode === 'review';
+/** 作答後馬上知道對錯：PK、錯題練習、間隔複習。 */
+export const instantFeedback = (run: QuizRun) => run.mode === 'pk' || run.mode === 'review' || run.mode === 'spaced';
+/** 這一次用的題庫：間隔複習用上一課的（存在這一次裡），其他用這一課的。 */
+export const runBank = (lessonBank: QuizBank | undefined, run: QuizRun) => run.bank ?? lessonBank;
+/** 一份卷子的答對題數與題數（全班測驗的成績紀錄、同程度配對用）。 */
+export function sheetResult(bank: QuizBank, run: QuizRun, sheet: QuizSheet, seat: string) {
+  const { picks, slots } = paperFor(bank, run, seat);
+  return { correct: slots.filter((q) => isCorrect(bank, picks, q, sheet.answers[q]) === true).length, total: slots.length };
+}
+/**
+ * 同程度配對：依程度（0–1，不知道的當 0.5）由高到低排，相鄰兩人一組；單數時程度最低的那位和電腦對戰。
+ */
+export function levelPairs(pool: number[], level: (seat: number) => number): [number, number][] {
+  const sorted = [...pool].sort((a, b) => level(b) - level(a) || a - b);
+  const pairs: [number, number][] = [];
+  for (let i = 0; i < sorted.length; i += 2) pairs.push([sorted[i], sorted[i + 1] ?? 0]);
+  return pairs;
+}
 
 /** 老師看得到所有人的成績、選項分布、每題對錯；學生只看到自己的作答，PK 時看得到各組的題數進度（不含答案）。 */
 export function quizView(lesson: Lesson, store: QuizStore, run: QuizRun, user: User, now: number): QuizView | undefined {
-  const bank = lesson.quiz;
+  const bank = runBank(lesson.quiz, run);
   if (!bank) return undefined;
   const sheets = store.quizSheets?.[run.id] || {};
   const teacher = user.role === 'teacher',
@@ -103,13 +119,16 @@ export function quizView(lesson: Lesson, store: QuizStore, run: QuizRun, user: U
       ...(reveal ? { answer: order.indexOf(it.answer), ...(it.explanation ? { explanation: it.explanation } : {}) } : {}),
     };
   });
-  const view: QuizView = { run: teacher ? run : { ...run, personal: undefined }, title: bank.title, questions, scores };
+  // 間隔複習的題庫（含答案）不送出去
+  const { bank: _bank, ...shown } = run;
+  const view: QuizView = { run: teacher ? shown : { ...shown, personal: undefined }, title: bank.title, questions, scores };
   if (mineSheet || (!teacher && run.mode === 'review')) {
     const answers = mineSheet?.answers || [];
     view.mine = {
       answers: slots.map((q) => (answers[q] === null || answers[q] === undefined ? null : picks[q].order.indexOf(answers[q]!))),
       correct: slots.map((q) => (instantFeedback(run) || over ? isCorrect(bank, picks, q, answers[q]) : null)),
       ...(mineSheet?.done !== undefined ? { done: mineSheet.done } : {}),
+      ...(mineSheet?.conf ? { conf: slots.map((q) => mineSheet.conf![q] ?? null) } : {}),
     };
   }
   if (teacher) {
@@ -128,6 +147,8 @@ export function quizView(lesson: Lesson, store: QuizStore, run: QuizRun, user: U
         return [seat, bank.slots.map((_, q) => (own.slots.includes(q) ? isCorrect(bank, own.picks, q, sheet.answers[q]) : null))];
       }),
     );
+    if (run.mode === 'class' && over)
+      view.bets = Object.fromEntries(Object.entries(view.detail).filter(([seat]) => seat !== '0').map(([seat, row]) => [seat, betSummary(row, sheets[seat].conf).points]));
   }
   if (sheets['0']) view.bot = botTimeline(bank, run, sheets['0']);
   return view;
@@ -148,6 +169,7 @@ export function quizRecord(bank: QuizBank, store: QuizStore, now: number): QuizR
   // 依建立的先後（PK 的開始時間含 3 秒倒數，不能拿來排序）
   const runs = store.quizRuns || [];
   for (const run of runs) {
+    if (run.bank) continue;
     const sheets = store.quizSheets?.[run.id] || {},
       over = quizOver(run, now);
     for (const [seat, sheet] of Object.entries(sheets)) {
@@ -189,7 +211,7 @@ export function quizRecord(bank: QuizBank, store: QuizStore, now: number): QuizR
 export function drawReview(bank: QuizBank, store: QuizStore, wrong: Record<string, number[]>): QuizRun['personal'] {
   const seen: Record<string, Set<string>> = {};
   for (const run of store.quizRuns || [])
-    for (const seat of Object.keys(store.quizSheets?.[run.id] || {})) {
+    for (const seat of run.bank ? [] : Object.keys(store.quizSheets?.[run.id] || {})) {
       const { picks, slots } = paperFor(bank, run, seat);
       for (const q of slots) (seen[seat] ||= new Set()).add(`${q}:${picks[q].variant}`);
     }
@@ -224,8 +246,10 @@ export function restoreQuiz(runsInput: unknown, sheetsInput: unknown, seats: num
     const personal = r.personal === undefined ? undefined : record(r.personal);
     return {
       id: identifier(r.id),
-      mode: r.mode === 'pk' ? 'pk' : r.mode === 'review' ? 'review' : 'class',
+      mode: r.mode === 'pk' ? 'pk' : r.mode === 'review' ? 'review' : r.mode === 'spaced' ? 'spaced' : 'class',
       paper: { picks: picksOf(record(r.paper).picks) },
+      ...(r.bank !== undefined ? { bank: validateQuiz(r.bank) } : {}),
+      ...(typeof r.from === 'string' ? { from: r.from.slice(0, 100) } : {}),
       ...(personal
         ? {
             personal: Object.fromEntries(
@@ -256,6 +280,7 @@ export function restoreQuiz(runsInput: unknown, sheetsInput: unknown, seats: num
         answers: sh.answers.map((a) => (a === null ? null : integer(a, 0, 5))),
         times: sh.times.map((a) => (a === null ? null : ms(a))),
         ...(sh.done !== undefined ? { done: ms(sh.done) } : {}),
+        ...(Array.isArray(sh.conf) && sh.conf.length <= 20 ? { conf: sh.conf.map((c) => (c === 1 ? 1 : c === 0 ? 0 : null)) } : {}),
       };
     }
   }

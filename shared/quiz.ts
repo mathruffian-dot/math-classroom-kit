@@ -45,3 +45,34 @@ export function decide(a: QuizScore, b: QuizScore): 'a' | 'b' | 'draw' {
 export function matchOver(run: QuizRun, a: QuizScore, b: QuizScore, now: number): boolean {
   return quizOver(run, now) || (a.finished && b.finished);
 }
+
+/** 信心下注的分數：有把握答對 +3、答錯 −2；不太確定答對 +1、答錯 0（沒選當作不太確定）。 */
+export const BET_POINTS = { sure: { right: 3, wrong: -2 }, unsure: { right: 1, wrong: 0 } } as const;
+export interface BetSummary {
+  points: number;
+  sure: { right: number; total: number };
+  unsure: { right: number; total: number };
+  /** 給學生的校準回饋：把握和實際對錯對得上嗎。 */
+  tip: string;
+}
+export function betSummary(correct: (boolean | null)[], conf: (number | null)[] | undefined): BetSummary {
+  const sure = { right: 0, total: 0 },
+    unsure = { right: 0, total: 0 };
+  let points = 0;
+  correct.forEach((ok, i) => {
+    if (ok === null) return;
+    const s = conf?.[i] === 1;
+    const g = s ? sure : unsure;
+    g.total++;
+    if (ok) g.right++;
+    const p = s ? BET_POINTS.sure : BET_POINTS.unsure;
+    points += ok ? p.right : p.wrong;
+  });
+  const rate = (g: { right: number; total: number }) => (g.total ? g.right / g.total : 0);
+  let tip = '';
+  if (sure.total >= 3 && rate(sure) < 0.7) tip = '有把握的題目錯了不少：下次按「有把握」之前，再檢查一次算式。';
+  else if (unsure.total >= 3 && rate(unsure) >= 0.7) tip = '不太確定的題目大多答對了：你比自己想的更厲害，可以多相信自己！';
+  else if (sure.total >= 3 && rate(sure) >= 0.9) tip = '你的把握很準：知道自己會什麼、不會什麼，這是很重要的能力。';
+  else if (sure.total + unsure.total) tip = '把握和結果大致對得上，繼續保持。';
+  return { points, sure, unsure, tip };
+}

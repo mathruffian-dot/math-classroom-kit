@@ -110,6 +110,7 @@ await Promise.all(students.map((s, i) => s.c.call(`/api/sessions/${session.id}/r
 const tab = spage.locator('.phone-tabs [data-tab="answer"]');
 if (await tab.isVisible()) await tab.click();
 await spage.getByTestId('raid-role-mage').click();
+await spage.getByTestId('raid-goal-5').click();
 
 let over = false;
 // 1 號（瀏覽器）：真的點畫面作答，中等程度

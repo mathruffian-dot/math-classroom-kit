@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 import { mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
-const baseURL = process.env.E2E_BASE_URL || 'http://127.0.0.1:8787';
+const baseURL = process.env.E2E_BASE_URL || `http://127.0.0.1:${process.env.MCK_PORT || 8787}`;
 const out = resolve('artifacts/screenshots/g9-1-4');
 
 for (const id of ['g9-1-4a', 'g9-1-4b', 'g9-1-4c'])

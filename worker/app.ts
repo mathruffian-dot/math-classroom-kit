@@ -8,6 +8,7 @@ import type {
   Grade,
   Lesson,
   PracticeEntry,
+  QuizBank,
   QuizRun,
   Session,
   SessionView,
@@ -18,8 +19,8 @@ import catalog from '../content/catalog.generated.json';
 import { normalizeChars, parseNumberAnswer } from '../shared/expr';
 import { PRACTICE_GRACE_MS, practiceStatus, practiceTotal } from '../shared/practice';
 import { PK_COUNTDOWN_MS, QUIZ_GRACE_MS, decide, quizOver } from '../shared/quiz';
-import { drawPaper, drawReview, instantFeedback, isCorrect, makeBot, newMatch, paperFor, quizRecord, quizView, restoreQuiz, score, type QuizStore } from './quiz';
-import { answerRaid, newQuestion, questionFor, raidBank, skipRaid, raidCsvRows, raidOver, raidState, raidView, restoreRaid, type RaidStore } from './raid';
+import { drawPaper, drawReview, instantFeedback, isCorrect, levelPairs, makeBot, newMatch, paperFor, quizRecord, quizView, restoreQuiz, runBank, score, sheetResult, type QuizStore } from './quiz';
+import { answerRaid, newQuestion, questionFor, raidBank, raidCorrect, skipRaid, raidCsvRows, raidOver, raidState, raidView, restoreRaid, type RaidStore } from './raid';
 import { RAID_COUNTDOWN_MS, RAID_KINDS, RAID_ROLES, raidConfig, type RaidDifficulty, type RaidKind, type RaidRole } from '../shared/raid';
 import {
   HttpError,
@@ -85,6 +86,14 @@ interface StoredClass {
   classroom: Classroom;
   ownerId: string;
   students: { seat: number; codeHash: string }[];
+  /** 魔王戰個人最佳（座號 → 一場最多答對幾題），跨課堂保留。 */
+  raidBest?: Record<string, number>;
+  /** 冒險地圖：課程 ID → 難度 → 第一次打倒的時間與最快幾毫秒。 */
+  raidWins?: Record<string, Partial<Record<RaidDifficulty, { at: number; ms: number }>>>;
+  /** 全班測驗的成績（座號 → 最近 20 次，依時間先後），算進步分數與同程度配對。 */
+  quizHistory?: Record<string, { runId: string; lessonId: string; at: number; correct: number; total: number }[]>;
+  /** 每一課各題位全班累計答錯幾次（課程 ID → 紀錄），間隔複習挑上一課錯最多的題型。 */
+  quizMisses?: Record<string, { at: number; counts: number[] }>;
 }
 export interface StoredSession extends QuizStore, RaidStore {
   session: Session;
@@ -179,10 +188,10 @@ export interface AppContext {
 /** 這一堂課的題庫：開課後才加的題庫也拿得到（複製進這一堂的課程）。 */
 /** CSV：每一次測驗／PK 的每一題作答。 */
 function quizCsvRows(s: StoredSession): (string | number)[][] {
-  const bank = s.lesson.quiz;
-  if (!bank) return [];
   const rows: (string | number)[][] = [];
   for (const run of s.quizRuns || []) {
+    const bank = runBank(s.lesson.quiz, run);
+    if (!bank) continue;
     const sheets = s.quizSheets?.[run.id] || {},
       end = run.endedAt ?? run.startedAt + run.seconds * 1000;
     for (const [seat, sheet] of Object.entries(sheets)) {
@@ -200,8 +209,9 @@ function quizCsvRows(s: StoredSession): (string | number)[][] {
       sheet.answers.forEach((x, q) => {
         if (x === null) return;
         const it = bank.slots[q].variants[own.picks[q].variant];
-        const kind = run.mode === 'pk' ? 'PK戰' : run.mode === 'review' ? '錯題練習' : '形成性評量';
-        rows.push([kind, seat, bank.slots[q].id, q + 1, it.options[x], isCorrect(bank, own.picks, q, x) ? 'Y' : 'N', mine.correct, own.slots.length, note, new Date(run.startedAt + (sheet.times[q] || 0)).toISOString()]);
+        const kind = run.mode === 'pk' ? 'PK戰' : run.mode === 'review' ? '錯題練習' : run.mode === 'spaced' ? `間隔複習（${run.from || '上一課'}）` : '形成性評量';
+        const conf = sheet.conf?.[q] === 1 ? '有把握' : sheet.conf?.[q] === 0 ? '不太確定' : '';
+        rows.push([kind, seat, bank.slots[q].id, q + 1, it.options[x], isCorrect(bank, own.picks, q, x) ? 'Y' : 'N', mine.correct, own.slots.length, [note, conf].filter(Boolean).join('・'), new Date(run.startedAt + (sheet.times[q] || 0)).toISOString()]);
       });
     }
   }
@@ -216,25 +226,114 @@ function quizBank(state: State, s: StoredSession) {
   return s.lesson.quiz;
 }
 /** 結束目前這一次（開新的一次、關閉時）：沒結束的記上結束時間，錯題紀錄與戰績才算得到。 */
-function endQuiz(s: StoredSession) {
+function endQuiz(s: StoredSession, state?: State) {
   const current = s.session.quiz;
-  if (!current) return;
-  const at = Math.min(Date.now(), current.startedAt + current.seconds * 1000);
-  current.endedAt ??= Math.max(current.startedAt, at);
-  const kept = s.quizRuns?.find((r) => r.id === current.id);
-  if (kept) kept.endedAt ??= current.endedAt;
+  if (current) {
+    const at = Math.min(Date.now(), current.startedAt + current.seconds * 1000);
+    current.endedAt ??= Math.max(current.startedAt, at);
+    const kept = s.quizRuns?.find((r) => r.id === current.id);
+    if (kept) kept.endedAt ??= current.endedAt;
+  }
+  if (state) recordQuiz(state, s);
+}
+/**
+ * 把這一堂已結束的測驗記進班級資料（重複記不影響）：
+ * 全班測驗每個人的成績（進步分數、同程度配對），以及各題位全班累計答錯幾次（下一課的間隔複習）。
+ */
+function recordQuiz(state: State, s: StoredSession) {
+  const cl = state.classes[s.session.classId];
+  const bank = s.lesson.quiz ?? state.lessons[s.session.lessonId]?.quiz;
+  if (!cl || !bank) return;
+  const now = Date.now(),
+    counts = bank.slots.map(() => 0);
+  let any = false;
+  for (const run of s.quizRuns || []) {
+    if (run.bank || !quizOver(run, now)) continue;
+    for (const [seat, sheet] of Object.entries(s.quizSheets?.[run.id] || {})) {
+      if (seat === '0' || !sheet.answers.some((x) => x !== null)) continue;
+      any = true;
+      const { picks, slots } = paperFor(bank, run, seat);
+      for (const q of slots) if (isCorrect(bank, picks, q, sheet.answers[q]) === false) counts[q]++;
+      if (run.mode !== 'class') continue;
+      const list = ((cl.quizHistory ||= {})[seat] ||= []);
+      if (list.some((e) => e.runId === run.id)) continue;
+      list.push({ runId: run.id, lessonId: s.session.lessonId, at: run.startedAt, ...sheetResult(bank, run, sheet, seat) });
+      list.sort((a, b) => a.at - b.at);
+      if (list.length > 20) list.splice(0, list.length - 20);
+    }
+  }
+  if (any) (cl.quizMisses ||= {})[s.session.lessonId] = { at: now, counts };
+}
+/** 上一次全班測驗的成績（這一次開始以前最近的一次）。 */
+function quizPrev(cl: StoredClass | undefined, run: QuizRun, only?: string) {
+  const out: Record<string, { correct: number; total: number }> = {};
+  for (const [seat, list] of Object.entries(cl?.quizHistory || {})) {
+    if (only !== undefined && seat !== only) continue;
+    const e = [...list].reverse().find((x) => x.runId !== run.id && x.at < run.startedAt);
+    if (e) out[seat] = { correct: e.correct, total: e.total };
+  }
+  return out;
+}
+/** 同程度配對用的程度（0–1）：這一堂最近一次全班測驗或 PK 的答對率，沒有就看之前的全班測驗，都沒有當 0.5。 */
+function seatLevel(state: State, s: StoredSession, seat: number) {
+  const bank = s.lesson.quiz;
+  const now = Date.now();
+  for (const run of [...(s.quizRuns || [])].reverse()) {
+    if (!bank || run.bank || (run.mode !== 'class' && run.mode !== 'pk')) continue;
+    const sheet = s.quizSheets?.[run.id]?.[String(seat)];
+    if (!sheet || !sheet.answers.some((x) => x !== null) || (!quizOver(run, now) && sheet.done === undefined)) continue;
+    const r = sheetResult(bank, run, sheet, String(seat));
+    return r.total ? r.correct / r.total : 0.5;
+  }
+  const last = state.classes[s.session.classId]?.quizHistory?.[String(seat)]?.slice(-1)[0];
+  return last && last.total ? last.correct / last.total : 0.5;
+}
+/** 間隔複習的來源：這個班上一課（最近做過測驗、不是這一課）全班答錯最多的 3 個題型。 */
+function spacedSource(state: State, s: StoredSession) {
+  const misses = state.classes[s.session.classId]?.quizMisses || {};
+  for (const [lessonId, m] of Object.entries(misses).sort((a, b) => b[1].at - a[1].at)) {
+    if (lessonId === s.session.lessonId) continue;
+    const lesson = state.lessons[lessonId],
+      bank = lesson?.quiz;
+    if (!bank) continue;
+    const slots = m.counts
+      .map((c, q) => [c, q] as const)
+      .filter(([c, q]) => c > 0 && bank.slots[q])
+      .sort((a, b) => b[0] - a[0] || a[1] - b[1])
+      .slice(0, 3)
+      .map(([, q]) => q);
+    if (slots.length) return { title: lesson.title, bank, slots };
+  }
+  return undefined;
+}
+/** 把這一場每個人答對的題數記進班級的個人最佳（已經結束的才記；重複記不影響）。 */
+function recordRaidBest(state: State, s: StoredSession) {
+  const run = s.session.raid;
+  const cl = state.classes[s.session.classId];
+  if (!run || !cl) return;
+  const st = raidState(run, s, Date.now());
+  if (!raidOver(run, st)) return;
+  const best = (cl.raidBest ||= {});
+  for (const [seat, x] of Object.entries(st.stats)) best[seat] = Math.max(best[seat] || 0, raidCorrect(x));
+  // 冒險地圖：打倒這一隻魔王（記最快的時間）
+  if (st.result === 'win' && st.endAt !== undefined) {
+    const wins = ((cl.raidWins ||= {})[s.session.lessonId] ||= {});
+    const prev = wins[run.difficulty];
+    if (!prev || st.endAt < prev.ms) wins[run.difficulty] = { at: prev?.at ?? Date.now(), ms: st.endAt };
+  }
 }
 /** 收起魔王戰（記上結束時間，紀錄與結算才算得到）。 */
-function closeRaid(s: StoredSession) {
+function closeRaid(s: StoredSession, state?: State) {
   const run = s.session.raid;
   if (!run) return;
   run.endedAt ??= Date.now();
   const kept = s.raidRuns?.find((r) => r.id === run.id);
   if (kept) kept.endedAt ??= run.endedAt;
+  if (state) recordRaidBest(state, s);
   s.session.raid = null;
 }
-function startQuiz(s: StoredSession, run: QuizRun) {
-  endQuiz(s);
+function startQuiz(s: StoredSession, run: QuizRun, state: State) {
+  endQuiz(s, state);
   closeRaid(s);
   const session = s.session;
   session.activityOpen = false;
@@ -550,7 +649,7 @@ export function sessionView(state: State, stored: StoredSession, user: User, onl
       counts,
       submitted: teacher || session.resultsVisible ? latest.length : 0,
       total: state.classes[session.classId]?.classroom.seats || 0,
-      ...(correct !== undefined ? { correct } : {}),
+      ...(correct !== undefined ? { correct, online: onlineSeats(state, stored, online).size } : {}),
     },
     whiteboard: clone(stored.whiteboard),
     grades: clone(grades),
@@ -577,10 +676,20 @@ export function sessionView(state: State, stored: StoredSession, user: User, onl
   if (session.quiz) {
     const q = quizView(stored.lesson, stored, session.quiz, user, view.serverNow);
     if (q) view.quiz = q;
+    if (q && session.quiz.mode === 'class') {
+      const prev = quizPrev(state.classes[session.classId], session.quiz, teacher ? undefined : String(user.seat));
+      if (Object.keys(prev).length) q.prev = prev;
+    }
+  }
+  if (teacher) {
+    const src = spacedSource(state, stored);
+    if (src) view.spaced = { title: src.title, topics: src.slots.map((q) => src.bank.slots[q].topic) };
   }
   if (teacher && stored.lesson.quiz && stored.quizRuns?.length) view.quizRecord = quizRecord(stored.lesson.quiz, stored, view.serverNow);
   const raid = session.raid && raidBank(session.lessonId);
   if (session.raid && raid) view.raid = raidView(raid, session.raid, stored, user, view.serverNow);
+  const mapBank = teacher && raidBank(session.lessonId);
+  if (mapBank) view.raidMap = { title: mapBank.title, ...(mapBank.section ? { section: mapBank.section } : {}), wins: clone(state.classes[session.classId]?.raidWins?.[session.lessonId] || {}) };
   return view;
 }
 /** 補救練習的畫面資料：老師看全部；學生只看自己，答案只公布已結束的輪次。 */
@@ -1325,14 +1434,16 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
             const seconds = integer(body.seconds ?? 300, 300, 600);
             const players = Math.max(1, onlineSeats(state, s, ctx.online?.()).size);
             // 開戰時其他活動都先收起來
-            endQuiz(s);
+            endQuiz(s, state);
             session.quiz = null;
             session.pkLobby = null;
             session.activityOpen = false;
             session.activityDeadline = null;
             session.practice = null;
-            closeRaid(s);
-            const run = { id: uuid(), difficulty, startedAt: Date.now() + RAID_COUNTDOWN_MS, seconds, config: raidConfig(difficulty, players, seconds) };
+            closeRaid(s, state);
+            // 開戰時記下每個人之前的個人最佳（結算時比較有沒有突破）
+            const prevBest = { ...(state.classes[session.classId]?.raidBest || {}) };
+            const run = { id: uuid(), difficulty, startedAt: Date.now() + RAID_COUNTDOWN_MS, seconds, config: raidConfig(difficulty, players, seconds), prevBest };
             session.raid = run;
             (s.raidRuns ||= []).push(clone(run));
             // 上一場選過的角色留著，不用再選一次
@@ -1348,16 +1459,17 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
             session.raid.endedAt ??= Date.now();
             const kept = s.raidRuns?.find((r) => r.id === session.raid!.id);
             if (kept) kept.endedAt ??= session.raid.endedAt;
+            recordRaidBest(state, s);
             break;
           }
           case 'raid-close':
-            closeRaid(s);
+            closeRaid(s, state);
             break;
           // ── 課後形成性評量：全班同一份卷子（每個題位從 3 題裡抽 1 題） ──
           case 'quiz-class': {
             const bank = quizBank(state, s);
             const run: QuizRun = { id: uuid(), mode: 'class', paper: drawPaper(bank), startedAt: Date.now(), seconds: integer(body.seconds ?? 600, 60, 3600) };
-            startQuiz(s, run);
+            startQuiz(s, run, state);
             break;
           }
           case 'quiz-review': {
@@ -1366,7 +1478,16 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
             const wrong = quizRecord(bank, s, Date.now()).wrong;
             assert(Object.keys(wrong).length, '目前沒有人有錯題', 409);
             const run: QuizRun = { id: uuid(), mode: 'review', paper: drawPaper(bank), personal: drawReview(bank, s, wrong), startedAt: Date.now(), seconds: integer(body.seconds ?? 600, 60, 3600) };
-            startQuiz(s, run);
+            startQuiz(s, run, state);
+            break;
+          }
+          case 'quiz-spaced': {
+            // 間隔複習：上一課全班錯最多的 3 個題型，每題換數字（題庫存在這一次裡）
+            const src = spacedSource(state, s);
+            assert(src, '還沒有上一課的測驗紀錄', 409);
+            const bank: QuizBank = { title: `間隔複習・${src.bank.title}`, slots: src.slots.map((q) => clone(src.bank.slots[q])) };
+            const run: QuizRun = { id: uuid(), mode: 'spaced', paper: drawPaper(bank), bank, from: src.title, startedAt: Date.now(), seconds: integer(body.seconds ?? 180, 60, 900) };
+            startQuiz(s, run, state);
             break;
           }
           case 'quiz-end': {
@@ -1375,17 +1496,18 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
             session.quiz.endedAt ??= at;
             const kept = s.quizRuns?.find((r) => r.id === session.quiz!.id);
             if (kept) kept.endedAt ??= at;
+            recordQuiz(state, s);
             break;
           }
           case 'quiz-close':
-            endQuiz(s);
+            endQuiz(s, state);
             session.quiz = null;
             session.pkLobby = null;
             break;
           // ── PK 戰：先配對（隨機、點選、抽籤、搶答、配電腦），再一起開始，所有組與觀眾同一份卷子 ──
           case 'pk-lobby':
             quizBank(state, s);
-            endQuiz(s);
+            endQuiz(s, state);
             closeRaid(s);
             session.quiz = null;
             session.pkLobby = { pairs: [], waiting: null, buzz: false };
@@ -1398,6 +1520,17 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
             lobby.waiting = null;
             assert(pool.length, '沒有可以配對的上線同學', 409);
             for (let i = 0; i < pool.length; i += 2) lobby.pairs.push([pool[i], pool[i + 1] ?? 0]); // 單數：最後一位和電腦對戰
+            break;
+          }
+          case 'pk-level': {
+            // 同程度配對：程度相近的兩人一組（看最近一次測驗或 PK 的答對率）
+            const lobby = pkLobby(session);
+            const taken = pkTaken(lobby);
+            const pool = [...onlineSeats(state, s, ctx.online?.())].filter((n) => !taken.has(n));
+            if (lobby.waiting !== null) pool.push(lobby.waiting);
+            lobby.waiting = null;
+            assert(pool.length, '沒有可以配對的上線同學', 409);
+            lobby.pairs.push(...levelPairs(pool, (n) => seatLevel(state, s, n)));
             break;
           }
           case 'pk-pick': {
@@ -1439,7 +1572,7 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
               paper = drawPaper(bank),
               seconds = integer(body.seconds ?? session.quiz?.seconds ?? 180, 30, 1800);
             const run: QuizRun = { id: uuid(), mode: 'pk', paper, startedAt: Date.now() + PK_COUNTDOWN_MS, seconds, matches: pairs.map(([a, b]) => newMatch(a, b)) };
-            startQuiz(s, run);
+            startQuiz(s, run, state);
             if (pairs.some(([, b]) => b === 0)) s.quizSheets![run.id]['0'] = makeBot(bank, paper, seconds);
             break;
           }
@@ -1513,6 +1646,8 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
             break;
           }
           case 'end':
+            recordRaidBest(state, s);
+            endQuiz(s, state);
             session.ended = true;
             session.endedAt = Date.now();
             session.danmakuOpen = false;
@@ -1786,11 +1921,21 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
         const t = Date.now();
         assert(t >= run.startedAt - 300, '還沒開始', 409);
         assert(!run.endedAt && !quizOver(run, t - QUIZ_GRACE_MS), '時間到，作答已鎖定', 409);
-        const bank = quizBank(state, s),
+        const bank = run.bank ?? quizBank(state, s),
           n = bank.slots.length;
         const sheets = ((s.quizSheets ||= {})[run.id] ||= {});
         const sheet = (sheets[String(user.seat)] ||= { answers: Array(n).fill(null), times: Array(n).fill(null) });
         assert(sheet.done === undefined, '已經交卷', 409);
+        if (body.conf !== undefined) {
+          // 信心下注（全班測驗）：有把握 1、不太確定 0，交卷前都可以改
+          assert(run.mode === 'class', '只有全班測驗可以下注');
+          const q = integer(body.q, 0, n - 1);
+          (sheet.conf ||= Array(n).fill(null))[q] = integer(body.conf, 0, 1);
+          if (body.choice === undefined) {
+            session.revision++;
+            return save({ ok: true, revision: session.revision });
+          }
+        }
         const elapsed = Math.max(0, Math.min(t - run.startedAt, run.seconds * 1000));
         if (body.submit === true) {
           sheet.done = instantFeedback(run) ? Math.max(0, ...sheet.times.filter((x): x is number => x !== null)) : elapsed;
@@ -1832,6 +1977,12 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
           seat.role = body.role as RaidRole;
           session.revision++;
           return save({ ok: true, revision: session.revision });
+        }
+        if (body.op === 'goal') {
+          // 這一場的個人目標（答對幾題），開戰前後都可以改
+          seat.goal = integer(body.goal, 1, 99);
+          session.revision++;
+          return save({ goal: seat.goal, revision: session.revision });
         }
         assert(seat.role, '請先選角色', 409);
         // 各裝置的時鐘差一點點：開戰前 1.5 秒內送來的也算（作答時間記在開戰那一刻）

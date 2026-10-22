@@ -7,7 +7,7 @@ import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 const dir=await mkdtemp(join(tmpdir(),'classroom-backend-'));
-await build({entryPoints:[resolve('worker/app.ts'),resolve('worker/storage.ts'),resolve('worker/index.ts'),resolve('worker/ai.ts'),resolve('worker/validation.ts'),resolve('shared/expr.ts'),resolve('shared/practice.ts'),resolve('shared/quiz.ts'),resolve('shared/raid.ts')],outdir:dir,bundle:true,platform:'node',format:'esm',outExtension:{'.js':'.mjs'},logLevel:'silent'});
+await build({entryPoints:[resolve('worker/app.ts'),resolve('worker/storage.ts'),resolve('worker/index.ts'),resolve('worker/ai.ts'),resolve('worker/validation.ts'),resolve('shared/expr.ts'),resolve('shared/practice.ts'),resolve('shared/quiz.ts'),resolve('shared/raid.ts'),resolve('shared/make.ts')],outdir:dir,bundle:true,platform:'node',format:'esm',outExtension:{'.js':'.mjs'},logLevel:'silent'});
 const {handleApi,liveTicket,liveView}=await import(pathToFileURL(join(dir,'worker','app.mjs')).href);
 const {SupabaseStore,DurableStore,SessionSplitStore,MAX_SNAPSHOT_BYTES}=await import(pathToFileURL(join(dir,'worker','storage.mjs')).href);
 const {ClassroomDurableObject}=await import(pathToFileURL(join(dir,'worker','index.mjs')).href);
@@ -927,6 +927,16 @@ test('raid rules: banked shields block the boss and name the seats, boss moves, 
   // 分出勝負
   const win=raidLib.raidReplay({...c,bossHp:24},[{t:100,seat:4,kind:'attack',ok:true},{t:200,seat:6,kind:'attack',ok:true},{t:300,seat:4,kind:'attack',ok:true}],S,400);
   assert.equal(win.result,'win');assert(win.stats['6'].lastHit);assert.equal(win.stats['4'].n.attack,1,'after the win nothing counts');
+  // 連對保護：連對 2 題以上，第一次答錯不中斷（每場一次）；贖回：答錯後同類型答對，拿回一半分數
+  const seq=[true,true,false,true,false].map((ok,i)=>({t:1000+i*100,seat:8,kind:'shield',ok}));
+  const sv=raidLib.raidReplay(c,seq,S,1500).stats['8'];
+  assert.equal(sv.saved,true);assert.equal(sv.streak,0,'second wrong breaks the streak');assert.equal(sv.best,3,'the first wrong was forgiven');
+  assert.equal(sv.redeemed,1);
+  // 職業被動技能：弓箭手的普通攻擊 +30%、劍士的防護罩多 0.5 秒、法師的大招計量多 5%
+  const arch=raidLib.raidReplay({...c,bossShieldEvery:9e9},[{t:500,seat:1,kind:'attack',ok:true,role:'archer'}],S,600);
+  assert.equal(c.bossHp-arch.bossHp,Math.round(c.heroAtk*1.3));
+  assert.equal(raidLib.shieldMs(raidLib.raidReplay(c,[{t:500,seat:1,kind:'shield',ok:true,role:'knight'}],S,600)),1500);
+  assert.equal(raidLib.raidReplay(c,[{t:500,seat:1,kind:'ultimate',ok:true,role:'mage'}],S,600).ult,c.ultGain+5);
   // 稱號：9 級，沒作答沒有稱號
   assert.equal(raidLib.RAID_TITLES.length,9);
   assert.equal(raidLib.raidLevel(undefined,5),0);
@@ -938,6 +948,7 @@ test('raid flow: start on the last lesson of 2-2, roles, free choice each questi
   const s=(await f.call('/api/sessions','POST',{lessonId:'g8-2-2d',classId:'demo-class'})).body.session;
   const lesson=(await f.call(`/api/sessions/${s.id}`)).body.lesson;
   assert(lesson.slides.at(-1).raidPage,'last page is the boss battle');
+  assert.deepEqual((await f.call(`/api/sessions/${s.id}`)).body.raidMap.wins,{},'adventure map for the teacher');
   assert(lesson.slides.at(-2).quizPage);
   await goOnline(f,[1,2,3,4]);
   const ctl=(body)=>f.call(`/api/sessions/${s.id}/control`,'POST',body);
@@ -948,6 +959,7 @@ test('raid flow: start on the last lesson of 2-2, roles, free choice each questi
   const raid=(who,body)=>f.call(`/api/sessions/${s.id}/raid`,'POST',{runId:run.id,...body},who);
   assert.equal((await raid('seat2',{op:'draw',kind:'attack'})).status,409,'pick a hero first');
   assert.equal((await raid('seat2',{op:'role',role:'mage'})).status,200);
+  assert.equal((await raid('seat2',{op:'goal',goal:3})).body.goal,3,'goal can be set during the countdown');
   assert.equal((await raid('seat2',{op:'draw',kind:'attack'})).status,409,'countdown');
   f.data.sessions[s.id].session.raid.startedAt-=4000;
   const q1=(await raid('seat2',{op:'draw',kind:'shield'})).body.question;
@@ -991,10 +1003,21 @@ test('raid flow: start on the last lesson of 2-2, roles, free choice each questi
   const mine=(await f.call(`/api/sessions/${s.id}`,'GET',null,'seat2')).body.raid.results;
   assert.deepEqual(mine.map(r=>r.seat),[2]);
   assert.equal((await raid('seat2',{op:'draw',kind:'attack'})).status,409,'battle over');
-  // 再戰一場：角色留著
+  assert.equal(done.results.find(r=>r.seat===2).goal,3);assert(done.results.find(r=>r.seat===2).correct>=1);
+  // 再戰一場：角色留著；上一場答對的題數變成個人最佳
   await ctl({action:'raid-start',difficulty:'hard',seconds:600});
   const again=(await f.call(`/api/sessions/${s.id}`,'GET',null,'seat2')).body.raid;
+  const raid2=(who,body)=>f.call(`/api/sessions/${s.id}/raid`,'POST',{runId:again.run.id,...body},who);
   assert.notEqual(again.run.id,run.id);assert.equal(again.mine.role,'mage');
+  assert.equal(again.mine.prevBest,1,'personal best carried into the next battle');
+  assert.equal(f.data.classes['demo-class'].raidBest['2'],1);
+  // 打倒魔王：記進冒險地圖（難度＋最快時間）
+  f.data.sessions[s.id].session.raid.config.bossHp=5;f.data.sessions[s.id].raidRuns.at(-1).config.bossHp=5;
+  f.data.sessions[s.id].session.raid.startedAt-=4000;
+  const q9=(await raid2('seat2',{op:'draw',kind:'attack'})).body.question;
+  await raid2('seat2',{op:'answer',choice:right(q9)});
+  await ctl({action:'raid-close'});
+  assert(f.data.classes['demo-class'].raidWins['g8-2-2d'].hard.ms>0);
   // CSV、備份與還原
   const csv=new TextDecoder().decode((await f.call(`/api/sessions/${s.id}/export?format=csv`)).body);
   assert(csv.includes('魔王戰'));assert(csv.includes('理解（防護罩）')||csv.includes('記憶（普通攻擊）'));
@@ -1111,6 +1134,117 @@ test('formative quiz: one random paper for the class, answers hidden until the e
   const g=fixture();await g.call('/api/login','POST',TEACHER);
   const r=await g.call('/api/restore','POST',{backup});assert.equal(r.status,200,JSON.stringify(r.body));
   assert.equal(g.data.sessions[s.id].quizRuns.length,5);assert(g.data.sessions[s.id].quizRuns.some(r=>r.mode==='review'&&r.personal['1']));
+});
+
+test('quiz extras: confidence bets, growth since the last class quiz, level pairing, spaced review from the previous lesson',async()=>{
+  const {f}=await setup();
+  const mk=(id,name)=>({title:`${name}題庫`,slots:Array.from({length:10},(_,q)=>({id:`${id}${q+1}`,topic:`${name} 題位 ${q+1}`,variants:[0,1,2].map(v=>({stem:`${name} 第 ${q+1} 題（${v}）`,options:[`對${v}`,`錯A${v}`,`錯B${v}`,`錯C${v}`],answer:0,explanation:'解析'}))}))});
+  const base=(await f.call('/api/dashboard')).body.lessons[0];
+  assert.equal((await f.call('/api/lessons/lesson-a','PUT',{lesson:{...base,id:'lesson-a',title:'第一課',quiz:mk('a','甲')}})).status,200);
+  assert.equal((await f.call('/api/lessons/lesson-b','PUT',{lesson:{...base,id:'lesson-b',title:'第二課',quiz:mk('b','乙')}})).status,200);
+  await goOnline(f,[1,2,3,4]);
+  const right=(v,q)=>v.quiz.questions[q].options.findIndex(o=>o.startsWith('對'));
+  // 第一課：全班測驗＋信心下注
+  const a=(await f.call('/api/sessions','POST',{lessonId:'lesson-a',classId:'demo-class'})).body.session;
+  const ctlA=(body)=>f.call(`/api/sessions/${a.id}/control`,'POST',body);
+  const viewA=(who)=>f.call(`/api/sessions/${a.id}`,'GET',null,who).then(r=>r.body);
+  const ansA=(who,body)=>f.call(`/api/sessions/${a.id}/quiz`,'POST',body,who);
+  await ctlA({action:'quiz-class',seconds:600});
+  const ta=await viewA('teacher'),runA=ta.quiz.run.id;
+  const rightCount={1:6,2:10,3:3,4:8};
+  for(const [seat,k] of Object.entries(rightCount))for(let q=0;q<10;q++)await ansA(`seat${seat}`,{runId:runA,q,choice:q<k?right(ta,q):(right(ta,q)+1)%4});
+  // 1 號：第 1–3 題有把握（對）、第 9 題有把握（錯）、其他不太確定 → 3×3 − 2 + 3×1 + 0 = 10
+  for(let q=0;q<10;q++)assert.equal((await ansA('seat1',{runId:runA,q,conf:[0,1,2,8].includes(q)?1:0})).status,200);
+  assert.equal((await ansA('seat1',{runId:runA,q:0,conf:2})).status,400,'confidence is 0 or 1');
+  assert.deepEqual((await viewA('seat1')).quiz.mine.conf,[1,1,1,0,0,0,0,0,1,0]);
+  await ctlA({action:'quiz-end'});
+  assert.equal((await viewA('teacher')).quiz.bets['1'],10);
+  assert.equal(quizLib.betSummary((await viewA('seat1')).quiz.mine.correct,(await viewA('seat1')).quiz.mine.conf).points,10,'the student gets the same score');
+  assert.equal((await viewA('seat1')).quiz.bets,undefined,'students do not see other bets');
+  const cls=f.data.classes['demo-class'];
+  assert.deepEqual(Object.fromEntries(Object.entries(cls.quizHistory).map(([k,v])=>[k,v.map(e=>e.correct)])),{1:[6],2:[10],3:[3],4:[8]});
+  assert.deepEqual(cls.quizMisses['lesson-a'].counts,[0,0,0,1,1,1,2,2,3,3]);
+  // 同程度配對：2 號 100%、4 號 80%、1 號 60%、3 號 30%
+  await ctlA({action:'pk-lobby'});
+  await ctlA({action:'pk-level'});
+  assert.deepEqual((await viewA('teacher')).session.pkLobby.pairs,[[2,4],[1,3]]);
+  await ctlA({action:'pk-start',seconds:120});
+  f.data.sessions[a.id].session.quiz.startedAt-=4000;
+  assert.equal((await ansA('seat1',{runId:(await viewA('teacher')).quiz.run.id,q:0,conf:1})).status,400,'no bets in PK');
+  await ctlA({action:'end'});
+  // 第二課：開頭派間隔複習（上一課全班錯最多的 3 個題型）
+  const b=(await f.call('/api/sessions','POST',{lessonId:'lesson-b',classId:'demo-class'})).body.session;
+  const ctlB=(body)=>f.call(`/api/sessions/${b.id}/control`,'POST',body);
+  const viewB=(who)=>f.call(`/api/sessions/${b.id}`,'GET',null,who).then(r=>r.body);
+  const ansB=(who,body)=>f.call(`/api/sessions/${b.id}/quiz`,'POST',body,who);
+  assert.deepEqual((await viewB('teacher')).spaced,{title:'第一課',topics:['甲 題位 9','甲 題位 10','甲 題位 7']});
+  assert.equal((await viewB('seat1')).spaced,undefined);
+  assert.equal((await f.call(`/api/sessions/${a.id}`)).body.spaced,undefined,'not offered in the lesson it came from');
+  await ctlB({action:'quiz-spaced'});
+  const sp=await viewB('seat1');
+  assert.equal(sp.quiz.run.mode,'spaced');assert.equal(sp.quiz.run.from,'第一課');assert.equal(sp.quiz.run.bank,undefined,'the bank stays on the server');
+  assert.equal((await viewB('teacher')).quiz.run.bank,undefined);
+  assert.equal(sp.quiz.questions.length,3);assert(sp.quiz.questions[0].stem.startsWith('甲 第 9 題'));
+  const tsp=await viewB('teacher');
+  const r0=(await ansB('seat1',{runId:sp.quiz.run.id,q:0,choice:right(tsp,0)})).body;
+  assert.equal(r0.correct,true);assert.equal(r0.answer,right(tsp,0),'answer shown right away');
+  assert.equal((await ansB('seat1',{runId:sp.quiz.run.id,q:0,choice:0})).status,409,'spaced: an answer is final');
+  // 這一課的全班測驗：和上一次比進步多少
+  await ctlB({action:'quiz-class',seconds:600});
+  const tb=await viewB('teacher'),runB=tb.quiz.run.id;
+  for(let q=0;q<10;q++)await ansB('seat1',{runId:runB,q,choice:q<9?right(tb,q):(right(tb,q)+1)%4});
+  await ctlB({action:'quiz-end'});
+  assert.deepEqual((await viewB('seat1')).quiz.prev,{1:{correct:6,total:10}});
+  assert.deepEqual(Object.keys((await viewB('teacher')).quiz.prev).sort(),['1','2','3','4']);
+  assert.deepEqual(f.data.classes['demo-class'].quizHistory['1'].map(e=>e.correct),[6,9]);
+  assert.deepEqual((await viewB('teacher')).quizRecord.wrong,{1:[9]},'the spaced review does not mix into this lesson\'s record');
+  // 紀錄：CSV 與備份
+  const csvA=new TextDecoder().decode((await f.call(`/api/sessions/${a.id}/export?format=csv`)).body);
+  assert(csvA.includes('有把握')&&csvA.includes('不太確定'));
+  const csvB=new TextDecoder().decode((await f.call(`/api/sessions/${b.id}/export?format=csv`)).body);
+  assert(csvB.includes('間隔複習（第一課）'));
+  const backup=(await f.call('/api/backup')).body;
+  const g=fixture();await g.call('/api/login','POST',TEACHER);
+  assert.equal((await g.call('/api/restore','POST',{backup})).status,200);
+  const kept=g.data.sessions[b.id].quizRuns.find(r=>r.mode==='spaced');
+  assert.equal(kept.bank.slots.length,3);assert.equal(kept.from,'第一課');
+  assert.deepEqual(g.data.sessions[a.id].quizSheets[runA]['1'].conf,[1,1,1,0,0,0,0,0,1,0]);
+});
+
+test('make (radical 24-game): every card once, + − × ÷ and brackets; judged on the server; class sees the different ways',async()=>{
+  const make=await import(pathToFileURL(join(dir,'shared','make.mjs')).href);
+  const cards=['√2','√8','√3','√12'];
+  assert.equal(make.makeCheck('[0]*[1]+[3]/[2]',cards,'6').ok,true);
+  assert.equal(make.makeCheck('([3]/[2])+([1]*[0])',cards,'6').ok,true,'brackets and any order');
+  assert.equal(make.makeCheck('[0]*[1]+[3]',cards,'6').error,'每張卡片都要用到');
+  assert.equal(make.makeCheck('[0]*[1]+[3]',cards,'6').complete,true);
+  assert.equal(make.makeCheck('[0]*[1]+',cards,'6').error,undefined,'still typing is not an error');
+  assert.equal(make.makeCheck('[0]*[1]+[3]',cards,'6').ok,false,'every card must be used');
+  assert.equal(make.makeCheck('[0]*[0]+[1]',cards,'6').error,'每張卡片只能用一次');
+  assert.equal(make.makeCheck('[0][1]',cards,'6').error,'兩張數字卡中間要放運算符號');
+  assert.equal(make.makeCheck('[0]*([1]+[2]',cards,'6').complete,false,'unclosed bracket');
+  assert.equal(make.makeCheck('[0]/([1]-[1])',cards,'6').ok,false);
+  assert.equal(make.makeCheck('alert(1)',cards,'6').ok,false);
+  assert.equal(make.makeText('[0]*([1]-[2])/[3]',cards),'√2 × (√8 − √3) ÷ √12');
+  assert.equal(make.makeBack('[0]*([1]'),'[0]*(');
+  assert.equal(make.makeCheck('([0]+[1])*([2]+[3])',['√2','√3','√2','√3'],'5+2√6').ok,true,'target with a sum');
+  // 課程裡的關卡：老師開放、學生送出，伺服器判定
+  const {f}=await setup();
+  const s=(await f.call('/api/sessions','POST',{lessonId:'g8-2-2b',classId:'demo-class'})).body.session;
+  const lesson=(await f.call(`/api/sessions/${s.id}`)).body.lesson;
+  const slide=lesson.slides.find(x=>x.activity?.id==='make-1');
+  assert.deepEqual(slide.activity.cards,cards);assert.equal(slide.activity.target,'6');
+  await openSlide(f,s,lesson,'make-1');
+  await goOnline(f,[2,3]);
+  let n=0;const send=(who,value)=>f.call(`/api/sessions/${s.id}/answers`,'POST',{submissionId:`mk-${n++}`,activityId:'make-1',value},who);
+  assert.equal((await send('seat2','[0]*[1]+[3]')).status,400,'all cards are needed');
+  assert.equal((await send('seat2','[0]*[1]+')).status,400,'incomplete');
+  assert.equal((await send('seat2','[0]*[1]+[3]/[2]')).status,200);
+  assert.equal((await send('seat3','[0]+[1]+[2]+[3]')).status,200,'a wrong total can still be handed in');
+  assert.equal((await send('student','[3]/[2]+[0]*[1]')).status,200);
+  const t=(await f.call(`/api/sessions/${s.id}`)).body;
+  assert.equal(t.aggregate.correct,2);assert.equal(t.aggregate.counts['[0]*[1]+[3]/[2]'],1);
+  assert.equal((await f.call(`/api/sessions/${s.id}`,'GET',null,'seat2')).body.aggregate.correct,undefined,'hidden until the results');
 });
 
 test('fullSlide: one figure fills the slide; zero or several figures are rejected',()=>{

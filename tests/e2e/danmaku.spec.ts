@@ -3,7 +3,7 @@ import { test, expect, type Page, type Browser, type BrowserContext } from '@pla
 import { mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
-const baseURL = process.env.E2E_BASE_URL || 'http://127.0.0.1:8787';
+const baseURL = process.env.E2E_BASE_URL || `http://127.0.0.1:${process.env.MCK_PORT || 8787}`;
 const screenshots = resolve('artifacts/screenshots');
 const contexts: BrowserContext[] = [];
 const cleanup: { context: BrowserContext; id: string }[] = [];

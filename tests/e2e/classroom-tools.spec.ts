@@ -4,7 +4,7 @@ import { test, expect, type Page, type Browser, type BrowserContext } from '@pla
 import { mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
-const baseURL = process.env.E2E_BASE_URL || 'http://127.0.0.1:8787';
+const baseURL = process.env.E2E_BASE_URL || `http://127.0.0.1:${process.env.MCK_PORT || 8787}`;
 const screenshots = resolve('artifacts/screenshots');
 const contexts: BrowserContext[] = [];
 const cleanup: { context: BrowserContext; id: string }[] = [];
@@ -53,7 +53,9 @@ test('seat map, online-only draw, centered buzz button and larger answer panel',
   for (const s of students) await expect(seat(teacher.page, s.n)).toHaveClass(/\bon\b/);
   await expect(seat(teacher.page, 1)).toHaveClass(/\boff\b/);
 
-  // 第 1 頁：提取練習（3 小題）。開放作答，31、32 號交卷
+  // 第 2 頁：提取練習（3 小題；第 1 頁是暖身）。開放作答，31、32 號交卷
+  await teacher.page.locator('.slide-dots button').nth(1).click();
+  await expect(teacher.page.locator('.room-progress span').first()).toHaveText('2');
   await teacher.page.getByTestId('toggle-activity').click();
   for (const s of students.slice(0, 2)) {
     const tab = s.page.locator('.phone-tabs [data-tab="answer"]');

@@ -5,7 +5,7 @@ import { mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { deflateSync } from 'node:zlib';
 
-const baseURL = process.env.E2E_BASE_URL || 'http://127.0.0.1:8787';
+const baseURL = process.env.E2E_BASE_URL || `http://127.0.0.1:${process.env.MCK_PORT || 8787}`;
 const screenshots = resolve('artifacts/screenshots');
 const contexts: BrowserContext[] = [];
 const cleanup: { context: BrowserContext; id: string }[] = [];
@@ -73,7 +73,7 @@ test('photo work: AI transcript to confirm, fast grading on the text, projector 
   await expect(teacher.page.getByTestId('session-slide')).toBeVisible();
   const sessionId = teacher.page.url().split('/session/')[1];
   cleanup.push({ context: teacher.context, id: sessionId });
-  await teacher.page.locator('.slide-dots button').nth(9).click(); // 錯誤分析（手寫／拍照）
+  await teacher.page.locator('.slide-dots button').nth(10).click(); // 錯誤分析（手寫／拍照）
   await teacher.page.getByTestId('toggle-activity').click();
 
   const students = [];
@@ -146,7 +146,7 @@ test('numeric question: type the answer or photograph the textbook work; AI read
   await expect(teacher.page.getByTestId('session-slide')).toBeVisible();
   const sessionId = teacher.page.url().split('/session/')[1];
   cleanup.push({ context: teacher.context, id: sessionId });
-  await teacher.page.locator('.slide-dots button').nth(8).click(); // 例 3 隨堂（課本原題 2 題）
+  await teacher.page.locator('.slide-dots button').nth(9).click(); // 例 3 隨堂（課本原題 2 題）
   await teacher.page.getByTestId('toggle-activity').click();
 
   const students = [];

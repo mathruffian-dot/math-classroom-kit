@@ -4,7 +4,7 @@ import { test, expect, type Page, type Browser, type BrowserContext } from '@pla
 import { mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
-const baseURL = process.env.E2E_BASE_URL || 'http://127.0.0.1:8787';
+const baseURL = process.env.E2E_BASE_URL || `http://127.0.0.1:${process.env.MCK_PORT || 8787}`;
 const screenshots = resolve('artifacts/screenshots');
 const contexts: BrowserContext[] = [];
 const cleanup: { context: BrowserContext; id: string }[] = [];
@@ -74,6 +74,10 @@ test('formative quiz for the class, then PK battles picked on the seat map and b
   await expect(s22.locator('.quiz-stem')).toHaveText((await s21.locator('.quiz-stem').textContent())!);
   for (let i = 0; i < 10; i++) {
     await s21.getByTestId('quiz-option-0').click();
+    // 信心下注：選完答案要選把握程度，才會跳下一題
+    await expect(s21.getByTestId('conf-row')).toHaveClass(/ask/);
+    if (i === 0) await expect(s21.locator('.mini-label')).toContainText('第 1／10 題');
+    await s21.getByTestId(i < 5 ? 'conf-sure' : 'conf-unsure').click();
     await expect(s21.locator('.quiz-dot').nth(i)).toHaveClass(/done/);
   }
   await shot(s21, 'student-class');
@@ -84,6 +88,9 @@ test('formative quiz for the class, then PK battles picked on the seat map and b
   await teacher.page.getByTestId('quiz-end').click();
   await expect(s21.getByTestId('quiz-summary')).toContainText('／10 題');
   await expect(s21.locator('.quiz-review li')).toHaveCount(10);
+  await expect(s21.getByTestId('bet-summary')).toContainText('信心下注');
+  await expect(s21.getByTestId('bet-summary')).toContainText('有把握：');
+  await shot(s21, 'student-class-bet');
 
   // ── PK：座位表點 21、22 配一組；抽籤抽到 23（只剩他上線），配電腦 ──
   await teacher.page.getByRole('button', { name: '關閉' }).click();
@@ -142,4 +149,99 @@ test('formative quiz for the class, then PK battles picked on the seat map and b
   await shot(s21, 'student-review');
   await expect(teacher.page.locator('.review-row').first()).toBeVisible();
   await shot(teacher.page, 'teacher-review-board');
+});
+
+test('quiz extras: confidence bets, level pairing, spaced review in the next lesson, growth since last time', async ({ browser }) => {
+  test.setTimeout(240_000);
+  const teacher = await surface(browser, 1440, 900);
+  const tp = teacher.page;
+  await tp.goto('/');
+  await tp.getByLabel('帳號').fill('teacher');
+  await tp.getByLabel('密碼').fill('11235813');
+  await tp.locator('#login-form').getByRole('button', { name: '登入' }).click();
+  await expect(tp.getByTestId('lesson-card').first()).toBeVisible();
+  const cl = (await (await tp.request.get('/api/dashboard')).json()).classes.find((c: { code: string }) => c.code === 'DEMO801');
+  await tp.request.patch(`/api/classes/${cl.id}`, { headers: { Origin: baseURL }, data: { requireCode: false } });
+  const startLesson = async (title: string) => {
+    await tp.getByTestId('lesson-card').filter({ hasText: title }).getByRole('button', { name: '開始上課' }).click();
+    await tp.locator('#start-form select').selectOption('demo-class');
+    await tp.locator('#start-form').getByRole('button', { name: '開始上課' }).click();
+    await expect(tp.getByTestId('session-slide')).toBeVisible();
+    const id = tp.url().split('/session/')[1];
+    cleanup.push({ context: teacher.context, id });
+    return id;
+  };
+  const a = await startLesson('根式的乘除');
+  const phone = await surface(browser, 390, 844, true);
+  const ipad = await surface(browser, 1080, 810, true);
+  await loginStudent(phone.page, 31);
+  await loginStudent(ipad.page, 32);
+  const s31 = phone.page,
+    s32 = ipad.page;
+  // 第一課：全班測驗（31 號全選 A、32 號全選 B），每題選把握程度
+  await tp.locator('.slide-dots button').last().click();
+  await tp.getByTestId('quiz-class').click();
+  for (const [s, opt] of [[s31, 0], [s32, 1]] as const) {
+    await answerTab(s);
+    await expect(s.getByTestId('quiz-card')).toBeVisible();
+    for (let i = 0; i < 10; i++) {
+      await s.getByTestId(`quiz-option-${opt}`).click();
+      await s.getByTestId(i % 2 ? 'conf-unsure' : 'conf-sure').click();
+      await expect(s.locator('.quiz-dot').nth(i)).toHaveClass(/done/);
+    }
+    if (s === s31) await shot(s31, 'phone-confidence');
+    await s.getByTestId('quiz-submit').click();
+  }
+  await expect(tp.getByTestId('quiz-status')).toContainText('已交卷 2');
+  await tp.getByTestId('quiz-end').click();
+  await expect(s31.getByTestId('bet-summary')).toBeVisible();
+  await expect(tp.getByTestId('quiz-board')).toContainText('信心下注平均');
+  await shot(s31, 'phone-bet-summary');
+  // 同程度配對
+  await tp.getByRole('button', { name: '關閉' }).click();
+  await tp.getByTestId('pk-lobby').click();
+  await tp.getByTestId('pk-level').click();
+  await expect(tp.getByTestId('pk-pair')).toHaveCount(1);
+  await expect(tp.getByTestId('pk-pair')).toContainText('31 號');
+  await shot(tp, 'teacher-level-pairs');
+  await tp.getByRole('button', { name: '取消' }).click();
+  // 下一課：第一頁派間隔複習（上一課全班錯最多的 3 個題型）
+  await tp.request.post(`/api/sessions/${a}/control`, { headers: { Origin: baseURL }, data: { action: 'end' } });
+  await tp.goto('/');
+  await startLesson('最簡根式');
+  for (const s of [s31, s32]) {
+    await s.reload();
+    await expect(s.getByTestId('session-slide')).toBeVisible();
+  }
+  await expect(tp.getByTestId('spaced-panel')).toContainText('根式的乘除');
+  await shot(tp, 'teacher-spaced-panel');
+  await tp.getByTestId('quiz-spaced').click();
+  await expect(tp.getByTestId('quiz-board')).toBeVisible();
+  await answerTab(s31);
+  await expect(s31.getByTestId('quiz-card')).toContainText('間隔複習');
+  for (let i = 0; i < 3; i++) {
+    await expect(s31.locator('#student-answer .mini-label')).toContainText(`第 ${i + 1}／3 題`);
+    await s31.getByTestId('quiz-option-0').click();
+    if (i === 0) {
+      await expect(s31.locator('.quiz-flash')).toContainText('正解');
+      await shot(s31, 'phone-spaced');
+    }
+  }
+  await expect(s31.getByTestId('quiz-summary')).toContainText('／3 題');
+  await shot(tp, 'teacher-spaced-board');
+  // 這一課的全班測驗：結束後看到和上次比的進步
+  await tp.getByRole('button', { name: '關閉' }).click();
+  await tp.locator('.slide-dots button').last().click();
+  await tp.getByTestId('quiz-class').click();
+  await answerTab(s31);
+  for (let i = 0; i < 10; i++) {
+    await s31.getByTestId('quiz-option-0').click();
+    await s31.getByTestId('conf-sure').click();
+    await expect(s31.locator('.quiz-dot').nth(i)).toHaveClass(/done/);
+  }
+  await s31.getByTestId('quiz-submit').click();
+  await tp.getByTestId('quiz-end').click();
+  await expect(s31.getByTestId('growth-line')).toContainText('上次');
+  await shot(s31, 'phone-growth');
+  await shot(tp, 'teacher-growth-board');
 });

@@ -3,7 +3,7 @@ import { test, expect, type Page, type Browser, type BrowserContext } from '@pla
 import { mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
-const baseURL = process.env.E2E_BASE_URL || 'http://127.0.0.1:8787';
+const baseURL = process.env.E2E_BASE_URL || `http://127.0.0.1:${process.env.MCK_PORT || 8787}`;
 const screenshots = resolve('artifacts/screenshots');
 const contexts: BrowserContext[] = [];
 const cleanup: { context: BrowserContext; id: string }[] = [];
@@ -82,7 +82,7 @@ test('iPad student: slide, keypad and canvas fit one screen with large touch tar
   }
 
   // 例 5：三小題數值填答＋作答鍵盤
-  await go(8);
+  await go(9); // 第 1 頁是暖身
   for (const p of pads) {
     const tab = p.page.locator('.phone-tabs [data-tab="answer"]');
     if (await tab.isVisible()) await tab.click();
@@ -116,17 +116,17 @@ test('iPad student: slide, keypad and canvas fit one screen with large touch tar
   }
 
   // 例 4 的教材頁（步驟視覺化＋截圖）
-  await go(4, false);
+  await go(5, false);
   for (const p of pads) {
     const tab = p.page.locator('.phone-tabs [data-tab="slide"]');
     if (await tab.isVisible()) await tab.click();
-    await expect(p.page.locator('.room-progress span').first()).toHaveText('4');
+    await expect(p.page.locator('.room-progress span').first()).toHaveText('5');
     await fits(p.page, `${p.name} slide`);
     await shot(p.page, `${p.name}-slide`);
   }
 
   // 錯誤分析：手寫畫布
-  await go(12);
+  await go(13);
   for (const p of pads) {
     const tab = p.page.locator('.phone-tabs [data-tab="answer"]');
     if (await tab.isVisible()) await tab.click();

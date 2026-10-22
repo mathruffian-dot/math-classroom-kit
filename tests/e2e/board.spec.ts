@@ -1,7 +1,7 @@
 // 白板畫筆（觸控大螢幕／觸控筆）：漏掉 pointerup 時，下一筆不能接在上一筆後面；快速書寫的點要夠密。
 import { test, expect, type BrowserContext } from '@playwright/test';
 
-const baseURL = process.env.E2E_BASE_URL || 'http://127.0.0.1:8787';
+const baseURL = process.env.E2E_BASE_URL || `http://127.0.0.1:${process.env.MCK_PORT || 8787}`;
 const contexts: BrowserContext[] = [];
 let sessionId = '';
 

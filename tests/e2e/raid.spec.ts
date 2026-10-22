@@ -4,7 +4,7 @@ import { test, expect, type Browser, type BrowserContext, type Page } from '@pla
 import { mkdir, readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
-const baseURL = process.env.E2E_BASE_URL || 'http://127.0.0.1:8787';
+const baseURL = process.env.E2E_BASE_URL || `http://127.0.0.1:${process.env.MCK_PORT || 8787}`;
 const screenshots = resolve('artifacts/screenshots');
 const contexts: BrowserContext[] = [];
 const cleanup: { context: BrowserContext; id: string }[] = [];
@@ -71,6 +71,10 @@ test('raid: the class fights the boss together, shields and ultimates name the s
   // 魔王戰在最後一頁（課後檢核・PK 戰之後）
   await tp.locator('.slide-dots button').last().click();
   await expect(tp.getByTestId('raid-start')).toBeVisible();
+  // 還沒開戰：大螢幕是冒險地圖（三位魔王）
+  await expect(tp.getByTestId('raid-map')).toBeVisible();
+  await expect(tp.getByTestId('raid-map-hard')).toContainText('混沌根式龍');
+  await tp.screenshot({ path: resolve(screenshots, 'raid-map.png') });
   await expect(tp.getByTestId('quiz-class')).toHaveCount(0);
   await tp.locator('#raid-difficulty').selectOption('easy');
   await tp.locator('#raid-seconds').selectOption('300');
@@ -83,6 +87,8 @@ test('raid: the class fights the boss together, shields and ultimates name the s
     const tab = s.locator('.phone-tabs [data-tab="answer"]');
     if (await tab.isVisible()) await tab.click();
     await s.getByTestId(`raid-role-${roles[i]}`).click();
+    // 個人目標：11 號設 3 題，其他人先不設定
+    await s.getByTestId(i === 0 ? 'raid-goal-3' : 'raid-goal-skip').click();
   }
   await s11.screenshot({ path: resolve(screenshots, 'raid-student-countdown.png') });
   await expect(s11.getByTestId('raid-kind-attack')).toBeVisible({ timeout: 8000 });

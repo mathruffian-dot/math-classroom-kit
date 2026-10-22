@@ -4,7 +4,7 @@ import { test, expect, type Browser, type BrowserContext } from '@playwright/tes
 import { mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
-const baseURL = process.env.E2E_BASE_URL || 'http://127.0.0.1:8787';
+const baseURL = process.env.E2E_BASE_URL || `http://127.0.0.1:${process.env.MCK_PORT || 8787}`;
 const screenshots = resolve('artifacts/screenshots');
 const contexts: BrowserContext[] = [];
 const cleanup: { context: BrowserContext; id: string }[] = [];
@@ -58,6 +58,7 @@ test('geometry quiz: every question shows its figure on the phone, and the teach
     expect(box.right).toBeLessThanOrEqual(box.w);
     if (i === 0) await s.screenshot({ path: resolve(screenshots, 'quiz-figure-phone.png') });
     await s.getByTestId('quiz-option-0').click();
+    await s.getByTestId('conf-sure').click(); // 信心下注：選了把握才跳下一題
     await expect(s.locator('.quiz-dot').nth(i)).toHaveClass(/done/);
   }
   await s.getByTestId('quiz-submit').click();

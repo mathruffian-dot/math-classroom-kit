@@ -28,7 +28,9 @@ build.on('exit', (code) => {
       '--ip',
       '127.0.0.1',
       '--port',
-      '8787',
+      process.env.MCK_PORT || '8787',
+      // 測試時可設 MCK_PERSIST_DIR，讓 Durable Object 資料存到獨立的暫存資料夾，不碰共用的 .wrangler/state
+      ...(process.env.MCK_PERSIST_DIR ? ['--persist-to', process.env.MCK_PERSIST_DIR] : []),
     ],
     { cwd: root, stdio: 'inherit', windowsHide: true },
   );

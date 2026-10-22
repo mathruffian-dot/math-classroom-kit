@@ -99,10 +99,22 @@ export function answerRaid(bank: RaidBank, run: RaidRun, store: RaidStore, seatN
   const original = cur.order[integer(choice, 0, cur.order.length - 1)];
   const ok = original === item.answer;
   const t = Math.max(0, raidElapsed(run, now));
-  play.actions.push({ t, seat: seatNo, kind: cur.kind, ok });
+  // 前後各推算一次：告訴學生這一題有沒有用到連對保護、有沒有贖回成功
+  const before = raidState(run, store, now).stats[String(seatNo)];
+  play.actions.push({ t, seat: seatNo, kind: cur.kind, ok, ...(seat.role ? { role: seat.role } : {}) });
+  const after = raidState(run, store, now).stats[String(seatNo)];
   delete seat.cur;
   if (!ok) seat.lockUntil = now + (cur.kind === 'ultimate' ? RAID_LOCK_ULT_MS : RAID_LOCK_MS);
-  return { correct: ok, answer: cur.order.indexOf(item.answer), ...(item.explanation ? { explanation: item.explanation } : {}), kind: cur.kind, ...(ok ? {} : { lockUntil: seat.lockUntil }) };
+  return {
+    correct: ok,
+    answer: cur.order.indexOf(item.answer),
+    ...(item.explanation ? { explanation: item.explanation } : {}),
+    kind: cur.kind,
+    ...(ok ? {} : { lockUntil: seat.lockUntil }),
+    streak: after?.streak ?? 0,
+    ...(after?.saved && !before?.saved ? { saved: true } : {}),
+    ...((after?.redeemed || 0) > (before?.redeemed || 0) ? { redeemed: true } : {}),
+  };
 }
 
 /** 不會做：換同一類的另一題（不算答錯；每 30 秒一次）。 */
@@ -124,13 +136,29 @@ export function chargingSeats(store: RaidStore, run: RaidRun): number[] {
 }
 
 /** 結算：每個人的貢獻分數、9 級稱號與特別稱號。 */
-export function raidResults(run: RaidRun, state: RaidState): RaidResult[] {
+/** 這位同學這一場答對幾題。 */
+export const raidCorrect = (x: RaidState['stats'][string] | undefined) => (x ? x.ok.attack + x.ok.shield + x.ok.ultimate : 0);
+export function raidResults(run: RaidRun, state: RaidState, seats: Record<string, RaidSeat> = {}): RaidResult[] {
   const minutes = (state.endAt ?? Math.min(state.t, run.seconds * 1000)) / 60000;
   const badges = raidBadges(state.stats);
   return Object.entries(state.stats)
     .map(([seat, stats]) => {
       const level = raidLevel(stats, minutes);
-      return { seat: Number(seat), score: stats.score, level, title: level ? RAID_TITLES[level - 1] : '', badges: badges[seat] || [], stats };
+      const correct = raidCorrect(stats);
+      const goal = seats[seat]?.goal;
+      const prevBest = run.prevBest?.[seat];
+      const extra = [...(goal && correct >= goal ? ['達成目標'] : []), ...(prevBest !== undefined && correct > prevBest ? ['突破個人紀錄'] : [])];
+      return {
+        seat: Number(seat),
+        score: stats.score,
+        level,
+        title: level ? RAID_TITLES[level - 1] : '',
+        badges: [...(badges[seat] || []), ...extra],
+        stats,
+        correct,
+        ...(goal ? { goal } : {}),
+        ...(prevBest !== undefined ? { prevBest } : {}),
+      };
     })
     .filter((r) => r.level > 0)
     .sort((a, b) => b.score - a.score || a.seat - b.seat);
@@ -144,7 +172,7 @@ export function raidView(bank: RaidBank, run: RaidRun, store: RaidStore, user: U
   const teacher = user.role === 'teacher';
   const pools = Object.fromEntries(RAID_KINDS.map((k) => [k, bank.pools[k].length])) as RaidView['pools'];
   const over = raidOver(run, state);
-  const all = over ? raidResults(run, state) : undefined;
+  const all = over ? raidResults(run, state, play?.seats) : undefined;
   // 角色給所有人（學生平板也顯示戰場，出招動畫依角色不同）
   const roles = Object.fromEntries(Object.entries(play?.seats || {}).flatMap(([seat, s]) => (s.role ? [[seat, s.role]] : [])));
   const charging = over ? [] : chargingSeats(store, run);
@@ -163,6 +191,8 @@ export function raidView(bank: RaidBank, run: RaidRun, store: RaidStore, user: U
   }
   if (seat?.lockUntil && seat.lockUntil > now && !over) mine.lockUntil = seat.lockUntil;
   if (seat?.skipAt) mine.skipAt = seat.skipAt;
+  if (seat?.goal) mine.goal = seat.goal;
+  if (run.prevBest?.[me] !== undefined) mine.prevBest = run.prevBest[me];
   return {
     run,
     title: bankTitle,
@@ -184,7 +214,7 @@ export function raidCsvRows(store: RaidStore, bankFor: (run: RaidRun) => RaidBan
     const play = store.raidPlay?.[run.id];
     if (!play || !bankFor(run)) continue;
     const state = raidReplay(run.config, play.actions, run.seconds, Math.max(0, (run.endedAt ?? run.startedAt + run.seconds * 1000) - run.startedAt));
-    const results = new Map(raidResults(run, state).map((r) => [String(r.seat), r]));
+    const results = new Map(raidResults(run, state, play.seats).map((r) => [String(r.seat), r]));
     for (const a of play.actions) {
       const r = results.get(String(a.seat));
       rows.push(['魔王戰', a.seat, NAME[a.kind], '', '', a.ok ? 'Y' : 'N', r?.score ?? 0, '', r ? `${r.title}${r.badges.length ? `・${r.badges.join('、')}` : ''}` : '', new Date(run.startedAt + a.t).toISOString()]);
@@ -212,6 +242,7 @@ export function restoreRaid(runsInput: unknown, playInput: unknown, seats: numbe
       startedAt: ms(r.startedAt),
       seconds: integer(r.seconds, 60, 3600),
       ...(r.endedAt !== undefined ? { endedAt: ms(r.endedAt) } : {}),
+      ...(r.prevBest !== undefined ? { prevBest: Object.fromEntries(Object.entries(record(r.prevBest)).map(([k, v]) => [String(integer(Number(k), 1, seats)), integer(v, 0, 999)])) } : {}),
       config,
     };
   });
@@ -223,7 +254,7 @@ export function restoreRaid(runsInput: unknown, playInput: unknown, seats: numbe
     const actions = p.actions.map((x) => {
       const a = record(x);
       assert(kinds.has(String(a.kind)), '魔王戰題目類型不正確');
-      return { t: ms(a.t), seat: integer(a.seat, 1, seats), kind: a.kind as RaidKind, ok: a.ok === true };
+      return { t: ms(a.t), seat: integer(a.seat, 1, seats), kind: a.kind as RaidKind, ok: a.ok === true, ...(['knight', 'mage', 'archer'].includes(String(a.role)) ? { role: a.role as RaidSeat['role'] } : {}) };
     });
     const seatsOut: Record<string, RaidSeat> = {};
     for (const [seat, s] of Object.entries(record(p.seats ?? {}))) {
@@ -235,6 +266,7 @@ export function restoreRaid(runsInput: unknown, playInput: unknown, seats: numbe
       }
       seatsOut[String(integer(Number(seat), 1, seats))] = {
         ...(['knight', 'mage', 'archer'].includes(String(v.role)) ? { role: v.role as RaidSeat['role'] } : {}),
+        ...(v.goal !== undefined ? { goal: integer(v.goal, 1, 99) } : {}),
         used,
       };
     }

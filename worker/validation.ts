@@ -21,6 +21,7 @@ import {
   variablesOf,
 } from '../shared/expr';
 import type { RaidKind } from '../shared/raid';
+import { makeCheck } from '../shared/make';
 
 export class HttpError extends Error {
   status: number;
@@ -276,7 +277,7 @@ function validateRubric(input: unknown): Rubric {
   if (r.graderNotes !== undefined) rubric.graderNotes = str(r.graderNotes, '批改提醒', 2000);
   return rubric;
 }
-const TYPES = ['single', 'multiple', 'scale', 'short', 'numeric', 'canvas', 'manipulate'];
+const TYPES = ['single', 'multiple', 'scale', 'short', 'numeric', 'canvas', 'manipulate', 'make'];
 export function validateActivity(input: unknown, interactive?: Interactive): Activity {
   const a = record(input);
   assert(TYPES.includes(String(a.type)), '不支援的活動類型');
@@ -362,6 +363,21 @@ export function validateActivity(input: unknown, interactive?: Interactive): Act
         return name;
       });
     }
+  }
+  if (out.type === 'make') {
+    // 根式湊數挑戰：每張卡與目標都要是看得懂的數（2√3、3、√(1/2)…）
+    const num = (v: unknown, name: string) => {
+      const text = str(v, name, 20, 1).trim();
+      try {
+        parseNumberAnswer(text);
+      } catch {
+        throw new HttpError(400, `${name}「${text}」不是看得懂的數`);
+      }
+      return text;
+    };
+    assert(Array.isArray(a.cards) && a.cards.length >= 2 && a.cards.length <= 6, '湊數挑戰需要 2–6 張數字卡');
+    out.cards = a.cards.map((c) => num(c, '數字卡'));
+    out.target = num(a.target, '目標數');
   }
   if (out.type === 'canvas') {
     out.canvas = (['blank', 'grid', 'axes', 'dots'].includes(String(a.canvas))
@@ -600,6 +616,13 @@ export function validateAnswer(a: Activity, value: unknown): AnswerValue {
     return one(value);
   }
   if (a.type === 'canvas') return canvasValue(value);
+  if (a.type === 'make') {
+    // 每張卡都要用到、算式完整才能送出（湊不湊得到目標由 judge 判定）
+    const text = str(value, '算式', 200, 1).replace(/\s+/g, '');
+    const r = makeCheck(text, a.cards || [], a.target || '0');
+    assert(r.complete && !r.error, r.error || '算式還沒完成');
+    return text;
+  }
   if (a.type === 'manipulate') {
     const v = record(record(value).vars);
     const entries = Object.entries(v);
@@ -711,6 +734,7 @@ export function judgeNumeric(
 }
 export function judge(a: Activity, value: AnswerValue): boolean | undefined {
   if (a.type === 'numeric') return judgeNumeric(a, value)?.correct;
+  if (a.type === 'make' && typeof value === 'string') return makeCheck(value, a.cards || [], a.target || '0').ok;
   if (a.type === 'manipulate' && a.check && value && typeof value === 'object' && 'vars' in value) {
     try {
       return !!evaluate(a.check, value.vars);

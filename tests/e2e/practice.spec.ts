@@ -4,7 +4,7 @@ import { test, expect, type Page, type Browser, type BrowserContext } from '@pla
 import { mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
-const baseURL = process.env.E2E_BASE_URL || 'http://127.0.0.1:8787';
+const baseURL = process.env.E2E_BASE_URL || `http://127.0.0.1:${process.env.MCK_PORT || 8787}`;
 const screenshots = resolve('artifacts/screenshots');
 const contexts: BrowserContext[] = [];
 const cleanup: { context: BrowserContext; id: string }[] = [];
@@ -54,7 +54,7 @@ test('time limit locks answers, teacher extends; wrong items are re-assigned as 
   await expect(teacher.page.getByTestId('session-slide')).toBeVisible();
   const sessionId = teacher.page.url().split('/session/')[1];
   cleanup.push({ context: teacher.context, id: sessionId });
-  await teacher.page.locator('.slide-dots button').nth(1).click(); // 課本 p.73 隨堂（3 小題都是課本原題）
+  await teacher.page.locator('.slide-dots button').nth(2).click(); // 第 1 頁是暖身；課本 p.73 隨堂（3 小題都是課本原題）
 
   // 預設限時 1 分鐘
   await expect(teacher.page.locator('#activity-seconds')).toHaveValue('60');

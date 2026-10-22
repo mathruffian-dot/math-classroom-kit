@@ -29,6 +29,12 @@ export const RAID_ULT_NEED = 100;
 export const KIND_NAME: Record<RaidKind, string> = { attack: '普通攻擊', shield: '防護罩', ultimate: '大招' };
 export const KIND_LEVEL: Record<RaidKind, string> = { attack: '記憶', shield: '理解', ultimate: '應用' };
 export const ROLE_NAME: Record<RaidRole, string> = { knight: '劍士', mage: '法師', archer: '弓箭手' };
+/** 職業被動技能：和三類題目各對應一種，選角色也是選自己想擅長的分工。 */
+export const ROLE_PASSIVE: Record<RaidRole, { kind: RaidKind; name: string; tip: string }> = {
+  knight: { kind: 'shield', name: '堅盾', tip: '理解題答對，防護罩多存 0.5 秒' },
+  archer: { kind: 'attack', name: '連射', tip: '記憶題答對，普通攻擊 +30%' },
+  mage: { kind: 'ultimate', name: '魔力湧泉', tip: '應用題答對，大招計量多 5%' },
+};
 export const DIFFICULTY_NAME: Record<RaidDifficulty, string> = { easy: '簡單', normal: '中等', hard: '困難' };
 
 export interface RaidConfig {
@@ -55,9 +61,9 @@ export interface RaidConfig {
 }
 
 const TABLE: Record<RaidDifficulty, { hpPer: number; atk: number; ult: number; chargeS: number; shield10: number }> = {
-  easy: { hpPer: 70, atk: 1, ult: 30, chargeS: 90, shield10: 7 },
-  normal: { hpPer: 76, atk: 4, ult: 45, chargeS: 80, shield10: 10 },
-  hard: { hpPer: 88, atk: 5, ult: 55, chargeS: 75, shield10: 12 },
+  easy: { hpPer: 80, atk: 1, ult: 30, chargeS: 90, shield10: 7 },
+  normal: { hpPer: 88, atk: 4, ult: 45, chargeS: 80, shield10: 10 },
+  hard: { hpPer: 106, atk: 5, ult: 55, chargeS: 75, shield10: 12 },
 };
 
 /** 依難度、上線人數（1–60）與時間長度（秒）決定數值：大班小班、5 分鐘或 10 分鐘，打起來的節奏差不多。 */
@@ -98,6 +104,8 @@ export interface RaidAction {
   seat: number;
   kind: RaidKind;
   ok: boolean;
+  /** 作答時的角色（職業被動技能）。 */
+  role?: RaidRole;
 }
 export type RaidEventKind =
   | 'atk' // 英雄普通攻擊（n＝傷害，shield＝被魔王防護罩吸收的量）
@@ -147,6 +155,11 @@ export interface RaidSeatStats {
   score: number;
   /** 最後一擊。 */
   lastHit?: boolean;
+  /** 連對保護已經用掉（每場一次）。 */
+  saved?: boolean;
+  /** 上一題答錯的類型（下一題同類型答對＝贖回）、贖回了幾次。 */
+  redeemKind?: RaidKind | null;
+  redeemed?: number;
 }
 export interface RaidState {
   t: number;
@@ -393,7 +406,10 @@ export function act(c: RaidConfig, s: RaidState, a: RaidAction, seconds: number)
   const x = stat(s, a.seat);
   x.n[a.kind]++;
   if (!a.ok) {
-    x.streak = 0;
+    // 連對保護：已經連對 2 題以上，第一次答錯不中斷連對（每場一次）
+    if (x.streak >= 2 && !x.saved) x.saved = true;
+    else x.streak = 0;
+    x.redeemKind = a.kind;
     // 應用題比較難：答錯時魔王蓄力只加一半
     s.chargeBonus += a.kind === 'ultimate' ? Math.round(c.wrongChargeMs / 2) : c.wrongChargeMs;
     push(s, { t: a.t, k: 'wrong', seat: a.seat });
@@ -407,8 +423,15 @@ export function act(c: RaidConfig, s: RaidState, a: RaidAction, seconds: number)
   s.recent.push({ t: a.t, kind: a.kind, seat: a.seat });
   x.best = Math.max(x.best, x.streak);
   x.score += KIND_SCORE[a.kind] + (x.streak >= 3 ? 3 : 0);
+  // 贖回：上一題答錯，這一題同類型答對，再拿回一半的分數
+  if (x.redeemKind === a.kind) {
+    x.score += Math.round(KIND_SCORE[a.kind] / 2);
+    x.redeemed = (x.redeemed || 0) + 1;
+  }
+  x.redeemKind = null;
+  const passive = a.role && ROLE_PASSIVE[a.role].kind === a.kind;
   if (a.kind === 'attack') {
-    const power = Math.max(1, Math.round(c.heroAtk * eff));
+    const power = Math.max(1, Math.round(c.heroAtk * eff * (passive ? 1.3 : 1)));
     const absorbed = Math.min(s.bossShield, power);
     s.bossShield -= absorbed;
     const dmg = Math.min(s.bossHp, power - absorbed);
@@ -419,10 +442,10 @@ export function act(c: RaidConfig, s: RaidState, a: RaidAction, seconds: number)
   } else if (a.kind === 'shield') {
     // 存進防護罩存量（滿了就不再加）
     const room = RAID_SHIELD_MAX_MS - shieldMs(s);
-    if (room > 0) s.shieldBank.push({ seat: a.seat, ms: Math.min(RAID_SHIELD_MS, room) });
+    if (room > 0) s.shieldBank.push({ seat: a.seat, ms: Math.min(RAID_SHIELD_MS + (passive ? 500 : 0), room) });
     push(s, { t: a.t, k: 'shield', seat: a.seat, n: shieldMs(s) });
   } else {
-    s.ult += Math.max(1, Math.round(c.ultGain * eff));
+    s.ult += Math.max(1, Math.round(c.ultGain * eff)) + (passive ? 5 : 0);
     s.ultBy[String(a.seat)] = (s.ultBy[String(a.seat)] || 0) + 1;
     if (s.ult >= RAID_ULT_NEED) {
       const seats = Object.keys(s.ultBy).map(Number);

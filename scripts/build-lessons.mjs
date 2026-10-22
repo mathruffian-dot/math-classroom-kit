@@ -125,6 +125,35 @@ for (const file of files) {
       continue;
     }
   }
+  // 暖身例行活動放在 content/warmups/<課程 id>.json（scripts/lessons-src/warmups.mjs 產生）：插在課程最前面
+  let warmupNote = '';
+  try {
+    const w = JSON.parse(await readFile(join(root, 'content/warmups', `${raw.id}.json`), 'utf8'));
+    for (const slide of w.slides || []) if (raw.slides.some((s) => s.id === slide.id)) throw new Error(`暖身頁 ID「${slide.id}」重複`);
+    raw.slides.unshift(...(w.slides || []));
+    warmupNote = `，暖身 ${(w.slides || []).length} 頁`;
+  } catch (e) {
+    if (e.code !== 'ENOENT') {
+      console.error(`✗ ${file}：暖身 — ${e.message}`);
+      errors++;
+      continue;
+    }
+  }
+  // 根式湊數挑戰放在 content/make/<課程 id>.json（scripts/lessons-src/make-puzzles.mjs 產生）：放在上課內容最後、課後檢核頁前面
+  let makeNote = '';
+  try {
+    const m = JSON.parse(await readFile(join(root, 'content/make', `${raw.id}.json`), 'utf8'));
+    for (const slide of m.slides || []) if (raw.slides.some((s) => s.id === slide.id)) throw new Error(`湊數挑戰頁 ID「${slide.id}」重複`);
+    const at = raw.slides.findIndex((s) => s.quizPage || s.raidPage);
+    raw.slides.splice(at < 0 ? raw.slides.length : at, 0, ...(m.slides || []));
+    makeNote = `，湊數挑戰 ${(m.slides || []).length} 關`;
+  } catch (e) {
+    if (e.code !== 'ENOENT') {
+      console.error(`✗ ${file}：湊數挑戰 — ${e.message}`);
+      errors++;
+      continue;
+    }
+  }
   // 課後形成性評量題庫放在 content/quizzes/<課程 id>.json（由 scripts/quiz-src/*.py 產生並用 SymPy 核算）
   let quizNote = '';
   try {
@@ -174,7 +203,7 @@ for (const file of files) {
       if (a.type !== 'numeric') throw new Error(`補救練習只支援數值題：「${id}」是 ${a.type}`);
       a.practice = rounds;
     }
-    const missing = [...acts.values()].filter((a) => a.type === 'numeric' && !a.practice).map((a) => a.id);
+    const missing = [...acts.values()].filter((a) => a.type === 'numeric' && !a.practice && !a.id.startsWith('warmup')).map((a) => a.id);
     practiceNote = `，補救練習 ${Object.keys(pool).length} 題${missing.length ? `（缺：${missing.join('、')}）` : ''}`;
   } catch (e) {
     if (e.code !== 'ENOENT') {
@@ -189,7 +218,7 @@ for (const file of files) {
     ids.set(lesson.id, file);
     const warnings = lint(raw);
     warned += warnings.length;
-    console.log(`${warnings.length ? '△' : '✓'} ${file}（${lesson.id}，${lesson.slides.length} 頁${practiceNote}${writtenNote}${quizNote}${raidNote}）`);
+    console.log(`${warnings.length ? '△' : '✓'} ${file}（${lesson.id}，${lesson.slides.length} 頁${warmupNote}${makeNote}${practiceNote}${writtenNote}${quizNote}${raidNote}）`);
     for (const w of warnings) console.log(`    · ${w}`);
     lessons.push(raw);
   } catch (e) {

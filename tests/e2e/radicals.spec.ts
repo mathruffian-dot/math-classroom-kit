@@ -5,7 +5,7 @@ import { test, expect, type Page, type Browser, type BrowserContext } from '@pla
 import { mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
-const baseURL = process.env.E2E_BASE_URL || 'http://127.0.0.1:8787';
+const baseURL = process.env.E2E_BASE_URL || `http://127.0.0.1:${process.env.MCK_PORT || 8787}`;
 const screenshots = resolve('artifacts/screenshots');
 const contexts: BrowserContext[] = [];
 const cleanup: { context: BrowserContext; id: string }[] = [];
@@ -68,7 +68,7 @@ test('phone keypad: √ and fraction keys type textbook answers without the syst
   await expect(teacher.page.getByTestId('session-slide')).toBeVisible();
   const sessionId = teacher.page.url().split('/session/')[1];
   cleanup.push({ context: teacher.context, id: sessionId });
-  await goSlide(teacher.page, 8); // 例 5：4/(3√5)、√(7/18)、√0.7
+  await goSlide(teacher.page, 9); // 第 1 頁是暖身；例 5：4/(3√5)、√(7/18)、√0.7
   await teacher.page.getByTestId('toggle-activity').click();
 
   const phone = await surface(browser, 390, 844, true);
@@ -116,7 +116,7 @@ test('negative fraction typed fraction-key-first is correct; teacher chips show 
   await expect(teacher.page.getByTestId('session-slide')).toBeVisible();
   const sessionId = teacher.page.url().split('/session/')[1];
   cleanup.push({ context: teacher.context, id: sessionId });
-  await goSlide(teacher.page, 2); // 課本 p.73 隨堂：−10√3、8√2、−2√2/3
+  await goSlide(teacher.page, 3); // 第 1 頁是暖身；課本 p.73 隨堂：−10√3、8√2、−2√2/3
   await teacher.page.getByTestId('toggle-activity').click();
 
   const ipad = await surface(browser, 820, 1180, true);
@@ -167,7 +167,7 @@ test('handwriting mode on the keypad: write, auto-recognize, fill the box, submi
   await expect(teacher.page.getByTestId('session-slide')).toBeVisible();
   const sessionId = teacher.page.url().split('/session/')[1];
   cleanup.push({ context: teacher.context, id: sessionId });
-  await goSlide(teacher.page, 2);
+  await goSlide(teacher.page, 3);
   await teacher.page.getByTestId('toggle-activity').click();
 
   const ipad = await surface(browser, 820, 1180, true);
@@ -235,8 +235,8 @@ test('2-2 classroom: students join with seat only, animation unlocks after resul
     await expect(s.page.getByTestId('session-slide')).toBeVisible();
   }
 
-  // 第 4 頁：例 1。學生端的動畫鎖住，直接讀檔也被擋
-  await goSlide(teacher.page, 4);
+  // 第 5 頁：例 1。學生端的動畫鎖住，直接讀檔也被擋
+  await goSlide(teacher.page, 5);
   for (const s of [desk, ipad, phone]) {
     await slideTab(s.page);
     await expect(s.page.getByTestId('animation-locked')).toBeVisible();
@@ -308,10 +308,10 @@ test('2-2 classroom: students join with seat only, animation unlocks after resul
   await shot(phone.page, 'phone-zoom');
   await phone.page.getByTestId('close-figure').click();
 
-  // 第 6 頁：例 2 比大小，步驟化（沒有滑桿）
-  await goSlide(teacher.page, 6);
+  // 第 7 頁：例 2 比大小，步驟化（沒有滑桿；第 1 頁是暖身）
+  await goSlide(teacher.page, 7);
   await slideTab(desk.page);
-  await expect(desk.page.locator('.room-progress span').first()).toHaveText('6');
+  await expect(desk.page.locator('.room-progress span').first()).toHaveText('7');
   // 公布結果前：學生只看到題目，解題步驟鎖住
   await expect(desk.page.locator('.viz-locked')).toBeVisible();
   await expect(desk.page.locator('[data-viz="next"]')).toHaveCount(0);

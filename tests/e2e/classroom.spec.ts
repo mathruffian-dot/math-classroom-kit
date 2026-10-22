@@ -2,7 +2,7 @@ import { test, expect, type Page, type Browser, type BrowserContext } from '@pla
 import { mkdir, readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
-const baseURL = process.env.E2E_BASE_URL || 'http://127.0.0.1:8787';
+const baseURL = process.env.E2E_BASE_URL || `http://127.0.0.1:${process.env.MCK_PORT || 8787}`;
 const screenshots = resolve('artifacts/screenshots');
 const contexts: BrowserContext[] = [];
 const cleanup: { context: BrowserContext; id: string }[] = [];
@@ -231,8 +231,10 @@ test(`every page of ${tag} fits one screen on projector, iPad and phone`, async 
       await fitsViewport(p);
       const visual = p.locator('.slide-visual');
       if (await visual.count()) {
-        const b = await visual.boundingBox();
-        expect(b && b.height, `page ${n}: visual area must keep usable height`).toBeGreaterThan(p === phone.page ? 120 : 180);
+        // 學生加入時老師端會重畫，元素可能剛好被換掉，所以用 poll 重新量。
+        await expect
+          .poll(async () => (await visual.boundingBox())?.height ?? 0, { message: `page ${n}: visual area must keep usable height` })
+          .toBeGreaterThan(p === phone.page ? 120 : 180);
       }
     }
     if (n === 3 || n === 7) {
