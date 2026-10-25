@@ -58,12 +58,20 @@ export interface RaidConfig {
   heroAtk: number;
   ultGain: number;
   ultDamage: number;
+  /**
+   * 英雄血量的刻度（魔王血量的幾倍）：吸血大招回給魔王的血要除以它。
+   * 普通攻擊每下要扣的防護罩是 BOSS_ATTACKS 的 cost × atkShieldPct%。
+   * 舊的紀錄沒有這兩項（＝1、100），照當時的規則重算。
+   */
+  hpScale?: number;
+  atkShieldPct?: number;
 }
 
+// atk、ult 是英雄血量 2000（25 人、8 分鐘）時的傷害；普通攻擊 25 人以上每 3 秒一次
 const TABLE: Record<RaidDifficulty, { hpPer: number; atk: number; ult: number; chargeS: number; shield10: number }> = {
-  easy: { hpPer: 80, atk: 1, ult: 30, chargeS: 90, shield10: 7 },
-  normal: { hpPer: 88, atk: 4, ult: 45, chargeS: 80, shield10: 10 },
-  hard: { hpPer: 106, atk: 5, ult: 55, chargeS: 75, shield10: 12 },
+  easy: { hpPer: 80, atk: 5, ult: 300, chargeS: 90, shield10: 7 },
+  normal: { hpPer: 88, atk: 20, ult: 450, chargeS: 80, shield10: 10 },
+  hard: { hpPer: 106, atk: 25, ult: 550, chargeS: 75, shield10: 12 },
 };
 
 /** 依難度、上線人數（1–60）與時間長度（秒）決定數值：大班小班、5 分鐘或 10 分鐘，打起來的節奏差不多。 */
@@ -75,6 +83,8 @@ export function raidConfig(difficulty: RaidDifficulty, players: number, seconds 
   const size = Math.max(0.3, Math.min(2.4, n / 25));
   // 時間長度（以 8 分鐘為 1）：魔王與英雄的血量照比例
   const len = Math.max(0.5, Math.min(1.5, seconds / 480));
+  // 普通攻擊：25 人以上每 3 秒一次，人少時間隔拉長但最慢 5 秒一次；拉不長的部分改成每下傷害少一點（總傷害和人數成正比）
+  const atkEvery = Math.min(5000, Math.round(3000 / size));
   return {
     players: n,
     // 人少時合擊加成小：魔王血量打折（8 人約 7 折、15 人約 8 折、25 人以上不打折）
@@ -84,10 +94,10 @@ export function raidConfig(difficulty: RaidDifficulty, players: number, seconds 
     bossShieldMax: Math.max(4, Math.round((n * d.shield10) / 5)),
     bossShieldEvery: 20000,
     // 小班的血量不要太少（一下衝撞就少一大截）：人數比例最低算 0.6
-    teamHp: Math.round((200 * len * Math.max(0.6, size)) / 10) * 10,
-    bossAtk: d.atk,
-    bossAtkEvery: Math.round(6000 / size),
-    bossUlt: Math.max(5, Math.round(d.ult * size)),
+    teamHp: Math.round((200 * len * Math.max(0.6, size)) / 10) * 100,
+    bossAtk: Math.max(1, Math.round((d.atk * atkEvery * size) / 3000)),
+    bossAtkEvery: atkEvery,
+    bossUlt: Math.max(50, Math.round((d.ult * size) / 10) * 10),
     bossChargeMs: d.chargeS * 1000,
     // 預告 30 秒：來得及改做防護罩題，存夠防護罩擋下大招
     bossWarnMs: 30000,
@@ -95,6 +105,9 @@ export function raidConfig(difficulty: RaidDifficulty, players: number, seconds 
     heroAtk: 12,
     ultGain: 25,
     ultDamage: 100,
+    hpScale: 10,
+    // 每下扣的防護罩和攻擊頻率成反比（原本每 6000/size 毫秒一下、每下 cost）
+    atkShieldPct: Math.max(10, Math.round((100 * atkEvery * size) / 6000)),
   };
 }
 
@@ -265,9 +278,9 @@ function nextBossTime(c: RaidConfig, s: RaidState): number {
  * 普通攻擊 3 種（每次依時間輪到其中一種）；大招 4 種（蓄滿時決定，預告時就看得到是哪一招）。
  * cost：完全擋下需要的防護罩（毫秒）。存量不夠時擋掉一部分，傷害依比例減少。 */
 export const BOSS_ATTACKS = [
-  { id: 'claw', name: '爪擊', hits: 1, mult: 1, cost: 1000, tip: '普通的一擊' },
-  { id: 'charge', name: '衝撞', hits: 1, mult: 1.8, cost: 2000, tip: '重擊，要 2 秒防護罩才擋得住' },
-  { id: 'combo', name: '連擊', hits: 2, mult: 0.7, cost: 1000, tip: '連打兩下，每下扣 1 秒防護罩' },
+  { id: 'claw', name: '爪擊', hits: 1, mult: 1, cost: 1000, tip: '普通的一擊，扣 0.5 秒防護罩' },
+  { id: 'charge', name: '衝撞', hits: 1, mult: 1.8, cost: 2000, tip: '重擊，要 1 秒防護罩才擋得住' },
+  { id: 'combo', name: '連擊', hits: 2, mult: 0.7, cost: 1000, tip: '連打兩下，每下扣 0.5 秒防護罩' },
 ] as const;
 export const BOSS_ULTS = [
   { id: 'doom', name: '毀滅衝擊', mult: 1, tip: '超大傷害' },
@@ -291,7 +304,7 @@ export function shieldMs(s: Pick<RaidState, 'shieldBank'>) {
   return s.shieldBank.reduce((p, x) => p + x.ms, 0);
 }
 /** 依先後扣防護罩存量，回傳扣了多少、用到誰的。 */
-function useShield(s: RaidState, cost: number) {
+function useShield(s: RaidState, cost: number, points = cost >= RAID_ULT_BLOCK_MS ? 5 : 2) {
   let used = 0;
   const seats: number[] = [];
   while (used < cost && s.shieldBank.length) {
@@ -305,7 +318,7 @@ function useShield(s: RaidState, cost: number) {
   for (const seat of seats) {
     const st = stat(s, seat);
     st.blocks++;
-    st.score += cost >= RAID_ULT_BLOCK_MS ? 5 : 2;
+    st.score += points;
   }
   return { used, seats };
 }
@@ -316,10 +329,13 @@ function hurtTeam(s: RaidState, t: number, n: number) {
 /** 魔王普通攻擊。 */
 function bossAttack(c: RaidConfig, s: RaidState, at: number) {
   const m = bossAttackAt(at);
+  // 攻擊比較頻繁時，每下扣的防護罩與擋下的貢獻分也照比例少（每分鐘的總量不變）
+  const pct = c.atkShieldPct ?? 100;
+  const cost = Math.round((m.cost * pct) / 100);
   for (let h = 0; h < m.hits && !s.result; h++) {
-    const { used, seats } = useShield(s, m.cost);
+    const { used, seats } = useShield(s, cost, pct < 100 ? 1 : 2);
     const full = Math.max(1, Math.round(c.bossAtk * m.mult));
-    const dmg = Math.round(full * (1 - used / m.cost));
+    const dmg = Math.round(full * (1 - used / cost));
     if (dmg <= 0) push(s, { t: at, k: 'bossBlock', move: m.id, seats });
     else {
       push(s, { t: at, k: 'bossAtk', move: m.id, n: dmg, ...(used ? { blocked: used, seats } : {}) });
@@ -352,7 +368,7 @@ function bossUltimate(c: RaidConfig, s: RaidState, at: number) {
   push(s, { t: at, k: 'bossUlt', move: m.id, n: dmg, ...(used ? { blocked: used, seats } : {}) });
   hurtTeam(s, at, dmg);
   if (m.id === 'drain') {
-    const heal = Math.min(dmg, c.bossHp - s.bossHp);
+    const heal = Math.min(Math.round(dmg / (c.hpScale ?? 1)), c.bossHp - s.bossHp);
     if (heal > 0) {
       s.bossHp += heal;
       push(s, { t: at, k: 'bossHeal', n: heal });

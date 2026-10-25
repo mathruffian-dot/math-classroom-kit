@@ -879,22 +879,28 @@ test('quiz scoring: more correct wins, ties go to the faster one; the computer f
 test('raid rules: banked shields block the boss and name the seats, boss moves, combo ultimates, recall-only resistance',()=>{
   const c={...raidLib.raidConfig('normal',20,480),bossAtkEvery:5000,bossShieldEvery:999999};
   const S=480;
+  // 普通攻擊：25 人以上每 3 秒、人少最慢 5 秒一次；英雄血量是 2000 刻度；每下扣的防護罩和頻率成反比
+  const c25=raidLib.raidConfig('normal',25,480);
+  assert.equal(c25.bossAtkEvery,3000);assert.equal(c25.teamHp,2000);assert.equal(c25.atkShieldPct,50);assert.equal(c25.hpScale,10);
+  const c8=raidLib.raidConfig('normal',8,480);
+  assert.equal(c8.bossAtkEvery,5000);assert(c8.atkShieldPct<50&&c8.bossAtk<c25.bossAtk,'small class: slower and lighter hits');
   const move=raidLib.bossAttackAt(5000);
-  // 3 號、7 號各存 1 秒防護罩（存量不會倒數），魔王 5 秒時出招：自動扣存量擋下
+  assert.equal(move.id,'charge');
+  // 3 號、7 號各存 1 秒防護罩（存量不會倒數），魔王 5 秒時衝撞（現在 1 秒就能擋下）：自動扣存量擋下
   const two=[{t:1500,seat:3,kind:'shield',ok:true},{t:2200,seat:7,kind:'shield',ok:true}];
   const s=raidLib.raidReplay(c,two,S,5000);
   const hit=s.log.find(e=>e.k==='bossBlock'||e.k==='bossAtk');
   assert.equal(hit.move,move.id);
-  if(move.cost<=1000&&move.hits===1){assert.equal(hit.k,'bossBlock');assert.deepEqual(hit.seats,[3]);assert.equal(raidLib.shieldMs(s),1000,'one second left');}
-  else assert(hit.k==='bossBlock'||hit.blocked>0,'shields used');
+  assert.equal(hit.k,'bossBlock');assert.deepEqual(hit.seats,[3]);assert.equal(raidLib.shieldMs(s),1000,'one second left');
   assert.equal(s.stats['3'].blocks,1);
   // 沒有防護罩：依招式扣英雄血
   const bare=raidLib.raidReplay(c,[],S,5000);
   assert.equal(bare.teamHp,c.teamHp-Math.round(c.bossAtk*move.mult)*move.hits);
-  // 存量不夠：擋掉一部分（衝撞要 2 秒，只有 1 秒就擋一半）
+  // 存量不夠：擋掉一部分（舊規則的紀錄：衝撞要 2 秒，只有 1 秒就擋一半；舊紀錄照舊規則重算）
+  const old={...c,atkShieldPct:undefined,hpScale:undefined};
   const charge=raidLib.BOSS_ATTACKS.find(m=>m.id==='charge');
   let tc=1000;while(raidLib.bossAttackAt(tc).id!=='charge')tc+=1000;
-  const half=raidLib.raidReplay({...c,bossAtkEvery:tc},[{t:500,seat:4,kind:'shield',ok:true}],S,tc);
+  const half=raidLib.raidReplay({...old,bossAtkEvery:tc},[{t:500,seat:4,kind:'shield',ok:true}],S,tc);
   const h=half.log.find(e=>e.k==='bossAtk');
   assert.equal(h.blocked,1000);assert.equal(h.n,Math.round(Math.round(c.bossAtk*charge.mult)*0.5));
   // 魔王大招：預告時就知道是哪一招；存滿 3 秒完全擋下

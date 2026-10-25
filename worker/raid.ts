@@ -235,6 +235,9 @@ export function restoreRaid(runsInput: unknown, playInput: unknown, seats: numbe
     const config = Object.fromEntries(
       ['players', 'bossHp', 'bossShieldGain', 'bossShieldMax', 'bossShieldEvery', 'teamHp', 'bossAtk', 'bossAtkEvery', 'bossUlt', 'bossChargeMs', 'bossWarnMs', 'wrongChargeMs', 'heroAtk', 'ultGain', 'ultDamage'].map((k) => [k, integer(c[k], 0, 1e7)]),
     ) as unknown as RaidRun['config'];
+    // 新規則才有的兩項（舊紀錄沒有，照舊規則重算）
+    if (c.hpScale !== undefined) config.hpScale = integer(c.hpScale, 1, 100);
+    if (c.atkShieldPct !== undefined) config.atkShieldPct = integer(c.atkShieldPct, 10, 100);
     assert(['easy', 'normal', 'hard'].includes(String(r.difficulty)), '魔王戰難度不正確');
     return {
       id: identifier(r.id),

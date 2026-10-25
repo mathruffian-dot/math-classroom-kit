@@ -86,6 +86,7 @@ document.addEventListener('click', (e) => {
   if (keypadFor !== el || document.querySelector<HTMLElement>('#keypad')?.hidden) openKeypad(el);
 });
 addEventListener('resize', () => placeKeypad());
+window.visualViewport?.addEventListener('resize', () => placeKeypad());
 document.addEventListener('scroll', () => placeKeypad(), true);
 const vizState = new Map<string, Vars>();
 const sketches = new Map<string, SketchState>();
@@ -710,18 +711,18 @@ const MATH_KEYS: [string, string, string][] = [
   ['7', '7', 'num'], ['8', '8', 'num'], ['9', '9', 'num'], ['√', '√', 'op'], ['⌫', 'back', 'op'],
   ['4', '4', 'num'], ['5', '5', 'num'], ['6', '6', 'num'], ['分數', 'frac', 'op'], ['( )', 'paren', 'op'],
   ['1', '1', 'num'], ['2', '2', 'num'], ['3', '3', 'num'], ['＋', '+', 'op'], ['−', '-', 'op'],
-  ['0', '0', 'num'], ['.', '.', 'num'], ['◀', 'left', 'move'], ['▶', 'right', 'move'], ['⌨', 'keyboard', 'move'],
+  ['0', '0', 'num'], ['.', '.', 'num'], ['◀', 'left', 'move'], ['▶', 'right', 'move'], ['清空', 'clear', 'op'],
 ];
-const KEY_LABEL: Record<string, string> = { back: '刪除', frac: '分數', paren: '括號', left: '游標左移', right: '游標右移', keyboard: '切換系統鍵盤' };
-function systemKeyboard() {
-  try {
-    return localStorage.getItem('mck-syskb') === '1';
-  } catch {
-    return false;
-  }
+const KEY_LABEL: Record<string, string> = { back: '刪除', frac: '分數', paren: '括號', left: '游標左移', right: '游標右移', clear: '清空這一格' };
+// 舊版鍵盤有「⌨ 切換系統鍵盤」，切換後一直記在這台裝置上：學生誤按後每一格都跳注音鍵盤、蓋住作答鍵盤。清掉舊紀錄。
+try {
+  localStorage.removeItem('mck-syskb');
+} catch {
+  /* 無痕模式 */
 }
+/** 觸控裝置不跳系統鍵盤（用作答鍵盤）；有滑鼠的電腦照常可以打字。 */
 function numericInputMode() {
-  return matchMedia('(pointer: coarse)').matches && !systemKeyboard() ? 'none' : 'text';
+  return matchMedia('(pointer: coarse)').matches ? 'none' : 'text';
 }
 function mathKeys(dis: string) {
   return `<div class="math-keys" aria-label="作答鍵盤">${MATH_KEYS.map(([label, key, kind]) => `<button type="button" class="key-${kind}" data-action="math-key" data-key="${key}" ${KEY_LABEL[key] ? `aria-label="${KEY_LABEL[key]}"` : ''} ${dis}>${label}</button>`).join('')}</div><p class="muted small-text key-hint">√ 會自動加括號；按 ▶ 跳出括號、從分子到分母。</p>`;
@@ -736,6 +737,8 @@ function keypadHtml() {
   return `<div class="keypad" id="keypad" data-testid="keypad" data-mode="${mode}" hidden><div class="keypad-head"><div class="keypad-mode" role="group" aria-label="輸入方式">${tab('keys', '鍵盤')}${tab('hand', '手寫')}</div><span class="keypad-timer" id="keypad-timer" data-testid="keypad-timer"></span>${btn('下一格', 'keypad-next', 'quiet', 'next', 'data-testid="keypad-next"')}${btn('送出', 'keypad-submit', 'primary', 'check', 'data-testid="keypad-submit"')}${btn('', 'keypad-close', 'icon-btn', 'x', 'aria-label="收起鍵盤"')}</div><div class="keypad-keys">${mathKeys('')}</div><div class="keypad-hand"><canvas class="hand-pad" data-testid="hand-pad" aria-label="手寫答案區"></canvas><div class="hand-bar"><span id="hand-status" class="muted small-text" aria-live="polite">${HAND_HINT}</span>${btn('清除', 'hand-clear', 'quiet', 'erase', 'data-testid="hand-clear"')}${btn('辨識', 'hand-read', 'secondary', 'spark', 'data-testid="hand-read"')}</div></div></div>`;
 }
 let keypadFor: HTMLInputElement | null = null;
+/** 重畫後放回鍵盤時：只擺位置，不捲動面板。 */
+let keypadQuiet = false;
 /* 手寫模式：寫完停筆約 1 秒自動辨識，結果填進答案框（下方「系統讀到」可再確認），不對就清除重寫或改用鍵盤 */
 const HAND_HINT = '用手指或 Apple Pencil 寫一個答案，停筆後自動辨識';
 let hand: HandPad | null = null,
@@ -800,7 +803,7 @@ function openKeypad(input: HTMLInputElement) {
   const deadline = mine?.st.status === 'working' ? mine.st.deadline : s?.activityOpen && s.activityDeadline ? s.activityDeadline : 0;
   const timer = kp.querySelector('#keypad-timer');
   if (timer) timer.innerHTML = deadline ? `剩 ${countdown(deadline)}` : '';
-  placeKeypad(true);
+  placeKeypad(!keypadQuiet);
   hand?.fit();
 }
 let keypadPadded: HTMLElement | null = null;
@@ -828,6 +831,9 @@ function placeKeypad(scroll = false) {
   const input = keypadFor;
   if (!kp || kp.hidden || !input) return;
   if (!input.isConnected) return closeKeypad();
+  // 系統鍵盤跳出來時，看得到的高度比視窗小：用 visual viewport 的底邊
+  const vv = window.visualViewport;
+  const innerHeight = vv ? Math.min(window.innerHeight, vv.offsetTop + vv.height) : window.innerHeight;
   const gap = 6,
     margin = 8;
   let r = input.getBoundingClientRect();
@@ -900,7 +906,10 @@ function keyInput(input: HTMLInputElement, key: string) {
   const exit = () => {
     if (s === e) s = e = radicalExit(v, s);
   };
-  if (key === 'back') {
+  if (key === 'clear') {
+    v = '';
+    s = e = 0;
+  } else if (key === 'back') {
     if (s !== e) put('', 0);
     else if (s > 0) {
       // 空的 √( ) 或 ( )：一次刪掉整組
@@ -954,6 +963,59 @@ function screenMode() {
 function needsPanelFocus() {
   return user?.role === 'student' && studentTab === 'answer';
 }
+/** 學生端整頁重畫（老師加時、開彈幕、時間到…）時保留的狀態：面板捲動位置、正在輸入的答案框與游標、鍵盤。 */
+const KEEP_SCROLL = ['.panel-col .panel-scroll', '.panel-col', '#slide-stage', '.stage-col'];
+let keepKey = '',
+  rerenderedAt = 0;
+function keepStudentUi(key: string) {
+  const same = key === keepKey;
+  keepKey = key;
+  if (!same) return null;
+  const active = document.activeElement;
+  const input = keypadFor?.isConnected ? keypadFor : active instanceof HTMLInputElement && active.classList.contains('numeric-input') ? active : null;
+  return {
+    scroll: KEEP_SCROLL.map((sel) => document.querySelector<HTMLElement>(sel)?.scrollTop ?? 0),
+    // 為了擺鍵盤暫時加在面板底部的空白也要留著，否則捲動位置會被截掉
+    pad: keypadPadded?.isConnected ? keypadPadded.style.paddingBottom : '',
+    page: window.scrollY,
+    input: input?.id || '',
+    keypad: !!input && !!keypadFor && !document.querySelector<HTMLElement>('#keypad')?.hidden,
+    caret: [input?.selectionStart ?? null, input?.selectionEnd ?? null] as const,
+    buttons: buttonTops(),
+  };
+}
+/** 作答區每個按鈕的位置：重畫前後比一比，有跳動才暫時擋點擊。 */
+function buttonTops() {
+  return [...document.querySelectorAll<HTMLElement>('#student-answer [data-action]')].map((b) => Math.round(b.getBoundingClientRect().top));
+}
+function restoreStudentUi(k: NonNullable<ReturnType<typeof keepStudentUi>>) {
+  const scroller = document.querySelector<HTMLElement>('.panel-col .panel-scroll');
+  if (k.pad && scroller && k.keypad) {
+    scroller.style.paddingBottom = k.pad;
+    keypadPadded = scroller;
+  }
+  KEEP_SCROLL.forEach((sel, i) => {
+    const el = document.querySelector<HTMLElement>(sel);
+    if (el && k.scroll[i]) el.scrollTop = k.scroll[i];
+  });
+  if (k.page) window.scrollTo(0, k.page);
+  const now = buttonTops();
+  if (k.buttons.length && (now.length !== k.buttons.length || now.some((y, i) => Math.abs(y - k.buttons[i]) > 6))) rerenderedAt = Date.now();
+  const input = k.input ? document.getElementById(k.input) : null;
+  if (!(input instanceof HTMLInputElement) || input.disabled || !k.keypad) return;
+  // 鍵盤放回原處就好，不要再捲動面板
+  keypadQuiet = true;
+  try {
+    input.focus({ preventScroll: true });
+    if (k.caret[0] !== null) input.setSelectionRange(k.caret[0], k.caret[1] ?? k.caret[0]);
+    if (keypadFor !== input || document.querySelector<HTMLElement>('#keypad')?.hidden) openKeypad(input);
+  } finally {
+    keypadQuiet = false;
+  }
+}
+/** 重畫後這段時間內點到的選項不算（畫面剛跳動，可能點錯）。 */
+const SETTLE_MS = 450;
+const SETTLE_ACTIONS = new Set(['choose', 'scale', 'quiz-choose', 'quiz-conf', 'make-key', 'raid-answer']);
 function renderSession() {
   if (!view || !user) return;
   board?.destroy();
@@ -976,10 +1038,13 @@ function renderSession() {
   const resume = oldVideo
     ? { t: oldVideo.currentTime, paused: oldVideo.paused, muted: oldVideo.muted, volume: oldVideo.volume }
     : null;
+  // 同一頁、同一題重畫：記下捲動位置與正在輸入的格子，畫完放回去
+  const keep = teacher ? null : keepStudentUi(`${s.id}:${index}:${a?.id ?? ''}:${studentTab}:${editing}`);
   app.innerHTML = `<header class="room-bar"><div class="room-identity">${teacher ? btn('返回', 'dashboard', 'icon-btn', 'back', 'aria-label="返回課程"') : `<span class="brand-mark small">${icon('sigma')}</span>`}<div><strong>${esc(teacher ? s.title : `${s.className}・${user.seat} 號`)}</strong><small>${teacher ? esc(s.className) : esc(view.lesson.title)}</small></div></div><div class="room-progress" aria-label="第 ${index + 1} 頁，共 ${total} 頁"><span>${index + 1}</span>/<span>${total}</span></div><div class="room-actions"><span id="sync-status" class="sync-status"><i></i>已連線</span>${teacher ? `${btn(screen ? '一般' : '大屏', 'screen', 'quiet', 'screen', 'title="切換大屏授課"')}` : ''}${btn('', 'fullscreen', 'icon-btn', 'expand', 'aria-label="全螢幕" title="全螢幕"')}${!teacher && s.danmakuOpen && !s.ended ? btn('彈幕', 'danmaku-bar', `quiet danmaku-btn ${danmakuBar ? 'selected' : ''}`, 'spark', 'data-testid="danmaku-open"') : ''}${teacher ? '' : btn('', 'logout', 'icon-btn', 'logout', 'aria-label="登出" title="登出"')}</div></header><div class="room-main"><main class="stage-col"><article class="slide-stage" data-testid="session-slide" id="slide-stage">${slideMarkup(slide, index, total)}<div id="quiz-board-host">${teacher ? quizBoardHtml() : ''}</div><div id="raid-board-host">${showRaidBoard() ? raidBoardHtml(view.raid!) : showRaidMap() ? raidMapHtml(view.raidMap!) : ''}</div><div id="class-goal-host">${teacher ? classGoalHtml(view) : ''}</div></article><nav class="slide-nav" aria-label="翻頁與白板工具">${btn('', 'prev-slide', 'icon-btn nav-btn', 'prev', `aria-label="上一頁" ${index === 0 || (!teacher && s.followTeacher) ? 'disabled' : ''}`)}${teacher ? toolbar() : ''}<div class="slide-dots">${view.lesson.slides.map((sl, i) => `<button class="${i === index ? 'active' : ''} ${sl.activity ? 'has-q' : ''} ${i === s.slideIndex && !teacher ? 'live' : ''}" data-action="go-slide" data-index="${i}" aria-label="第 ${i + 1} 頁${sl.phase ? `・${esc(sl.phase)}` : ''}" title="${esc(sl.phase || sl.title)}" ${!teacher && s.followTeacher ? 'disabled' : ''}><span></span></button>`).join('')}</div>${btn('', 'next-slide', 'icon-btn nav-btn primary', 'next', `aria-label="下一頁" data-testid="next-slide" ${index === total - 1 || (!teacher && s.followTeacher) ? 'disabled' : ''}`)}</nav></main><aside class="panel-col" aria-label="${teacher ? '課堂互動' : '作答區'}">${panel}</aside></div>${teacher ? '' : `<nav class="phone-tabs" aria-label="切換"><button class="${studentTab === 'slide' ? 'selected' : ''}" data-action="student-tab" data-tab="slide">${icon('book')}教材</button><button class="${studentTab === 'answer' ? 'selected' : ''}" data-action="student-tab" data-tab="answer">${icon('pen')}作答${a && s.activityOpen && (!own || editing) ? '<i class="badge-dot"></i>' : ''}</button></nav>`}<div id="buzz-root"></div><div id="danmaku-root">${teacher ? '' : danmakuStudentHtml()}</div>${teacher ? '' : keypadHtml()}`;
   const stage = document.querySelector<HTMLElement>('#slide-stage')!;
   renderBuzzLayer();
   if (!teacher) mountHandPad();
+  if (keep) restoreStudentUi(keep);
   if (teacher) syncDanmaku(view.danmaku, s.danmakuClearedAt, serverTime());
   if (
     figZoom &&
@@ -3092,18 +3157,6 @@ async function action(el: HTMLElement) {
           ? lastNumericInput
           : document.querySelector<HTMLInputElement>('.numeric-input');
       if (!input) return;
-      if (el.dataset.key === 'keyboard') {
-        try {
-          localStorage.setItem('mck-syskb', systemKeyboard() ? '0' : '1');
-        } catch {
-          /* 無痕模式：只切換這一次 */
-        }
-        const mode = input.inputMode === 'none' ? 'text' : 'none';
-        document.querySelectorAll<HTMLInputElement>('.numeric-input').forEach((x) => (x.inputMode = mode));
-        input.blur();
-        input.focus();
-        return;
-      }
       keyInput(input, el.dataset.key!);
       return;
     }
@@ -3175,6 +3228,10 @@ async function control(actionName: string, extra: Record<string, unknown> = {}) 
 document.addEventListener('click', (e) => {
   const el = (e.target as Element).closest<HTMLElement>('[data-action]');
   if (!el || el.hasAttribute('disabled')) return;
+  if (user?.role === 'student' && SETTLE_ACTIONS.has(el.dataset.action || '') && Date.now() - rerenderedAt < SETTLE_MS) {
+    toast('畫面剛更新，請確認後再點一次');
+    return;
+  }
   if (touchTap?.el === el) {
     if (e.isTrusted && e.detail !== 0 && touchTap.fallback && Date.now() - touchTap.at < 650) return;
     touchTap.handled = true;
