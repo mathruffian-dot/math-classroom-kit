@@ -1,0 +1,175 @@
+{
+  "rubrics": {
+    "b-error-q": {
+      "criteria": [
+        {
+          "id": "kai",
+          "label": "會考評分（0–3 分）",
+          "points": 3,
+          "levels": [
+            {
+              "score": 3,
+              "description": "指出應該和半徑比、不是和直徑比，求出 r＝5，判斷 d＝6＞5，L 和圓 O 不相交"
+            },
+            {
+              "score": 2,
+              "description": "判斷「不相交」正確但理由不完整，或半徑算對但敘述有一處小錯"
+            },
+            {
+              "score": 1,
+              "description": "只指出「錯了」，或半徑算對但判斷仍錯"
+            },
+            {
+              "score": 0,
+              "description": "空白、同意是割線，或沒有任何正確內容"
+            }
+          ]
+        }
+      ],
+      "reference": "直徑 10，半徑 r＝5。圓心到 L 的距離 d＝6＞5，所以 L 和圓 O 不相交（沒有交點）。小華把距離和直徑比較，應該和半徑比。",
+      "graderNotes": "接受「d＞r，L 上所有點都在圓外」等說法。"
+    }
+  },
+  "photo": {
+    "b-ex4-q": {
+      "items": [
+        0,
+        1,
+        2
+      ],
+      "rubric": {
+        "criteria": [
+          {
+            "id": "kai",
+            "label": "會考評分（0–3 分）",
+            "points": 3,
+            "levels": [
+              {
+                "score": 3,
+                "description": "每一小題都過程完整、答案正確：先把直徑換成半徑 7.5，再比較每條直線的距離和半徑"
+              },
+              {
+                "score": 2,
+                "description": "方法正確、過程大致完整，但有一小題有一處計算小錯，或沒有化到最簡"
+              },
+              {
+                "score": 1,
+                "description": "只有部分正確的關鍵步驟（例如只做對一小題），或過程有重大錯誤"
+              },
+              {
+                "score": 0,
+                "description": "空白、只寫答案沒有過程，或方法錯誤"
+              }
+            ]
+          }
+        ],
+        "reference": "直徑 15，半徑 7.5。\nL：15 ＞ 7.5，沒有交點；M：10 ＞ 7.5，沒有交點\nN：7.5 ＝ 7.5，1 個交點，是切線\nH：5 ＜ 7.5，2 個交點，是割線",
+        "graderNotes": "接受其他正確的做法。常見錯誤：拿距離和直徑 15 比較。"
+      }
+    },
+    "b-ex4-practice-q": {
+      "items": [
+        0,
+        1,
+        2
+      ],
+      "rubric": {
+        "criteria": [
+          {
+            "id": "kai",
+            "label": "會考評分（0–3 分）",
+            "points": 3,
+            "levels": [
+              {
+                "score": 3,
+                "description": "每一小題都過程完整、答案正確：寫出每條直線到 O 的距離，再和半徑 4 比較"
+              },
+              {
+                "score": 2,
+                "description": "方法正確、過程大致完整，但有一小題有一處計算小錯，或沒有化到最簡"
+              },
+              {
+                "score": 1,
+                "description": "只有部分正確的關鍵步驟（例如只做對一小題），或過程有重大錯誤"
+              },
+              {
+                "score": 0,
+                "description": "空白、只寫答案沒有過程，或方法錯誤"
+              }
+            ]
+          }
+        ],
+        "reference": "O 在 L₂ 上，距離：L₁ 2、L₂ 0、L₃ 2、L₄ 4、L₅ 6。\n(1) L₅ 不相交（6 ＞ 4）\n(2) L₄ 是切線（4 ＝ 4）\n(3) L₁、L₂、L₃ 是割線（距離 ＜ 4）",
+        "graderNotes": "接受其他正確的做法。常見錯誤：L₂ 的距離寫成 2；忘了 L₂ 本身也是割線。"
+      }
+    },
+    "b-ex5-q": {
+      "items": [
+        0
+      ],
+      "rubric": {
+        "criteria": [
+          {
+            "id": "kai",
+            "label": "會考評分（0–3 分）",
+            "points": 3,
+            "levels": [
+              {
+                "score": 3,
+                "description": "過程完整、答案正確：連接 OA，說明切線垂直過切點的半徑，在直角三角形用畢氏定理"
+              },
+              {
+                "score": 2,
+                "description": "方法正確、過程大致完整，但有一處計算小錯，或沒有化到最簡"
+              },
+              {
+                "score": 1,
+                "description": "只有部分正確的關鍵步驟，或過程有重大錯誤"
+              },
+              {
+                "score": 0,
+                "description": "空白、只寫答案沒有過程，或方法錯誤"
+              }
+            ]
+          }
+        ],
+        "reference": "連接 OA，OA ＝ 5。直線 AB 切圓 O 於 A，OA ⊥ AB，△OAB 是直角三角形。\nAB ＝ √(OB² － OA²) ＝ √(13² － 5²) ＝ 12",
+        "graderNotes": "接受其他正確的做法。常見錯誤：沒有說明直角；寫成 13 － 5。"
+      }
+    },
+    "b-ex5-practice-q": {
+      "items": [
+        0
+      ],
+      "rubric": {
+        "criteria": [
+          {
+            "id": "kai",
+            "label": "會考評分（0–3 分）",
+            "points": 3,
+            "levels": [
+              {
+                "score": 3,
+                "description": "過程完整、答案正確：連接 OC，說明 OC ⊥ CD，用畢氏定理求半徑"
+              },
+              {
+                "score": 2,
+                "description": "方法正確、過程大致完整，但有一處計算小錯，或沒有化到最簡"
+              },
+              {
+                "score": 1,
+                "description": "只有部分正確的關鍵步驟，或過程有重大錯誤"
+              },
+              {
+                "score": 0,
+                "description": "空白、只寫答案沒有過程，或方法錯誤"
+              }
+            ]
+          }
+        ],
+        "reference": "連接 OC。直線 CD 切圓 O 於 C，OC ⊥ CD，△OCD 是直角三角形。\nOC ＝ √(OD² － CD²) ＝ √(5² － 4²) ＝ 3",
+        "graderNotes": "接受其他正確的做法。常見錯誤：用 √(5² ＋ 4²)。"
+      }
+    }
+  }
+}

@@ -22,6 +22,8 @@ import { PK_COUNTDOWN_MS, QUIZ_GRACE_MS, decide, quizOver } from '../shared/quiz
 import { drawPaper, drawReview, instantFeedback, isCorrect, levelPairs, makeBot, newMatch, paperFor, quizRecord, quizView, restoreQuiz, runBank, score, sheetResult, type QuizStore } from './quiz';
 import { answerRaid, newQuestion, questionFor, raidBank, raidCorrect, skipRaid, raidCsvRows, raidOver, raidState, raidView, restoreRaid, type RaidStore } from './raid';
 import { RAID_COUNTDOWN_MS, RAID_KINDS, RAID_ROLES, raidConfig, type RaidDifficulty, type RaidKind, type RaidRole } from '../shared/raid';
+import { answerDuel, duelBank, duelCsvRows, duelJoin, duelOver, duelState, duelTeams, duelView, problemView, restoreDuel, startProblem, type DuelStore } from './duel';
+import { DUEL_COUNTDOWN_MS } from '../shared/duel';
 import {
   HttpError,
   assert,
@@ -95,7 +97,7 @@ interface StoredClass {
   /** 每一課各題位全班累計答錯幾次（課程 ID → 紀錄），間隔複習挑上一課錯最多的題型。 */
   quizMisses?: Record<string, { at: number; counts: number[] }>;
 }
-export interface StoredSession extends QuizStore, RaidStore {
+export interface StoredSession extends QuizStore, RaidStore, DuelStore {
   session: Session;
   ownerId: string;
   lesson: Lesson;
@@ -332,9 +334,19 @@ function closeRaid(s: StoredSession, state?: State) {
   if (state) recordRaidBest(state, s);
   s.session.raid = null;
 }
+/** 收起步驟格鬥（記上結束時間）。 */
+function closeDuel(s: StoredSession) {
+  const run = s.session.duel;
+  if (!run) return;
+  run.endedAt ??= Date.now();
+  const kept = s.duelRuns?.find((r) => r.id === run.id);
+  if (kept) kept.endedAt ??= run.endedAt;
+  s.session.duel = null;
+}
 function startQuiz(s: StoredSession, run: QuizRun, state: State) {
   endQuiz(s, state);
   closeRaid(s);
+  closeDuel(s);
   const session = s.session;
   session.activityOpen = false;
   session.activityDeadline = null;
@@ -688,6 +700,8 @@ export function sessionView(state: State, stored: StoredSession, user: User, onl
   if (teacher && stored.lesson.quiz && stored.quizRuns?.length) view.quizRecord = quizRecord(stored.lesson.quiz, stored, view.serverNow);
   const raid = session.raid && raidBank(session.lessonId);
   if (session.raid && raid) view.raid = raidView(raid, session.raid, stored, user, view.serverNow);
+  const duel = session.duel && duelBank(session.lessonId);
+  if (session.duel && duel) view.duel = duelView(duel, session.duel, stored, user, view.serverNow);
   const mapBank = teacher && raidBank(session.lessonId);
   if (mapBank) view.raidMap = { title: mapBank.title, ...(mapBank.section ? { section: mapBank.section } : {}), wins: clone(state.classes[session.classId]?.raidWins?.[session.lessonId] || {}) };
   return view;
@@ -1327,7 +1341,7 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
       return json(sessionView(state, s, user, ctx.online?.()));
     }
     const sessionMatch = path.match(
-      /^\/api\/sessions\/([\w-]+)(?:\/(control|answers|practice|danmaku|ocr|ocr-work|buzz|whiteboard|export|images|grades|quiz|pk-buzz|raid)(?:\/([\w-]+))?)?$/,
+      /^\/api\/sessions\/([\w-]+)(?:\/(control|answers|practice|danmaku|ocr|ocr-work|buzz|whiteboard|export|images|grades|quiz|pk-buzz|raid|duel)(?:\/([\w-]+))?)?$/,
     );
     if (sessionMatch) {
       const s = ownedSession(state, identifier(sessionMatch[1]), user),
@@ -1441,6 +1455,7 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
             session.activityDeadline = null;
             session.practice = null;
             closeRaid(s, state);
+            closeDuel(s);
             // 開戰時記下每個人之前的個人最佳（結算時比較有沒有突破）
             const prevBest = { ...(state.classes[session.classId]?.raidBest || {}) };
             const run = { id: uuid(), difficulty, startedAt: Date.now() + RAID_COUNTDOWN_MS, seconds, config: raidConfig(difficulty, players, seconds), prevBest };
@@ -1464,6 +1479,35 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
           }
           case 'raid-close':
             closeRaid(s, state);
+            break;
+          // ── 步驟格鬥：全班分紅藍兩隊（依程度平均），每一步選規則、填算式出招 ──
+          case 'duel-start': {
+            assert(duelBank(session.lessonId), '這一課沒有步驟格鬥題庫', 409);
+            const seconds = integer(body.seconds ?? 480, 180, 900);
+            endQuiz(s, state);
+            session.quiz = null;
+            session.pkLobby = null;
+            session.activityOpen = false;
+            session.activityDeadline = null;
+            session.practice = null;
+            closeRaid(s, state);
+            closeDuel(s);
+            const online = [...onlineSeats(state, s, ctx.online?.())];
+            const run = { id: uuid(), startedAt: Date.now() + DUEL_COUNTDOWN_MS, seconds, teams: duelTeams(online, (n) => seatLevel(state, s, n)) };
+            session.duel = run;
+            (s.duelRuns ||= []).push(clone(run));
+            (s.duelPlay ||= {})[run.id] = { actions: [], seats: {} };
+            break;
+          }
+          case 'duel-end': {
+            assert(session.duel, '目前沒有步驟格鬥', 409);
+            session.duel.endedAt ??= Date.now();
+            const kept = s.duelRuns?.find((r) => r.id === session.duel!.id);
+            if (kept) kept.endedAt ??= session.duel.endedAt;
+            break;
+          }
+          case 'duel-close':
+            closeDuel(s);
             break;
           // ── 課後形成性評量：全班同一份卷子（每個題位從 3 題裡抽 1 題） ──
           case 'quiz-class': {
@@ -1509,6 +1553,7 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
             quizBank(state, s);
             endQuiz(s, state);
             closeRaid(s);
+            closeDuel(s);
             session.quiz = null;
             session.pkLobby = { pairs: [], waiting: null, buzz: false };
             break;
@@ -1648,6 +1693,11 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
           case 'end':
             recordRaidBest(state, s);
             endQuiz(s, state);
+            if (session.duel) {
+              session.duel.endedAt ??= Date.now();
+              const kept = s.duelRuns?.find((r) => r.id === session.duel!.id);
+              if (kept) kept.endedAt ??= session.duel.endedAt;
+            }
             session.ended = true;
             session.endedAt = Date.now();
             session.danmakuOpen = false;
@@ -1961,6 +2011,34 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
         // revision：學生端用它丟掉比這次作答更舊的畫面（避免已答的題目又出現）
         return save({ ...reveal, revision: session.revision });
       }
+      if (action === 'duel' && method === 'POST') {
+        // 步驟格鬥：拿題目（next）、作答（answer：選規則 choice 或填算式 values）
+        assert(user.role === 'student', '只有學生可以參戰', 403);
+        const run = session.duel;
+        assert(run && run.id === body.runId, '這一場步驟格鬥已經結束', 409);
+        const bank = duelBank(session.lessonId);
+        assert(bank, '這一課沒有步驟格鬥題庫', 409);
+        const t = Date.now();
+        assert(t >= run.startedAt - 1500, '還沒開戰', 409);
+        assert(!duelOver(run, duelState(run, s, t)), '對戰已經結束', 409);
+        s.seen[String(user.seat)] = now();
+        const play = ((s.duelPlay ||= {})[run.id] ||= { actions: [], seats: {} });
+        const seat = (play.seats[String(user.seat)] ||= { vals: [], done: [] });
+        const team = duelJoin(run, user.seat!);
+        const kept = s.duelRuns?.find((r) => r.id === run.id);
+        if (kept) kept.teams = clone(run.teams);
+        if (body.op === 'next') {
+          if (!seat.cur) startProblem(bank, seat);
+          session.revision++;
+          return save({ team, problem: problemView(bank, seat), revision: session.revision });
+        }
+        assert(body.op === 'answer', '未知的操作');
+        const result = answerDuel(bank, run, s, user.seat!, body, t);
+        // 這一題做完：接著出下一題
+        if (!seat.cur) startProblem(bank, seat);
+        session.revision++;
+        return save({ ...result, team, problem: problemView(bank, seat), revision: session.revision });
+      }
       if (action === 'raid' && method === 'POST') {
         // 魔王戰：選角色、選一類題目（每一題都可以換）、作答（答錯鎖 5 秒）
         assert(user.role === 'student', '只有學生可以參戰', 403);
@@ -2088,6 +2166,8 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
           quizSheets: s.quizSheets || {},
           raidRuns: s.raidRuns || [],
           raidPlay: s.raidPlay || {},
+          duelRuns: s.duelRuns || [],
+          duelPlay: s.duelPlay || {},
         };
         const csvCell = (value: unknown) =>
           `"${String(value)
@@ -2130,6 +2210,8 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
               ...quizCsvRows(s),
               // 魔王戰：每一題一列；activityId＝題目類型；score＝貢獻分數；feedback＝稱號
               ...raidCsvRows(s, () => raidBank(s.session.lessonId)),
+              // 步驟格鬥：每一次作答一列；activityId＝規則；attempt＝選規則／填算式；answer＝隊伍
+              ...duelCsvRows(s),
               // 彈幕：feedback 欄寫匿名／具名
               ...(s.danmaku || []).map((d) => ['彈幕', d.seat, '', '', d.text, '', '', '', d.anon ? '匿名' : '具名', new Date(d.at).toISOString()]),
             ]
@@ -2159,7 +2241,7 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
             .map((c) => c.classroom),
           sessions: Object.values(state.sessions)
             .filter((s) => s.ownerId === user.id)
-            .map(({ session, lesson, answers, whiteboard, grades, danmaku, practice, quizRuns, quizSheets, raidRuns, raidPlay }) => ({
+            .map(({ session, lesson, answers, whiteboard, grades, danmaku, practice, quizRuns, quizSheets, raidRuns, raidPlay, duelRuns, duelPlay }) => ({
               session,
               lesson,
               answers,
@@ -2171,6 +2253,8 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
               quizSheets: quizSheets || {},
               raidRuns: raidRuns || [],
               raidPlay: raidPlay || {},
+              duelRuns: duelRuns || [],
+              duelPlay: duelPlay || {},
             })),
         },
         200,
@@ -2403,6 +2487,7 @@ function restoreBackup(input: unknown, state: State, user: User): void {
       practice: restorePractice(bs.practice, lesson, cl.classroom.seats),
       ...restoreQuiz(bs.quizRuns, bs.quizSheets, cl.classroom.seats),
       ...restoreRaid(bs.raidRuns, bs.raidPlay, cl.classroom.seats),
+      ...restoreDuel(bs.duelRuns, bs.duelPlay, cl.classroom.seats),
     };
   }
   Object.assign(state, draft);

@@ -1,0 +1,3099 @@
+{
+  "schemaVersion": 1,
+  "id": "g8-2-3a",
+  "title": "2-3 畢氏定理（1）畢氏定理與邊長計算",
+  "description": "認識直角三角形的斜邊與股；在方格紙上數三個正方形的面積、用拼圖證明 a²＋b²＝c²；練習已知兩股求斜邊、已知一股與斜邊求另一股。例題與隨堂皆附課本截圖，隨堂改為可即時批改的 IRS。",
+  "subject": "數學・八年級 2-3",
+  "duration": 45,
+  "objectives": [
+    "能指出直角三角形的斜邊與兩股",
+    "能用正方形面積說明畢氏定理 a²＋b²＝c²",
+    "能用畢氏定理由兩邊求第三邊，並化成最簡根式"
+  ],
+  "slides": [
+    {
+      "id": "a-warmup",
+      "phase": "提取練習",
+      "eyebrow": "01 / 先想起平方根",
+      "title": "平方與平方根，你還記得嗎？",
+      "body": "今天會一直用到「先平方、再開平方根」。面積 50 的正方形，邊長是 √50 ＝ 5√2。先做三個暖身題。",
+      "source": "銜接 2-1 平方根的意義、2-2 最簡根式",
+      "interactive": {
+        "view": {
+          "xMin": -1.4,
+          "xMax": 15.6,
+          "yMin": -1,
+          "yMax": 15.6,
+          "aspect": "equal"
+        },
+        "params": [
+          {
+            "id": "k",
+            "label": "每邊幾個小正方形 $k$",
+            "min": 1,
+            "max": 5,
+            "step": 1,
+            "value": 5
+          },
+          {
+            "id": "m",
+            "label": "小正方形面積 $m$",
+            "min": 2,
+            "max": 7,
+            "step": 1,
+            "value": 2
+          }
+        ],
+        "shapes": [
+          {
+            "type": "rect",
+            "x": 0,
+            "y": 0,
+            "w": "k*sqrt(m)",
+            "h": "k*sqrt(m)",
+            "fill": "rgba(123,97,255,.12)",
+            "color": "#7b61ff",
+            "width": 2.2
+          },
+          {
+            "type": "rect",
+            "x": 0,
+            "y": 0,
+            "w": "sqrt(m)",
+            "h": "sqrt(m)",
+            "fill": "rgba(255,138,61,.32)",
+            "color": "#ff8a3d"
+          },
+          {
+            "type": "text",
+            "x": "sqrt(m)/2",
+            "y": "sqrt(m)/2",
+            "text": "{m}",
+            "size": 14,
+            "color": "#b4541a"
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                "1*sqrt(m)",
+                0
+              ],
+              [
+                "1*sqrt(m)",
+                "k*sqrt(m)"
+              ]
+            ],
+            "color": "#7b61ff",
+            "dash": true,
+            "show": "k>1"
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0,
+                "1*sqrt(m)"
+              ],
+              [
+                "k*sqrt(m)",
+                "1*sqrt(m)"
+              ]
+            ],
+            "color": "#7b61ff",
+            "dash": true,
+            "show": "k>1"
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                "2*sqrt(m)",
+                0
+              ],
+              [
+                "2*sqrt(m)",
+                "k*sqrt(m)"
+              ]
+            ],
+            "color": "#7b61ff",
+            "dash": true,
+            "show": "k>2"
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0,
+                "2*sqrt(m)"
+              ],
+              [
+                "k*sqrt(m)",
+                "2*sqrt(m)"
+              ]
+            ],
+            "color": "#7b61ff",
+            "dash": true,
+            "show": "k>2"
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                "3*sqrt(m)",
+                0
+              ],
+              [
+                "3*sqrt(m)",
+                "k*sqrt(m)"
+              ]
+            ],
+            "color": "#7b61ff",
+            "dash": true,
+            "show": "k>3"
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0,
+                "3*sqrt(m)"
+              ],
+              [
+                "k*sqrt(m)",
+                "3*sqrt(m)"
+              ]
+            ],
+            "color": "#7b61ff",
+            "dash": true,
+            "show": "k>3"
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                "4*sqrt(m)",
+                0
+              ],
+              [
+                "4*sqrt(m)",
+                "k*sqrt(m)"
+              ]
+            ],
+            "color": "#7b61ff",
+            "dash": true,
+            "show": "k>4"
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0,
+                "4*sqrt(m)"
+              ],
+              [
+                "k*sqrt(m)",
+                "4*sqrt(m)"
+              ]
+            ],
+            "color": "#7b61ff",
+            "dash": true,
+            "show": "k>4"
+          },
+          {
+            "type": "brace",
+            "points": [
+              [
+                0,
+                "k*sqrt(m)"
+              ],
+              [
+                "k*sqrt(m)",
+                "k*sqrt(m)"
+              ]
+            ],
+            "text": "邊長 ${k}\\sqrt{m}$"
+          },
+          {
+            "type": "brace",
+            "points": [
+              [
+                "k*sqrt(m)",
+                "sqrt(m)"
+              ],
+              [
+                "k*sqrt(m)",
+                0
+              ]
+            ],
+            "text": "$\\sqrt{m}$"
+          },
+          {
+            "type": "text",
+            "x": "k*sqrt(m)/2",
+            "y": "k*sqrt(m)/2 + 0.2",
+            "text": "面積 {k^2*m}",
+            "size": 18,
+            "color": "#5a3fd6",
+            "show": "k>1"
+          }
+        ],
+        "readouts": [
+          {
+            "label": "大正方形面積 $k^2 m$",
+            "expr": "k^2*m"
+          },
+          {
+            "label": "$\\sqrt{k^2 m} \\approx$",
+            "expr": "sqrt(k^2*m)",
+            "digits": 3
+          },
+          {
+            "label": "$k\\sqrt{m} \\approx$",
+            "expr": "k*sqrt(m)",
+            "digits": 3
+          }
+        ],
+        "caption": "大正方形的邊長：用面積算是 $\\sqrt{k^2 m}$，用小正方形數是 $k\\sqrt{m}$"
+      },
+      "activity": {
+        "id": "a-warmup-q",
+        "type": "numeric",
+        "prompt": "暖身：直接寫出答案（根式化成最簡根式）",
+        "items": [
+          {
+            "prompt": "5² ＋ 12² ＝ ?",
+            "answer": "169"
+          },
+          {
+            "prompt": "√169 ＝ ?",
+            "answer": "13"
+          },
+          {
+            "prompt": "√50 ＝ ?",
+            "answer": "5√2"
+          }
+        ],
+        "explanation": "(1) 25 ＋ 144 ＝ 169。(2) 13² ＝ 169，所以 √169 ＝ 13。(3) 50 ＝ 5² × 2，√50 ＝ 5√2。",
+        "form": "simplest-radical"
+      },
+      "notes": "提取練習約 2 分鐘。第 3 題答錯的同學，提醒 2-2 學過「找出最大的平方因數搬到根號外」。"
+    },
+    {
+      "id": "a-intro",
+      "phase": "概念建立",
+      "eyebrow": "02 / 斜邊與股",
+      "title": "直角對面的那一邊叫斜邊",
+      "body": "直角三角形中，直角所對的邊稱為斜邊，其餘兩邊稱為股。三角板都是直角三角形。",
+      "source": "對應課本 2-3 p.92（題目數字同課本）",
+      "figures": [
+        {
+          "src": "g8-2-3/intro-legs.png",
+          "alt": "課本 p.92 斜邊與股、三角板"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 12,
+          "yMin": 0,
+          "yMax": 7,
+          "aspect": "equal"
+        },
+        "shapes": [
+          {
+            "type": "polygon",
+            "points": [
+              [
+                4.88,
+                5.24
+              ],
+              [
+                2,
+                1.4
+              ],
+              [
+                10,
+                1.4
+              ]
+            ],
+            "fill": "rgba(123,97,255,.26)",
+            "color": "#7b61ff",
+            "width": 2,
+            "focus": [
+              0,
+              1
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                4.67,
+                4.96
+              ],
+              [
+                4.95,
+                4.75
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4,
+            "focus": [
+              0,
+              1
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                5.16,
+                5.03
+              ],
+              [
+                4.95,
+                4.75
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4,
+            "focus": [
+              0,
+              1
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                2,
+                1.4
+              ],
+              [
+                10,
+                1.4
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "step": 1
+          },
+          {
+            "type": "text",
+            "x": 4.754,
+            "y": 5.672000000000001,
+            "text": "A",
+            "size": 16,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1
+            ]
+          },
+          {
+            "type": "text",
+            "x": 1.5756543498876998,
+            "y": 1.250230947019188,
+            "text": "B",
+            "size": 16,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1
+            ]
+          },
+          {
+            "type": "text",
+            "x": 10.43188183315372,
+            "y": 1.2735955610281788,
+            "text": "C",
+            "size": 16,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6,
+            "y": 0.8999999999999999,
+            "text": "斜邊",
+            "size": 16,
+            "color": "#e5484d",
+            "step": 1
+          },
+          {
+            "type": "text",
+            "x": 3.04,
+            "y": 3.62,
+            "text": "股",
+            "size": 16,
+            "color": "#1d4fa3",
+            "step": 1
+          },
+          {
+            "type": "text",
+            "x": 7.739999999999999,
+            "y": 3.72,
+            "text": "股",
+            "size": 16,
+            "color": "#1d4fa3",
+            "step": 1
+          }
+        ],
+        "steps": [
+          "∠A ＝ 90°：先找直角",
+          "直角所對的邊 BC 是斜邊（最長），AB、AC 是兩股"
+        ]
+      },
+      "activity": {
+        "id": "a-intro-q",
+        "type": "single",
+        "prompt": "△ABC 中，∠A ＝ 90°，斜邊是哪一邊？",
+        "options": [
+          "BC",
+          "AB",
+          "AC",
+          "不一定"
+        ],
+        "correct": [
+          0
+        ],
+        "explanation": "∠A 是直角，它所對的邊是 BC，所以 BC 是斜邊；AB、AC 是兩股。斜邊不一定畫在下面或斜斜的。"
+      },
+      "notes": "刻意把直角放在上方：斜邊要看「直角的對邊」，不是看哪一條畫得斜。"
+    },
+    {
+      "id": "a-predict",
+      "phase": "預測",
+      "eyebrow": "03 / 先猜再驗證",
+      "title": "兩股 3 和 4，斜邊多長？",
+      "body": "先憑直覺選一個，等一下用方格紙和拼圖驗證。",
+      "visual": "cards",
+      "activity": {
+        "id": "a-predict-q",
+        "type": "single",
+        "prompt": "直角三角形的兩股是 3 和 4，斜邊是多少？",
+        "options": [
+          "7",
+          "5",
+          "12",
+          "√7"
+        ],
+        "correct": [
+          1
+        ],
+        "explanation": "3² ＋ 4² ＝ 9 ＋ 16 ＝ 25 ＝ 5²，斜邊是 5，不是 3 ＋ 4 ＝ 7。接下來兩頁說明為什麼。"
+      },
+      "notes": "先公布統計、不公布答案，保留疑問到下一頁。選 7 的同學是把長度直接相加。"
+    },
+    {
+      "id": "a-grid",
+      "phase": "具體操作",
+      "eyebrow": "04 / 探索：數格子",
+      "title": "三個正方形的面積有什麼關係？",
+      "body": "課本探索活動：兩股 2、3。數出甲、乙、丙的面積（丙＝外框減 4 個三角形），再拖拉兩股試試。",
+      "source": "對應課本 2-3 p.93（題目數字同課本）",
+      "figures": [
+        {
+          "src": "g8-2-3/tiles.png",
+          "alt": "課本 p.93 等腰直角三角形地磚"
+        },
+        {
+          "src": "g8-2-3/explore-grid.png",
+          "alt": "課本 p.93 探索活動：直角三角形斜邊與兩股的關係"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": -5.5,
+          "xMax": 9.5,
+          "yMin": -5,
+          "yMax": 9,
+          "grid": 1,
+          "aspect": "equal"
+        },
+        "params": [
+          {
+            "id": "a",
+            "label": "股 $\\overline{BC}$（格）",
+            "min": 1,
+            "max": 4,
+            "step": 1,
+            "value": 2
+          },
+          {
+            "id": "b",
+            "label": "股 $\\overline{AC}$（格）",
+            "min": 1,
+            "max": 4,
+            "step": 1,
+            "value": 3
+          },
+          {
+            "id": "count",
+            "label": "數丙：外框減 4 個三角形",
+            "kind": "toggle",
+            "value": 0
+          },
+          {
+            "id": "area",
+            "label": "顯示面積",
+            "kind": "toggle",
+            "value": 0
+          }
+        ],
+        "shapes": [
+          {
+            "type": "rect",
+            "x": "-b",
+            "y": 0,
+            "w": "b",
+            "h": "b",
+            "fill": "rgba(47,128,237,.26)",
+            "color": "#2f80ed",
+            "width": 2
+          },
+          {
+            "type": "rect",
+            "x": 0,
+            "y": "-a",
+            "w": "a",
+            "h": "a",
+            "fill": "rgba(47,128,237,.26)",
+            "color": "#2f80ed",
+            "width": 2
+          },
+          {
+            "type": "polygon",
+            "points": [
+              [
+                0,
+                "b"
+              ],
+              [
+                "a",
+                0
+              ],
+              [
+                "a+b",
+                "a"
+              ],
+              [
+                "b",
+                "a+b"
+              ]
+            ],
+            "fill": "rgba(47,128,237,.18)",
+            "color": "#2f80ed",
+            "width": 2
+          },
+          {
+            "type": "rect",
+            "x": 0,
+            "y": 0,
+            "w": "a+b",
+            "h": "a+b",
+            "color": "#e5484d",
+            "dash": true,
+            "width": 1.6,
+            "show": "count"
+          },
+          {
+            "type": "polygon",
+            "points": [
+              [
+                "a",
+                0
+              ],
+              [
+                "a+b",
+                0
+              ],
+              [
+                "a+b",
+                "a"
+              ]
+            ],
+            "fill": "rgba(255,138,61,.32)",
+            "color": "#ff8a3d",
+            "width": 1.2,
+            "show": "count"
+          },
+          {
+            "type": "polygon",
+            "points": [
+              [
+                "a+b",
+                "a"
+              ],
+              [
+                "a+b",
+                "a+b"
+              ],
+              [
+                "b",
+                "a+b"
+              ]
+            ],
+            "fill": "rgba(255,138,61,.32)",
+            "color": "#ff8a3d",
+            "width": 1.2,
+            "show": "count"
+          },
+          {
+            "type": "polygon",
+            "points": [
+              [
+                "b",
+                "a+b"
+              ],
+              [
+                0,
+                "a+b"
+              ],
+              [
+                0,
+                "b"
+              ]
+            ],
+            "fill": "rgba(255,138,61,.32)",
+            "color": "#ff8a3d",
+            "width": 1.2,
+            "show": "count"
+          },
+          {
+            "type": "polygon",
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                "a",
+                0
+              ],
+              [
+                0,
+                "b"
+              ]
+            ],
+            "fill": "rgba(255,138,61,.32)",
+            "color": "#ff8a3d",
+            "width": 1.2,
+            "show": "count"
+          },
+          {
+            "type": "polygon",
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                "a",
+                0
+              ],
+              [
+                0,
+                "b"
+              ]
+            ],
+            "fill": "rgba(229,72,77,.22)",
+            "color": "#e5484d",
+            "width": 2.4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.35,
+                0
+              ],
+              [
+                0.35,
+                0.35
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.3
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0,
+                0.35
+              ],
+              [
+                0.35,
+                0.35
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.3
+          },
+          {
+            "type": "text",
+            "x": -0.35,
+            "y": -0.4,
+            "text": "C",
+            "size": 15
+          },
+          {
+            "type": "text",
+            "x": "a+0.3",
+            "y": -0.4,
+            "text": "B",
+            "size": 15
+          },
+          {
+            "type": "text",
+            "x": -0.4,
+            "y": "b+0.35",
+            "text": "A",
+            "size": 15
+          },
+          {
+            "type": "text",
+            "x": "-b/2",
+            "y": "b/2",
+            "text": "甲",
+            "size": 18,
+            "color": "#1d4fa3",
+            "show": "!area"
+          },
+          {
+            "type": "text",
+            "x": "a/2",
+            "y": "-a/2",
+            "text": "乙",
+            "size": 18,
+            "color": "#1d4fa3",
+            "show": "!area"
+          },
+          {
+            "type": "text",
+            "x": "(a+b)/2",
+            "y": "(a+b)/2",
+            "text": "丙",
+            "size": 18,
+            "color": "#1d4fa3",
+            "show": "!area"
+          },
+          {
+            "type": "text",
+            "x": "-b/2",
+            "y": "b/2",
+            "text": "甲 {b^2}",
+            "size": 17,
+            "color": "#1d4fa3",
+            "show": "area"
+          },
+          {
+            "type": "text",
+            "x": "a/2",
+            "y": "-a/2",
+            "text": "乙 {a^2}",
+            "size": 17,
+            "color": "#1d4fa3",
+            "show": "area"
+          },
+          {
+            "type": "text",
+            "x": "(a+b)/2",
+            "y": "(a+b)/2",
+            "text": "丙 {a^2+b^2}",
+            "size": 17,
+            "color": "#1d4fa3",
+            "show": "area"
+          },
+          {
+            "type": "text",
+            "x": 4.2,
+            "y": -2.6,
+            "text": "丙 ＝ 外框 − 4 個三角形",
+            "size": 15,
+            "color": "#e5484d",
+            "show": "count"
+          },
+          {
+            "type": "text",
+            "x": 4.2,
+            "y": -3.6,
+            "text": "＝ {(a+b)^2} − 4 × {a*b/2} ＝ {a^2+b^2}",
+            "size": 15,
+            "color": "#e5484d",
+            "show": "count && area"
+          }
+        ],
+        "caption": "每一格邊長 1。先自己數甲、乙、丙的面積，再打開「數丙」與「顯示面積」對照"
+      },
+      "activity": {
+        "id": "a-grid-q",
+        "type": "numeric",
+        "prompt": "課本 p.93 探索活動：數出三個正方形的面積",
+        "items": [
+          {
+            "prompt": "正方形甲（邊長 AC ＝ 3）的面積",
+            "answer": "9"
+          },
+          {
+            "prompt": "正方形乙（邊長 BC ＝ 2）的面積",
+            "answer": "4"
+          },
+          {
+            "prompt": "正方形丙（邊長 AB）的面積",
+            "answer": "13"
+          }
+        ],
+        "explanation": "(1) 甲 ＝ 3 × 3 ＝ 9。(2) 乙 ＝ 2 × 2 ＝ 4。(3) 外框 5 × 5 ＝ 25，減去 4 個三角形 4 × 3 ＝ 12，丙 ＝ 13 ＝ 9 ＋ 4。"
+      },
+      "notes": "具體操作（CRA）。先讓學生數，再打開「數丙」與「顯示面積」對照；接著拖拉兩股，請學生說說甲＋乙和丙的關係。"
+    },
+    {
+      "id": "a-proof",
+      "phase": "具體操作",
+      "eyebrow": "05 / 拼圖證明",
+      "title": "把 4 個三角形搬到四個角落",
+      "body": "兩個大正方形一樣大。拖拉滑桿把三角形從圖一搬到圖二：空白部分從甲＋乙變成丙。",
+      "source": "對應課本 2-3 p.94（題目數字同課本）",
+      "figures": [
+        {
+          "src": "g8-2-3/explore-proof.png",
+          "alt": "課本 p.94 探索活動：畢氏定理"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": -1.3,
+          "xMax": 19,
+          "yMin": -1.2,
+          "yMax": 9.6,
+          "aspect": "equal"
+        },
+        "params": [
+          {
+            "id": "t",
+            "label": "移動 4 個三角形（圖一 → 圖二）",
+            "min": 0,
+            "max": 1,
+            "step": 0.1,
+            "value": 0
+          },
+          {
+            "id": "a",
+            "label": "$a$",
+            "min": 1,
+            "max": 4,
+            "step": 1,
+            "value": 3
+          },
+          {
+            "id": "b",
+            "label": "$b$",
+            "min": 1,
+            "max": 4,
+            "step": 1,
+            "value": 2
+          }
+        ],
+        "shapes": [
+          {
+            "type": "rect",
+            "x": 0,
+            "y": 0,
+            "w": "a+b",
+            "h": "a+b",
+            "fill": "rgba(255,138,61,.22)",
+            "color": "#1f2a56",
+            "width": 2.2
+          },
+          {
+            "type": "polygon",
+            "points": [
+              [
+                "0+t*(b)",
+                "0+t*(0)"
+              ],
+              [
+                "a+t*(b)",
+                "0+t*(0)"
+              ],
+              [
+                "a+t*(b)",
+                "b+t*(0)"
+              ]
+            ],
+            "fill": "#bcd4f6",
+            "color": "#2f80ed",
+            "width": 1.8
+          },
+          {
+            "type": "polygon",
+            "points": [
+              [
+                "0+t*(0)",
+                "0+t*(a)"
+              ],
+              [
+                "0+t*(0)",
+                "b+t*(a)"
+              ],
+              [
+                "a+t*(0)",
+                "b+t*(a)"
+              ]
+            ],
+            "fill": "#bcd4f6",
+            "color": "#2f80ed",
+            "width": 1.8
+          },
+          {
+            "type": "polygon",
+            "points": [
+              [
+                "a+t*(-a)",
+                "a+b+t*(-b)"
+              ],
+              [
+                "a+t*(-a)",
+                "b+t*(-b)"
+              ],
+              [
+                "a+b+t*(-a)",
+                "b+t*(-b)"
+              ]
+            ],
+            "fill": "#bcd4f6",
+            "color": "#2f80ed",
+            "width": 1.8
+          },
+          {
+            "type": "polygon",
+            "points": [
+              [
+                "a+t*(0)",
+                "a+b+t*(0)"
+              ],
+              [
+                "a+b+t*(0)",
+                "a+b+t*(0)"
+              ],
+              [
+                "a+b+t*(0)",
+                "b+t*(0)"
+              ]
+            ],
+            "fill": "#bcd4f6",
+            "color": "#2f80ed",
+            "width": 1.8
+          },
+          {
+            "type": "polygon",
+            "points": [
+              [
+                "a",
+                "a+b"
+              ],
+              [
+                "a+b",
+                "b"
+              ],
+              [
+                "b",
+                0
+              ],
+              [
+                0,
+                "a"
+              ]
+            ],
+            "color": "#ff8a3d",
+            "width": 2.6,
+            "show": "t>0.95"
+          },
+          {
+            "type": "brace",
+            "points": [
+              [
+                0,
+                "a+b"
+              ],
+              [
+                "a",
+                "a+b"
+              ]
+            ],
+            "text": "$a$"
+          },
+          {
+            "type": "brace",
+            "points": [
+              [
+                "a",
+                "a+b"
+              ],
+              [
+                "a+b",
+                "a+b"
+              ]
+            ],
+            "text": "$b$"
+          },
+          {
+            "type": "brace",
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                "b"
+              ]
+            ],
+            "text": "$b$",
+            "show": "t<0.05"
+          },
+          {
+            "type": "brace",
+            "points": [
+              [
+                0,
+                "b"
+              ],
+              [
+                0,
+                "a+b"
+              ]
+            ],
+            "text": "$a$",
+            "show": "t<0.05"
+          },
+          {
+            "type": "brace",
+            "points": [
+              [
+                0,
+                "a"
+              ],
+              [
+                0,
+                "a+b"
+              ]
+            ],
+            "text": "$b$",
+            "show": "t>0.95"
+          },
+          {
+            "type": "brace",
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                "a"
+              ]
+            ],
+            "text": "$a$",
+            "show": "t>0.95"
+          },
+          {
+            "type": "text",
+            "x": "a/2",
+            "y": "b+a/2",
+            "text": "甲 $a^2$",
+            "size": 17,
+            "color": "#b4541a",
+            "show": "t<0.05"
+          },
+          {
+            "type": "text",
+            "x": "a+b/2",
+            "y": "b/2",
+            "text": "乙 $b^2$",
+            "size": 15,
+            "color": "#b4541a",
+            "show": "t<0.05"
+          },
+          {
+            "type": "text",
+            "x": "(a+b)/2",
+            "y": "(a+b)/2",
+            "text": "丙 $c^2$",
+            "size": 18,
+            "color": "#b4541a",
+            "show": "t>0.95"
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 7.6,
+            "text": "兩個大正方形一樣大",
+            "size": 16
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 6.4,
+            "text": "4 個三角形只是搬位置",
+            "size": 16
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 4.6,
+            "text": "圖一：空白 ＝ 甲 ＋ 乙 ＝ $a^2+b^2$",
+            "size": 16,
+            "color": "#b4541a",
+            "show": "t<0.05"
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 4.6,
+            "text": "圖二：空白 ＝ 丙 ＝ $c^2$",
+            "size": 16,
+            "color": "#b4541a",
+            "show": "t>0.95"
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 4.6,
+            "text": "搬動中……",
+            "size": 16,
+            "color": "#6b7394",
+            "show": "t>=0.05 && t<=0.95"
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 2.8,
+            "text": "空白的面積有沒有改變？",
+            "size": 16,
+            "color": "#7b61ff"
+          }
+        ],
+        "caption": "課本 p.94 探索活動：把圖一的 4 個三角形搬到圖二的四個角落"
+      },
+      "activity": {
+        "id": "a-proof-q",
+        "type": "single",
+        "prompt": "課本 p.94 探索 (3)：搬完之後，a² ＋ b² 和 c² 的關係？",
+        "options": [
+          "a² ＋ b² ＝ c²",
+          "a² ＋ b² ＞ c²",
+          "a² ＋ b² ＜ c²",
+          "要看 a、b 的大小"
+        ],
+        "correct": [
+          0
+        ],
+        "explanation": "大正方形面積相同、4 個三角形面積相同，所以剩下的空白也相同：甲＋乙＝丙，即 a² ＋ b² ＝ c²。"
+      },
+      "notes": "可搭配附件 4 的貼紙實作。追問：丙為什麼是正方形？（四邊都是 c，四個角都是 90°。）"
+    },
+    {
+      "id": "a-theorem",
+      "phase": "圖式連結",
+      "eyebrow": "06 / 畢氏定理",
+      "title": "兩股平方和 ＝ 斜邊平方",
+      "body": "按「下一步」：三邊各畫一個正方形，顏色和式子對應。只有直角三角形才成立。",
+      "source": "對應課本 2-3 p.94（題目數字同課本）",
+      "figures": [
+        {
+          "src": "g8-2-3/keybox-pythagoras.png",
+          "alt": "課本 p.94 畢氏定理重點框"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 20,
+          "yMin": 0,
+          "yMax": 11,
+          "aspect": "equal"
+        },
+        "shapes": [
+          {
+            "type": "polygon",
+            "points": [
+              [
+                4,
+                3.6
+              ],
+              [
+                7.2,
+                3.6
+              ],
+              [
+                7.2,
+                0.3999999999999999
+              ],
+              [
+                4,
+                0.3999999999999999
+              ]
+            ],
+            "fill": "rgba(123,97,255,.26)",
+            "color": "#7b61ff",
+            "width": 2,
+            "step": 1,
+            "focus": [
+              1,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 5.6,
+            "y": 2,
+            "text": "a²",
+            "size": 20,
+            "color": "#5a3fd6",
+            "step": 1,
+            "focus": [
+              1,
+              4
+            ]
+          },
+          {
+            "type": "polygon",
+            "points": [
+              [
+                4,
+                3.6
+              ],
+              [
+                4,
+                6
+              ],
+              [
+                1.5999999999999996,
+                6
+              ],
+              [
+                1.5999999999999996,
+                3.6
+              ]
+            ],
+            "fill": "rgba(47,128,237,.26)",
+            "color": "#2f80ed",
+            "width": 2,
+            "step": 2,
+            "focus": [
+              2,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 2.8,
+            "y": 4.800000000000001,
+            "text": "b²",
+            "size": 20,
+            "color": "#1d4fa3",
+            "step": 2,
+            "focus": [
+              2,
+              4
+            ]
+          },
+          {
+            "type": "polygon",
+            "points": [
+              [
+                4,
+                6
+              ],
+              [
+                7.2,
+                3.6
+              ],
+              [
+                9.600000000000001,
+                6.800000000000001
+              ],
+              [
+                6.4,
+                9.2
+              ]
+            ],
+            "fill": "rgba(255,138,61,.32)",
+            "color": "#ff8a3d",
+            "width": 2,
+            "step": 3,
+            "focus": [
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6.800000000000001,
+            "y": 6.4,
+            "text": "c²",
+            "size": 20,
+            "color": "#b4541a",
+            "step": 3,
+            "focus": [
+              3,
+              4
+            ]
+          },
+          {
+            "type": "polygon",
+            "points": [
+              [
+                4,
+                3.6
+              ],
+              [
+                7.2,
+                3.6
+              ],
+              [
+                4,
+                6
+              ]
+            ],
+            "fill": "rgba(255,255,255,.9)",
+            "color": "#1f2a56",
+            "width": 2,
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                4.3,
+                3.6
+              ],
+              [
+                4.3,
+                3.9
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4,
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                4,
+                3.9
+              ],
+              [
+                4.3,
+                3.9
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4,
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 5.6,
+            "y": 3.95,
+            "text": "a",
+            "size": 16,
+            "color": "#5a3fd6",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 4.35,
+            "y": 4.8,
+            "text": "b",
+            "size": 16,
+            "color": "#1d4fa3",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 5.8999999999999995,
+            "y": 5.2,
+            "text": "c",
+            "size": 16,
+            "color": "#b4541a",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 15,
+            "y": 9.4,
+            "text": "直角三角形：兩股 a、b，斜邊 c",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 15,
+            "y": 8.15,
+            "text": "以 a 為邊的正方形：a²",
+            "size": 19,
+            "color": "#5a3fd6",
+            "step": 1,
+            "focus": [
+              1,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 15,
+            "y": 6.9,
+            "text": "以 b 為邊的正方形：b²",
+            "size": 19,
+            "color": "#1d4fa3",
+            "step": 2,
+            "focus": [
+              2,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 15,
+            "y": 5.65,
+            "text": "以 c 為邊的正方形：c²",
+            "size": 19,
+            "color": "#b4541a",
+            "step": 3,
+            "focus": [
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 15,
+            "y": 4.4,
+            "text": "a² ＋ b² ＝ c²",
+            "size": 24,
+            "color": "#5a3fd6",
+            "step": 4,
+            "focus": [
+              4
+            ]
+          }
+        ],
+        "steps": [
+          "先認出斜邊：直角的對邊 c",
+          "紫色正方形面積 a²",
+          "藍色正方形面積 b²",
+          "橘色正方形面積 c²",
+          "畢氏定理：兩股長的平方和等於斜邊長的平方"
+        ],
+        "caption": "畢氏定理（畢達哥拉斯定理）：任意一個直角三角形 a² ＋ b² ＝ c²"
+      },
+      "activity": {
+        "id": "a-theorem-q",
+        "type": "single",
+        "prompt": "△ABC 中，∠C ＝ 90°，下列哪一個正確？",
+        "options": [
+          "BC² ＋ AC² ＝ AB²",
+          "AB² ＋ BC² ＝ AC²",
+          "AB² ＋ AC² ＝ BC²",
+          "AB ＋ BC ＝ AC"
+        ],
+        "correct": [
+          0
+        ],
+        "explanation": "∠C 的對邊 AB 是斜邊，兩股是 BC、AC：BC² ＋ AC² ＝ AB²。"
+      }
+    },
+    {
+      "id": "a-ex1",
+      "phase": "工作範例",
+      "eyebrow": "07 / 例 1 斜邊長的計算",
+      "title": "已知兩股，求斜邊",
+      "body": "例 1 的做法：兩股平方相加，再取正的平方根。先自己算，再按「下一步」對照課本的解法。",
+      "source": "對應課本 2-3 p.95（題目數字同課本）",
+      "figures": [
+        {
+          "src": "g8-2-3/ex1.png",
+          "alt": "課本 p.95 例 1 題目"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 20,
+          "yMin": 0,
+          "yMax": 11,
+          "aspect": "equal"
+        },
+        "shapes": [
+          {
+            "type": "polygon",
+            "points": [
+              [
+                0.9,
+                8.95
+              ],
+              [
+                7.500000000000001,
+                6.2
+              ],
+              [
+                0.9,
+                6.2
+              ]
+            ],
+            "fill": "rgba(123,97,255,.26)",
+            "color": "#7b61ff",
+            "width": 2,
+            "focus": [
+              0,
+              1,
+              2,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.9,
+                6.55
+              ],
+              [
+                1.25,
+                6.55
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4,
+            "focus": [
+              0,
+              1,
+              2,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                1.25,
+                6.2
+              ],
+              [
+                1.25,
+                6.55
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4,
+            "focus": [
+              0,
+              1,
+              2,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 0.4,
+            "y": 7.574999999999999,
+            "text": "5",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 4.2,
+            "y": 5.7,
+            "text": "12",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 4.392307692307693,
+            "y": 8.036538461538461,
+            "text": "c",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              4
+            ]
+          },
+          {
+            "type": "polygon",
+            "points": [
+              [
+                6.5,
+                4.15
+              ],
+              [
+                3.75,
+                1.4
+              ],
+              [
+                6.5,
+                1.4
+              ]
+            ],
+            "fill": "rgba(123,97,255,.26)",
+            "color": "#7b61ff",
+            "width": 2,
+            "focus": [
+              3,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6.5,
+                1.75
+              ],
+              [
+                6.15,
+                1.75
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4,
+            "focus": [
+              3,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6.15,
+                1.4
+              ],
+              [
+                6.15,
+                1.75
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4,
+            "focus": [
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 7,
+            "y": 2.7750000000000004,
+            "text": "5",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 5.125,
+            "y": 0.8999999999999999,
+            "text": "5",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 4.771446609406726,
+            "y": 3.1285533905932743,
+            "text": "x",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 0.5,
+            "y": 9.8,
+            "text": "(1)",
+            "size": 14,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3.2,
+            "y": 4.6,
+            "text": "(2)",
+            "size": 14,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 9.6,
+            "text": "(1) c² ＝ 5² ＋ 12²",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 8.35,
+            "text": "＝ 25 ＋ 144 ＝ 169",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 7.1,
+            "text": "因為 c ＞ 0，c ＝ √169 ＝ 13",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 5.85,
+            "text": "(2) x² ＝ 5² ＋ 5² ＝ 50",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 3,
+            "focus": [
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 4.6,
+            "text": "因為 x ＞ 0，x ＝ √50 ＝ 5√2",
+            "size": 19,
+            "color": "#5a3fd6",
+            "step": 4,
+            "focus": [
+              4
+            ]
+          }
+        ],
+        "steps": [
+          "例 1(1)：兩股 5、12，由畢氏定理",
+          "先算平方，再相加",
+          "邊長是正數，取正的平方根",
+          "例 1(2)：兩股都是 5",
+          "√50 化成最簡根式 5√2"
+        ],
+        "caption": "課本例 1 的方法：c² ＝ a² ＋ b²，c 取正的平方根"
+      },
+      "activity": {
+        "id": "a-ex1-q",
+        "type": "numeric",
+        "prompt": "先自己算例 1（最簡根式）",
+        "items": [
+          {
+            "prompt": "(1) 兩股 5、12，斜邊 c ＝ ?",
+            "answer": "13"
+          },
+          {
+            "prompt": "(2) 兩股 5、5，斜邊 x ＝ ?",
+            "answer": "5√2"
+          }
+        ],
+        "explanation": "(1) c² ＝ 25 ＋ 144 ＝ 169，c ＝ 13。(2) x² ＝ 25 ＋ 25 ＝ 50，x ＝ √50 ＝ 5√2。",
+        "form": "simplest-radical"
+      },
+      "notes": "工作範例：先讓學生試算（生成效應），再逐步講解。強調「因為 c ＞ 0」：邊長取正的平方根。"
+    },
+    {
+      "id": "a-ex1-practice",
+      "phase": "隨堂練習",
+      "eyebrow": "08 / 例 1 隨堂",
+      "title": "換你算：求斜邊",
+      "body": "課本隨堂原題。左圖用另一組數字示範同樣的步驟，答案化成最簡根式。",
+      "source": "對應課本 2-3 p.95 隨堂（題目數字同課本）",
+      "figures": [
+        {
+          "src": "g8-2-3/ex1-practice.png",
+          "alt": "課本 p.95 例 1 隨堂練習"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 20,
+          "yMin": 0,
+          "yMax": 11,
+          "aspect": "equal"
+        },
+        "shapes": [
+          {
+            "type": "polygon",
+            "points": [
+              [
+                1.2,
+                5.6
+              ],
+              [
+                6.6000000000000005,
+                2
+              ],
+              [
+                1.2,
+                2
+              ]
+            ],
+            "fill": "rgba(47,128,237,.26)",
+            "color": "#2f80ed",
+            "width": 2,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                1.2,
+                2.35
+              ],
+              [
+                1.5499999999999998,
+                2.35
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                1.5499999999999998,
+                2
+              ],
+              [
+                1.5499999999999998,
+                2.35
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 0.7,
+            "y": 3.8,
+            "text": "4",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3.9000000000000004,
+            "y": 1.5,
+            "text": "6",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 4.177350098112615,
+            "y": 4.216025147168922,
+            "text": "c",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 9.2,
+            "text": "示範：兩股 4、6",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 7.949999999999999,
+            "text": "c² ＝ 4² ＋ 6²",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 6.699999999999999,
+            "text": "＝ 16 ＋ 36 ＝ 52",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 5.449999999999999,
+            "text": "c ＝ √52 ＝ 2√13",
+            "size": 19,
+            "color": "#5a3fd6",
+            "step": 3,
+            "focus": [
+              3
+            ]
+          }
+        ],
+        "steps": [
+          "另一組數字（自編）",
+          "畢氏定理：兩股平方和 ＝ 斜邊平方",
+          "先算平方，再相加",
+          "取正的平方根，化成最簡根式"
+        ]
+      },
+      "activity": {
+        "id": "a-ex1-practice-q",
+        "type": "numeric",
+        "prompt": "課本 p.95 隨堂：求斜邊（最簡根式）",
+        "items": [
+          {
+            "prompt": "(1) 兩股 3、4，斜邊 m",
+            "answer": "5"
+          },
+          {
+            "prompt": "(2) 兩股 7、24，斜邊 n",
+            "answer": "25"
+          }
+        ],
+        "explanation": "(1) m² ＝ 9 ＋ 16 ＝ 25，m ＝ 5。(2) n² ＝ 49 ＋ 576 ＝ 625，n ＝ 25。",
+        "form": "simplest-radical"
+      },
+      "notes": "常見錯誤：3 ＋ 4 ＝ 7（沒有平方）；n² ＝ 625 時忘了開平方根。"
+    },
+    {
+      "id": "a-ex2",
+      "phase": "工作範例",
+      "eyebrow": "09 / 例 2 股長的計算",
+      "title": "已知一股與斜邊，求另一股",
+      "body": "另一股² ＝ 斜邊² − 已知股²。例 2(2) 的直角在上方，先找出哪一邊是斜邊。先自己算再對照。",
+      "source": "對應課本 2-3 p.96（題目數字同課本）",
+      "figures": [
+        {
+          "src": "g8-2-3/ex2.png",
+          "alt": "課本 p.96 例 2 題目"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 20,
+          "yMin": 0,
+          "yMax": 11,
+          "aspect": "equal"
+        },
+        "shapes": [
+          {
+            "type": "polygon",
+            "points": [
+              [
+                0.9,
+                9.8
+              ],
+              [
+                6.15,
+                7
+              ],
+              [
+                0.9,
+                7
+              ]
+            ],
+            "fill": "rgba(123,97,255,.26)",
+            "color": "#7b61ff",
+            "width": 2,
+            "focus": [
+              0,
+              1,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.9,
+                7.35
+              ],
+              [
+                1.25,
+                7.35
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4,
+            "focus": [
+              0,
+              1,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                1.25,
+                7
+              ],
+              [
+                1.25,
+                7.35
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4,
+            "focus": [
+              0,
+              1,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 0.4,
+            "y": 8.4,
+            "text": "a",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3.5250000000000004,
+            "y": 6.5,
+            "text": "15",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3.7602941176470592,
+            "y": 8.841176470588236,
+            "text": "17",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              4
+            ]
+          },
+          {
+            "type": "polygon",
+            "points": [
+              [
+                1.8,
+                1.4
+              ],
+              [
+                7.8,
+                1.4
+              ],
+              [
+                5.175,
+                4.376470224947664
+              ]
+            ],
+            "fill": "rgba(123,97,255,.26)",
+            "color": "#7b61ff",
+            "width": 2,
+            "focus": [
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                4.9125,
+                4.144966985229512
+              ],
+              [
+                5.144003239718152,
+                3.882466985229512
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4,
+            "focus": [
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                5.406503239718152,
+                4.113970224947664
+              ],
+              [
+                5.144003239718152,
+                3.882466985229512
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4,
+            "focus": [
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3.156781086116926,
+            "y": 3.263235112473832,
+            "text": "3",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6.8625,
+            "y": 3.2189540263569056,
+            "text": "b",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 4.8,
+            "y": 0.8999999999999999,
+            "text": "4",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 0.5,
+            "y": 10.2,
+            "text": "(1)",
+            "size": 14,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 1.2,
+            "y": 5.1,
+            "text": "(2)",
+            "size": 14,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 9.6,
+            "text": "(1) a² ＋ 15² ＝ 17²",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 8.35,
+            "text": "a² ＝ 289 − 225 ＝ 64，a ＝ 8",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 7.1,
+            "text": "(2) 4 是斜邊（直角的對邊）",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 5.85,
+            "text": "3² ＋ b² ＝ 4²，b² ＝ 16 − 9 ＝ 7",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 3,
+            "focus": [
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 4.6,
+            "text": "因為 b ＞ 0，b ＝ √7",
+            "size": 19,
+            "color": "#5a3fd6",
+            "step": 4,
+            "focus": [
+              4
+            ]
+          }
+        ],
+        "steps": [
+          "例 2(1)：已知一股 15、斜邊 17",
+          "移項：a² ＝ 17² − 15²，取正的平方根",
+          "例 2(2)：直角在上方，它的對邊 4 才是斜邊",
+          "一股² ＝ 斜邊² − 另一股²",
+          "取正的平方根"
+        ],
+        "caption": "課本例 2 的方法：先找斜邊，再用 斜邊² − 股²"
+      },
+      "activity": {
+        "id": "a-ex2-q",
+        "type": "numeric",
+        "prompt": "先自己算例 2（最簡根式）",
+        "items": [
+          {
+            "prompt": "(1) 一股 15、斜邊 17，另一股 a ＝ ?",
+            "answer": "8"
+          },
+          {
+            "prompt": "(2) 一股 3、斜邊 4，另一股 b ＝ ?",
+            "answer": "√7"
+          }
+        ],
+        "explanation": "(1) a² ＝ 289 − 225 ＝ 64，a ＝ 8。(2) b² ＝ 16 − 9 ＝ 7，b ＝ √7。",
+        "form": "simplest-radical"
+      },
+      "notes": "例 2(2) 是本堂最容易錯的地方：學生會把 3 和 4 當兩股，算成 5。請學生先用手指出直角。"
+    },
+    {
+      "id": "a-ex2-practice",
+      "phase": "隨堂練習",
+      "eyebrow": "10 / 例 2 隨堂",
+      "title": "換你算：雲梯有多高？",
+      "body": "課本隨堂原題。左圖用另一組數字示範：雲梯是斜邊。",
+      "source": "對應課本 2-3 p.96 隨堂（題目數字同課本）",
+      "figures": [
+        {
+          "src": "g8-2-3/ex2-practice.png",
+          "alt": "課本 p.96 例 2 隨堂練習"
+        },
+        {
+          "src": "g8-2-3/ex2-practice-fig.png",
+          "alt": "課本 p.96 雲梯附圖"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 20,
+          "yMin": 0,
+          "yMax": 11,
+          "aspect": "equal"
+        },
+        "shapes": [
+          {
+            "type": "segment",
+            "points": [
+              [
+                1,
+                1.4
+              ],
+              [
+                9,
+                1.4
+              ]
+            ],
+            "color": "#7a6a55",
+            "width": 2,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "rect",
+            "x": 7.2,
+            "y": 1.4,
+            "w": 0.55,
+            "h": 7.799999999999999,
+            "fill": "rgba(229,72,77,.28)",
+            "color": "#b23a3a",
+            "width": 1.2,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "polygon",
+            "points": [
+              [
+                7.2,
+                8.6
+              ],
+              [
+                4.2,
+                1.4
+              ],
+              [
+                7.2,
+                1.4
+              ]
+            ],
+            "fill": "rgba(47,128,237,.26)",
+            "color": "#2f80ed",
+            "width": 2,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                7.2,
+                1.75
+              ],
+              [
+                6.8500000000000005,
+                1.75
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6.8500000000000005,
+                1.4
+              ],
+              [
+                6.8500000000000005,
+                1.75
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 7.7,
+            "y": 5,
+            "text": "h",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 5.7,
+            "y": 0.8999999999999999,
+            "text": "5",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 5.2384615384615385,
+            "y": 5.1923076923076925,
+            "text": "13",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 9.2,
+            "text": "示範：雲梯長 13、水平距離 5",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 7.949999999999999,
+            "text": "h² ＋ 5² ＝ 13²",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 6.699999999999999,
+            "text": "h² ＝ 169 − 25 ＝ 144",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 5.449999999999999,
+            "text": "h ＝ 12（公尺）",
+            "size": 19,
+            "color": "#5a3fd6",
+            "step": 3,
+            "focus": [
+              3
+            ]
+          }
+        ],
+        "steps": [
+          "另一組數字（自編）：雲梯是斜邊",
+          "畢氏定理",
+          "斜邊² − 股²",
+          "取正的平方根"
+        ]
+      },
+      "activity": {
+        "id": "a-ex2-practice-q",
+        "type": "numeric",
+        "prompt": "求另一股（最簡根式）",
+        "items": [
+          {
+            "prompt": "(1) 雲梯長 26 公尺、底部與建築物水平距離 10 公尺，h 是多少公尺？",
+            "answer": "24"
+          }
+        ],
+        "explanation": "h² ＝ 676 − 100 ＝ 576，h ＝ 24。",
+        "form": "simplest-radical"
+      }
+    },
+    {
+      "id": "a-which",
+      "phase": "交錯練習",
+      "eyebrow": "11 / 哪一邊是斜邊？",
+      "title": "只知道兩邊 6 和 8，第三邊是多少？",
+      "body": "題目沒說 8 是股還是斜邊時，兩種情況都要想。可複選。",
+      "source": "改寫自備課用書「會考觀測站」（搭配例 1）",
+      "visual": "cards",
+      "activity": {
+        "id": "a-which-q",
+        "type": "multiple",
+        "prompt": "直角三角形的兩邊長是 6 和 8，第三邊可能是？（可複選）",
+        "options": [
+          "10",
+          "2√7",
+          "14",
+          "√14"
+        ],
+        "correct": [
+          0,
+          1
+        ],
+        "explanation": "6、8 都是股：√(36 ＋ 64) ＝ 10；8 是斜邊：√(64 − 36) ＝ √28 ＝ 2√7。6 不可能是斜邊（斜邊最長）。"
+      },
+      "notes": "交錯練習：混合「求斜邊」和「求股」。追問：6 可以是斜邊嗎？為什麼不行？"
+    },
+    {
+      "id": "a-error",
+      "phase": "錯誤分析",
+      "eyebrow": "12 / 當小老師",
+      "title": "小明：x² ＝ 13² ＋ 5²，x ＝ √194",
+      "body": "直角三角形斜邊 13、一股 5，求另一股 x。在畫布圈出錯誤、寫出正確算法並說明理由，也可以拍照。",
+      "source": "對應課本 2-3 p.96（題目數字同課本）",
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 20,
+          "yMin": 0,
+          "yMax": 11,
+          "aspect": "equal"
+        },
+        "shapes": [
+          {
+            "type": "polygon",
+            "points": [
+              [
+                1,
+                5.7
+              ],
+              [
+                7,
+                3.2
+              ],
+              [
+                1,
+                3.2
+              ]
+            ],
+            "fill": "rgba(255,138,61,.32)",
+            "color": "#ff8a3d",
+            "width": 2,
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                1,
+                3.5500000000000003
+              ],
+              [
+                1.35,
+                3.5500000000000003
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4,
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                1.35,
+                3.2
+              ],
+              [
+                1.35,
+                3.5500000000000003
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4,
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 0.5,
+            "y": 4.45,
+            "text": "5",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 4,
+            "y": 2.7,
+            "text": "x",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 4.1923076923076925,
+            "y": 4.911538461538462,
+            "text": "13",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 9.2,
+            "text": "小明：x² ＝ 13² ＋ 5² ＝ 194",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 7.949999999999999,
+            "text": "x ＝ √194 ≈ 13.9？",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 6.699999999999999,
+            "text": "哪一邊是斜邊？",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 5.449999999999999,
+            "text": "正確：x² ＝ ？",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 3,
+            "focus": [
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.5,
+            "y": 4.199999999999999,
+            "text": "x ＝ ？",
+            "size": 19,
+            "color": "#5a3fd6",
+            "step": 4,
+            "focus": [
+              4
+            ]
+          }
+        ],
+        "steps": [
+          "小明的算法",
+          "比斜邊 13 還長，合理嗎？",
+          "直角的對邊是哪一條？",
+          "斜邊² 和股² 該加還是減？",
+          "答案是多少？"
+        ]
+      },
+      "activity": {
+        "id": "a-error-q",
+        "type": "canvas",
+        "prompt": "斜邊 13、一股 5，小明寫 x² ＝ 13² ＋ 5² ＝ 194，x ＝ √194。① 圈出錯誤 ② 寫出正確算法與答案 ③ 說明理由",
+        "canvas": "grid",
+        "allowPhoto": true,
+        "aiAllowed": true,
+        "rubric": {
+          "criteria": [
+            {
+              "id": "find",
+              "label": "找出錯誤",
+              "points": 2,
+              "levels": [
+                {
+                  "score": 0,
+                  "description": "未指出錯誤"
+                },
+                {
+                  "score": 1,
+                  "description": "只說算錯，沒說錯在哪"
+                },
+                {
+                  "score": 2,
+                  "description": "指出 13 是斜邊，不能和股的平方相加"
+                }
+              ]
+            },
+            {
+              "id": "fix",
+              "label": "正確計算",
+              "points": 2,
+              "levels": [
+                {
+                  "score": 0,
+                  "description": "答案錯誤或未作答"
+                },
+                {
+                  "score": 1,
+                  "description": "列出 x² ＝ 13² − 5² 但計算錯誤"
+                },
+                {
+                  "score": 2,
+                  "description": "x² ＝ 169 − 25 ＝ 144，x ＝ 12"
+                }
+              ]
+            },
+            {
+              "id": "why",
+              "label": "說明理由",
+              "points": 2,
+              "levels": [
+                {
+                  "score": 0,
+                  "description": "沒有理由"
+                },
+                {
+                  "score": 1,
+                  "description": "只寫公式"
+                },
+                {
+                  "score": 2,
+                  "description": "說明斜邊是直角的對邊、最長，股² ＝ 斜邊² − 另一股²（或指出 √194 比斜邊長不合理）"
+                }
+              ]
+            }
+          ],
+          "reference": "x² ＋ 5² ＝ 13²，x² ＝ 169 − 25 ＝ 144，x ＝ 12。13 是斜邊（直角的對邊、最長的邊）；小明把斜邊當成股相加，得到 √194 ≈ 13.9 比斜邊還長，不合理。",
+          "graderNotes": "接受直接寫 x ＝ √(13² − 5²) ＝ 12 的做法。"
+        }
+      },
+      "notes": "收件後按「AI 批改」，覆核後發回；挑「用估算檢查合理性」的說明投影討論。"
+    },
+    {
+      "id": "a-exit",
+      "phase": "出場券",
+      "eyebrow": "13 / 用自己的話說",
+      "title": "什麼時候用加、什麼時候用減？",
+      "body": "已知直角三角形兩邊求第三邊：用一到兩句話說明，並舉一個例子。",
+      "visual": "steps",
+      "bullets": [
+        "先找直角和斜邊",
+        "求斜邊還是求股？",
+        "算完檢查：斜邊最長"
+      ],
+      "activity": {
+        "id": "a-exit-q",
+        "type": "short",
+        "prompt": "已知直角三角形的兩邊求第三邊，什麼時候用「加」、什麼時候用「減」？舉一個例子。",
+        "aiAllowed": true,
+        "rubric": {
+          "criteria": [
+            {
+              "id": "rule",
+              "label": "判斷規則",
+              "points": 2,
+              "levels": [
+                {
+                  "score": 0,
+                  "description": "沒有說明或說錯"
+                },
+                {
+                  "score": 1,
+                  "description": "只說「求斜邊用加」，沒提到求股"
+                },
+                {
+                  "score": 2,
+                  "description": "說明求斜邊：兩股平方相加；求股：斜邊平方減另一股平方"
+                }
+              ]
+            },
+            {
+              "id": "example",
+              "label": "舉例",
+              "points": 2,
+              "levels": [
+                {
+                  "score": 0,
+                  "description": "沒有例子或算錯"
+                },
+                {
+                  "score": 2,
+                  "description": "舉出正確的例子（如兩股 3、4，斜邊 5；斜邊 5、一股 3，另一股 4）"
+                }
+              ]
+            }
+          ],
+          "reference": "求斜邊：c² ＝ a² ＋ b²（如兩股 3、4，斜邊 √25 ＝ 5）；求股：a² ＝ c² − b²（如斜邊 5、一股 3，另一股 √16 ＝ 4）。先找直角，它的對邊是斜邊。"
+        }
+      }
+    },
+    {
+      "id": "a-reflect",
+      "phase": "後設認知",
+      "eyebrow": "最後 / 給自己打分數",
+      "title": "今天的內容，我掌握了多少？",
+      "body": "誠實評估，下一節課會從大家最沒把握的地方開始複習。",
+      "visual": "cards",
+      "notes": "3 分以下的學生，下節課開頭用提取練習再做一次；可用抽籤「答錯」請同學上台說明。",
+      "activity": {
+        "id": "a-reflect",
+        "type": "scale",
+        "prompt": "我能用畢氏定理由兩邊求出直角三角形的第三邊",
+        "min": 1,
+        "max": 5,
+        "minLabel": "還需要再看一次",
+        "maxLabel": "可以教別人"
+      }
+    }
+  ]
+}

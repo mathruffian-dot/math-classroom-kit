@@ -1,0 +1,668 @@
+[
+ {
+  "id": "a-warmup-q#1",
+  "prompt": "5² ＋ 12² ＝ ?",
+  "answer": "169",
+  "ck": "5**2+12**2"
+ },
+ {
+  "id": "a-warmup-q#2",
+  "prompt": "√169 ＝ ?",
+  "answer": "13",
+  "ck": "sqrt(169)"
+ },
+ {
+  "id": "a-warmup-q#3",
+  "prompt": "√50 ＝ ?",
+  "answer": "5√2",
+  "ck": "sqrt(50)"
+ },
+ {
+  "id": "a-grid-q#1",
+  "prompt": "正方形甲（邊長 AC ＝ 3）的面積",
+  "answer": "9",
+  "ck": "3**2"
+ },
+ {
+  "id": "a-grid-q#2",
+  "prompt": "正方形乙（邊長 BC ＝ 2）的面積",
+  "answer": "4",
+  "ck": "2**2"
+ },
+ {
+  "id": "a-grid-q#3",
+  "prompt": "正方形丙（邊長 AB）的面積",
+  "answer": "13",
+  "ck": "(2+3)**2-4*Rational(2*3,2)"
+ },
+ {
+  "id": "a-ex1-q#1",
+  "prompt": "(1) 兩股 5、12，斜邊 c ＝ ?",
+  "answer": "13",
+  "ck": "sqrt(5**2+12**2)"
+ },
+ {
+  "id": "a-ex1-q#2",
+  "prompt": "(2) 兩股 5、5，斜邊 x ＝ ?",
+  "answer": "5√2",
+  "ck": "sqrt(5**2+5**2)"
+ },
+ {
+  "id": "a-ex1-practice-q#1",
+  "prompt": "(1) 兩股 3、4，斜邊 m",
+  "answer": "5",
+  "ck": "sqrt(3**2+4**2)"
+ },
+ {
+  "id": "a-ex1-practice-q#2",
+  "prompt": "(2) 兩股 7、24，斜邊 n",
+  "answer": "25",
+  "ck": "sqrt(7**2+24**2)"
+ },
+ {
+  "id": "a-ex1-practice-q#3",
+  "prompt": "(3) 兩股 2、6，斜邊",
+  "answer": "2√10",
+  "ck": "sqrt(2**2+6**2)"
+ },
+ {
+  "id": "a-ex2-q#1",
+  "prompt": "(1) 一股 15、斜邊 17，另一股 a ＝ ?",
+  "answer": "8",
+  "ck": "sqrt(17**2-15**2)"
+ },
+ {
+  "id": "a-ex2-q#2",
+  "prompt": "(2) 一股 3、斜邊 4，另一股 b ＝ ?",
+  "answer": "√7",
+  "ck": "sqrt(4**2-3**2)"
+ },
+ {
+  "id": "a-ex2-practice-q#1",
+  "prompt": "(1) 雲梯長 26 公尺、底部與建築物水平距離 10 公尺，h 是多少公尺？",
+  "answer": "24",
+  "ck": "sqrt(26**2-10**2)"
+ },
+ {
+  "id": "a-ex2-practice-q#2",
+  "prompt": "(2) 斜邊 10、一股 6，另一股",
+  "answer": "8",
+  "ck": "sqrt(10**2-6**2)"
+ },
+ {
+  "id": "a-ex2-practice-q#3",
+  "prompt": "(3) 斜邊 6、一股 2，另一股",
+  "answer": "4√2",
+  "ck": "sqrt(6**2-2**2)"
+ },
+ {
+  "id": "b-warmup-q#1",
+  "prompt": "兩股 6、8，斜邊 ＝ ?",
+  "answer": "10",
+  "ck": "sqrt(6**2+8**2)"
+ },
+ {
+  "id": "b-warmup-q#2",
+  "prompt": "斜邊 13、一股 12，另一股 ＝ ?",
+  "answer": "5",
+  "ck": "sqrt(13**2-12**2)"
+ },
+ {
+  "id": "b-warmup-q#3",
+  "prompt": "兩股 2、3，斜邊 ＝ ?",
+  "answer": "√13",
+  "ck": "sqrt(2**2+3**2)"
+ },
+ {
+  "id": "b-ex3-q#1",
+  "prompt": "(1) AB 的長",
+  "answer": "13",
+  "ck": "sqrt(5**2+12**2)"
+ },
+ {
+  "id": "b-ex3-q#2",
+  "prompt": "(2) 貨物從 A 送到 D 的距離 AD",
+  "answer": "√105",
+  "ck": "sqrt(13**2-8**2)"
+ },
+ {
+  "id": "b-ex3-practice-q#1",
+  "prompt": "(1) AB ＝ 4、AD ＝ 6，求 BD",
+  "answer": "2√13",
+  "ck": "sqrt(4**2+6**2)"
+ },
+ {
+  "id": "b-ex3-practice-q#2",
+  "prompt": "(2) 承上，BC ＝ 3，求 CD",
+  "answer": "√43",
+  "ck": "sqrt(4**2+6**2-3**2)"
+ },
+ {
+  "id": "b-ex3-practice-q#3",
+  "prompt": "(3) 另一個四邊形：∠A ＝ ∠C ＝ 90°，BC ＝ CD ＝ 5、AD ＝ 2，求 AB",
+  "answer": "√46",
+  "ck": "sqrt(5**2+5**2-2**2)"
+ },
+ {
+  "id": "b-ex4-q#1",
+  "prompt": "溜滑梯的高 h",
+  "answer": "60/13",
+  "ck": "Rational(5*12,13)"
+ },
+ {
+  "id": "b-ex4-practice-q#1",
+  "prompt": "(1) AB ＝ 24、BC ＝ 30，求 AC",
+  "answer": "18",
+  "ck": "sqrt(30**2-24**2)"
+ },
+ {
+  "id": "b-ex4-practice-q#2",
+  "prompt": "(2) 承上，求 AD",
+  "answer": "72/5",
+  "ck": "Rational(24*18,30)"
+ },
+ {
+  "id": "b-ex4-practice-q#3",
+  "prompt": "(3) 另一題：兩股 12、16 的直角三角形，斜邊上的高",
+  "answer": "48/5",
+  "ck": "Rational(12*16,20)"
+ },
+ {
+  "id": "b-ex5-q#1",
+  "prompt": "(1) 竹竿頂端離地面多少公尺？",
+  "answer": "2.4",
+  "ck": "sqrt(Rational(25,10)**2-Rational(7,10)**2)"
+ },
+ {
+  "id": "b-ex5-q#2",
+  "prompt": "(2) 頂端降低 0.4 公尺，底部要放在離牆腳幾公尺處？",
+  "answer": "1.5",
+  "ck": "sqrt(Rational(25,10)**2-2**2)"
+ },
+ {
+  "id": "b-ex5-practice-q#1",
+  "prompt": "(1) 杯子底圓半徑 5 公分、高 12 公分，玻棒長 20 公分",
+  "answer": "7",
+  "ck": "20-sqrt(5**2+12**2)"
+ },
+ {
+  "id": "b-ex5-practice-q#2",
+  "prompt": "(2) 杯子底圓半徑 8 公分、高 15 公分，玻棒長 20 公分",
+  "answer": "3",
+  "ck": "20-sqrt(8**2+15**2)"
+ },
+ {
+  "id": "b-ex5-practice-q#3",
+  "prompt": "(3) 水壺底圓半徑 7 公分、高 24 公分，吸管長 30 公分",
+  "answer": "5",
+  "ck": "30-sqrt(7**2+24**2)"
+ },
+ {
+  "id": "b-ex6-q#1",
+  "prompt": "(1) 合起來時的對角線（吋）",
+  "answer": "3√5",
+  "ck": "sqrt(6**2+3**2)"
+ },
+ {
+  "id": "b-ex6-q#2",
+  "prompt": "(2) 展開後的對角線（吋）",
+  "answer": "6√2",
+  "ck": "sqrt(6**2+6**2)"
+ },
+ {
+  "id": "b-ex6-practice-q#1",
+  "prompt": "(1) BD 的長",
+  "answer": "2√2",
+  "ck": "sqrt(2**2+2**2)"
+ },
+ {
+  "id": "b-ex6-practice-q#2",
+  "prompt": "(2) DE 的長",
+  "answer": "√5",
+  "ck": "sqrt(1**2+2**2)"
+ },
+ {
+  "id": "b-ex6-practice-q#3",
+  "prompt": "(3) BD：DE 的比值",
+  "answer": "2√10/5",
+  "ck": "sqrt(8)/sqrt(5)"
+ },
+ {
+  "id": "c-warmup-q#1",
+  "prompt": "數線上 A(3)、B(−5)，AB ＝ ?",
+  "answer": "8",
+  "ck": "Abs(3-(-5))"
+ },
+ {
+  "id": "c-warmup-q#2",
+  "prompt": "|2 − (−4)| ＝ ?",
+  "answer": "6",
+  "ck": "Abs(2-(-4))"
+ },
+ {
+  "id": "c-warmup-q#3",
+  "prompt": "兩股 8、6 的直角三角形，斜邊 ＝ ?",
+  "answer": "10",
+  "ck": "sqrt(8**2+6**2)"
+ },
+ {
+  "id": "c-ex7-q#1",
+  "prompt": "(1) AB 的長",
+  "answer": "8",
+  "ck": "Abs(3-(-5))"
+ },
+ {
+  "id": "c-ex7-q#2",
+  "prompt": "(1) AC 的長",
+  "answer": "6",
+  "ck": "Abs(2-(-4))"
+ },
+ {
+  "id": "c-ex7-q#3",
+  "prompt": "(2) BC 的長",
+  "answer": "10",
+  "ck": "sqrt(8**2+6**2)"
+ },
+ {
+  "id": "c-ex7-practice-q#1",
+  "prompt": "(1) CD 的長",
+  "answer": "7",
+  "ck": "Abs(3-(-4))"
+ },
+ {
+  "id": "c-ex7-practice-q#2",
+  "prompt": "(1) DE 的長",
+  "answer": "3",
+  "ck": "Abs(1-(-2))"
+ },
+ {
+  "id": "c-ex7-practice-q#3",
+  "prompt": "(2) CE 的長",
+  "answer": "√58",
+  "ck": "sqrt(7**2+3**2)"
+ },
+ {
+  "id": "c-ex8-q#1",
+  "prompt": "A(2, 1)、B(−4, 9)，AB 的長",
+  "answer": "10",
+  "ck": "sqrt((-4-2)**2+(9-1)**2)"
+ },
+ {
+  "id": "c-ex8-practice-q#1",
+  "prompt": "(1) C(−2, 0)、D(−7, 13)，CD 的長",
+  "answer": "√194",
+  "ck": "sqrt((-7-(-2))**2+(13-0)**2)"
+ },
+ {
+  "id": "c-ex8-practice-q#2",
+  "prompt": "(2) E(−3, −4)、F(6, 2)，EF 的長",
+  "answer": "3√13",
+  "ck": "sqrt((6-(-3))**2+(2-(-4))**2)"
+ },
+ {
+  "id": "c-ex8-practice-q#3",
+  "prompt": "(3) G(5, −1)、H(−1, 2)，GH 的長",
+  "answer": "3√5",
+  "ck": "sqrt((-1-5)**2+(2-(-1))**2)"
+ },
+ {
+  "id": "practice:a-warmup-q#1",
+  "prompt": "計算：8² ＋ 15² ＝ ?",
+  "answer": "289",
+  "ck": "8**2+15**2"
+ },
+ {
+  "id": "practice:a-warmup-q#2",
+  "prompt": "寫出答案：√225 ＝ ?",
+  "answer": "15",
+  "ck": "sqrt(225)"
+ },
+ {
+  "id": "practice:a-warmup-q#3",
+  "prompt": "化成最簡根式：√72 ＝ ?",
+  "answer": "6√2",
+  "ck": "sqrt(72)"
+ },
+ {
+  "id": "practice:a-grid-q#1",
+  "prompt": "直角三角形兩股 1、3，以斜邊為邊的正方形面積是多少？",
+  "answer": "10",
+  "ck": "1**2+3**2"
+ },
+ {
+  "id": "practice:a-grid-q#2",
+  "prompt": "直角三角形兩股 3、4，以斜邊為邊的正方形面積是多少？",
+  "answer": "25",
+  "ck": "3**2+4**2"
+ },
+ {
+  "id": "practice:a-grid-q#3",
+  "prompt": "直角三角形兩股 2、4，以斜邊為邊的正方形面積是多少？",
+  "answer": "20",
+  "ck": "2**2+4**2"
+ },
+ {
+  "id": "practice:a-ex1-q#1",
+  "prompt": "直角三角形兩股 9、12，斜邊長是多少？（最簡根式）",
+  "answer": "15",
+  "ck": "sqrt(9**2+12**2)"
+ },
+ {
+  "id": "practice:a-ex1-q#2",
+  "prompt": "直角三角形兩股都是 3，斜邊長是多少？（最簡根式）",
+  "answer": "3√2",
+  "ck": "sqrt(3**2+3**2)"
+ },
+ {
+  "id": "practice:a-ex1-q#3",
+  "prompt": "直角三角形兩股 4、8，斜邊長是多少？（最簡根式）",
+  "answer": "4√5",
+  "ck": "sqrt(4**2+8**2)"
+ },
+ {
+  "id": "practice:a-ex1-practice-q#1",
+  "prompt": "直角三角形兩股 6、8，斜邊長是多少？（最簡根式）",
+  "answer": "10",
+  "ck": "sqrt(6**2+8**2)"
+ },
+ {
+  "id": "practice:a-ex1-practice-q#2",
+  "prompt": "直角三角形兩股 8、15，斜邊長是多少？（最簡根式）",
+  "answer": "17",
+  "ck": "sqrt(8**2+15**2)"
+ },
+ {
+  "id": "practice:a-ex1-practice-q#3",
+  "prompt": "直角三角形兩股 3、6，斜邊長是多少？（最簡根式）",
+  "answer": "3√5",
+  "ck": "sqrt(3**2+6**2)"
+ },
+ {
+  "id": "practice:a-ex2-q#1",
+  "prompt": "直角三角形斜邊 25、一股 7，另一股是多少？（最簡根式）",
+  "answer": "24",
+  "ck": "sqrt(25**2-7**2)"
+ },
+ {
+  "id": "practice:a-ex2-q#2",
+  "prompt": "直角三角形斜邊 5、一股 2，另一股是多少？（最簡根式）",
+  "answer": "√21",
+  "ck": "sqrt(5**2-2**2)"
+ },
+ {
+  "id": "practice:a-ex2-q#3",
+  "prompt": "直角三角形斜邊 9、一股 3，另一股是多少？（最簡根式）",
+  "answer": "6√2",
+  "ck": "sqrt(9**2-3**2)"
+ },
+ {
+  "id": "practice:a-ex2-practice-q#1",
+  "prompt": "梯子長 17 公尺靠牆，底部離牆 8 公尺，梯子頂端離地幾公尺？",
+  "answer": "15",
+  "ck": "sqrt(17**2-8**2)"
+ },
+ {
+  "id": "practice:a-ex2-practice-q#2",
+  "prompt": "梯子長 5 公尺靠牆，底部離牆 3 公尺，梯子頂端離地幾公尺？",
+  "answer": "4",
+  "ck": "sqrt(5**2-3**2)"
+ },
+ {
+  "id": "practice:a-ex2-practice-q#3",
+  "prompt": "梯子長 7 公尺靠牆，底部離牆 3 公尺，梯子頂端離地幾公尺？（最簡根式）",
+  "answer": "2√10",
+  "ck": "sqrt(7**2-3**2)"
+ },
+ {
+  "id": "practice:b-warmup-q#1",
+  "prompt": "直角三角形兩股 5、12，斜邊是多少？（最簡根式）",
+  "answer": "13",
+  "ck": "sqrt(5**2+12**2)"
+ },
+ {
+  "id": "practice:b-warmup-q#2",
+  "prompt": "直角三角形斜邊 10、一股 8，另一股是多少？（最簡根式）",
+  "answer": "6",
+  "ck": "sqrt(10**2-8**2)"
+ },
+ {
+  "id": "practice:b-warmup-q#3",
+  "prompt": "直角三角形兩股 1、4，斜邊是多少？（最簡根式）",
+  "answer": "√17",
+  "ck": "sqrt(1**2+4**2)"
+ },
+ {
+  "id": "practice:b-ex3-q#1",
+  "prompt": "四邊形 ABCD 中 ∠C ＝ ∠D ＝ 90°，AC ＝ 3、BC ＝ 4、BD ＝ 2，AB 是 △ABC、△ABD 共用的斜邊。求 AD。（最簡根式）",
+  "answer": "√21",
+  "ck": "sqrt(3**2+4**2-2**2)"
+ },
+ {
+  "id": "practice:b-ex3-q#2",
+  "prompt": "四邊形 ABCD 中 ∠C ＝ ∠D ＝ 90°，AC ＝ 6、BC ＝ 8、BD ＝ 5，AB 是共用的斜邊。求 AD。（最簡根式）",
+  "answer": "5√3",
+  "ck": "sqrt(6**2+8**2-5**2)"
+ },
+ {
+  "id": "practice:b-ex3-q#3",
+  "prompt": "四邊形 ABCD 中 ∠C ＝ ∠D ＝ 90°，AC ＝ 2、BC ＝ 4、BD ＝ 2，AB 是共用的斜邊。求 AD。（最簡根式）",
+  "answer": "4",
+  "ck": "sqrt(2**2+4**2-2**2)"
+ },
+ {
+  "id": "practice:b-ex3-practice-q#1",
+  "prompt": "四邊形 ABCD 中 ∠A ＝ ∠C ＝ 90°，AB ＝ 2、AD ＝ 6、BC ＝ 4，BD 是共用的斜邊。求 CD。（最簡根式）",
+  "answer": "2√6",
+  "ck": "sqrt(2**2+6**2-4**2)"
+ },
+ {
+  "id": "practice:b-ex3-practice-q#2",
+  "prompt": "四邊形 ABCD 中 ∠A ＝ ∠C ＝ 90°，AB ＝ 3、AD ＝ 3、BC ＝ 1，BD 是共用的斜邊。求 CD。（最簡根式）",
+  "answer": "√17",
+  "ck": "sqrt(3**2+3**2-1**2)"
+ },
+ {
+  "id": "practice:b-ex3-practice-q#3",
+  "prompt": "四邊形 ABCD 中 ∠A ＝ ∠C ＝ 90°，AB ＝ 5、AD ＝ 5、BC ＝ 7，BD 是共用的斜邊。求 CD。（最簡根式）",
+  "answer": "1",
+  "ck": "sqrt(5**2+5**2-7**2)"
+ },
+ {
+  "id": "practice:b-ex4-q#1",
+  "prompt": "直角三角形三邊長 6、8、10，斜邊上的高是多少？（寫成分數）",
+  "answer": "24/5",
+  "ck": "Rational(6*8,10)"
+ },
+ {
+  "id": "practice:b-ex4-q#2",
+  "prompt": "直角三角形三邊長 8、15、17，斜邊上的高是多少？（寫成分數）",
+  "answer": "120/17",
+  "ck": "Rational(8*15,17)"
+ },
+ {
+  "id": "practice:b-ex4-q#3",
+  "prompt": "直角三角形三邊長 7、24、25，斜邊上的高是多少？（寫成分數）",
+  "answer": "168/25",
+  "ck": "Rational(7*24,25)"
+ },
+ {
+  "id": "practice:b-ex4-practice-q#1",
+  "prompt": "直角三角形 ABC 中 ∠A ＝ 90°，AB ＝ 9、BC ＝ 15，AD 為斜邊上的高。求 AD。（寫成分數）",
+  "answer": "36/5",
+  "ck": "Rational(9*12,15)"
+ },
+ {
+  "id": "practice:b-ex4-practice-q#2",
+  "prompt": "直角三角形 ABC 中 ∠A ＝ 90°，AB ＝ 5、BC ＝ 13，AD 為斜邊上的高。求 AD。（寫成分數）",
+  "answer": "60/13",
+  "ck": "Rational(5*12,13)"
+ },
+ {
+  "id": "practice:b-ex4-practice-q#3",
+  "prompt": "直角三角形 ABC 中 ∠A ＝ 90°，AB ＝ 16、BC ＝ 20，AD 為斜邊上的高。求 AD。（寫成分數）",
+  "answer": "48/5",
+  "ck": "Rational(16*12,20)"
+ },
+ {
+  "id": "practice:b-ex5-q#1",
+  "prompt": "長 2.6 公尺的竹竿斜靠牆，底部離牆腳 1 公尺，竹竿頂端離地幾公尺？",
+  "answer": "2.4",
+  "ck": "sqrt(Rational(26,10)**2-1)"
+ },
+ {
+  "id": "practice:b-ex5-q#2",
+  "prompt": "長 1.3 公尺的竹竿斜靠牆，底部離牆腳 0.5 公尺，竹竿頂端離地幾公尺？",
+  "answer": "1.2",
+  "ck": "sqrt(Rational(13,10)**2-Rational(5,10)**2)"
+ },
+ {
+  "id": "practice:b-ex5-q#3",
+  "prompt": "長 1.5 公尺的竹竿斜靠牆，頂端離地 1.2 公尺，底部離牆腳幾公尺？",
+  "answer": "0.9",
+  "ck": "sqrt(Rational(15,10)**2-Rational(12,10)**2)"
+ },
+ {
+  "id": "practice:b-ex5-practice-q#1",
+  "prompt": "杯子底圓半徑 6 公分、高 8 公分，長 15 公分的玻棒從杯蓋中心插到杯底邊緣，露出杯口外幾公分？",
+  "answer": "5",
+  "ck": "15-sqrt(6**2+8**2)"
+ },
+ {
+  "id": "practice:b-ex5-practice-q#2",
+  "prompt": "杯子底圓半徑 9 公分、高 12 公分，長 20 公分的玻棒從杯蓋中心插到杯底邊緣，露出杯口外幾公分？",
+  "answer": "5",
+  "ck": "20-sqrt(9**2+12**2)"
+ },
+ {
+  "id": "practice:b-ex5-practice-q#3",
+  "prompt": "杯子底圓半徑 5 公分、高 12 公分，長 18 公分的吸管從杯蓋中心插到杯底邊緣，露出杯口外幾公分？",
+  "answer": "5",
+  "ck": "18-sqrt(5**2+12**2)"
+ },
+ {
+  "id": "practice:b-ex6-q#1",
+  "prompt": "長方形螢幕長 4 吋、寬 2 吋，對角線長幾吋？（最簡根式）",
+  "answer": "2√5",
+  "ck": "sqrt(4**2+2**2)"
+ },
+ {
+  "id": "practice:b-ex6-q#2",
+  "prompt": "長方形螢幕長 8 吋、寬 4 吋，對角線長幾吋？（最簡根式）",
+  "answer": "4√5",
+  "ck": "sqrt(8**2+4**2)"
+ },
+ {
+  "id": "practice:b-ex6-q#3",
+  "prompt": "正方形螢幕邊長 5 吋，對角線長幾吋？（最簡根式）",
+  "answer": "5√2",
+  "ck": "sqrt(5**2+5**2)"
+ },
+ {
+  "id": "practice:b-ex6-practice-q#1",
+  "prompt": "正方形 ABCD 邊長 4，E 為 AB 的中點，求 DE 的長。（最簡根式）",
+  "answer": "2√5",
+  "ck": "sqrt(2**2+4**2)"
+ },
+ {
+  "id": "practice:b-ex6-practice-q#2",
+  "prompt": "正方形 ABCD 邊長 2，E 為 AB 的中點，求 DE：BD 的比值。（最簡根式）",
+  "answer": "√10/4",
+  "ck": "sqrt(5)/sqrt(8)"
+ },
+ {
+  "id": "practice:b-ex6-practice-q#3",
+  "prompt": "正方形 ABCD 邊長 6，E 為 AB 的中點，求 BD：DE 的比值。（最簡根式）",
+  "answer": "2√10/5",
+  "ck": "sqrt(72)/sqrt(45)"
+ },
+ {
+  "id": "practice:c-warmup-q#1",
+  "prompt": "數線上 A(−3)、B(4)，AB ＝ ?",
+  "answer": "7",
+  "ck": "Abs(4-(-3))"
+ },
+ {
+  "id": "practice:c-warmup-q#2",
+  "prompt": "|−6 − 2| ＝ ?",
+  "answer": "8",
+  "ck": "Abs(-6-2)"
+ },
+ {
+  "id": "practice:c-warmup-q#3",
+  "prompt": "直角三角形兩股 5、12，斜邊 ＝ ?",
+  "answer": "13",
+  "ck": "sqrt(5**2+12**2)"
+ },
+ {
+  "id": "practice:c-ex7-q#1",
+  "prompt": "坐標平面上 A(2, 3)、B(−4, 3)，AB 的長是多少？",
+  "answer": "6",
+  "ck": "Abs(2-(-4))"
+ },
+ {
+  "id": "practice:c-ex7-q#2",
+  "prompt": "坐標平面上 A(−1, 5)、B(−1, −3)，AB 的長是多少？",
+  "answer": "8",
+  "ck": "Abs(5-(-3))"
+ },
+ {
+  "id": "practice:c-ex7-q#3",
+  "prompt": "坐標平面上 A(1, 2)、B(−5, 2)、C(1, −6)，BC 的長是多少？",
+  "answer": "10",
+  "ck": "sqrt(6**2+8**2)"
+ },
+ {
+  "id": "practice:c-ex7-practice-q#1",
+  "prompt": "坐標平面上 C(2, −3)、D(2, 1)、E(−1, 1)，CE 的長是多少？",
+  "answer": "5",
+  "ck": "sqrt(4**2+3**2)"
+ },
+ {
+  "id": "practice:c-ex7-practice-q#2",
+  "prompt": "坐標平面上 C(−2, −1)、D(−2, 4)、E(1, 4)，CE 的長是多少？（最簡根式）",
+  "answer": "√34",
+  "ck": "sqrt(5**2+3**2)"
+ },
+ {
+  "id": "practice:c-ex7-practice-q#3",
+  "prompt": "坐標平面上 C(3, −2)、D(3, 4)、E(−3, 4)，CE 的長是多少？（最簡根式）",
+  "answer": "6√2",
+  "ck": "sqrt(6**2+6**2)"
+ },
+ {
+  "id": "practice:c-ex8-q#1",
+  "prompt": "坐標平面上 A(1, 2)、B(4, 6)，AB 的長是多少？",
+  "answer": "5",
+  "ck": "sqrt((4-1)**2+(6-2)**2)"
+ },
+ {
+  "id": "practice:c-ex8-q#2",
+  "prompt": "坐標平面上 A(−3, 1)、B(3, −7)，AB 的長是多少？",
+  "answer": "10",
+  "ck": "sqrt((3-(-3))**2+(-7-1)**2)"
+ },
+ {
+  "id": "practice:c-ex8-q#3",
+  "prompt": "坐標平面上 A(2, −5)、B(−3, 7)，AB 的長是多少？",
+  "answer": "13",
+  "ck": "sqrt((-3-2)**2+(7-(-5))**2)"
+ },
+ {
+  "id": "practice:c-ex8-practice-q#1",
+  "prompt": "坐標平面上 C(−1, 0)、D(−4, 7)，CD 的長是多少？（最簡根式）",
+  "answer": "√58",
+  "ck": "sqrt((-4-(-1))**2+(7-0)**2)"
+ },
+ {
+  "id": "practice:c-ex8-practice-q#2",
+  "prompt": "坐標平面上 C(3, −2)、D(−3, 1)，CD 的長是多少？（最簡根式）",
+  "answer": "3√5",
+  "ck": "sqrt((-3-3)**2+(1-(-2))**2)"
+ },
+ {
+  "id": "practice:c-ex8-practice-q#3",
+  "prompt": "坐標平面上 C(0, −4)、D(−2, 2)，CD 的長是多少？（最簡根式）",
+  "answer": "2√10",
+  "ck": "sqrt((-2-0)**2+(2-(-4))**2)"
+ }
+]

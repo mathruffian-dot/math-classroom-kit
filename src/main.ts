@@ -43,6 +43,8 @@ import { parseNumberAnswer, type Vars } from '../shared/expr';
 import { md, plain, answerHtml } from './math';
 import { initRaidUi, liveState, raidMapHtml, raidBoardHtml, raidCardHtml, raidCardKey, raidFlashHtml, raidLocal, raidMiniHtml, raidPanelHtml, raidPhase, updateRaidBoard, wireArt } from './raid-ui';
 import type { RaidKind } from '../shared/raid';
+import { duelBlanks, duelBoardHtml, duelCardHtml, duelCardKey, duelLocal, duelPanelHtml, duelPhase, duelPutTile, initDuelUi, updateDuelBoard } from './duel-ui';
+import { DUEL_TEAM_NAME, type DuelTok } from '../shared/duel';
 import QRCode from 'qrcode';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
@@ -1015,7 +1017,7 @@ function restoreStudentUi(k: NonNullable<ReturnType<typeof keepStudentUi>>) {
 }
 /** 重畫後這段時間內點到的選項不算（畫面剛跳動，可能點錯）。 */
 const SETTLE_MS = 450;
-const SETTLE_ACTIONS = new Set(['choose', 'scale', 'quiz-choose', 'quiz-conf', 'make-key', 'raid-answer']);
+const SETTLE_ACTIONS = new Set(['choose', 'scale', 'quiz-choose', 'quiz-conf', 'make-key', 'raid-answer', 'duel-rule', 'duel-tile']);
 function renderSession() {
   if (!view || !user) return;
   board?.destroy();
@@ -1040,7 +1042,7 @@ function renderSession() {
     : null;
   // 同一頁、同一題重畫：記下捲動位置與正在輸入的格子，畫完放回去
   const keep = teacher ? null : keepStudentUi(`${s.id}:${index}:${a?.id ?? ''}:${studentTab}:${editing}`);
-  app.innerHTML = `<header class="room-bar"><div class="room-identity">${teacher ? btn('返回', 'dashboard', 'icon-btn', 'back', 'aria-label="返回課程"') : `<span class="brand-mark small">${icon('sigma')}</span>`}<div><strong>${esc(teacher ? s.title : `${s.className}・${user.seat} 號`)}</strong><small>${teacher ? esc(s.className) : esc(view.lesson.title)}</small></div></div><div class="room-progress" aria-label="第 ${index + 1} 頁，共 ${total} 頁"><span>${index + 1}</span>/<span>${total}</span></div><div class="room-actions"><span id="sync-status" class="sync-status"><i></i>已連線</span>${teacher ? `${btn(screen ? '一般' : '大屏', 'screen', 'quiet', 'screen', 'title="切換大屏授課"')}` : ''}${btn('', 'fullscreen', 'icon-btn', 'expand', 'aria-label="全螢幕" title="全螢幕"')}${!teacher && s.danmakuOpen && !s.ended ? btn('彈幕', 'danmaku-bar', `quiet danmaku-btn ${danmakuBar ? 'selected' : ''}`, 'spark', 'data-testid="danmaku-open"') : ''}${teacher ? '' : btn('', 'logout', 'icon-btn', 'logout', 'aria-label="登出" title="登出"')}</div></header><div class="room-main"><main class="stage-col"><article class="slide-stage" data-testid="session-slide" id="slide-stage">${slideMarkup(slide, index, total)}<div id="quiz-board-host">${teacher ? quizBoardHtml() : ''}</div><div id="raid-board-host">${showRaidBoard() ? raidBoardHtml(view.raid!) : showRaidMap() ? raidMapHtml(view.raidMap!) : ''}</div><div id="class-goal-host">${teacher ? classGoalHtml(view) : ''}</div></article><nav class="slide-nav" aria-label="翻頁與白板工具">${btn('', 'prev-slide', 'icon-btn nav-btn', 'prev', `aria-label="上一頁" ${index === 0 || (!teacher && s.followTeacher) ? 'disabled' : ''}`)}${teacher ? toolbar() : ''}<div class="slide-dots">${view.lesson.slides.map((sl, i) => `<button class="${i === index ? 'active' : ''} ${sl.activity ? 'has-q' : ''} ${i === s.slideIndex && !teacher ? 'live' : ''}" data-action="go-slide" data-index="${i}" aria-label="第 ${i + 1} 頁${sl.phase ? `・${esc(sl.phase)}` : ''}" title="${esc(sl.phase || sl.title)}" ${!teacher && s.followTeacher ? 'disabled' : ''}><span></span></button>`).join('')}</div>${btn('', 'next-slide', 'icon-btn nav-btn primary', 'next', `aria-label="下一頁" data-testid="next-slide" ${index === total - 1 || (!teacher && s.followTeacher) ? 'disabled' : ''}`)}</nav></main><aside class="panel-col" aria-label="${teacher ? '課堂互動' : '作答區'}">${panel}</aside></div>${teacher ? '' : `<nav class="phone-tabs" aria-label="切換"><button class="${studentTab === 'slide' ? 'selected' : ''}" data-action="student-tab" data-tab="slide">${icon('book')}教材</button><button class="${studentTab === 'answer' ? 'selected' : ''}" data-action="student-tab" data-tab="answer">${icon('pen')}作答${a && s.activityOpen && (!own || editing) ? '<i class="badge-dot"></i>' : ''}</button></nav>`}<div id="buzz-root"></div><div id="danmaku-root">${teacher ? '' : danmakuStudentHtml()}</div>${teacher ? '' : keypadHtml()}`;
+  app.innerHTML = `<header class="room-bar"><div class="room-identity">${teacher ? btn('返回', 'dashboard', 'icon-btn', 'back', 'aria-label="返回課程"') : `<span class="brand-mark small">${icon('sigma')}</span>`}<div><strong>${esc(teacher ? s.title : `${s.className}・${user.seat} 號`)}</strong><small>${teacher ? esc(s.className) : esc(view.lesson.title)}</small></div></div><div class="room-progress" aria-label="第 ${index + 1} 頁，共 ${total} 頁"><span>${index + 1}</span>/<span>${total}</span></div><div class="room-actions"><span id="sync-status" class="sync-status"><i></i>已連線</span>${teacher ? `${btn(screen ? '一般' : '大屏', 'screen', 'quiet', 'screen', 'title="切換大屏授課"')}` : ''}${btn('', 'fullscreen', 'icon-btn', 'expand', 'aria-label="全螢幕" title="全螢幕"')}${!teacher && s.danmakuOpen && !s.ended ? btn('彈幕', 'danmaku-bar', `quiet danmaku-btn ${danmakuBar ? 'selected' : ''}`, 'spark', 'data-testid="danmaku-open"') : ''}${teacher ? '' : btn('', 'logout', 'icon-btn', 'logout', 'aria-label="登出" title="登出"')}</div></header><div class="room-main"><main class="stage-col"><article class="slide-stage" data-testid="session-slide" id="slide-stage">${slideMarkup(slide, index, total)}<div id="quiz-board-host">${teacher ? quizBoardHtml() : ''}</div><div id="raid-board-host">${showRaidBoard() ? raidBoardHtml(view.raid!) : showRaidMap() ? raidMapHtml(view.raidMap!) : ''}</div><div id="class-goal-host">${teacher ? classGoalHtml(view) : ''}</div><div id="duel-board-host">${showDuelBoard() ? duelBoardHtml(view.duel!) : ''}</div></article><nav class="slide-nav" aria-label="翻頁與白板工具">${btn('', 'prev-slide', 'icon-btn nav-btn', 'prev', `aria-label="上一頁" ${index === 0 || (!teacher && s.followTeacher) ? 'disabled' : ''}`)}${teacher ? toolbar() : ''}<div class="slide-dots">${view.lesson.slides.map((sl, i) => `<button class="${i === index ? 'active' : ''} ${sl.activity ? 'has-q' : ''} ${i === s.slideIndex && !teacher ? 'live' : ''}" data-action="go-slide" data-index="${i}" aria-label="第 ${i + 1} 頁${sl.phase ? `・${esc(sl.phase)}` : ''}" title="${esc(sl.phase || sl.title)}" ${!teacher && s.followTeacher ? 'disabled' : ''}><span></span></button>`).join('')}</div>${btn('', 'next-slide', 'icon-btn nav-btn primary', 'next', `aria-label="下一頁" data-testid="next-slide" ${index === total - 1 || (!teacher && s.followTeacher) ? 'disabled' : ''}`)}</nav></main><aside class="panel-col" aria-label="${teacher ? '課堂互動' : '作答區'}">${panel}</aside></div>${teacher ? '' : `<nav class="phone-tabs" aria-label="切換"><button class="${studentTab === 'slide' ? 'selected' : ''}" data-action="student-tab" data-tab="slide">${icon('book')}教材</button><button class="${studentTab === 'answer' ? 'selected' : ''}" data-action="student-tab" data-tab="answer">${icon('pen')}作答${a && s.activityOpen && (!own || editing) ? '<i class="badge-dot"></i>' : ''}</button></nav>`}<div id="buzz-root"></div><div id="danmaku-root">${teacher ? '' : danmakuStudentHtml()}</div>${teacher ? '' : keypadHtml()}`;
   const stage = document.querySelector<HTMLElement>('#slide-stage')!;
   renderBuzzLayer();
   if (!teacher) mountHandPad();
@@ -1054,6 +1056,12 @@ function renderSession() {
   if (figZoom) stage.insertAdjacentHTML('beforeend', figureFocusHtml(slide));
   const mapHost = document.querySelector<HTMLElement>('#raid-board-host');
   if (mapHost) wireArt(mapHost);
+  // 頁數多、頁碼點要捲動時：把目前這一頁的點捲到中間
+  const dots = document.querySelector<HTMLElement>('.slide-dots');
+  const dot = dots?.querySelector<HTMLElement>('.active');
+  if (dots && dot && dots.scrollWidth > dots.clientWidth) dots.scrollLeft += dot.getBoundingClientRect().left - dots.getBoundingClientRect().left - (dots.clientWidth - dot.offsetWidth) / 2;
+  const duelHost = document.querySelector<HTMLElement>('#duel-board-host');
+  if (duelHost && showDuelBoard()) updateDuelBoard(duelHost, view.duel!, serverTime());
   celebrateGoal(view);
   const video = stage.querySelector<HTMLVideoElement>('.anim-focus video');
   if (video && resume) {
@@ -1106,6 +1114,7 @@ function studentPanel(a: Activity | undefined, index: number) {
   const s = view!.session;
   if (s.ended) return `<div class="quiet-moment"><h2>課堂已結束</h2><p>你的作答已保存。</p></div>`;
   if (myPractice()) return `<div class="panel-scroll"><div id="student-answer">${practiceCard()}</div><div id="class-events">${eventsHtml()}</div></div>`;
+  if (view!.duel && s.duel) return `<div class="panel-scroll"><div id="student-answer" data-duel-key="${esc(duelCardKey(view!.duel, serverTime()))}">${duelCardHtml(view!.duel, serverTime())}</div></div>`;
   if (view!.raid && s.raid) return `<div class="panel-scroll"><div id="student-answer" data-raid-key="${esc(raidCardKey(view!.raid, serverTime()))}">${raidCardHtml(view!.raid, serverTime())}</div></div>`;
   if (view!.quiz && s.quiz) return `<div class="panel-scroll"><div id="student-answer">${quizCard()}</div><div id="class-events">${eventsHtml()}</div></div>`;
   if (s.pkLobby?.buzz && !pkTakenSeats(s.pkLobby).has(user!.seat!)) return `<div class="panel-scroll"><div id="student-answer">${pkBuzzCard()}</div></div>`;
@@ -1135,13 +1144,16 @@ function teacherPanel(a: Activity | undefined, screen: boolean) {
   // 魔王戰在一節最後一堂的最後一頁；進行中時其他頁也留著控制區
   const onRaidPage = !!view!.lesson.slides[s.slideIndex]?.raidPage;
   const raidSection = onRaidPage || s.raid ? `<section class="quiz-tools raid-tools" id="raid-panel">${raidPanel()}</section>` : '';
+  // 步驟格鬥在課後檢核頁前面那一頁；進行中時其他頁也留著控制區
+  const onDuelPage = !!view!.lesson.slides[s.slideIndex]?.duelPage;
+  const duelSection = onDuelPage || s.duel ? `<section class="quiz-tools duel-tools" id="duel-panel">${duelPanel()}</section>` : '';
   // 間隔複習：課堂一開始（第一頁）先做上一課全班錯最多的題型
   const sp = view!.spaced;
   const spacedSection =
     s.slideIndex === 0 && sp && !s.quiz && !s.pkLobby && !s.raid && !s.ended
       ? `<section class="quiz-tools spaced-tools" data-testid="spaced-panel"><header><strong>${icon('target')}間隔複習（約 3 分鐘）</strong></header><p class="muted small-text">上一課〈${esc(sp.title)}〉全班錯最多的 ${sp.topics.length} 個題型：${sp.topics.map(esc).join('、')}。每題換數字，答完馬上看到對錯與解析。</p>${btn('派間隔複習', 'quiz-spaced', 'primary', 'target', 'data-testid="quiz-spaced"')}</section>`
       : '';
-  return `<div class="panel-scroll">${spacedSection}${raidSection}${quizSection}${onQuizPage || onRaidPage ? '' : activity}<section class="seat-map" id="seat-map" data-testid="seat-map">${seatMapInner()}</section>${gradable && !screen ? gradingBar(a!) : ''}<section class="class-tools">${screen && a ? drawFilterBar() : ''}<div class="tool-row">${btn(drawLabel(a), 'draw', 'secondary', 'dice', 'data-testid="draw-seat"')}${btn('搶答', 'buzz-open', 'secondary', 'bolt', 'data-testid="buzz-open"')}</div><div id="danmaku-tools">${danmakuTools()}</div><div id="class-events">${eventsHtml()}</div></section>${screen ? '' : `<section class="room-options">${btn(s.followTeacher ? '同步翻頁中' : '學生自主瀏覽', 'toggle-follow', 'quiet', s.followTeacher ? 'screen' : 'book', s.ended ? 'disabled' : '')}${btn('學生加入', 'join-info', 'quiet', 'users')}${btn('結束課堂', 'end-session', 'quiet danger', 'logout', s.ended ? 'disabled' : '')}</section>${view!.lesson.slides[s.slideIndex]?.notes ? `<details class="teacher-notes"><summary>教師備註（學生看不到）</summary><p>${esc(view!.lesson.slides[s.slideIndex].notes)}</p></details>` : ''}`}</div>`;
+  return `<div class="panel-scroll">${spacedSection}${duelSection}${raidSection}${quizSection}${onQuizPage || onRaidPage || onDuelPage ? '' : activity}<section class="seat-map" id="seat-map" data-testid="seat-map">${seatMapInner()}</section>${gradable && !screen ? gradingBar(a!) : ''}<section class="class-tools">${screen && a ? drawFilterBar() : ''}<div class="tool-row">${btn(drawLabel(a), 'draw', 'secondary', 'dice', 'data-testid="draw-seat"')}${btn('搶答', 'buzz-open', 'secondary', 'bolt', 'data-testid="buzz-open"')}</div><div id="danmaku-tools">${danmakuTools()}</div><div id="class-events">${eventsHtml()}</div></section>${screen ? '' : `<section class="room-options">${btn(s.followTeacher ? '同步翻頁中' : '學生自主瀏覽', 'toggle-follow', 'quiet', s.followTeacher ? 'screen' : 'book', s.ended ? 'disabled' : '')}${btn('學生加入', 'join-info', 'quiet', 'users')}${btn('結束課堂', 'end-session', 'quiet danger', 'logout', s.ended ? 'disabled' : '')}</section>${view!.lesson.slides[s.slideIndex]?.notes ? `<details class="teacher-notes"><summary>教師備註（學生看不到）</summary><p>${esc(view!.lesson.slides[s.slideIndex].notes)}</p></details>` : ''}`}</div>`;
 }
 /* ───────────── 作答限時與補救練習 ───────────── */
 const TIME_LIMITS: [number, string][] = [
@@ -1437,6 +1449,129 @@ function quizFigure(svg: string | undefined, cls = '') {
 }
 /* ───────────── 魔王戰 ───────────── */
 initRaidUi({ esc, md, btn, icon, figure: (svg) => quizFigure(svg), serverTime });
+initDuelUi({ esc, btn, icon, serverTime });
+/* ───────────── 根式步驟格鬥 ───────────── */
+/** 學生作答回應的 revision：比它舊的推送不蓋掉本機的題目。 */
+let duelRevision = 0,
+  duelPanelKey = '',
+  duelResultFetch = 0;
+function showDuelBoard() {
+  const v = view;
+  if (!v?.duel || !v.session.duel) return false;
+  return user?.role === 'student' || !!v.lesson.slides[v.session.slideIndex]?.duelPage;
+}
+function duelPanel() {
+  const v = view!;
+  return duelPanelHtml(v.duel && v.session.duel ? v.duel : undefined, prefs.get('duelSeconds', 480), v.lesson.slides.some((x) => x.duelPage));
+}
+function renderDuelCard() {
+  const card = document.querySelector<HTMLElement>('#student-answer');
+  if (!card || !view?.duel || !view.session.duel) return;
+  const now = serverTime();
+  card.dataset.duelKey = duelCardKey(view.duel, now);
+  card.innerHTML = duelCardHtml(view.duel, now);
+}
+function refreshDuel() {
+  const v = view;
+  if (!v) return;
+  const now = serverTime();
+  // 時間到或分出勝負：向伺服器拿結算
+  if (v.duel && v.session.duel && !v.duel.results && duelPhase(v.duel, now) === 'over' && Date.now() - duelResultFetch > 2000) {
+    duelResultFetch = Date.now();
+    void refreshSession();
+  }
+  const host = document.querySelector<HTMLElement>('#duel-board-host');
+  if (host) {
+    if (showDuelBoard()) {
+      if (!host.querySelector('[data-testid="duel-board"]')) host.innerHTML = duelBoardHtml(v.duel!);
+      updateDuelBoard(host, v.duel!, now);
+    } else if (host.innerHTML) host.innerHTML = '';
+  }
+  if (user?.role === 'teacher') {
+    const panel = document.querySelector<HTMLElement>('#duel-panel');
+    if (panel && !panel.contains(document.activeElement)) {
+      const d = v.duel && v.session.duel ? v.duel : undefined;
+      const key = d ? `${d.run.id}:${duelPhase(d, now)}:${d.size.red}:${d.size.blue}:${!!d.results}:${(d.weak || []).map((w) => `${w.ok}/${w.n}`).join()}` : 'none';
+      if (key !== duelPanelKey) {
+        duelPanelKey = key;
+        panel.innerHTML = duelPanel();
+      }
+    }
+    return;
+  }
+  const card = document.querySelector<HTMLElement>('#student-answer');
+  if (!card || !v.duel || !v.session.duel || duelLocal.sending) return;
+  if (card.dataset.duelKey !== duelCardKey(v.duel, now)) return renderDuelCard();
+  // 同一小步：只更新血量與時間（不重畫，正在點的數字卡不會跳）
+  card.querySelectorAll<HTMLElement>('.dl-mini .dl-bar').forEach((bar) => {
+    const team = bar.classList.contains('red') ? 'red' : 'blue';
+    const hp = Math.max(0, Math.round(v.duel!.state.hp[team] * 10) / 10);
+    bar.querySelector('i')!.setAttribute('style', `width:${hp}%`);
+    bar.querySelector('span')!.textContent = `${DUEL_TEAM_NAME[team]} ${hp}`;
+  });
+  const c = card.querySelector('.dl-clock.small');
+  if (c) {
+    const left = Math.max(0, Math.ceil((v.duel.run.startedAt + v.duel.run.seconds * 1000 - now) / 1000));
+    c.textContent = `${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}`;
+  }
+}
+setInterval(() => {
+  if (view?.duel && view.session.duel) refreshDuel();
+}, 250);
+/** 學生：拿題目、選規則、選格子、放數字卡、出招。 */
+async function duelAct(act: string, el: HTMLElement) {
+  const v = view?.duel;
+  if (!v || !view) return;
+  const p = v.mine?.problem;
+  if (act === 'duel-blank') {
+    duelLocal.active = Number(el.dataset.i);
+    return renderDuelCard();
+  }
+  if (act === 'duel-tile') {
+    if (!p?.line) return;
+    duelPutTile(duelBlanks(p.line as DuelTok[]), el.dataset.v || '');
+    return renderDuelCard();
+  }
+  if (act === 'duel-back') {
+    duelLocal.vals[duelLocal.active] = undefined;
+    return renderDuelCard();
+  }
+  if (duelLocal.sending) return;
+  const path = `/sessions/${view.session.id}/duel`;
+  duelLocal.sending = true;
+  try {
+    type R = { team: 'red' | 'blue'; problem?: NonNullable<NonNullable<typeof v.mine>['problem']>; ok?: boolean; phase?: 'rule' | 'fill'; final?: boolean; solved?: number; revision: number };
+    let r: R;
+    if (act === 'duel-next') r = await api<R>(path, 'POST', { runId: v.run.id, op: 'next' });
+    else if (act === 'duel-rule') r = await api<R>(path, 'POST', { runId: v.run.id, op: 'answer', phase: 'rule', choice: Number(el.dataset.choice) });
+    else {
+      if (!p?.line) return;
+      const n = duelBlanks(p.line as DuelTok[]);
+      r = await api<R>(path, 'POST', { runId: v.run.id, op: 'answer', phase: 'fill', values: Array.from({ length: n }, (_, i) => duelLocal.vals[i]) });
+    }
+    duelRevision = Math.max(duelRevision, r.revision);
+    // 等回應時畫面可能已經換成較舊的推送：結果寫進「現在的」畫面
+    const cur = view?.duel?.run.id === v.run.id ? view.duel : v;
+    cur.mine = { ...(cur.mine || {}), team: r.team, ...(r.problem ? { problem: r.problem } : {}) };
+    if (!r.problem) delete cur.mine.problem;
+    if (r.ok !== undefined) {
+      duelLocal.flashOk = r.ok;
+      duelLocal.flash = r.ok
+        ? r.final
+          ? `💥 最後一擊！完成第 ${r.solved} 題，下一題來了`
+          : r.phase === 'rule'
+            ? '✓ 規則選對了，出招！接著填出下一行'
+            : '✓ 算式正確，出招！'
+        : r.phase === 'rule'
+          ? '✗ 這一步不是用這個規則（扣自己隊伍一點血）'
+          : '✗ 算式不對，改一改再出招（扣自己隊伍一點血）';
+      if (r.ok) playCorrect();
+    } else duelLocal.flash = '';
+  } finally {
+    duelLocal.sending = false;
+    renderDuelCard();
+  }
+}
 /** 學生作答回應的 revision：比它舊的推送不蓋掉本機的題目與鎖住時間。 */
 let raidRevision = 0;
 /** 戰場：老師在魔王戰那一頁時投影；學生在戰鬥期間，平板左側（手機的「教材」分頁）一直顯示。 */
@@ -2128,7 +2263,7 @@ function viewSignature(v: SessionView) {
   const s = v.session;
   // 學生端：自己被派到（或結束）補救練習也要整個重畫
   const mine = user?.role === 'student' ? (v.practice?.entries.length ?? 0) : '';
-  return [s.id, s.slideIndex, s.activityOpen, s.resultsVisible, s.followTeacher, s.ended, s.activityDeadline ?? '', s.practice?.startedAt ?? '', s.danmakuOpen ?? false, s.photoOpen ?? false, `${s.quiz?.id ?? ''}/${s.quiz?.endedAt ?? ''}`, `${s.raid?.id ?? ''}/${s.raid?.endedAt ?? ''}`, s.pkLobby ? JSON.stringify(s.pkLobby) : '', `${v.danmakuQuota?.limited ?? ''}/${v.danmakuQuota?.eligible ?? ''}`, mine].join(':');
+  return [s.id, s.slideIndex, s.activityOpen, s.resultsVisible, s.followTeacher, s.ended, s.activityDeadline ?? '', s.practice?.startedAt ?? '', s.danmakuOpen ?? false, s.photoOpen ?? false, `${s.quiz?.id ?? ''}/${s.quiz?.endedAt ?? ''}`, `${s.raid?.id ?? ''}/${s.raid?.endedAt ?? ''}`, `${s.duel?.id ?? ''}/${s.duel?.endedAt ?? ''}`, s.pkLobby ? JSON.stringify(s.pkLobby) : '', `${v.danmakuQuota?.limited ?? ''}/${v.danmakuQuota?.eligible ?? ''}`, mine].join(':');
 }
 function gradesSignature(v: SessionView) {
   return v.grades.map((g) => `${g.answerId}:${g.total}:${g.released}:${g.gradedAt}`).sort().join('|');
@@ -2303,9 +2438,14 @@ async function applyViewNow(next: SessionView | { session: null }, route: string
       const opened = n.session.activityOpen && (!view.session.activityOpen || changed);
       const newQuiz = !!n.session.quiz && n.session.quiz.id !== view.session.quiz?.id;
       const newRaid = !!n.session.raid && n.session.raid.id !== view.session.raid?.id;
+      const prevDuel = view.session.duel?.id;
       if (newRaid && user.role === 'student') {
         studentTab = 'answer';
         raidLocal.flash = '';
+      }
+      if (!!n.session.duel && n.session.duel.id !== view.session.duel?.id && user.role === 'student') {
+        studentTab = 'answer';
+        duelLocal.flash = '';
       }
       view = n;
       if (changedSlide) {
@@ -2314,6 +2454,8 @@ async function applyViewNow(next: SessionView | { session: null }, route: string
         if (user.role === 'student') studentTab = 'slide';
       }
       if (opened && user.role === 'student') studentTab = 'answer';
+      // 魔王戰、步驟格鬥開始：直接到作答區（和換頁同時到也一樣）
+      if ((newRaid || (!!n.session.duel && n.session.duel.id !== prevDuel)) && user.role === 'student') studentTab = 'answer';
       // 新的一次測驗／PK／錯題練習：清掉上一次的提示，從第 1 題開始
       if (newQuiz && user.role === 'student') {
         studentTab = 'answer';
@@ -2329,9 +2471,12 @@ async function applyViewNow(next: SessionView | { session: null }, route: string
       const quizChanged = JSON.stringify(n.quiz ?? null) !== JSON.stringify(view.quiz ?? null);
       // 魔王戰：學生端的題目、鎖住時間以本機為準（作答回應比推送新）
       if (n.raid && view.raid && n.raid.run.id === view.raid.run.id && user.role === 'student' && n.session.revision <= raidRevision) n.raid.mine = view.raid.mine;
+      // 步驟格鬥：學生端的題目以本機為準（作答回應比推送新）
+      if (n.duel && view.duel && n.duel.run.id === view.duel.run.id && user.role === 'student' && n.session.revision <= duelRevision) n.duel.mine = view.duel.mine;
       view = n;
       if (quizChanged && !busy) refreshQuiz();
       if (n.raid && !busy) refreshRaid();
+      if (n.duel && !busy) refreshDuel();
       if (practiceChanged) {
         const a = n.lesson.slides[n.session.slideIndex]?.activity;
         const board = document.querySelector('#practice-board');
@@ -2884,6 +3029,21 @@ async function action(el: HTMLElement) {
     case 'raid-end':
     case 'raid-close':
       return control(act);
+    case 'duel-start': {
+      const seconds = Number(document.querySelector<HTMLSelectElement>('#duel-seconds')?.value || prefs.get('duelSeconds', 480));
+      prefs.set('duelSeconds', seconds);
+      return control('duel-start', { seconds });
+    }
+    case 'duel-end':
+    case 'duel-close':
+      return control(act);
+    case 'duel-next':
+    case 'duel-rule':
+    case 'duel-blank':
+    case 'duel-tile':
+    case 'duel-back':
+    case 'duel-submit':
+      return duelAct(act, el);
     case 'raid-role':
     case 'raid-goal':
     case 'raid-draw':

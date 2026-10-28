@@ -1,0 +1,316 @@
+{
+  "source": {
+    "pdf": "八年級/115上_國中_數學_教材資源_課本_學用PDF_二年級/06-115國中數學2上-課本-2-3-學用(115f231561).pdf",
+    "pages": {
+      "pdfPages": "1-18",
+      "printedPages": "92-109",
+      "printedPage": "pdfPage + 91"
+    },
+    "answers": "八年級/115上_國中_數學_教材資源_備課用書_備課PDF_二年級/03-115國中數學2上-備課-L02(115f231511).pdf（備課PDF 第 49–62 頁 = 課本 PDF 第 1–14 頁，紅字解答）。每一題都已自行重算（scripts/lessons-src/g8-2-3-check.py 以 SymPy 核算）。",
+    "pageImages": "八年級/115上_視覺化互動教學/textbook-pages/2-3/page-NN.png",
+    "crops": "math-classroom-kit/public/lesson-assets/g8-2-3/，pymupdf 2.5x 渲染；box 見 scripts/textbook-crops/g8-2-3-boxes.json（以 927×1157 頁面預覽圖為準）",
+    "lessons": {
+      "g8-2-3a": "畢氏定理的意義與邊長計算：p.92–96（斜邊與股、兩個探索活動、畢氏定理、例 1、例 2）",
+      "g8-2-3b": "畢氏定理的應用：p.97–100（例 3 複合圖形、例 4 斜邊上的高、例 5、例 6 應用）",
+      "g8-2-3c": "平面上兩點的距離：p.101–103（例 7、距離公式、例 8、重點回顧）＋ p.107 一題多解"
+    },
+    "notIncluded": "自我評量 P104–105（pdfPage 13–14，6 大題）、自我挑戰 P106（臺北 101）、數養 2.0 P108–109（偏移距離）、備課用書「會考觀測站」未列入課堂頁面（會考觀測站部分數字改寫成換數字題）；漫畫引入 P92 下半頁未截圖",
+    "generated": "2026-10-28"
+  },
+  "items": [
+    {
+      "kind": "intro",
+      "label": "斜邊與股",
+      "topic": "直角三角形：直角所對的邊為斜邊，其餘兩邊為股",
+      "pdfPage": 1,
+      "printedPage": 92,
+      "problems": [],
+      "crop": { "file": "intro-legs.png" }
+    },
+    {
+      "kind": "intro",
+      "label": "等腰直角三角形地磚",
+      "topic": "以兩股為邊長的兩個正方形面積和＝以斜邊為邊長的正方形面積（等腰直角三角形）",
+      "pdfPage": 2,
+      "printedPage": 93,
+      "problems": [],
+      "crop": { "file": "tiles.png" }
+    },
+    {
+      "kind": "explore",
+      "label": "探索活動：直角三角形斜邊與兩股的關係",
+      "topic": "方格紙上兩股 2、3 的直角三角形，數三個正方形的面積",
+      "pdfPage": 2,
+      "printedPage": 93,
+      "problems": [
+        { "expr": "(1) 正方形甲（邊 AC＝3）與正方形乙（邊 BC＝2）的面積", "answer": "甲 9、乙 4", "answerSource": "official" },
+        { "expr": "(2) 正方形丙（邊 AB）的面積", "answer": "13", "check": "(2+3)²−4×(2×3÷2)＝25−12＝13", "answerSource": "official" },
+        { "expr": "(3) 甲＋乙 是否等於 丙", "answer": "是", "answerSource": "official" }
+      ],
+      "crop": { "file": "explore-grid.png" }
+    },
+    {
+      "kind": "explore",
+      "label": "探索活動：畢氏定理",
+      "topic": "兩個邊長 a＋b 的正方形：圖一 甲＋乙＋4 個三角形＝圖二 丙＋4 個三角形",
+      "pdfPage": 3,
+      "printedPage": 94,
+      "problems": [
+        { "expr": "(1) 丙是否為正方形？邊長為何？", "answer": "是，邊長為 c", "answerSource": "official" },
+        { "expr": "(2) 甲＋乙 是否與 丙 面積相等", "answer": "是", "answerSource": "official" },
+        { "expr": "(3) a²＋b² 與 c² 的大小關係", "answer": "a²＋b²＝c²", "answerSource": "official" }
+      ],
+      "crop": { "file": "explore-proof.png" }
+    },
+    {
+      "kind": "key-box",
+      "label": "畢氏定理（畢達哥拉斯定理）",
+      "topic": "任意一個直角三角形，其兩股長的平方和等於斜邊長的平方，即 a²＋b²＝c²",
+      "pdfPage": 3,
+      "printedPage": 94,
+      "problems": [],
+      "crop": { "file": "keybox-pythagoras.png" }
+    },
+    {
+      "kind": "example",
+      "label": "例1",
+      "topic": "斜邊長的計算",
+      "pdfPage": 4,
+      "printedPage": 95,
+      "problems": [
+        { "expr": "(1) 兩股 5、12，求斜邊 c", "answer": "13", "check": "√(25+144)＝√169", "answerSource": "official" },
+        { "expr": "(2) 兩股 5、5，求斜邊 x", "answer": "5√2", "check": "√50＝5√2", "answerSource": "official" }
+      ],
+      "crop": { "file": "ex1.png" }
+    },
+    {
+      "kind": "practice",
+      "label": "例1 隨堂練習",
+      "topic": "斜邊長的計算",
+      "pdfPage": 4,
+      "printedPage": 95,
+      "problems": [
+        { "expr": "(1) 兩股 3、4，求斜邊 m", "answer": "5", "check": "√(9+16)＝√25", "answerSource": "official" },
+        { "expr": "(2) 兩股 7、24，求斜邊 n", "answer": "25", "check": "√(49+576)＝√625", "answerSource": "official" }
+      ],
+      "crop": { "file": "ex1-practice.png" }
+    },
+    {
+      "kind": "example",
+      "label": "例2",
+      "topic": "股長的計算",
+      "pdfPage": 5,
+      "printedPage": 96,
+      "problems": [
+        { "expr": "(1) 一股 15、斜邊 17，求另一股 a", "answer": "8", "check": "√(289−225)＝√64", "answerSource": "official" },
+        { "expr": "(2) 一股 3、斜邊 4（直角在上方頂點），求另一股 b", "answer": "√7", "check": "√(16−9)", "answerSource": "official" }
+      ],
+      "crop": { "file": "ex2.png" }
+    },
+    {
+      "kind": "practice",
+      "label": "例2 隨堂練習",
+      "topic": "雲梯：斜邊 26、水平距離 10，求高 h",
+      "pdfPage": 5,
+      "printedPage": 96,
+      "problems": [
+        { "expr": "雲梯長 26 公尺、底部與建築物水平距離 10 公尺，h＝？", "answer": "24 公尺", "check": "√(676−100)＝√576", "answerSource": "official" }
+      ],
+      "crop": { "file": "ex2-practice.png" },
+      "figure": "ex2-practice-fig.png"
+    },
+    {
+      "kind": "example",
+      "label": "例3",
+      "topic": "直角三角形的複合圖形（快遞路線）",
+      "pdfPage": 6,
+      "printedPage": 97,
+      "problems": [
+        { "expr": "(1) ∠C＝90°、AC＝5、BC＝12，求 AB", "answer": "13", "answerSource": "official" },
+        { "expr": "(2) ∠D＝90°、BD＝8，求 AD", "answer": "√105", "check": "169−64＝105", "answerSource": "official" }
+      ],
+      "crop": { "file": "ex3.png" }
+    },
+    {
+      "kind": "practice",
+      "label": "例3 隨堂練習",
+      "topic": "四邊形 ABCD，∠A＝∠C＝90°",
+      "pdfPage": 6,
+      "printedPage": 97,
+      "problems": [
+        { "expr": "AB＝4、AD＝6，求 BD", "answer": "2√13", "check": "√(16+36)＝√52", "answerSource": "official" },
+        { "expr": "BC＝3，求 CD", "answer": "√43", "check": "52−9＝43", "answerSource": "official" }
+      ],
+      "crop": { "file": "ex3-practice.png" }
+    },
+    {
+      "kind": "example",
+      "label": "例4",
+      "topic": "斜邊上的高（溜滑梯 5、12、13）",
+      "pdfPage": 7,
+      "printedPage": 98,
+      "problems": [
+        { "expr": "三邊 5、12、13，求斜邊上的高 h", "answer": "60/13", "check": "½×13×h＝½×5×12", "answerSource": "official" }
+      ],
+      "crop": { "file": "ex4.png" }
+    },
+    {
+      "kind": "key-box",
+      "label": "直角三角形斜邊上的高",
+      "topic": "斜邊上的高＝兩股乘積÷斜邊，h＝ab/c",
+      "pdfPage": 7,
+      "printedPage": 98,
+      "problems": [],
+      "crop": { "file": "keybox-altitude.png" }
+    },
+    {
+      "kind": "practice",
+      "label": "例4 隨堂練習",
+      "topic": "直角三角形 ABC（∠A＝90°），AD 為斜邊上的高",
+      "pdfPage": 7,
+      "printedPage": 98,
+      "problems": [
+        { "expr": "(1) AB＝24、BC＝30，求 AC", "answer": "18", "check": "√(900−576)＝√324", "answerSource": "official" },
+        { "expr": "(2) 求 AD", "answer": "72/5", "check": "24×18÷30", "answerSource": "official" }
+      ],
+      "crop": { "file": "ex4-practice.png" }
+    },
+    {
+      "kind": "example",
+      "label": "例5",
+      "topic": "畢氏定理的應用（竹竿靠牆）",
+      "pdfPage": 8,
+      "printedPage": 99,
+      "problems": [
+        { "expr": "(1) 竹竿長 2.5、離牆腳 0.7，頂端離地多高", "answer": "2.4 公尺", "check": "√(6.25−0.49)＝√5.76", "answerSource": "official" },
+        { "expr": "(2) 頂端降低 0.4 公尺，底部離牆腳多遠", "answer": "1.5 公尺", "check": "√(6.25−4)＝√2.25", "answerSource": "official" }
+      ],
+      "crop": { "file": "ex5.png" }
+    },
+    {
+      "kind": "practice",
+      "label": "例5 隨堂練習",
+      "topic": "杯中玻棒（半徑 5、高 12、玻棒 20）",
+      "pdfPage": 8,
+      "printedPage": 99,
+      "problems": [
+        { "expr": "玻棒露出杯口外的長度", "answer": "7 公分", "check": "20−√(25+144)＝20−13", "answerSource": "official" }
+      ],
+      "crop": { "file": "ex5-practice.png" },
+      "figure": "ex5-practice-fig.png"
+    },
+    {
+      "kind": "example",
+      "label": "例6",
+      "topic": "摺疊手機的螢幕尺寸（對角線）",
+      "pdfPage": 9,
+      "printedPage": 100,
+      "problems": [
+        { "expr": "合起來 6×3 的對角線", "answer": "3√5 吋", "answerSource": "official" },
+        { "expr": "展開 6×6 的對角線", "answer": "6√2 吋", "answerSource": "official" },
+        { "expr": "是否為兩倍", "answer": "不是（3√5×2＝6√5≠6√2）", "answerSource": "official" }
+      ],
+      "crop": { "file": "ex6.png" }
+    },
+    {
+      "kind": "practice",
+      "label": "例6 隨堂練習",
+      "topic": "正方形 ABCD 邊長 2，E、F 為 AB、CD 中點，求 BD：DE 的比值",
+      "pdfPage": 9,
+      "printedPage": 100,
+      "problems": [
+        { "expr": "BD", "answer": "2√2", "answerSource": "official" },
+        { "expr": "DE", "answer": "√5", "check": "√(1²+2²)", "answerSource": "official" },
+        { "expr": "BD：DE 的比值（最簡根式）", "answer": "2√10/5", "check": "2√2/√5＝2√10/5", "answerSource": "official" }
+      ],
+      "crop": { "file": "ex6-practice.png" }
+    },
+    {
+      "kind": "intro",
+      "label": "平面上兩點的距離（引言）",
+      "topic": "數線上 A(a)、B(b) 的距離為 |a−b|；水平線、鉛垂線上的兩點也可以這樣算",
+      "pdfPage": 10,
+      "printedPage": 101,
+      "problems": [],
+      "crop": { "file": "section2-intro.png" }
+    },
+    {
+      "kind": "example",
+      "label": "例7",
+      "topic": "水平線或鉛垂線上兩點的距離",
+      "pdfPage": 10,
+      "printedPage": 101,
+      "problems": [
+        { "expr": "(1) A(3,2)、B(−5,2)、C(3,−4)：AB、AC", "answer": "AB＝8、AC＝6", "answerSource": "official" },
+        { "expr": "(2) BC", "answer": "10", "check": "√(64+36)", "answerSource": "official" }
+      ],
+      "crop": { "file": "ex7.png" }
+    },
+    {
+      "kind": "practice",
+      "label": "例7 隨堂練習",
+      "topic": "C(1,−4)、D(1,3)、E(−2,3)",
+      "pdfPage": 10,
+      "printedPage": 101,
+      "problems": [
+        { "expr": "(1) CD、DE", "answer": "CD＝7、DE＝3", "answerSource": "official" },
+        { "expr": "(2) CE", "answer": "√58", "check": "√(49+9)", "answerSource": "official" }
+      ],
+      "crop": { "file": "ex7-practice.png" }
+    },
+    {
+      "kind": "key-box",
+      "label": "平面上兩點的距離公式",
+      "topic": "AB＝√((x₂−x₁)²＋(y₂−y₁)²)＝√((x 坐標的差)²＋(y 坐標的差)²)（含推導圖）",
+      "pdfPage": 11,
+      "printedPage": 102,
+      "problems": [],
+      "crop": { "file": "keybox-distance.png" },
+      "figure": "distance-derivation.png"
+    },
+    {
+      "kind": "example",
+      "label": "例8",
+      "topic": "平面上兩點的距離",
+      "pdfPage": 11,
+      "printedPage": 102,
+      "problems": [
+        { "expr": "A(2,1)、B(−4,9)，求 AB", "answer": "10", "check": "√(36+64)", "answerSource": "official" }
+      ],
+      "crop": { "file": "ex8.png" }
+    },
+    {
+      "kind": "practice",
+      "label": "例8 隨堂練習",
+      "topic": "C(−2,0)、D(−7,13)",
+      "pdfPage": 11,
+      "printedPage": 102,
+      "problems": [
+        { "expr": "求 CD", "answer": "√194", "check": "√(25+169)", "answerSource": "official" }
+      ],
+      "crop": { "file": "ex8-practice.png" }
+    },
+    {
+      "kind": "summary",
+      "label": "重點回顧 2-3",
+      "topic": "畢氏定理、斜邊上的高、平面上兩點的距離",
+      "pdfPage": 12,
+      "printedPage": 103,
+      "problems": [],
+      "crop": { "file": "summary-1.png" },
+      "figure": "summary-2.png"
+    },
+    {
+      "kind": "extension",
+      "label": "一題多解",
+      "topic": "比較 √5＋√2 與 √7 的大小（平方法、計算機、整數部分、三角形邊長關係）",
+      "pdfPage": 16,
+      "printedPage": 107,
+      "problems": [
+        { "expr": "√5＋√2 與 √7 的大小", "answer": "√5＋√2 ＞ √7", "check": "(√5+√2)²＝7+2√10＞7", "answerSource": "official" }
+      ],
+      "crop": { "file": "multi-solution.png" },
+      "note": "只截題目框，不截四種解法"
+    }
+  ]
+}

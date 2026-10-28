@@ -1,0 +1,312 @@
+{
+  "rubrics": {
+    "c-error-q": {
+      "criteria": [
+        {
+          "id": "kai",
+          "label": "會考評分（0–3 分）",
+          "points": 3,
+          "levels": [
+            {
+              "score": 3,
+              "description": "指出直角三角形的股是半弦 AM＝6（弦心距垂直平分弦），寫出 r＝√(6²＋8²)＝10"
+            },
+            {
+              "score": 2,
+              "description": "答案 10 正確但理由不完整，或方法正確但計算有一處小錯"
+            },
+            {
+              "score": 1,
+              "description": "只指出「錯了」，或知道要除以 2 但列式仍錯"
+            },
+            {
+              "score": 0,
+              "description": "空白、同意 4√13，或沒有任何正確內容"
+            }
+          ]
+        }
+      ],
+      "reference": "弦心距 OM 垂直平分 AB，AM＝12÷2＝6。在直角△OAM 中，r＝OA＝√(6²＋8²)＝10。小美用了整條弦 12。",
+      "graderNotes": "接受先算 OA²＝36＋64＝100 的寫法。"
+    }
+  },
+  "photo": {
+    "c-ex6-q": {
+      "items": [
+        0,
+        1
+      ],
+      "rubric": {
+        "criteria": [
+          {
+            "id": "kai",
+            "label": "會考評分（0–3 分）",
+            "points": 3,
+            "levels": [
+              {
+                "score": 3,
+                "description": "每一小題都過程完整、答案正確：(1) 畢氏定理求 PM，切線段等長 PM＝PN；(2) OP 垂直平分 MN，用△OMP 面積算兩次求 MR"
+              },
+              {
+                "score": 2,
+                "description": "方法正確、過程大致完整，但有一小題有一處計算小錯，或沒有化到最簡"
+              },
+              {
+                "score": 1,
+                "description": "只有部分正確的關鍵步驟（例如只做對一小題），或過程有重大錯誤"
+              },
+              {
+                "score": 0,
+                "description": "空白、只寫答案沒有過程，或方法錯誤"
+              }
+            ]
+          }
+        ],
+        "reference": "(1) ∠OMP ＝ 90°，PM ＝ √(17² － 8²) ＝ 15，又 PM ＝ PN，周長 ＝ 8 ＋ 15 ＋ 15 ＋ 8 ＝ 46\n(2) MN 交 OP 於 R，OP 垂直平分 MN，MR ＝ NR。\n△OMP 面積 ＝ 8 × 15 ÷ 2 ＝ 17 × MR ÷ 2，MR ＝ 120/17，MN ＝ 2MR ＝ 240/17",
+        "graderNotes": "接受其他正確的做法。常見錯誤：(2) 把 MR 當成 MN；周長只算一條切線段。"
+      }
+    },
+    "c-ex6-practice-q": {
+      "items": [
+        0,
+        1
+      ],
+      "rubric": {
+        "criteria": [
+          {
+            "id": "kai",
+            "label": "會考評分（0–3 分）",
+            "points": 3,
+            "levels": [
+              {
+                "score": 3,
+                "description": "每一小題都過程完整、答案正確：(1) 畢氏定理求 OP；(2) OP 垂直平分 MN，用△OPM 面積算兩次求 MR"
+              },
+              {
+                "score": 2,
+                "description": "方法正確、過程大致完整，但有一小題有一處計算小錯，或沒有化到最簡"
+              },
+              {
+                "score": 1,
+                "description": "只有部分正確的關鍵步驟（例如只做對一小題），或過程有重大錯誤"
+              },
+              {
+                "score": 0,
+                "description": "空白、只寫答案沒有過程，或方法錯誤"
+              }
+            ]
+          }
+        ],
+        "reference": "(1) OP ＝ √(OM² ＋ PM²) ＝ √(9² ＋ 12²) ＝ 15\n(2) 連接 MN 交 OP 於 R，9 × 12 ÷ 2 ＝ 15 × MR ÷ 2，MR ＝ 36/5，MN ＝ 2MR ＝ 72/5",
+        "graderNotes": "接受其他正確的做法。常見錯誤：(2) 停在 MR ＝ 36/5。"
+      }
+    },
+    "c-ex7-q": {
+      "items": [
+        0,
+        1
+      ],
+      "rubric": {
+        "criteria": [
+          {
+            "id": "kai",
+            "label": "會考評分（0–3 分）",
+            "points": 3,
+            "levels": [
+              {
+                "score": 3,
+                "description": "每一小題都過程完整、答案正確：連接 OA，在直角△OAM 用畢氏定理，再用 OM 垂直平分 AB"
+              },
+              {
+                "score": 2,
+                "description": "方法正確、過程大致完整，但有一小題有一處計算小錯，或沒有化到最簡"
+              },
+              {
+                "score": 1,
+                "description": "只有部分正確的關鍵步驟（例如只做對一小題），或過程有重大錯誤"
+              },
+              {
+                "score": 0,
+                "description": "空白、只寫答案沒有過程，或方法錯誤"
+              }
+            ]
+          }
+        ],
+        "reference": "(1) 連接 OA，OA ＝ 13，AM ＝ √(OA² － OM²) ＝ √(13² － 5²) ＝ 12\n(2) OM 垂直平分 AB，AB ＝ 2AM ＝ 24",
+        "graderNotes": "接受其他正確的做法。常見錯誤：AB 只寫 12。"
+      }
+    },
+    "c-ex7-practice-q": {
+      "items": [
+        0,
+        1
+      ],
+      "rubric": {
+        "criteria": [
+          {
+            "id": "kai",
+            "label": "會考評分（0–3 分）",
+            "points": 3,
+            "levels": [
+              {
+                "score": 3,
+                "description": "每一小題都過程完整、答案正確：由弦心距平分弦得 CN，用畢氏定理求 ON，再求△CON 面積"
+              },
+              {
+                "score": 2,
+                "description": "方法正確、過程大致完整，但有一小題有一處計算小錯，或沒有化到最簡"
+              },
+              {
+                "score": 1,
+                "description": "只有部分正確的關鍵步驟（例如只做對一小題），或過程有重大錯誤"
+              },
+              {
+                "score": 0,
+                "description": "空白、只寫答案沒有過程，或方法錯誤"
+              }
+            ]
+          }
+        ],
+        "reference": "(1) CN ＝ ½CD ＝ 8，ON ＝ √(OC² － CN²) ＝ √(10² － 8²) ＝ 6\n(2) △CON 面積 ＝ ½ × CN × ON ＝ ½ × 8 × 6 ＝ 24",
+        "graderNotes": "接受其他正確的做法。常見錯誤：(2) 用 CD ＝ 16 當底，算成 48。"
+      }
+    },
+    "c-ex8-q": {
+      "items": [
+        0,
+        1
+      ],
+      "rubric": {
+        "criteria": [
+          {
+            "id": "kai",
+            "label": "會考評分（0–3 分）",
+            "points": 3,
+            "levels": [
+              {
+                "score": 3,
+                "description": "每一小題都過程完整、答案正確：由 CD 與 ON 求半徑，再由半徑與 OM 求 AM，AB＝2AM"
+              },
+              {
+                "score": 2,
+                "description": "方法正確、過程大致完整，但有一小題有一處計算小錯，或沒有化到最簡"
+              },
+              {
+                "score": 1,
+                "description": "只有部分正確的關鍵步驟（例如只做對一小題），或過程有重大錯誤"
+              },
+              {
+                "score": 0,
+                "description": "空白、只寫答案沒有過程，或方法錯誤"
+              }
+            ]
+          }
+        ],
+        "reference": "CN ＝ ½CD ＝ 6，OC ＝ √(ON² ＋ CN²) ＝ √(8² ＋ 6²) ＝ 10，OA ＝ OC ＝ 10。\nAM ＝ √(OA² － OM²) ＝ √(10² － 5²) ＝ 5√3，AB ＝ 2AM ＝ 10√3",
+        "graderNotes": "接受其他正確的做法。常見錯誤：5√3 沒有乘 2；√75 沒化成最簡根式。"
+      }
+    },
+    "c-ex8-practice-q": {
+      "items": [
+        0
+      ],
+      "rubric": {
+        "criteria": [
+          {
+            "id": "kai",
+            "label": "會考評分（0–3 分）",
+            "points": 3,
+            "levels": [
+              {
+                "score": 3,
+                "description": "過程完整、答案正確：求半弦 AM、CN，用畢氏定理求半徑與 ON，MN＝ON－OM"
+              },
+              {
+                "score": 2,
+                "description": "方法正確、過程大致完整，但有一處計算小錯，或沒有化到最簡"
+              },
+              {
+                "score": 1,
+                "description": "只有部分正確的關鍵步驟，或過程有重大錯誤"
+              },
+              {
+                "score": 0,
+                "description": "空白、只寫答案沒有過程，或方法錯誤"
+              }
+            ]
+          }
+        ],
+        "reference": "AM ＝ 24、CN ＝ 15。OA ＝ √(OM² ＋ AM²) ＝ √(7² ＋ 24²) ＝ 25 ＝ OC。\nON ＝ √(OC² － CN²) ＝ √(25² － 15²) ＝ 20，MN ＝ ON － OM ＝ 20 － 7 ＝ 13",
+        "graderNotes": "接受其他正確的做法。常見錯誤：MN 寫成 ON ＋ OM（兩弦在圓心同側要相減）。"
+      }
+    },
+    "c-ex9-q": {
+      "items": [
+        0
+      ],
+      "rubric": {
+        "criteria": [
+          {
+            "id": "kai",
+            "label": "會考評分（0–3 分）",
+            "points": 3,
+            "levels": [
+              {
+                "score": 3,
+                "description": "過程完整、答案正確：設半徑 x，OD＝8－x、AD＝4，在直角△OAD 用畢氏定理列方程式"
+              },
+              {
+                "score": 2,
+                "description": "方法正確、過程大致完整，但有一處計算小錯，或沒有化到最簡"
+              },
+              {
+                "score": 1,
+                "description": "只有部分正確的關鍵步驟，或過程有重大錯誤"
+              },
+              {
+                "score": 0,
+                "description": "空白、只寫答案沒有過程，或方法錯誤"
+              }
+            ]
+          }
+        ],
+        "reference": "設隧道半徑 OA ＝ OC ＝ x 公尺，OD ＝ CD － OC ＝ 8 － x，AD ＝ ½AB ＝ 4。\n在△OAD 中，x² ＝ (8 － x)² ＋ 4²，x² ＝ 64 － 16x ＋ x² ＋ 16，16x ＝ 80，x ＝ 5（公尺）",
+        "graderNotes": "接受其他正確的做法。常見錯誤：OD 寫成 8；(8 － x)² 展開錯誤。"
+      }
+    },
+    "c-ex9-practice-q": {
+      "items": [
+        0
+      ],
+      "rubric": {
+        "criteria": [
+          {
+            "id": "kai",
+            "label": "會考評分（0–3 分）",
+            "points": 3,
+            "levels": [
+              {
+                "score": 3,
+                "description": "過程完整、答案正確：設半徑 x，OD＝x－40、AD＝80，在直角△OAD 用畢氏定理列方程式"
+              },
+              {
+                "score": 2,
+                "description": "方法正確、過程大致完整，但有一處計算小錯，或沒有化到最簡"
+              },
+              {
+                "score": 1,
+                "description": "只有部分正確的關鍵步驟，或過程有重大錯誤"
+              },
+              {
+                "score": 0,
+                "description": "空白、只寫答案沒有過程，或方法錯誤"
+              }
+            ]
+          }
+        ],
+        "reference": "設半徑 x 公分，OA ＝ OC ＝ x，OD ＝ x － 40，AD ＝ ½AB ＝ 80。\nx² ＝ (x － 40)² ＋ 80²，x² ＝ x² － 80x ＋ 1600 ＋ 6400，80x ＝ 8000，x ＝ 100（公分）",
+        "graderNotes": "接受其他正確的做法。常見錯誤：OD 寫成 40 － x（不影響平方，但要說明）；AD 用了 160。"
+      }
+    }
+  }
+}

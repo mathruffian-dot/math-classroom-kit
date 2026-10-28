@@ -1,0 +1,427 @@
+{
+  "lessonId": "g8-2-3a",
+  "title": "2-3 畢氏定理（1）課後檢核",
+  "source": "依課本 2-3 p.92–96（斜邊與股、畢氏定理、例 1、例 2）自編換數字題",
+  "slots": [
+    {
+      "id": "q1",
+      "topic": "辨認斜邊（直角的對邊）",
+      "variants": [
+        {
+          "stem": "如圖，$\\triangle ABC$ 中 $\\angle C=90^\\circ$，哪一邊是斜邊？",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"95.3,186.0 284.7,186.0 95.3,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"104.3,186.0 104.3,177.0 95.3,177.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"84.7\" y=\"202.6\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"297.5\" y=\"199.7\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"87.6\" y=\"37.1\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text></svg>",
+          "options": [
+            "$\\overline{AB}$",
+            "$\\overline{BC}$",
+            "$\\overline{AC}$",
+            "最長的邊要量過才知道"
+          ],
+          "answer": 0,
+          "explanation": "直角所對的邊是斜邊：$\\angle C$ 的對邊是 $\\overline{AB}$，$\\overline{BC}$、$\\overline{AC}$ 是兩股。"
+        },
+        {
+          "stem": "如圖，$\\triangle ABC$ 中 $\\angle A=90^\\circ$，哪一邊是斜邊？",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"284.7,44.0 95.3,44.0 284.7,186.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"275.7,44.0 275.7,53.0 284.7,53.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"295.3\" y=\"39.4\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"82.5\" y=\"42.3\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"292.4\" y=\"204.9\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text></svg>",
+          "options": [
+            "$\\overline{BC}$",
+            "$\\overline{AB}$",
+            "$\\overline{AC}$",
+            "最長的邊要量過才知道"
+          ],
+          "answer": 0,
+          "explanation": "直角所對的邊是斜邊：$\\angle A$ 的對邊是 $\\overline{BC}$，$\\overline{AB}$、$\\overline{AC}$ 是兩股。"
+        },
+        {
+          "stem": "如圖，$\\triangle ABC$ 中 $\\angle B=90^\\circ$，哪一邊是斜邊？",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"284.7,186.0 95.3,186.0 284.7,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"275.7,186.0 275.7,177.0 284.7,177.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"295.3\" y=\"202.6\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"82.5\" y=\"199.7\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"292.4\" y=\"37.1\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text></svg>",
+          "options": [
+            "$\\overline{AC}$",
+            "$\\overline{AB}$",
+            "$\\overline{BC}$",
+            "最長的邊要量過才知道"
+          ],
+          "answer": 0,
+          "explanation": "直角所對的邊是斜邊：$\\angle B$ 的對邊是 $\\overline{AC}$，$\\overline{AB}$、$\\overline{BC}$ 是兩股。"
+        }
+      ]
+    },
+    {
+      "id": "q2",
+      "topic": "寫出畢氏定理的式子",
+      "variants": [
+        {
+          "stem": "如圖，$\\triangle ABC$ 中 $\\angle C=90^\\circ$，下列哪一個式子正確？",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"284.7,186.0 95.3,186.0 284.7,44.0\" fill=\"#cfd8ee\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"275.7,186.0 275.7,177.0 284.7,177.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"295.3\" y=\"202.6\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"82.5\" y=\"199.7\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"292.4\" y=\"37.1\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text></svg>",
+          "options": [
+            "$\\overline{AC}^2+\\overline{BC}^2=\\overline{AB}^2$",
+            "$\\overline{AC}^2+\\overline{AB}^2=\\overline{BC}^2$",
+            "$\\overline{BC}^2+\\overline{AB}^2=\\overline{AC}^2$",
+            "$\\overline{AC}+\\overline{BC}=\\overline{AB}$"
+          ],
+          "answer": 0,
+          "explanation": "$\\angle C$ 的對邊 $\\overline{AB}$ 是斜邊：兩股平方和＝斜邊平方，$\\overline{AC}^2+\\overline{BC}^2=\\overline{AB}^2$。兩股相加不等於斜邊。"
+        },
+        {
+          "stem": "如圖，$\\triangle ABC$ 中 $\\angle A=90^\\circ$，下列哪一個式子正確？",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"95.3,44.0 284.7,44.0 95.3,186.0\" fill=\"#cfd8ee\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"104.3,44.0 104.3,53.0 95.3,53.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"84.7\" y=\"39.4\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"297.5\" y=\"42.3\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"87.6\" y=\"204.9\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text></svg>",
+          "options": [
+            "$\\overline{AB}^2+\\overline{AC}^2=\\overline{BC}^2$",
+            "$\\overline{AB}^2+\\overline{BC}^2=\\overline{AC}^2$",
+            "$\\overline{AC}^2+\\overline{BC}^2=\\overline{AB}^2$",
+            "$\\overline{AB}+\\overline{AC}=\\overline{BC}$"
+          ],
+          "answer": 0,
+          "explanation": "$\\angle A$ 的對邊 $\\overline{BC}$ 是斜邊：兩股平方和＝斜邊平方，$\\overline{AB}^2+\\overline{AC}^2=\\overline{BC}^2$。兩股相加不等於斜邊。"
+        },
+        {
+          "stem": "如圖，$\\triangle ABC$ 中 $\\angle B=90^\\circ$，下列哪一個式子正確？",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"284.7,44.0 95.3,44.0 284.7,186.0\" fill=\"#cfd8ee\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"275.7,44.0 275.7,53.0 284.7,53.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"295.3\" y=\"39.4\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"82.5\" y=\"42.3\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"292.4\" y=\"204.9\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text></svg>",
+          "options": [
+            "$\\overline{AB}^2+\\overline{BC}^2=\\overline{AC}^2$",
+            "$\\overline{AB}^2+\\overline{AC}^2=\\overline{BC}^2$",
+            "$\\overline{BC}^2+\\overline{AC}^2=\\overline{AB}^2$",
+            "$\\overline{AB}+\\overline{BC}=\\overline{AC}$"
+          ],
+          "answer": 0,
+          "explanation": "$\\angle B$ 的對邊 $\\overline{AC}$ 是斜邊：兩股平方和＝斜邊平方，$\\overline{AB}^2+\\overline{BC}^2=\\overline{AC}^2$。兩股相加不等於斜邊。"
+        }
+      ]
+    },
+    {
+      "id": "q3",
+      "topic": "三邊上正方形的面積",
+      "variants": [
+        {
+          "stem": "如圖，直角三角形 $ABC$ 中 $\\angle C=90^\\circ$，以三邊為邊長向外作正方形甲、乙、丙。甲、乙的面積分別是 $9$、$16$，丙的面積是多少？",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 420 280\" width=\"420\" height=\"280\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"175.1,166.2 175.1,113.8 122.7,113.8 122.7,166.2\" fill=\"#cfd8ee\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polygon points=\"175.1,166.2 244.9,166.2 244.9,236.0 175.1,236.0\" fill=\"#fbf3c4\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polygon points=\"175.1,113.8 244.9,166.2 297.3,96.4 227.5,44.0\" fill=\"#e2d3ec\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polygon points=\"175.1,166.2 244.9,166.2 175.1,113.8\" fill=\"#ffffff\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"183.1,166.2 183.1,158.2 175.1,158.2\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"164.5\" y=\"182.8\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"257.2\" y=\"180.8\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"166.5\" y=\"107.5\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"148.9\" y=\"145.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"16\" text-anchor=\"middle\" fill=\"#1b1b1b\">甲 9</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"210.0\" y=\"206.1\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"16\" text-anchor=\"middle\" fill=\"#1b1b1b\">乙 16</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"236.2\" y=\"110.1\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"16\" text-anchor=\"middle\" fill=\"#1b1b1b\">丙 ?</text></svg>",
+          "options": [
+            "$25$",
+            "$7$",
+            "$144$",
+            "$5$"
+          ],
+          "answer": 0,
+          "explanation": "兩股上的正方形面積和＝斜邊上的正方形面積：丙 $=9+16=25$。"
+        },
+        {
+          "stem": "如圖，直角三角形 $ABC$ 中 $\\angle C=90^\\circ$，以三邊為邊長向外作正方形甲、乙、丙。甲、丙的面積分別是 $25$、$74$，乙的面積是多少？",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 420 280\" width=\"420\" height=\"280\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"174.6,165.3 174.6,114.7 124.1,114.7 124.1,165.3\" fill=\"#cfd8ee\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polygon points=\"174.6,165.3 245.4,165.3 245.4,236.0 174.6,236.0\" fill=\"#fbf3c4\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polygon points=\"174.6,114.7 245.4,165.3 295.9,94.5 225.2,44.0\" fill=\"#e2d3ec\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polygon points=\"174.6,165.3 245.4,165.3 174.6,114.7\" fill=\"#ffffff\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"182.6,165.3 182.6,157.3 174.6,157.3\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"164.0\" y=\"181.9\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"257.7\" y=\"179.9\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"166.0\" y=\"108.4\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"149.4\" y=\"145.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"16\" text-anchor=\"middle\" fill=\"#1b1b1b\">甲 25</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"210.0\" y=\"205.6\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"16\" text-anchor=\"middle\" fill=\"#1b1b1b\">乙 ?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"235.3\" y=\"109.6\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"16\" text-anchor=\"middle\" fill=\"#1b1b1b\">丙 74</text></svg>",
+          "options": [
+            "$49$",
+            "$99$",
+            "$7$",
+            "$24$"
+          ],
+          "answer": 0,
+          "explanation": "甲＋乙＝丙，所以乙 $=74-25=49$。"
+        },
+        {
+          "stem": "如圖，直角三角形 $ABC$ 中 $\\angle C=90^\\circ$，以三邊為邊長向外作正方形甲、乙、丙。甲、丙的面積分別是 $25$、$169$，乙的面積是多少？",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 420 280\" width=\"420\" height=\"280\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"195.6,156.6 195.6,123.4 162.5,123.4 162.5,156.6\" fill=\"#cfd8ee\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polygon points=\"195.6,156.6 275.0,156.6 275.0,236.0 195.6,236.0\" fill=\"#fbf3c4\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polygon points=\"195.6,123.4 275.0,156.6 308.2,77.1 228.7,44.0\" fill=\"#e2d3ec\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polygon points=\"195.6,156.6 275.0,156.6 195.6,123.4\" fill=\"#ffffff\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"203.6,156.6 203.6,148.6 195.6,148.6\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"185.0\" y=\"173.2\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"287.3\" y=\"171.2\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"187.0\" y=\"117.2\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"155.7\" y=\"145.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"16\" text-anchor=\"end\" fill=\"#1b1b1b\">甲 25</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"235.3\" y=\"201.3\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"16\" text-anchor=\"middle\" fill=\"#1b1b1b\">乙 ?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"251.9\" y=\"105.3\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"16\" text-anchor=\"middle\" fill=\"#1b1b1b\">丙 169</text></svg>",
+          "options": [
+            "$144$",
+            "$194$",
+            "$12$",
+            "$119$"
+          ],
+          "answer": 0,
+          "explanation": "甲＋乙＝丙，所以乙 $=169-25=144$。"
+        }
+      ]
+    },
+    {
+      "id": "q4",
+      "topic": "已知兩股求斜邊（整數）",
+      "variants": [
+        {
+          "stem": "如圖，直角三角形的兩股長是 $6$、$8$，斜邊長是多少？",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"95.3,186.0 284.7,186.0 95.3,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"104.3,186.0 104.3,177.0 95.3,177.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"190.0\" y=\"205.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">8</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"86.3\" y=\"120.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"end\" fill=\"#1b1b1b\" font-weight=\"600\">6</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"198.4\" y=\"108.8\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"84.7\" y=\"202.6\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"297.5\" y=\"199.7\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"87.6\" y=\"37.1\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text></svg>",
+          "options": [
+            "$10$",
+            "$14$",
+            "$2\\sqrt{7}$",
+            "$100$"
+          ],
+          "answer": 0,
+          "explanation": "$c^2=6^2+8^2=36+64=100$，$c>0$，$c=\\sqrt{100}=10$。"
+        },
+        {
+          "stem": "如圖，直角三角形的兩股長是 $9$、$12$，斜邊長是多少？",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"95.3,186.0 284.7,186.0 95.3,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"104.3,186.0 104.3,177.0 95.3,177.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"190.0\" y=\"205.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">12</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"86.3\" y=\"120.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"end\" fill=\"#1b1b1b\" font-weight=\"600\">9</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"198.4\" y=\"108.8\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"84.7\" y=\"202.6\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"297.5\" y=\"199.7\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"87.6\" y=\"37.1\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text></svg>",
+          "options": [
+            "$15$",
+            "$21$",
+            "$3\\sqrt{7}$",
+            "$225$"
+          ],
+          "answer": 0,
+          "explanation": "$c^2=9^2+12^2=81+144=225$，$c>0$，$c=\\sqrt{225}=15$。"
+        },
+        {
+          "stem": "如圖，直角三角形的兩股長是 $8$、$15$，斜邊長是多少？",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"56.9,186.0 323.1,186.0 56.9,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"65.9,186.0 65.9,177.0 56.9,177.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"190.0\" y=\"205.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">15</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"47.9\" y=\"120.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"end\" fill=\"#1b1b1b\" font-weight=\"600\">8</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"196.6\" y=\"107.6\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"46.3\" y=\"202.6\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"336.0\" y=\"199.7\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"49.2\" y=\"37.1\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text></svg>",
+          "options": [
+            "$17$",
+            "$23$",
+            "$\\sqrt{161}$",
+            "$289$"
+          ],
+          "answer": 0,
+          "explanation": "$c^2=8^2+15^2=64+225=289$，$c>0$，$c=\\sqrt{289}=17$。"
+        }
+      ]
+    },
+    {
+      "id": "q5",
+      "topic": "已知兩股求斜邊（最簡根式）",
+      "variants": [
+        {
+          "stem": "如圖，直角三角形的兩股長是 $2$、$4$，斜邊長是多少？（化成最簡根式）",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"332.0,186.0 48.0,186.0 332.0,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"323.0,186.0 323.0,177.0 332.0,177.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"190.0\" y=\"205.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">4</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"341.0\" y=\"120.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"start\" fill=\"#1b1b1b\" font-weight=\"600\">2</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"183.7\" y=\"107.5\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"342.6\" y=\"202.6\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"35.1\" y=\"199.7\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"339.7\" y=\"37.1\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text></svg>",
+          "options": [
+            "$2\\sqrt{5}$",
+            "$\\sqrt{20}$",
+            "$6$",
+            "$2\\sqrt{3}$"
+          ],
+          "answer": 0,
+          "explanation": "$c^2=2^2+4^2=20$，$c=\\sqrt{20}=2\\sqrt{5}$；$\\sqrt{20}$ 還要化成最簡根式。"
+        },
+        {
+          "stem": "如圖，直角三角形的兩股長是 $3$、$6$，斜邊長是多少？（化成最簡根式）",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"332.0,186.0 48.0,186.0 332.0,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"323.0,186.0 323.0,177.0 332.0,177.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"190.0\" y=\"205.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">6</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"341.0\" y=\"120.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"start\" fill=\"#1b1b1b\" font-weight=\"600\">3</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"183.7\" y=\"107.5\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"342.6\" y=\"202.6\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"35.1\" y=\"199.7\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"339.7\" y=\"37.1\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text></svg>",
+          "options": [
+            "$3\\sqrt{5}$",
+            "$\\sqrt{45}$",
+            "$9$",
+            "$3\\sqrt{3}$"
+          ],
+          "answer": 0,
+          "explanation": "$c^2=3^2+6^2=45$，$c=\\sqrt{45}=3\\sqrt{5}$；$\\sqrt{45}$ 還要化成最簡根式。"
+        },
+        {
+          "stem": "如圖，直角三角形的兩股長是 $4$、$4$，斜邊長是多少？（化成最簡根式）",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"261.0,186.0 119.0,186.0 261.0,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"252.0,186.0 252.0,177.0 261.0,177.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"190.0\" y=\"205.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">4</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"270.0\" y=\"120.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"start\" fill=\"#1b1b1b\" font-weight=\"600\">4</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"180.1\" y=\"110.1\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"271.6\" y=\"202.6\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"106.1\" y=\"199.7\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"268.7\" y=\"37.1\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text></svg>",
+          "options": [
+            "$4\\sqrt{2}$",
+            "$\\sqrt{32}$",
+            "$8$",
+            "$16$"
+          ],
+          "answer": 0,
+          "explanation": "$c^2=4^2+4^2=32$，$c=\\sqrt{32}=4\\sqrt{2}$；$\\sqrt{32}$ 還要化成最簡根式。"
+        }
+      ]
+    },
+    {
+      "id": "q6",
+      "topic": "已知斜邊與一股求另一股（整數）",
+      "variants": [
+        {
+          "stem": "如圖，直角三角形的斜邊長是 $13$、一股長是 $5$，另一股長是多少？",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"44.0,175.8 336.0,175.8 44.0,54.2\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"53.0,175.8 53.0,166.8 44.0,166.8\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"190.0\" y=\"194.8\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"35.0\" y=\"120.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"end\" fill=\"#1b1b1b\" font-weight=\"600\">5</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"195.4\" y=\"107.1\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">13</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"33.4\" y=\"192.4\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"348.9\" y=\"189.6\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"36.3\" y=\"47.3\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text></svg>",
+          "options": [
+            "$12$",
+            "$\\sqrt{194}$",
+            "$8$",
+            "$144$"
+          ],
+          "answer": 0,
+          "explanation": "另一股$^2=13^2-5^2=169-25=144$，另一股 $=12$。斜邊最長，求股要用減的。"
+        },
+        {
+          "stem": "如圖，直角三角形的斜邊長是 $17$、一股長是 $8$，另一股長是多少？",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"56.9,186.0 323.1,186.0 56.9,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"65.9,186.0 65.9,177.0 56.9,177.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"190.0\" y=\"205.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"47.9\" y=\"120.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"end\" fill=\"#1b1b1b\" font-weight=\"600\">8</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"196.6\" y=\"107.6\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">17</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"46.3\" y=\"202.6\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"336.0\" y=\"199.7\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"49.2\" y=\"37.1\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text></svg>",
+          "options": [
+            "$15$",
+            "$\\sqrt{353}$",
+            "$9$",
+            "$225$"
+          ],
+          "answer": 0,
+          "explanation": "另一股$^2=17^2-8^2=289-64=225$，另一股 $=15$。斜邊最長，求股要用減的。"
+        },
+        {
+          "stem": "如圖，直角三角形的斜邊長是 $25$、一股長是 $7$，另一股長是多少？",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"44.0,157.6 336.0,157.6 44.0,72.4\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"53.0,157.6 53.0,148.6 44.0,148.6\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"190.0\" y=\"176.6\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"35.0\" y=\"120.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"end\" fill=\"#1b1b1b\" font-weight=\"600\">7</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"193.9\" y=\"106.6\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">25</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"33.4\" y=\"174.2\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"348.9\" y=\"171.3\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"36.3\" y=\"65.6\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text></svg>",
+          "options": [
+            "$24$",
+            "$\\sqrt{674}$",
+            "$18$",
+            "$576$"
+          ],
+          "answer": 0,
+          "explanation": "另一股$^2=25^2-7^2=625-49=576$，另一股 $=24$。斜邊最長，求股要用減的。"
+        }
+      ]
+    },
+    {
+      "id": "q7",
+      "topic": "已知斜邊與一股求另一股（最簡根式）",
+      "variants": [
+        {
+          "stem": "如圖，直角三角形的斜邊長是 $6$、一股長是 $4$，另一股長是多少？（化成最簡根式）",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"126.5,44.0 253.5,44.0 126.5,186.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"135.5,44.0 135.5,53.0 126.5,53.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"190.0\" y=\"35.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">4</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"117.5\" y=\"120.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"end\" fill=\"#1b1b1b\" font-weight=\"600\">?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"200.4\" y=\"129.3\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">6</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"115.9\" y=\"39.4\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"266.4\" y=\"42.3\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"118.8\" y=\"204.9\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text></svg>",
+          "options": [
+            "$2\\sqrt{5}$",
+            "$2\\sqrt{13}$",
+            "$2$",
+            "$\\sqrt{20}$"
+          ],
+          "answer": 0,
+          "explanation": "另一股$^2=6^2-4^2=20$，另一股 $=\\sqrt{20}=2\\sqrt{5}$。"
+        },
+        {
+          "stem": "如圖，直角三角形的斜邊長是 $9$、一股長是 $3$，另一股長是多少？（化成最簡根式）",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"164.9,44.0 215.1,44.0 164.9,186.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"173.9,44.0 173.9,53.0 164.9,53.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"190.0\" y=\"35.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">3</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"155.9\" y=\"120.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"end\" fill=\"#1b1b1b\" font-weight=\"600\">?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"198.5\" y=\"123.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"start\" fill=\"#1b1b1b\" font-weight=\"600\">9</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"154.3\" y=\"39.4\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"228.0\" y=\"42.3\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"157.2\" y=\"204.9\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text></svg>",
+          "options": [
+            "$6\\sqrt{2}$",
+            "$3\\sqrt{10}$",
+            "$6$",
+            "$\\sqrt{72}$"
+          ],
+          "answer": 0,
+          "explanation": "另一股$^2=9^2-3^2=72$，另一股 $=\\sqrt{72}=6\\sqrt{2}$。"
+        },
+        {
+          "stem": "如圖，直角三角形的斜邊長是 $7$、一股長是 $5$，另一股長是多少？（化成最簡根式）",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"117.5,44.0 262.5,44.0 117.5,186.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"126.5,44.0 126.5,53.0 117.5,53.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"190.0\" y=\"35.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">5</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"108.5\" y=\"120.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"end\" fill=\"#1b1b1b\" font-weight=\"600\">?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"199.8\" y=\"130.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">7</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"106.9\" y=\"39.4\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"275.3\" y=\"42.3\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"109.8\" y=\"204.9\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text></svg>",
+          "options": [
+            "$2\\sqrt{6}$",
+            "$\\sqrt{74}$",
+            "$2$",
+            "$\\sqrt{24}$"
+          ],
+          "answer": 0,
+          "explanation": "另一股$^2=7^2-5^2=24$，另一股 $=\\sqrt{24}=2\\sqrt{6}$。"
+        }
+      ]
+    },
+    {
+      "id": "q8",
+      "topic": "直角不在下面：先找出斜邊",
+      "variants": [
+        {
+          "stem": "如圖，$\\triangle ABC$ 中 $\\angle A=90^\\circ$，$\\overline{BC}=5$、$\\overline{AB}=3$，則 $\\overline{AC}=$？",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 400 230\" width=\"400\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"52.1,186.0 347.9,186.0 158.6,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"153.2,51.2 160.4,56.6 165.8,49.4\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"200.0\" y=\"205.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">5</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"98.1\" y=\"114.6\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"end\" fill=\"#1b1b1b\" font-weight=\"600\">3</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"261.6\" y=\"108.8\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"38.7\" y=\"198.7\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"361.3\" y=\"198.7\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"158.6\" y=\"35.0\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text></svg>",
+          "options": [
+            "$4$",
+            "$\\sqrt{34}$",
+            "$2$",
+            "$16$"
+          ],
+          "answer": 0,
+          "explanation": "$\\angle A$ 的對邊 $\\overline{BC}=5$ 才是斜邊：$\\overline{AC}^2=5^2-3^2=16$，$\\overline{AC}=4$。"
+        },
+        {
+          "stem": "如圖，$\\triangle ABC$ 中 $\\angle A=90^\\circ$，$\\overline{BC}=10$、$\\overline{AB}=6$，則 $\\overline{AC}=$？",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 400 230\" width=\"400\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"52.1,186.0 347.9,186.0 158.6,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"153.2,51.2 160.4,56.6 165.8,49.4\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"200.0\" y=\"205.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">10</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"98.1\" y=\"114.6\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"end\" fill=\"#1b1b1b\" font-weight=\"600\">6</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"261.6\" y=\"108.8\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"38.7\" y=\"198.7\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"361.3\" y=\"198.7\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"158.6\" y=\"35.0\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text></svg>",
+          "options": [
+            "$8$",
+            "$2\\sqrt{34}$",
+            "$4$",
+            "$64$"
+          ],
+          "answer": 0,
+          "explanation": "$\\angle A$ 的對邊 $\\overline{BC}=10$ 才是斜邊：$\\overline{AC}^2=10^2-6^2=64$，$\\overline{AC}=8$。"
+        },
+        {
+          "stem": "如圖，$\\triangle ABC$ 中 $\\angle A=90^\\circ$，$\\overline{BC}=4$、$\\overline{AB}=2$，則 $\\overline{AC}=$？（化成最簡根式）",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 400 230\" width=\"400\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"44.0,182.5 356.0,182.5 122.0,47.5\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"117.5,55.2 125.3,59.7 129.8,52.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"200.0\" y=\"201.5\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">4</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"75.2\" y=\"115.5\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"end\" fill=\"#1b1b1b\" font-weight=\"600\">2</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"246.0\" y=\"107.9\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"30.6\" y=\"195.3\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"369.4\" y=\"195.3\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"122.0\" y=\"38.5\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text></svg>",
+          "options": [
+            "$2\\sqrt{3}$",
+            "$2\\sqrt{5}$",
+            "$2$",
+            "$\\sqrt{12}$"
+          ],
+          "answer": 0,
+          "explanation": "$\\angle A$ 的對邊 $\\overline{BC}=4$ 才是斜邊：$\\overline{AC}^2=4^2-2^2=12$，$\\overline{AC}=2\\sqrt{3}$。"
+        }
+      ]
+    },
+    {
+      "id": "q9",
+      "topic": "梯子靠牆的高度",
+      "variants": [
+        {
+          "stem": "如圖，長 $10$ 公尺的梯子斜靠在垂直的牆上，梯子底端離牆腳 $6$ 公尺，梯子頂端離地面幾公尺？",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 260\" width=\"380\" height=\"260\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"239.8,216.0 255.7,216.0 255.7,44.0 239.8,44.0\" fill=\"#e8d3c6\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><line x1=\"88.4\" y1=\"216.0\" x2=\"267.7\" y2=\"216.0\" stroke=\"#7a6a55\" stroke-width=\"1.2\"/><line x1=\"88.4\" y1=\"217.0\" x2=\"82.4\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"102.4\" y1=\"217.0\" x2=\"96.4\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"116.4\" y1=\"217.0\" x2=\"110.4\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"130.4\" y1=\"217.0\" x2=\"124.4\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"144.4\" y1=\"217.0\" x2=\"138.4\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"158.4\" y1=\"217.0\" x2=\"152.4\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"172.4\" y1=\"217.0\" x2=\"166.4\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"186.4\" y1=\"217.0\" x2=\"180.4\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"200.4\" y1=\"217.0\" x2=\"194.4\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"214.4\" y1=\"217.0\" x2=\"208.4\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"228.4\" y1=\"217.0\" x2=\"222.4\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"242.4\" y1=\"217.0\" x2=\"236.4\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"256.4\" y1=\"217.0\" x2=\"250.4\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"120.3\" y1=\"216.0\" x2=\"239.8\" y2=\"56.7\" stroke=\"#9a7b3c\" stroke-width=\"3.2\"/><polyline points=\"231.8,216.0 231.8,208.0 239.8,208.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"172.8\" y=\"136.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"end\" fill=\"#1b1b1b\" font-weight=\"600\">10 m</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"180.0\" y=\"235.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">6 m</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"263.7\" y=\"141.4\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"start\" fill=\"#1b1b1b\">?</text></svg>",
+          "options": [
+            "$8$",
+            "$4$",
+            "$2\\sqrt{34}$",
+            "$64$"
+          ],
+          "answer": 0,
+          "explanation": "梯子是斜邊：高$^2=10^2-6^2=100-36=64$，高 $=8$ 公尺。"
+        },
+        {
+          "stem": "如圖，長 $13$ 公尺的梯子斜靠在垂直的牆上，梯子底端離牆腳 $5$ 公尺，梯子頂端離地面幾公尺？",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 260\" width=\"380\" height=\"260\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"214.6,216.0 228.4,216.0 228.4,44.0 214.6,44.0\" fill=\"#e8d3c6\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><line x1=\"118.9\" y1=\"216.0\" x2=\"240.4\" y2=\"216.0\" stroke=\"#7a6a55\" stroke-width=\"1.2\"/><line x1=\"118.9\" y1=\"217.0\" x2=\"112.9\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"132.9\" y1=\"217.0\" x2=\"126.9\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"146.9\" y1=\"217.0\" x2=\"140.9\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"160.9\" y1=\"217.0\" x2=\"154.9\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"174.9\" y1=\"217.0\" x2=\"168.9\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"188.9\" y1=\"217.0\" x2=\"182.9\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"202.9\" y1=\"217.0\" x2=\"196.9\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"216.9\" y1=\"217.0\" x2=\"210.9\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"230.9\" y1=\"217.0\" x2=\"224.9\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"148.2\" y1=\"216.0\" x2=\"214.6\" y2=\"56.7\" stroke=\"#9a7b3c\" stroke-width=\"3.2\"/><polyline points=\"206.6,216.0 206.6,208.0 214.6,208.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"173.1\" y=\"137.9\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"end\" fill=\"#1b1b1b\" font-weight=\"600\">13 m</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"181.4\" y=\"235.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">5 m</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"235.3\" y=\"141.4\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"start\" fill=\"#1b1b1b\">?</text></svg>",
+          "options": [
+            "$12$",
+            "$8$",
+            "$\\sqrt{194}$",
+            "$144$"
+          ],
+          "answer": 0,
+          "explanation": "梯子是斜邊：高$^2=13^2-5^2=169-25=144$，高 $=12$ 公尺。"
+        },
+        {
+          "stem": "如圖，長 $17$ 公尺的梯子斜靠在垂直的牆上，梯子底端離牆腳 $8$ 公尺，梯子頂端離地面幾公尺？",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 260\" width=\"380\" height=\"260\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"223.4,216.0 237.9,216.0 237.9,44.0 223.4,44.0\" fill=\"#e8d3c6\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><line x1=\"108.5\" y1=\"216.0\" x2=\"249.9\" y2=\"216.0\" stroke=\"#7a6a55\" stroke-width=\"1.2\"/><line x1=\"108.5\" y1=\"217.0\" x2=\"102.5\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"122.5\" y1=\"217.0\" x2=\"116.5\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"136.5\" y1=\"217.0\" x2=\"130.5\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"150.5\" y1=\"217.0\" x2=\"144.5\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"164.5\" y1=\"217.0\" x2=\"158.5\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"178.5\" y1=\"217.0\" x2=\"172.5\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"192.5\" y1=\"217.0\" x2=\"186.5\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"206.5\" y1=\"217.0\" x2=\"200.5\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"220.5\" y1=\"217.0\" x2=\"214.5\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"234.5\" y1=\"217.0\" x2=\"228.5\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"248.5\" y1=\"217.0\" x2=\"242.5\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"138.5\" y1=\"216.0\" x2=\"223.4\" y2=\"56.7\" stroke=\"#9a7b3c\" stroke-width=\"3.2\"/><polyline points=\"215.4,216.0 215.4,208.0 223.4,208.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"173.0\" y=\"137.1\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"end\" fill=\"#1b1b1b\" font-weight=\"600\">17 m</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"181.0\" y=\"235.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">8 m</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"245.1\" y=\"141.4\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"start\" fill=\"#1b1b1b\">?</text></svg>",
+          "options": [
+            "$15$",
+            "$9$",
+            "$\\sqrt{353}$",
+            "$225$"
+          ],
+          "answer": 0,
+          "explanation": "梯子是斜邊：高$^2=17^2-8^2=289-64=225$，高 $=15$ 公尺。"
+        }
+      ]
+    },
+    {
+      "id": "q10",
+      "topic": "邊長是根式的直角三角形",
+      "variants": [
+        {
+          "stem": "如圖，直角三角形的一股長是 $\\sqrt{3}$、斜邊長是 $\\sqrt{7}$，另一股長是多少？",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"272.0,186.0 108.0,186.0 272.0,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"263.0,186.0 263.0,177.0 272.0,177.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"190.0\" y=\"205.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"281.0\" y=\"120.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"start\" fill=\"#1b1b1b\" font-weight=\"600\">√3</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"180.8\" y=\"109.4\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">√7</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"282.6\" y=\"202.6\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"95.2\" y=\"199.7\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"279.7\" y=\"37.1\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text></svg>",
+          "options": [
+            "$2$",
+            "$\\sqrt{10}$",
+            "$4$",
+            "$10$"
+          ],
+          "answer": 0,
+          "explanation": "另一股$^2=(\\sqrt{7})^2-(\\sqrt{3})^2=7-3=4$，另一股 $=2$。$(\\sqrt{a})^2=a$。"
+        },
+        {
+          "stem": "如圖，直角三角形的兩股長是 $\\sqrt{5}$、$\\sqrt{11}$，斜邊長是多少？",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"84.7,186.0 295.3,186.0 84.7,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"93.7,186.0 93.7,177.0 84.7,177.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"190.0\" y=\"205.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">√11</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"75.7\" y=\"120.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"end\" fill=\"#1b1b1b\" font-weight=\"600\">√5</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"197.8\" y=\"108.4\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"74.1\" y=\"202.6\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"308.2\" y=\"199.7\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"77.0\" y=\"37.1\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text></svg>",
+          "options": [
+            "$4$",
+            "$16$",
+            "$\\sqrt{6}$",
+            "$\\sqrt{5}+\\sqrt{11}$"
+          ],
+          "answer": 0,
+          "explanation": "$c^2=(\\sqrt{5})^2+(\\sqrt{11})^2=5+11=16$，$c=4$。根號不能直接相加。"
+        },
+        {
+          "stem": "如圖，直角三角形的兩股長是 $2$、$\\sqrt{5}$，斜邊長是多少？",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"110.6,186.0 269.4,186.0 110.6,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"119.6,186.0 119.6,177.0 110.6,177.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"190.0\" y=\"205.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">√5</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"101.6\" y=\"120.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"end\" fill=\"#1b1b1b\" font-weight=\"600\">2</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"199.3\" y=\"109.6\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"100.0\" y=\"202.6\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"282.2\" y=\"199.7\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"102.9\" y=\"37.1\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text></svg>",
+          "options": [
+            "$3$",
+            "$9$",
+            "$\\sqrt{7}$",
+            "$1$"
+          ],
+          "answer": 0,
+          "explanation": "$c^2=2^2+(\\sqrt{5})^2=4+5=9$，$c=3$。"
+        }
+      ]
+    }
+  ]
+}

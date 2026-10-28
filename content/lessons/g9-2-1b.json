@@ -1,0 +1,3296 @@
+{
+  "schemaVersion": 1,
+  "id": "g9-2-1b",
+  "title": "2-1 點、直線與圓之間的位置關係（2）點、直線與圓、切線",
+  "description": "拖曳點 P、拉動直線，用「到圓心的距離」和半徑 r 比大小，判斷點在圓內／圓上／圓外、直線不相交／相切／割線；理解切線垂直過切點的半徑，再用畢氏定理求切線段長。例題與隨堂附課本截圖，解題過程逐步呈現，隨堂改為可即時批改的 IRS。",
+  "subject": "數學・九年級 2-1",
+  "duration": 45,
+  "objectives": [
+    "能比較 OP 與 r，判斷點與圓的位置關係",
+    "能比較圓心到直線的距離 d 與 r，判斷直線與圓的交點數（不相交、切線、割線）",
+    "能說明圓心與切點的連線垂直切線，並用畢氏定理求切線段長或半徑"
+  ],
+  "slides": [
+    {
+      "id": "b-warmup",
+      "phase": "提取練習",
+      "eyebrow": "01 / 先想起距離與畢氏定理",
+      "title": "點到直線的距離、畢氏定理",
+      "body": "七下學過：點到直線的距離是「垂直線段」的長；八上學過畢氏定理。這節課兩個都會用到，先暖身三題。",
+      "source": "銜接課本 p.85 Are You Ready（七下點到直線距離、八上畢氏定理）",
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 20,
+          "yMin": 0,
+          "yMax": 11,
+          "aspect": "equal"
+        },
+        "shapes": [
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.6,
+                2.4
+              ],
+              [
+                10,
+                2.4
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 2
+          },
+          {
+            "type": "text",
+            "x": 10.2,
+            "y": 2.9,
+            "text": "L",
+            "size": 15,
+            "color": "#1f2a56"
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                3.6,
+                8.6
+              ],
+              [
+                3.6,
+                2.4
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 3
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                3.6,
+                8.6
+              ],
+              [
+                8.2,
+                2.4
+              ]
+            ],
+            "color": "#6b7394",
+            "width": 2,
+            "dash": true
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                3.6,
+                2.75
+              ],
+              [
+                3.95,
+                2.75
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                3.95,
+                2.4
+              ],
+              [
+                3.95,
+                2.75
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4
+          },
+          {
+            "type": "point",
+            "x": 3.6,
+            "y": 8.6,
+            "color": "#1f2a56"
+          },
+          {
+            "type": "text",
+            "x": 3.2,
+            "y": 9.1,
+            "text": "O",
+            "size": 15,
+            "color": "#1f2a56"
+          },
+          {
+            "type": "text",
+            "x": 3.3,
+            "y": 1.8,
+            "text": "P",
+            "size": 15,
+            "color": "#1f2a56"
+          },
+          {
+            "type": "text",
+            "x": 8.4,
+            "y": 1.8,
+            "text": "Q",
+            "size": 15,
+            "color": "#1f2a56"
+          },
+          {
+            "type": "text",
+            "x": 14.8,
+            "y": 7.6,
+            "text": "O 到 L 的距離 ＝ $\\overline{OP}$",
+            "size": 19,
+            "color": "#e5484d"
+          },
+          {
+            "type": "text",
+            "x": 14.8,
+            "y": 5.8,
+            "text": "（垂直線段最短）",
+            "size": 16,
+            "color": "#4b5478"
+          },
+          {
+            "type": "text",
+            "x": 14.8,
+            "y": 3.8,
+            "text": "$a^{2}+b^{2}=c^{2}$",
+            "size": 22,
+            "color": "#5a3fd6"
+          }
+        ],
+        "caption": "垂直線段 OP 比斜線段 OQ 短；直角三角形用畢氏定理"
+      },
+      "activity": {
+        "id": "b-warmup-q",
+        "type": "numeric",
+        "prompt": "暖身：直接寫出答案",
+        "items": [
+          {
+            "prompt": "課本 p.85：AB⊥BC，AB＝9、BC＝12，AC＝？",
+            "answer": "15"
+          },
+          {
+            "prompt": "直角三角形斜邊 13、一股 5，另一股＝？",
+            "answer": "12"
+          },
+          {
+            "prompt": "坐標平面上 P(6, 8) 到原點 O 的距離＝？",
+            "answer": "10"
+          }
+        ],
+        "explanation": "(1) √(9²＋12²)＝15。(2) √(13²－5²)＝12。(3) √(6²＋8²)＝10。"
+      },
+      "notes": "Are You Ready：O 到 L 的距離是 OP（垂直線段），不是 OQ。"
+    },
+    {
+      "id": "b-predict",
+      "phase": "預測",
+      "eyebrow": "02 / 先猜",
+      "title": "直線離圓心多遠時，剛好碰到圓？",
+      "body": "一條直線慢慢靠近圓。當「圓心到直線的距離」剛好等於半徑時，直線和圓有幾個交點？先猜，等一下拖拉驗證。",
+      "source": "對應課本 p.93 的問題（自編題）",
+      "visual": "cards",
+      "activity": {
+        "id": "b-predict-q",
+        "type": "single",
+        "prompt": "圓心到直線的距離＝半徑時，直線和圓有幾個交點？",
+        "options": [
+          "0 個",
+          "1 個",
+          "2 個",
+          "不一定"
+        ],
+        "correct": [
+          1
+        ],
+        "explanation": "距離等於半徑時，垂足 P 剛好在圓上，直線上其他點都在圓外，只有 1 個交點（相切）。"
+      },
+      "notes": "先公布統計、不公布答案，保留疑問到直線的具體操作頁。"
+    },
+    {
+      "id": "b-point",
+      "phase": "具體操作",
+      "eyebrow": "03 / 拖曳點 P",
+      "title": "點在圓內、圓上，還是圓外？",
+      "body": "拖曳點 P，看 OP 和半徑 r 的大小關係。圓把平面分成三部分：內部、圓周、外部。",
+      "source": "對應課本 2-1 p.92（題目數字同課本）",
+      "figures": [
+        {
+          "src": "g9-2-1/point-circle.png",
+          "alt": "課本 p.92 點與圓的位置關係"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": -6.8,
+          "xMax": 16.5,
+          "yMin": -6.6,
+          "yMax": 6.6,
+          "aspect": "equal",
+          "grid": 1
+        },
+        "points": [
+          {
+            "id": "P",
+            "x": 2,
+            "y": 1,
+            "snap": 1,
+            "label": "P",
+            "minX": -6,
+            "maxX": 6,
+            "minY": -6,
+            "maxY": 6
+          }
+        ],
+        "shapes": [
+          {
+            "type": "circle",
+            "x": 0,
+            "y": 0,
+            "r": 5,
+            "color": "#e5484d",
+            "width": 2.4,
+            "fill": "rgba(255,201,60,.22)"
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                5,
+                0
+              ]
+            ],
+            "color": "#6b7394",
+            "width": 1.6,
+            "dash": true
+          },
+          {
+            "type": "text",
+            "x": 2.5,
+            "y": 0.45,
+            "text": "r＝5",
+            "size": 13,
+            "color": "#4b5478"
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                "Px",
+                "Py"
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 3
+          },
+          {
+            "type": "point",
+            "x": 0,
+            "y": 0,
+            "color": "#1f2a56"
+          },
+          {
+            "type": "text",
+            "x": -0.45,
+            "y": -0.45,
+            "text": "O",
+            "size": 15,
+            "color": "#1f2a56"
+          },
+          {
+            "type": "text",
+            "x": 11.4,
+            "y": 5.2,
+            "text": "OP ＝ {round(sqrt(Px^2+Py^2)*100)/100}",
+            "size": 18,
+            "color": "#2f80ed"
+          },
+          {
+            "type": "text",
+            "x": 11.4,
+            "y": 3.9,
+            "text": "半徑 r ＝ 5",
+            "size": 18,
+            "color": "#1f2a56"
+          },
+          {
+            "type": "text",
+            "x": 11.4,
+            "y": 2.2,
+            "text": "OP ＜ r：P 在圓內",
+            "size": 19,
+            "color": "#16824f",
+            "show": "Px^2+Py^2<25"
+          },
+          {
+            "type": "text",
+            "x": 11.4,
+            "y": 2.2,
+            "text": "OP ＝ r：P 在圓上",
+            "size": 19,
+            "color": "#e5484d",
+            "show": "Px^2+Py^2==25"
+          },
+          {
+            "type": "text",
+            "x": 11.4,
+            "y": 2.2,
+            "text": "OP ＞ r：P 在圓外",
+            "size": 19,
+            "color": "#5a3fd6",
+            "show": "Px^2+Py^2>25"
+          }
+        ],
+        "readouts": [
+          {
+            "label": "OP ≈",
+            "expr": "sqrt(Px^2+Py^2)",
+            "digits": 2
+          },
+          {
+            "label": "OP － r ≈",
+            "expr": "sqrt(Px^2+Py^2)-5",
+            "digits": 2
+          }
+        ],
+        "caption": "點和圓的位置，只要比較「點到圓心的距離 OP」和「半徑 r」"
+      },
+      "activity": {
+        "id": "b-point-q",
+        "type": "manipulate",
+        "prompt": "把 P 拖到圓上，但不要放在水平或鉛直的方向上（提示：3、4、5），再按「送出我的操作」。",
+        "check": "Px^2+Py^2==25 && Px*Py!=0",
+        "record": [
+          "Px",
+          "Py"
+        ],
+        "explanation": "例如 P(3, 4)：OP＝√(3²＋4²)＝5＝r，P 在圓上。"
+      },
+      "notes": "具體操作（CRA）。追問：怎麼不用量就知道 P 在圓上？（用畢氏定理算 OP）"
+    },
+    {
+      "id": "b-point-practice",
+      "phase": "隨堂練習",
+      "eyebrow": "04 / 點與圓 隨堂",
+      "title": "換你判斷：五個點在哪裡？",
+      "body": "課本 p.92 隨堂 1、2 合在一起：看課本的圖，選出所有正確的敘述（可複選）。左圖用另一組點示範。",
+      "source": "對應課本 2-1 p.92（題目數字同課本）",
+      "figures": [
+        {
+          "src": "g9-2-1/point-practice.png",
+          "alt": "課本 p.92 隨堂練習"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 20,
+          "yMin": 0,
+          "yMax": 11,
+          "aspect": "equal"
+        },
+        "shapes": [
+          {
+            "type": "circle",
+            "x": 5,
+            "y": 5.6,
+            "r": 3,
+            "color": "#e5484d",
+            "width": 2.4,
+            "fill": "rgba(255,201,60,.22)",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "point",
+            "x": 5,
+            "y": 5.6,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 4.7,
+            "y": 5.1,
+            "text": "O",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                5,
+                5.6
+              ],
+              [
+                6.474,
+                6.632
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 2.4,
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "point",
+            "x": 6.474,
+            "y": 6.632,
+            "color": "#e5484d",
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6.8740000000000006,
+            "y": 6.9319999999999995,
+            "text": "X",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                5,
+                5.6
+              ],
+              [
+                2.402,
+                7.1
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 2.4,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "point",
+            "x": 2.402,
+            "y": 7.1,
+            "color": "#e5484d",
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 2.0020000000000002,
+            "y": 7.449999999999999,
+            "text": "Y",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                5,
+                5.6
+              ],
+              [
+                4.643,
+                1.516
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 2.4,
+            "focus": [
+              3
+            ]
+          },
+          {
+            "type": "point",
+            "x": 4.643,
+            "y": 1.516,
+            "color": "#e5484d",
+            "focus": [
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 5.093,
+            "y": 1.516,
+            "text": "Z",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.8,
+            "y": 9.2,
+            "text": "示範：半徑 r ＝ 3",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.8,
+            "y": 7.499999999999999,
+            "text": "OX ＝ 1.8 ＜ 3 → X 在圓內",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.8,
+            "y": 5.799999999999999,
+            "text": "OY ＝ 3 ＝ r → Y 在圓上",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.8,
+            "y": 4.1,
+            "text": "OZ ＝ 4.1 ＞ 3 → Z 在圓外",
+            "size": 19,
+            "color": "#5a3fd6",
+            "step": 3,
+            "focus": [
+              3
+            ]
+          }
+        ],
+        "steps": [
+          "另一組點（自編）",
+          "比半徑小：圓內",
+          "等於半徑：圓上",
+          "比半徑大：圓外"
+        ]
+      },
+      "activity": {
+        "id": "b-point-practice-q",
+        "type": "multiple",
+        "prompt": "課本 p.92 隨堂：選出所有正確的敘述",
+        "options": [
+          "D、E 在圓外",
+          "B、C 在圓上",
+          "A 在圓外",
+          "BO ＞ r",
+          "DO ＞ r",
+          "AO ＝ r"
+        ],
+        "correct": [
+          0,
+          1,
+          4
+        ],
+        "explanation": "D、E 在圓外（DO、EO＞r），B、C 在圓上（BO＝CO＝r），A 在圓內（AO＜r）。"
+      },
+      "notes": "官方答案：1.(1) D、E (2) B、C (3) A；2. AO＜r、BO＝r、CO＝r、DO＞r、EO＞r。"
+    },
+    {
+      "id": "b-line",
+      "phase": "具體操作",
+      "eyebrow": "05 / 拉動直線",
+      "title": "直線與圓：比較 d 和 r",
+      "body": "拉動圓心到直線的距離 d（P 是垂足），也可以改半徑和直線方向，看交點有幾個。",
+      "source": "對應課本 2-1 p.93（題目數字同課本）",
+      "figures": [
+        {
+          "src": "g9-2-1/line-1.png",
+          "alt": "課本 p.93 直線與圓不相交、交於兩點"
+        },
+        {
+          "src": "g9-2-1/line-2.png",
+          "alt": "課本 p.93 直線與圓相切"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": -5.6,
+          "xMax": 13.8,
+          "yMin": -5.6,
+          "yMax": 6.6,
+          "aspect": "equal"
+        },
+        "params": [
+          {
+            "id": "d",
+            "label": "圓心到直線的距離 $d$",
+            "min": 0.5,
+            "max": 6,
+            "step": 0.5,
+            "value": 6
+          },
+          {
+            "id": "r",
+            "label": "半徑 $r$",
+            "min": 2,
+            "max": 5,
+            "step": 0.5,
+            "value": 4
+          },
+          {
+            "id": "t",
+            "label": "直線的方向",
+            "min": 0,
+            "max": 180,
+            "step": 15,
+            "value": 45,
+            "unit": "°"
+          }
+        ],
+        "shapes": [
+          {
+            "type": "circle",
+            "x": 0,
+            "y": 0,
+            "r": "r",
+            "color": "#1f2a56",
+            "width": 2,
+            "fill": "rgba(132,204,22,.18)"
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                "d*cos(t)-sqrt(49-d^2)*(-sin(t))",
+                "d*sin(t)-sqrt(49-d^2)*cos(t)"
+              ],
+              [
+                "d*cos(t)+sqrt(49-d^2)*(-sin(t))",
+                "d*sin(t)+sqrt(49-d^2)*cos(t)"
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 2.6
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                "d*cos(t)",
+                "d*sin(t)"
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 2.4,
+            "dash": true
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                "d*cos(t)-0.4*cos(t)",
+                "d*sin(t)-0.4*sin(t)"
+              ],
+              [
+                "d*cos(t)-0.4*cos(t)+0.4*(-sin(t))",
+                "d*sin(t)-0.4*sin(t)+0.4*cos(t)"
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                "d*cos(t)-0.4*cos(t)+0.4*(-sin(t))",
+                "d*sin(t)-0.4*sin(t)+0.4*cos(t)"
+              ],
+              [
+                "d*cos(t)+0.4*(-sin(t))",
+                "d*sin(t)+0.4*cos(t)"
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4
+          },
+          {
+            "type": "point",
+            "x": 0,
+            "y": 0,
+            "color": "#1f2a56"
+          },
+          {
+            "type": "text",
+            "x": "-0.6*cos(t)",
+            "y": "-0.6*sin(t)",
+            "text": "O",
+            "size": 15,
+            "color": "#1f2a56"
+          },
+          {
+            "type": "point",
+            "x": "d*cos(t)",
+            "y": "d*sin(t)",
+            "color": "#2f80ed"
+          },
+          {
+            "type": "text",
+            "x": "d*cos(t)+0.6*cos(t)",
+            "y": "d*sin(t)+0.6*sin(t)",
+            "text": "P",
+            "size": 15,
+            "color": "#2f80ed"
+          },
+          {
+            "type": "text",
+            "x": "d/2*cos(t)-0.55*sin(t)",
+            "y": "d/2*sin(t)+0.55*cos(t)",
+            "text": "d",
+            "size": 15,
+            "color": "#2f80ed"
+          },
+          {
+            "type": "point",
+            "x": "d*cos(t)+sqrt(r^2-d^2)*(-sin(t))",
+            "y": "d*sin(t)+sqrt(r^2-d^2)*cos(t)",
+            "color": "#e5484d",
+            "show": "d<r"
+          },
+          {
+            "type": "point",
+            "x": "d*cos(t)-sqrt(r^2-d^2)*(-sin(t))",
+            "y": "d*sin(t)-sqrt(r^2-d^2)*cos(t)",
+            "color": "#e5484d",
+            "show": "d<r"
+          },
+          {
+            "type": "text",
+            "x": 10.6,
+            "y": 3.4,
+            "text": "d ＞ r",
+            "size": 17,
+            "color": "#5a3fd6",
+            "show": "d>r"
+          },
+          {
+            "type": "text",
+            "x": 10.6,
+            "y": 1.6,
+            "text": "不相交",
+            "size": 17,
+            "color": "#5a3fd6",
+            "show": "d>r"
+          },
+          {
+            "type": "text",
+            "x": 10.6,
+            "y": 3.4,
+            "text": "d ＝ r",
+            "size": 17,
+            "color": "#e5484d",
+            "show": "d==r"
+          },
+          {
+            "type": "text",
+            "x": 10.6,
+            "y": 1.6,
+            "text": "相切",
+            "size": 17,
+            "color": "#e5484d",
+            "show": "d==r"
+          },
+          {
+            "type": "text",
+            "x": 10.6,
+            "y": 3.4,
+            "text": "d ＜ r",
+            "size": 17,
+            "color": "#16824f",
+            "show": "d<r"
+          },
+          {
+            "type": "text",
+            "x": 10.6,
+            "y": 1.6,
+            "text": "割線",
+            "size": 17,
+            "color": "#16824f",
+            "show": "d<r"
+          }
+        ],
+        "readouts": [
+          {
+            "label": "交點個數",
+            "expr": "d<r ? 2 : (d==r ? 1 : 0)"
+          }
+        ],
+        "caption": "比較「圓心到直線的距離 d」和「半徑 r」：d＞r 不相交、d＝r 相切（OP ⊥ L）、d＜r 割線；P 是垂足"
+      },
+      "activity": {
+        "id": "b-line-q",
+        "type": "manipulate",
+        "prompt": "把直線調成圓的切線（d 和 r 要有什麼關係？），再按「送出我的操作」。",
+        "check": "d==r",
+        "record": [
+          "d",
+          "r",
+          "t"
+        ],
+        "explanation": "d＝r 時直線和圓只交於一點，是切線；d＞r 不相交，d＜r 是割線。"
+      },
+      "notes": "具體操作（CRA）。回到預測頁：d＝r 時 1 個交點。請學生說出割線、切線、切點的意思。"
+    },
+    {
+      "id": "b-tangent",
+      "phase": "圖式連結",
+      "eyebrow": "06 / 切線的性質",
+      "title": "切線垂直於過切點的半徑",
+      "body": "跟著課本 p.94 說明：過圓上一點 P 作 OP 的垂線 L，L 上其他點都在圓外。按「下一步」。",
+      "source": "對應課本 2-1 p.93–95",
+      "figures": [
+        {
+          "src": "g9-2-1/tangent-proof.png",
+          "alt": "課本 p.94 切線的說明"
+        },
+        {
+          "src": "g9-2-1/keybox-tangent.png",
+          "alt": "課本 p.94 Key point 圓的切線性質"
+        },
+        {
+          "src": "g9-2-1/tangent-construct.png",
+          "alt": "課本 p.95 隨堂 2 尺規作切線"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 20,
+          "yMin": 0,
+          "yMax": 11,
+          "aspect": "equal"
+        },
+        "shapes": [
+          {
+            "type": "circle",
+            "x": 4.4,
+            "y": 5.4,
+            "r": 3.8,
+            "color": "#1f2a56",
+            "width": 2,
+            "fill": "rgba(132,204,22,.16)",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "point",
+            "x": 4.4,
+            "y": 5.4,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 4,
+            "y": 4.95,
+            "text": "O",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                4.4,
+                5.4
+              ],
+              [
+                8.2,
+                5.4
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 3,
+            "focus": [
+              0,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.2,
+                1
+              ],
+              [
+                8.2,
+                10.2
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 2.4,
+            "focus": [
+              0,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                7.85,
+                5.4
+              ],
+              [
+                7.85,
+                5.75
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4,
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.2,
+                5.75
+              ],
+              [
+                7.85,
+                5.75
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4,
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "point",
+            "x": 8.2,
+            "y": 5.4,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 8.65,
+            "y": 5,
+            "text": "P",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 8.65,
+            "y": 10.2,
+            "text": "L",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                4.4,
+                5.4
+              ],
+              [
+                8.2,
+                8.8
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 2.2,
+            "dash": true,
+            "focus": [
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "point",
+            "x": 8.2,
+            "y": 8.8,
+            "color": "#2f80ed",
+            "focus": [
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 8.65,
+            "y": 8.9,
+            "text": "Q",
+            "size": 15,
+            "color": "#2f80ed",
+            "focus": [
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.8,
+            "y": 9.6,
+            "text": "$\\overline{OP}$ 是半徑，L ⊥ $\\overline{OP}$",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.8,
+            "y": 7.8999999999999995,
+            "text": "Q 是 L 上 P 以外的任一點",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.8,
+            "y": 6.199999999999999,
+            "text": "△OPQ 是直角三角形，$\\overline{OQ}$ 是斜邊",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.8,
+            "y": 4.5,
+            "text": "$\\overline{OQ}>\\overline{OP}=r$，Q 在圓外",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 3,
+            "focus": [
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.8,
+            "y": 2.8,
+            "text": "L 和圓只交於 P：L 是切線",
+            "size": 19,
+            "color": "#5a3fd6",
+            "step": 4,
+            "focus": [
+              4
+            ]
+          }
+        ],
+        "steps": [
+          "課本 p.94 說明 (1)",
+          "說明 (2)",
+          "斜邊比股長",
+          "說明 (3)：Q 在圓外",
+          "Key point：過圓上一點且垂直半徑的直線是切線；反過來，切線垂直過切點的半徑"
+        ]
+      },
+      "activity": {
+        "id": "b-tangent-q",
+        "type": "single",
+        "prompt": "L 是圓 O 的切線、P 是切點，∠OPQ（Q 在 L 上）是幾度？",
+        "options": [
+          "90°",
+          "60°",
+          "45°",
+          "不一定"
+        ],
+        "correct": [
+          0
+        ],
+        "explanation": "圓心與切點的連線必垂直切線：OP ⊥ L，∠OPQ＝90°。"
+      },
+      "notes": "課本 p.95 隨堂 2（尺規作圖）：連接 OA，過 A 作 OA 的垂線。請學生在課本上作圖，不用 IRS。"
+    },
+    {
+      "id": "b-line-practice",
+      "phase": "隨堂練習",
+      "eyebrow": "07 / 直線與圓 隨堂",
+      "title": "換你判斷：三條直線各有幾個交點？",
+      "body": "看課本 p.95 的圖寫出交點個數。三題都是課本隨堂 1(1)。左圖用另一組直線示範。",
+      "source": "對應課本 2-1 p.95（題目數字同課本）",
+      "figures": [
+        {
+          "src": "g9-2-1/line-practice.png",
+          "alt": "課本 p.95 隨堂練習 1"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 20,
+          "yMin": 0,
+          "yMax": 11,
+          "aspect": "equal"
+        },
+        "shapes": [
+          {
+            "type": "circle",
+            "x": 5,
+            "y": 5.2,
+            "r": 2.6,
+            "color": "#1f2a56",
+            "width": 2,
+            "fill": "rgba(132,204,22,.18)",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "point",
+            "x": 5,
+            "y": 5.2,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 4.6,
+            "y": 4.75,
+            "text": "O",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                9.2,
+                9
+              ],
+              [
+                0.7999999999999998,
+                9
+              ]
+            ],
+            "color": "#5a3fd6",
+            "width": 2.6,
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                5,
+                5.2
+              ],
+              [
+                5,
+                9
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 1.8,
+            "dash": true,
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 1.15,
+            "y": 9.3,
+            "text": "X",
+            "size": 15,
+            "color": "#5a3fd6",
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                7.6,
+                1
+              ],
+              [
+                7.6,
+                9.4
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 2.6,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                5,
+                5.2
+              ],
+              [
+                7.6,
+                5.2
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 1.8,
+            "dash": true,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 7.949999999999999,
+            "y": 9.700000000000001,
+            "text": "Y",
+            "size": 15,
+            "color": "#e5484d",
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                1.32257287525381,
+                7.179427124746191
+              ],
+              [
+                6.97942712474619,
+                1.5225728752538092
+              ]
+            ],
+            "color": "#16824f",
+            "width": 2.6,
+            "focus": [
+              3,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                5,
+                5.2
+              ],
+              [
+                4.151,
+                4.351
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 1.8,
+            "dash": true,
+            "focus": [
+              3,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 7.329427124746189,
+            "y": 1.8225728752538093,
+            "text": "Z",
+            "size": 15,
+            "color": "#16824f",
+            "focus": [
+              3,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.8,
+            "y": 9.2,
+            "text": "示範：比較 d 和 r",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.8,
+            "y": 7.499999999999999,
+            "text": "X：d ＞ r → 0 個交點",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.8,
+            "y": 5.799999999999999,
+            "text": "Y：d ＝ r → 1 個（切線）",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.8,
+            "y": 4.1,
+            "text": "Z：d ＜ r → 2 個（割線）",
+            "size": 19,
+            "color": "#5a3fd6",
+            "step": 3,
+            "focus": [
+              3
+            ]
+          }
+        ],
+        "steps": [
+          "另一組直線（自編），虛線是圓心到直線的距離",
+          "不相交",
+          "相切",
+          "割線"
+        ]
+      },
+      "activity": {
+        "id": "b-line-practice-q",
+        "type": "numeric",
+        "prompt": "課本 p.95 隨堂 1(1)：與圓 O 的交點個數",
+        "items": [
+          {
+            "prompt": "直線 L 與圓 O 有幾個交點？",
+            "answer": "1"
+          },
+          {
+            "prompt": "直線 M 與圓 O 有幾個交點？",
+            "answer": "2"
+          },
+          {
+            "prompt": "直線 N 與圓 O 有幾個交點？",
+            "answer": "0"
+          }
+        ],
+        "explanation": "(1) L 垂直半徑 OA 於 A，是切線，1 個交點。(2) M 穿過圓，是割線，2 個。(3) N 不相交，0 個。"
+      },
+      "notes": "官方答案：(1) 1、2、0 (2) 切線 L、割線 M (3) r₂＞r＞r₁ (4) 交點數 0、1、2；距離大於、等於、小於半徑。(2)～(4) 口頭完成。"
+    },
+    {
+      "id": "b-ex4",
+      "phase": "工作範例",
+      "eyebrow": "08 / 例 4",
+      "title": "由距離判斷直線與圓的位置",
+      "body": "先把直徑換成半徑，再拿每條直線的距離和半徑比。先自己判斷，再按「下一步」。",
+      "source": "對應課本 2-1 p.96（題目數字同課本）",
+      "figures": [
+        {
+          "src": "g9-2-1/ex4.png",
+          "alt": "課本 p.96 例 4 題目"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 20,
+          "yMin": 0,
+          "yMax": 11,
+          "aspect": "equal"
+        },
+        "shapes": [
+          {
+            "type": "circle",
+            "x": 3,
+            "y": 5.6,
+            "r": 2.6999999999999997,
+            "color": "#1f2a56",
+            "width": 2,
+            "fill": "rgba(255,201,60,.2)",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "point",
+            "x": 3,
+            "y": 5.6,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 2.8,
+            "y": 6.05,
+            "text": "O",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                3,
+                5.6
+              ],
+              [
+                5.699999999999999,
+                5.6
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 2.4,
+            "focus": [
+              0,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 4.35,
+            "y": 5.1499999999999995,
+            "text": "7.5",
+            "size": 12,
+            "color": "#1d4fa3",
+            "focus": [
+              0,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.399999999999999,
+                1.6
+              ],
+              [
+                8.399999999999999,
+                9.6
+              ]
+            ],
+            "color": "#5a3fd6",
+            "width": 2.4,
+            "focus": [
+              1,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 8.399999999999999,
+            "y": 10.1,
+            "text": "L",
+            "size": 15,
+            "color": "#5a3fd6",
+            "focus": [
+              1,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 8.399999999999999,
+            "y": 1.1,
+            "text": "15",
+            "size": 12,
+            "color": "#5a3fd6",
+            "focus": [
+              1,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6.6,
+                1.6
+              ],
+              [
+                6.6,
+                9.6
+              ]
+            ],
+            "color": "#5a3fd6",
+            "width": 2.4,
+            "focus": [
+              1,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6.6,
+            "y": 10.1,
+            "text": "M",
+            "size": 15,
+            "color": "#5a3fd6",
+            "focus": [
+              1,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6.6,
+            "y": 1.1,
+            "text": "10",
+            "size": 12,
+            "color": "#5a3fd6",
+            "focus": [
+              1,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                5.699999999999999,
+                1.6
+              ],
+              [
+                5.699999999999999,
+                9.6
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 2.4,
+            "focus": [
+              2,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 5.699999999999999,
+            "y": 10.1,
+            "text": "N",
+            "size": 15,
+            "color": "#e5484d",
+            "focus": [
+              2,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 5.699999999999999,
+            "y": 1.1,
+            "text": "7.5",
+            "size": 12,
+            "color": "#e5484d",
+            "focus": [
+              2,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                4.8,
+                1.6
+              ],
+              [
+                4.8,
+                9.6
+              ]
+            ],
+            "color": "#16824f",
+            "width": 2.4,
+            "focus": [
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 4.8,
+            "y": 10.1,
+            "text": "H",
+            "size": 15,
+            "color": "#16824f",
+            "focus": [
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 4.8,
+            "y": 1.1,
+            "text": "5",
+            "size": 12,
+            "color": "#16824f",
+            "focus": [
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.8,
+            "y": 9.4,
+            "text": "直徑 15 → 半徑 r ＝ 7.5",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.8,
+            "y": 7.7,
+            "text": "L、M：15、10 ＞ 7.5 → 0 個",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.8,
+            "y": 6,
+            "text": "N：7.5 ＝ 7.5 → 1 個，切線",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.8,
+            "y": 4.300000000000001,
+            "text": "H：5 ＜ 7.5 → 2 個，割線",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 3,
+            "focus": [
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.8,
+            "y": 2.6000000000000005,
+            "text": "比的是「半徑」，不是直徑",
+            "size": 19,
+            "color": "#5a3fd6",
+            "step": 4,
+            "focus": [
+              4
+            ]
+          }
+        ],
+        "steps": [
+          "先求半徑",
+          "距離大於半徑：不相交",
+          "距離等於半徑：切線",
+          "距離小於半徑：割線",
+          "圖的下方是圓心到各直線的距離（公分）"
+        ],
+        "caption": "課本例 4 的方法"
+      },
+      "activity": {
+        "id": "b-ex4-q",
+        "type": "numeric",
+        "prompt": "先自己判斷例 4：交點個數",
+        "items": [
+          {
+            "prompt": "直線 L（距離 15 公分）有幾個交點？",
+            "answer": "0"
+          },
+          {
+            "prompt": "直線 N（距離 7.5 公分）有幾個交點？",
+            "answer": "1"
+          },
+          {
+            "prompt": "直線 H（距離 5 公分）有幾個交點？",
+            "answer": "2"
+          }
+        ],
+        "explanation": "半徑 7.5：(1) 15＞7.5，0 個。(2) 7.5＝7.5，1 個（切線）。(3) 5＜7.5，2 個（割線）。"
+      },
+      "notes": "官方答案：L、M 和圓沒有交點；N 一個交點，是切線；H 兩個交點，是割線。常見錯誤：拿距離和直徑 15 比。"
+    },
+    {
+      "id": "b-ex4-practice",
+      "phase": "隨堂練習",
+      "eyebrow": "09 / 例 4 隨堂",
+      "title": "換你判斷：五條平行線",
+      "body": "三題都是課本隨堂（寫出有幾條）。O 在 L₂ 上，先算每條線到 O 的距離。左圖用另一組數字示範。",
+      "source": "對應課本 2-1 p.96（題目數字同課本）",
+      "figures": [
+        {
+          "src": "g9-2-1/ex4-practice.png",
+          "alt": "課本 p.96 例 4 隨堂練習"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 20,
+          "yMin": 0,
+          "yMax": 11,
+          "aspect": "equal"
+        },
+        "shapes": [
+          {
+            "type": "circle",
+            "x": 4.6,
+            "y": 6.3,
+            "r": 3,
+            "color": "#1f2a56",
+            "width": 2,
+            "fill": "rgba(255,201,60,.2)",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.6,
+                9.3
+              ],
+              [
+                8.6,
+                9.3
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 2.2,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9.1,
+            "y": 9.3,
+            "text": "$L_1$",
+            "size": 15,
+            "color": "#e5484d",
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.6,
+                7.8
+              ],
+              [
+                8.6,
+                7.8
+              ]
+            ],
+            "color": "#16824f",
+            "width": 2.2,
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9.1,
+            "y": 7.8,
+            "text": "$L_2$",
+            "size": 15,
+            "color": "#16824f",
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.6,
+                6.3
+              ],
+              [
+                8.6,
+                6.3
+              ]
+            ],
+            "color": "#16824f",
+            "width": 2.2,
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9.1,
+            "y": 6.3,
+            "text": "$L_3$",
+            "size": 15,
+            "color": "#16824f",
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.6,
+                4.8
+              ],
+              [
+                8.6,
+                4.8
+              ]
+            ],
+            "color": "#16824f",
+            "width": 2.2,
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9.1,
+            "y": 4.8,
+            "text": "$L_4$",
+            "size": 15,
+            "color": "#16824f",
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.6,
+                3.3
+              ],
+              [
+                8.6,
+                3.3
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 2.2,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9.1,
+            "y": 3.3,
+            "text": "$L_5$",
+            "size": 15,
+            "color": "#e5484d",
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "point",
+            "x": 4.6,
+            "y": 6.3,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 4.6,
+            "y": 5.85,
+            "text": "O",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 15.2,
+            "y": 9.4,
+            "text": "示範：間距 1.5，r ＝ 3",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 15.2,
+            "y": 7.7,
+            "text": "$L_2$、$L_3$、$L_4$：d ＜ 3，割線",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 15.2,
+            "y": 6,
+            "text": "$L_1$、$L_5$：d ＝ 3，切線",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 15.2,
+            "y": 4.300000000000001,
+            "text": "沒有 d ＞ 3：不相交 0 條",
+            "size": 19,
+            "color": "#5a3fd6",
+            "step": 3,
+            "focus": [
+              3
+            ]
+          }
+        ],
+        "steps": [
+          "另一組數字（自編）：O 在 L₃ 上",
+          "L₃ 的距離是 0，L₂、L₄ 是 1.5",
+          "距離 1.5＋1.5＝3＝r",
+          "距離都不超過半徑"
+        ]
+      },
+      "activity": {
+        "id": "b-ex4-practice-q",
+        "type": "numeric",
+        "prompt": "課本 p.96 隨堂：間距 2、O 在 L₂ 上、半徑 4",
+        "items": [
+          {
+            "prompt": "(1) 與圓 O 不相交的直線有幾條？",
+            "answer": "1"
+          },
+          {
+            "prompt": "(2) 是圓 O 切線的直線有幾條？",
+            "answer": "1"
+          },
+          {
+            "prompt": "(3) 是圓 O 割線的直線有幾條？",
+            "answer": "3"
+          }
+        ],
+        "explanation": "距離：L₁ 2、L₂ 0、L₃ 2、L₄ 4、L₅ 6。(1) L₅ 不相交。(2) L₄ 是切線。(3) L₁、L₂、L₃ 是割線。"
+      },
+      "notes": "官方答案：(1) L₅ (2) L₄ (3) L₁、L₂、L₃。請學生說出是哪幾條。"
+    },
+    {
+      "id": "b-ex5",
+      "phase": "工作範例",
+      "eyebrow": "10 / 例 5",
+      "title": "求切線段長",
+      "body": "連接圓心和切點：半徑垂直切線，得到直角三角形。先自己算，再按「下一步」。",
+      "source": "對應課本 2-1 p.97（題目數字同課本）",
+      "figures": [
+        {
+          "src": "g9-2-1/tangent-seg-intro.png",
+          "alt": "課本 p.97 切線段"
+        },
+        {
+          "src": "g9-2-1/ex5.png",
+          "alt": "課本 p.97 例 5 題目"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 20,
+          "yMin": 0,
+          "yMax": 11,
+          "aspect": "equal"
+        },
+        "shapes": [
+          {
+            "type": "circle",
+            "x": 3.6,
+            "y": 6.2,
+            "r": 2.6,
+            "color": "#1f2a56",
+            "width": 2,
+            "fill": "rgba(123,97,255,.16)",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.6,
+                3.6
+              ],
+              [
+                10.6,
+                3.6
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 2,
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "point",
+            "x": 3.6,
+            "y": 6.2,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3.2,
+            "y": 6.55,
+            "text": "O",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                3.6,
+                6.2
+              ],
+              [
+                3.6,
+                3.6
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 2.6,
+            "dash": true,
+            "focus": [
+              0,
+              1,
+              2,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                3.6,
+                3.92
+              ],
+              [
+                3.92,
+                3.92
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4,
+            "focus": [
+              1,
+              2,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                3.92,
+                3.6
+              ],
+              [
+                3.92,
+                3.92
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4,
+            "focus": [
+              1,
+              2,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                3.6,
+                6.2
+              ],
+              [
+                9.84,
+                3.6
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 2,
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                3.6,
+                3.6
+              ],
+              [
+                9.84,
+                3.6
+              ]
+            ],
+            "color": "#5a3fd6",
+            "width": 3.4,
+            "focus": [
+              3,
+              4
+            ]
+          },
+          {
+            "type": "point",
+            "x": 3.6,
+            "y": 3.6,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3.6,
+            "y": 3,
+            "text": "A",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9.84,
+            "y": 3,
+            "text": "B",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3.15,
+            "y": 4.9,
+            "text": "5",
+            "size": 14,
+            "color": "#e5484d",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 7.2,
+            "y": 5.4,
+            "text": "13",
+            "size": 14,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6.7,
+            "y": 3.05,
+            "text": "?",
+            "size": 16,
+            "color": "#5a3fd6",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.8,
+            "y": 9.6,
+            "text": "連接 $\\overline{OA}$，$\\overline{OA}$ ＝ 5（半徑）",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.8,
+            "y": 8,
+            "text": "切線 ⊥ 半徑：$\\overline{OA}\\perp\\overline{AB}$",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.8,
+            "y": 6.3999999999999995,
+            "text": "△OAB 是直角三角形",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.8,
+            "y": 4.799999999999999,
+            "text": "$\\overline{AB}=\\sqrt{\\overline{OB}^{2}-\\overline{OA}^{2}}=\\sqrt{13^{2}-5^{2}}$",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 3,
+            "focus": [
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.8,
+            "y": 3.1999999999999993,
+            "text": "＝ 12",
+            "size": 19,
+            "color": "#5a3fd6",
+            "step": 4,
+            "focus": [
+              4
+            ]
+          }
+        ],
+        "steps": [
+          "連接圓心和切點",
+          "圓心與切點的連線垂直切線",
+          "斜邊是 OB",
+          "畢氏定理",
+          "切線段 AB＝12"
+        ],
+        "caption": "課本例 5 的方法"
+      },
+      "activity": {
+        "id": "b-ex5-q",
+        "type": "numeric",
+        "prompt": "先自己算例 5",
+        "items": [
+          {
+            "prompt": "切線段 AB 的長＝？",
+            "answer": "12"
+          }
+        ],
+        "explanation": "連接 OA，OA⊥AB，AB＝√(13²－5²)＝12。"
+      },
+      "notes": "切線段：圓外一點到切點的線段（課本 p.97 圖 3）。常見錯誤：13＋5、13－5。"
+    },
+    {
+      "id": "b-ex5-practice",
+      "phase": "隨堂練習",
+      "eyebrow": "11 / 例 5 隨堂",
+      "title": "換你算：切線段與半徑",
+      "body": "課本隨堂原題。先找直角在哪裡、哪一邊是斜邊。左圖用另一組數字示範。",
+      "source": "對應課本 2-1 p.97 隨堂（題目數字同課本）",
+      "figures": [
+        {
+          "src": "g9-2-1/ex5-practice.png",
+          "alt": "課本 p.97 例 5 隨堂練習"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 20,
+          "yMin": 0,
+          "yMax": 11,
+          "aspect": "equal"
+        },
+        "shapes": [
+          {
+            "type": "circle",
+            "x": 3.4,
+            "y": 6,
+            "r": 2.5,
+            "color": "#1f2a56",
+            "width": 2,
+            "fill": "rgba(47,128,237,.12)",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.6,
+                3.5
+              ],
+              [
+                10.4,
+                3.5
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 2,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "point",
+            "x": 3.4,
+            "y": 6,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3,
+            "y": 6.35,
+            "text": "O",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                3.4,
+                6
+              ],
+              [
+                9.4,
+                3.5
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 2,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                3.4,
+                6
+              ],
+              [
+                3.4,
+                3.5
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 2.6,
+            "dash": true,
+            "focus": [
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                3.4,
+                3.82
+              ],
+              [
+                3.7199999999999998,
+                3.82
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4,
+            "focus": [
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                3.7199999999999998,
+                3.5
+              ],
+              [
+                3.7199999999999998,
+                3.82
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4,
+            "focus": [
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3.4,
+            "y": 2.9,
+            "text": "C",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9.4,
+            "y": 2.9,
+            "text": "D",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6.4,
+            "y": 2.95,
+            "text": "12",
+            "size": 14,
+            "color": "#5a3fd6",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6.9,
+            "y": 5.3,
+            "text": "13",
+            "size": 14,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 2.95,
+            "y": 4.75,
+            "text": "?",
+            "size": 15,
+            "color": "#e5484d",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.8,
+            "y": 9.4,
+            "text": "示範：$\\overline{CD}$ ＝ 12、$\\overline{OD}$ ＝ 13",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.8,
+            "y": 7.7,
+            "text": "切線 ⊥ 半徑：∠OCD ＝ 90°",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.8,
+            "y": 6,
+            "text": "$\\overline{OC}=\\sqrt{13^{2}-12^{2}}$",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.8,
+            "y": 4.300000000000001,
+            "text": "＝ 5（半徑）",
+            "size": 19,
+            "color": "#5a3fd6",
+            "step": 3,
+            "focus": [
+              3
+            ]
+          }
+        ],
+        "steps": [
+          "另一組數字（自編）",
+          "連接 OC",
+          "斜邊是 OD",
+          "半徑 5"
+        ]
+      },
+      "activity": {
+        "id": "b-ex5-practice-q",
+        "type": "numeric",
+        "prompt": "課本 p.97 隨堂：直線 CD 切圓 O 於 C",
+        "items": [
+          {
+            "prompt": "CD＝4、OD＝5，圓 O 的半徑＝？",
+            "answer": "3"
+          }
+        ],
+        "explanation": "OC＝√(5²－4²)＝3。"
+      },
+      "notes": "答案：3。"
+    },
+    {
+      "id": "b-error",
+      "phase": "錯誤分析",
+      "eyebrow": "12 / 當小老師",
+      "title": "小華寫：6 ＜ 10，所以 L 是割線",
+      "body": "圓 O 的直徑 10，圓心 O 到直線 L 的距離 6。小華說 L 是割線。他對嗎？在畫布圈出錯誤、寫出正確判斷與理由，也可以拍照上傳。",
+      "source": "錯誤示例（自編），對應課本 p.93、p.96",
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 20,
+          "yMin": 0,
+          "yMax": 11,
+          "aspect": "equal"
+        },
+        "shapes": [
+          {
+            "type": "circle",
+            "x": 4.4,
+            "y": 5.4,
+            "r": 3,
+            "color": "#1f2a56",
+            "width": 2,
+            "fill": "rgba(255,201,60,.2)",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "point",
+            "x": 4.4,
+            "y": 5.4,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 4.1000000000000005,
+            "y": 5.8500000000000005,
+            "text": "O",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                4.4,
+                2.4000000000000004
+              ],
+              [
+                4.4,
+                8.4
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 2.2,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3.8500000000000005,
+            "y": 7,
+            "text": "10",
+            "size": 13,
+            "color": "#1d4fa3",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8,
+                1.2
+              ],
+              [
+                8,
+                9.8
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 2.4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 8.4,
+            "y": 9.8,
+            "text": "L",
+            "size": 15,
+            "color": "#e5484d",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                4.4,
+                5.4
+              ],
+              [
+                8,
+                5.4
+              ]
+            ],
+            "color": "#6b7394",
+            "width": 1.8,
+            "dash": true,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                7.65,
+                5.4
+              ],
+              [
+                7.65,
+                5.75
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8,
+                5.75
+              ],
+              [
+                7.65,
+                5.75
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6.6,
+            "y": 5.8500000000000005,
+            "text": "6",
+            "size": 14,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.8,
+            "y": 9.4,
+            "text": "小華：6 ＜ 10，所以 L 是割線",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.8,
+            "y": 7.7,
+            "text": "d 要和「直徑」還是「半徑」比？",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.8,
+            "y": 6,
+            "text": "半徑 r ＝ ？",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 14.8,
+            "y": 4.300000000000001,
+            "text": "d 和 r 的關係 → L 和圓 ？",
+            "size": 19,
+            "color": "#5a3fd6",
+            "step": 3,
+            "focus": [
+              3
+            ]
+          }
+        ],
+        "steps": [
+          "小華的判斷",
+          "回想例 4 的第一步",
+          "先求半徑",
+          "自己判斷"
+        ]
+      },
+      "activity": {
+        "id": "b-error-q",
+        "type": "canvas",
+        "prompt": "小華說「6＜10，所以 L 是割線」。① 圈出錯誤 ② 寫出正確的判斷 ③ 說明理由",
+        "canvas": "grid",
+        "allowPhoto": true,
+        "aiAllowed": true,
+        "rubric": {
+          "criteria": [
+            {
+              "id": "find",
+              "label": "找出錯誤",
+              "points": 2,
+              "levels": [
+                {
+                  "score": 0,
+                  "description": "未指出錯誤"
+                },
+                {
+                  "score": 1,
+                  "description": "只說錯了"
+                },
+                {
+                  "score": 2,
+                  "description": "指出應該和半徑比，不是和直徑比"
+                }
+              ]
+            },
+            {
+              "id": "fix",
+              "label": "正確判斷",
+              "points": 2,
+              "levels": [
+                {
+                  "score": 0,
+                  "description": "判斷錯誤或未作答"
+                },
+                {
+                  "score": 1,
+                  "description": "半徑算對但判斷錯"
+                },
+                {
+                  "score": 2,
+                  "description": "r＝5，d＝6＞5，L 和圓 O 不相交（0 個交點）"
+                }
+              ]
+            },
+            {
+              "id": "why",
+              "label": "說明理由",
+              "points": 2,
+              "levels": [
+                {
+                  "score": 0,
+                  "description": "沒有理由"
+                },
+                {
+                  "score": 1,
+                  "description": "只寫 6＞5"
+                },
+                {
+                  "score": 2,
+                  "description": "說明 d＞r 時直線上所有點到 O 都比半徑遠，都在圓外"
+                }
+              ]
+            }
+          ],
+          "reference": "直徑 10，半徑 r＝5。圓心到 L 的距離 d＝6＞5，所以 L 和圓 O 不相交（沒有交點）。小華把距離和直徑比較，應該和半徑比。"
+        }
+      },
+      "notes": "收件後按「AI 批改」，覆核後發回；可用具體操作頁把 r 調成 5、d 調成 6 驗證。"
+    },
+    {
+      "id": "b-exit",
+      "phase": "出場券",
+      "eyebrow": "13 / 用自己的話說",
+      "title": "怎麼判斷直線是不是圓的切線？",
+      "body": "用一到兩句話說明：怎麼判斷一條直線是不是圓的切線？寫出兩種方法。",
+      "visual": "steps",
+      "bullets": [
+        "用距離和半徑比",
+        "用「過圓上一點」和「垂直半徑」"
+      ],
+      "activity": {
+        "id": "b-exit-q",
+        "type": "short",
+        "prompt": "怎麼判斷一條直線是不是圓的切線？寫出兩種方法。",
+        "aiAllowed": true,
+        "rubric": {
+          "criteria": [
+            {
+              "id": "dist",
+              "label": "距離法",
+              "points": 2,
+              "levels": [
+                {
+                  "score": 0,
+                  "description": "沒有提到"
+                },
+                {
+                  "score": 1,
+                  "description": "只說「碰到圓」"
+                },
+                {
+                  "score": 2,
+                  "description": "圓心到直線的距離等於半徑（d＝r）"
+                }
+              ]
+            },
+            {
+              "id": "perp",
+              "label": "垂直法",
+              "points": 2,
+              "levels": [
+                {
+                  "score": 0,
+                  "description": "沒有提到"
+                },
+                {
+                  "score": 1,
+                  "description": "只說垂直，沒說過圓上一點"
+                },
+                {
+                  "score": 2,
+                  "description": "直線過圓上一點，且垂直過這一點的半徑"
+                }
+              ]
+            }
+          ],
+          "reference": "方法一：圓心到直線的距離 d 等於半徑 r，直線是切線。方法二：直線通過圓上一點 P，且垂直半徑 OP，直線是切線。"
+        }
+      }
+    },
+    {
+      "id": "b-reflect",
+      "phase": "後設認知",
+      "eyebrow": "最後 / 給自己打分數",
+      "title": "今天的內容，我掌握了多少？",
+      "body": "誠實評估，下一節課會從大家最沒把握的地方開始複習。",
+      "visual": "cards",
+      "notes": "3 分以下的學生，下節課開頭用提取練習再做一次；可用抽籤「答錯」請同學上台說明。",
+      "activity": {
+        "id": "b-reflect",
+        "type": "scale",
+        "prompt": "我能判斷點、直線和圓的位置關係，並用切線性質求切線段長",
+        "min": 1,
+        "max": 5,
+        "minLabel": "還需要再看一次",
+        "maxLabel": "可以教別人"
+      }
+    }
+  ]
+}

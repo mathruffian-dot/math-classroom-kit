@@ -1,4 +1,5 @@
 import type { RaidConfig, RaidDifficulty, RaidKind, RaidRole, RaidSeatStats, RaidState } from './raid';
+import type { DuelSeatStats, DuelState, DuelTeam, DuelTok } from './duel';
 export type Role = 'teacher' | 'student';
 export interface User {
   id: string;
@@ -214,6 +215,8 @@ export interface Slide {
   quizPage?: boolean;
   /** 魔王戰頁（一節的最後一堂課才有）：投影片區是戰場，右側是開戰設定。 */
   raidPage?: boolean;
+  /** 步驟格鬥頁（根式運算步驟練習）：投影片區是紅藍兩隊的戰況，右側是開戰設定。 */
+  duelPage?: boolean;
   eyebrow?: string;
   body: string;
   bullets?: string[];
@@ -548,6 +551,8 @@ export interface Session {
   pkLobby?: PkLobby | null;
   /** 目前（或剛結束）的魔王戰。 */
   raid?: RaidRun | null;
+  /** 目前（或剛結束）的步驟格鬥。 */
+  duel?: DuelRun | null;
   id: string;
   classId: string;
   className: string;
@@ -647,6 +652,8 @@ export interface SessionView {
   raid?: RaidView;
   /** 老師：這一節魔王戰的冒險地圖（全班打倒過哪幾隻魔王、最快幾毫秒）。 */
   raidMap?: { title: string; section?: string; wins: Partial<Record<RaidDifficulty, { at: number; ms: number }>> };
+  /** 步驟格鬥（進行中或剛結束）。 */
+  duel?: DuelView;
   /**
    * 學生：作答開放中時彈幕有限制（只有答對的同學能送，這一題每人 3 則）。
    * limited 為 false 表示平常時間，不限則數。
@@ -694,4 +701,67 @@ export interface AiSettings {
   keyHint: string;
   dailyLimit: number;
   usedToday: number;
+}
+
+/** 一場步驟格鬥。 */
+export interface DuelRun {
+  id: string;
+  startedAt: number;
+  seconds: number;
+  endedAt?: number;
+  /** 座號 → 隊伍（開戰時依程度平均分隊；之後才加入的分到人少的一隊）。 */
+  teams: Record<string, DuelTeam>;
+}
+/** 一位同學在這一場的狀態（只在伺服器）。 */
+export interface DuelSeat {
+  /** 目前這一題：題目、第幾步、選規則或填算式、這一小步錯幾次、規則選項與數字卡的順序。 */
+  cur?: { id: string; step: number; phase: 'rule' | 'fill'; wrong: number; rules: string[]; tiles: string[] };
+  /** 這一題已經完成的每一步填了什麼。 */
+  vals: string[][];
+  /** 做過的題目、完成幾題。 */
+  done: string[];
+}
+export interface DuelResult {
+  seat: number;
+  team: DuelTeam;
+  damage: number;
+  finished: number;
+  steps: number;
+  wrong: number;
+  hints: number;
+  /** 第一次就對的比例（0–100）。 */
+  acc: number;
+  badges: string[];
+}
+export interface DuelView {
+  run: DuelRun;
+  title: string;
+  size: Record<DuelTeam, number>;
+  state: DuelState;
+  /** 學生：自己的隊伍、目前的題目。 */
+  mine?: {
+    team?: DuelTeam;
+    problem?: {
+      id: string;
+      family: string;
+      start: DuelTok[];
+      /** 共幾步、現在第幾步（從 0 起算）、選規則或填算式。 */
+      total: number;
+      step: number;
+      phase: 'rule' | 'fill';
+      /** 已經完成的步驟（規則與填好的算式）。 */
+      done: { rule: string; line: DuelTok[] }[];
+      /** 選規則：選項（規則 ID）。填算式：這一步的規則、算式（含空格）與數字卡。 */
+      rules?: string[];
+      rule?: string;
+      line?: DuelTok[];
+      tiles?: string[];
+      wrong: number;
+      /** 連錯兩次的提示：正確的規則，或第一格要填的數字。 */
+      hint?: string;
+    };
+  };
+  results?: DuelResult[];
+  /** 老師：各規則全班的正確率（低的在前，最需要加強）。 */
+  weak?: { rule: string; ok: number; n: number }[];
 }

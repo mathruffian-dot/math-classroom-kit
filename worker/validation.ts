@@ -22,6 +22,7 @@ import {
 } from '../shared/expr';
 import type { RaidKind } from '../shared/raid';
 import { makeCheck } from '../shared/make';
+import { DUEL_RULES, duelBlanks, type DuelBank, type DuelTok } from '../shared/duel';
 
 export class HttpError extends Error {
   status: number;
@@ -445,6 +446,7 @@ export function validateLesson(input: unknown): Lesson {
         if (s.bullets !== undefined) slide.bullets = texts(s.bullets, '重點');
         if (s.quizPage === true) slide.quizPage = true;
         if (s.raidPage === true) slide.raidPage = true;
+        if (s.duelPage === true) slide.duelPage = true;
         if (s.visual !== undefined) {
           assert(
             ['balance', 'steps', 'cards', 'bars'].includes(String(s.visual)),
@@ -571,6 +573,72 @@ export function validateRaidBank(input: unknown): RaidBank {
     ...(b.section !== undefined ? { section: str(b.section, '單元', 20) } : {}),
     ...(b.source !== undefined ? { source: str(b.source, '題庫來源', 300) } : {}),
     pools: { attack: pool('attack'), shield: pool('shield'), ultimate: pool('ultimate') },
+  };
+}
+
+/** 步驟格鬥題庫：每一題的每一步要有規則、算式（含空格）、接受的填法與數字卡。 */
+export function validateDuelBank(input: unknown): DuelBank {
+  const b = record(input);
+  const tok = (v: unknown, depth = 0): DuelTok => {
+    assert(depth < 8, '算式太深');
+    if (typeof v === 'string') return str(v, '算式文字', 20);
+    const t = record(v);
+    if (t.b !== undefined) return { b: integer(t.b, 0, 11) };
+    if (t.r !== undefined) return { r: toks(t.r, depth + 1) };
+    assert(Array.isArray(t.f) && t.f.length === 2, '分數格式不正確');
+    return { f: [toks(t.f[0], depth + 1), toks(t.f[1], depth + 1)] };
+  };
+  const toks = (v: unknown, depth = 0): DuelTok[] => {
+    assert(Array.isArray(v) && v.length >= 1 && v.length <= 40, '算式格式不正確');
+    return v.map((x) => tok(x, depth));
+  };
+  const num = (v: unknown) => {
+    const x = str(v, '數字卡', 12, 1);
+    assert(/^-?\d+$/.test(x), `數字卡「${x}」要是整數`);
+    return x;
+  };
+  assert(Array.isArray(b.rules) && b.rules.length >= 2, '步驟格鬥需要規則清單');
+  const rules = b.rules.map((r) => {
+    const id = str(r, '規則', 20, 1);
+    assert(DUEL_RULES[id], `不認得的規則「${id}」`);
+    return id;
+  });
+  assert(Array.isArray(b.problems) && b.problems.length >= 4 && b.problems.length <= 2000, '步驟格鬥需要 4–2000 題');
+  const seen = new Set<string>();
+  return {
+    hostLesson: identifier(b.hostLesson),
+    title: str(b.title, '步驟格鬥名稱', 100, 1),
+    rules,
+    problems: b.problems.map((x) => {
+      const p = record(x);
+      const id = str(p.id, '題目 ID', 80, 1);
+      assert(!seen.has(id), `步驟格鬥題目 ID「${id}」重複`);
+      seen.add(id);
+      assert(Array.isArray(p.steps) && p.steps.length >= 1 && p.steps.length <= 8, `「${id}」需要 1–8 步`);
+      return {
+        id,
+        family: str(p.family, '題型', 60, 1),
+        lesson: str(p.lesson, '堂次', 10, 1),
+        start: toks(p.start),
+        steps: p.steps.map((y) => {
+          const st = record(y);
+          const rule = str(st.rule, '規則', 20, 1);
+          assert(rules.includes(rule), `「${id}」用了範圍外的規則「${rule}」`);
+          const line = toks(st.line);
+          const n = duelBlanks(line);
+          assert(n >= 1, `「${id}」每一步至少要有一格`);
+          assert(Array.isArray(st.fill) && st.fill.length >= 1 && st.fill.length <= 8, `「${id}」需要接受的填法`);
+          const fill = st.fill.map((f) => {
+            assert(Array.isArray(f) && f.length === n, `「${id}」填法的格數不對`);
+            return f.map(num);
+          });
+          assert(Array.isArray(st.tiles) && st.tiles.length >= 2 && st.tiles.length <= 12, `「${id}」需要 2–12 張數字卡`);
+          const tiles = st.tiles.map(num);
+          for (const f of fill) for (const x of f) assert(tiles.includes(x), `「${id}」的數字卡少了 ${x}`);
+          return { rule, line, fill, tiles };
+        }),
+      };
+    }),
   };
 }
 

@@ -1802,8 +1802,10 @@ input[type='range']::-moz-range-thumb {
 }
 .slide-dots {
   flex: 1;
+  /* 頁數多時可以左右捲動；不能被撐寬（否則前幾個點會跑到白板工具列底下點不到） */
+  min-width: 0;
   display: flex;
-  justify-content: center;
+  justify-content: safe center;
   gap: 2px;
   overflow-x: auto;
   scrollbar-width: none;

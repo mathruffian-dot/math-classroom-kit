@@ -11,7 +11,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const strict = process.argv.includes('--strict');
 const dir = await mkdtemp(join(tmpdir(), 'mck-lessons-'));
-let validateLesson, validateRaidBank;
+let validateLesson, validateRaidBank, validateDuelBank;
 try {
   await build({
     entryPoints: [join(root, 'worker/validation.ts')],
@@ -21,7 +21,7 @@ try {
     format: 'esm',
     logLevel: 'silent',
   });
-  ({ validateLesson, validateRaidBank } = await import(pathToFileURL(join(dir, 'validation.mjs')).href));
+  ({ validateLesson, validateRaidBank, validateDuelBank } = await import(pathToFileURL(join(dir, 'validation.mjs')).href));
 } finally {
   await rm(dir, { recursive: true, force: true });
 }
@@ -37,7 +37,7 @@ function lint(lesson) {
   if (!lesson.slides.some((s) => s.activity?.type === 'canvas')) warnings.push('沒有手寫／拍照（canvas）題，無法看到學生的推理過程。');
   for (const [i, s] of lesson.slides.entries()) {
     const where = `第 ${i + 1} 頁「${s.title}」`;
-    if (!s.activity && !s.quizPage && !s.raidPage) warnings.push(`${where}沒有 IRS 題目。`);
+    if (!s.activity && !s.quizPage && !s.raidPage && !s.duelPage) warnings.push(`${where}沒有 IRS 題目。`);
     if ((s.body || '').length > 90) warnings.push(`${where}內文 ${s.body.length} 字，超過 90 字（分段原則：一頁一重點）。`);
     if (!s.phase) warnings.push(`${where}沒有標 phase（認知設計階段）。`);
     if (s.interactive?.steps?.length && !s.interactive.shapes.some((x) => x.step !== undefined || x.focus))
@@ -70,6 +70,20 @@ for (const file of (await readdir(join(root, 'content/raids')).catch(() => [])).
     raids[bank.hostLesson] = bank;
   } catch (e) {
     console.error(`✗ 魔王戰 ${file}：${e.message}`);
+    raidErrors++;
+  }
+}
+
+// 步驟格鬥題庫：content/duels/<課程 id>.json（scripts/lessons-src/duel-*.mjs 產生）。
+// 題庫（含答案）另外存成 content/duels.generated.json，只在伺服器；課程在課後檢核頁前面加一頁「步驟格鬥」。
+const duels = {};
+for (const file of (await readdir(join(root, 'content/duels')).catch(() => [])).filter((f) => f.endsWith('.json')).sort()) {
+  try {
+    const bank = validateDuelBank(JSON.parse(await readFile(join(root, 'content/duels', file), 'utf8')));
+    if (`${bank.hostLesson}.json` !== file) throw new Error(`檔名要和 hostLesson（${bank.hostLesson}）一樣`);
+    duels[bank.hostLesson] = bank;
+  } catch (e) {
+    console.error(`✗ 步驟格鬥 ${file}：${e.message}`);
     raidErrors++;
   }
 }
@@ -154,6 +168,23 @@ for (const file of files) {
       continue;
     }
   }
+  // 步驟格鬥：放在上課內容最後（湊數挑戰之後）、課後檢核頁前面
+  let duelNote = '';
+  const duel = duels[raw.id];
+  if (duel) {
+    if (!raw.slides.some((s) => s.duelPage)) {
+      const at = raw.slides.findIndex((s) => s.quizPage || s.raidPage);
+      raw.slides.splice(at < 0 ? raw.slides.length : at, 0, {
+        id: 'duel',
+        phase: '步驟格鬥',
+        eyebrow: '練習 / 根式步驟格鬥',
+        title: duel.title,
+        body: '紅藍兩隊對戰：每一步先選規則，再用數字卡填出下一行。選對、填對就出招，最後一行是最後一擊；答錯扣自己隊伍的血。',
+        duelPage: true,
+      });
+    }
+    duelNote = `，步驟格鬥 ${duel.problems.length} 題`;
+  }
   // 課後形成性評量題庫放在 content/quizzes/<課程 id>.json（由 scripts/quiz-src/*.py 產生並用 SymPy 核算）
   let quizNote = '';
   try {
@@ -218,7 +249,7 @@ for (const file of files) {
     ids.set(lesson.id, file);
     const warnings = lint(raw);
     warned += warnings.length;
-    console.log(`${warnings.length ? '△' : '✓'} ${file}（${lesson.id}，${lesson.slides.length} 頁${warmupNote}${makeNote}${practiceNote}${writtenNote}${quizNote}${raidNote}）`);
+    console.log(`${warnings.length ? '△' : '✓'} ${file}（${lesson.id}，${lesson.slides.length} 頁${warmupNote}${makeNote}${duelNote}${practiceNote}${writtenNote}${quizNote}${raidNote}）`);
     for (const w of warnings) console.log(`    · ${w}`);
     lessons.push(raw);
   } catch (e) {
@@ -238,5 +269,11 @@ for (const id of Object.keys(raids))
     errors++;
   }
 await writeFile(join(root, 'content/raids.generated.json'), JSON.stringify({ banks: raids }) + '\n');
+for (const id of Object.keys(duels))
+  if (!ids.has(id)) {
+    console.error(`✗ 步驟格鬥 ${id}.json：找不到課程 ${id}`);
+    errors++;
+  }
+await writeFile(join(root, 'content/duels.generated.json'), JSON.stringify({ banks: duels }) + '\n');
 console.log(`\n${lessons.length} 份課程通過驗證，${errors} 份錯誤，${warned} 則提醒。`);
 if (errors || (strict && warned)) process.exitCode = 1;

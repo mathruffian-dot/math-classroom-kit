@@ -1,0 +1,27 @@
+{
+  "slides": [
+    {
+      "id": "warmup",
+      "phase": "暖身",
+      "eyebrow": "暖身 / 估一估",
+      "title": "估一估：切線段有多長？",
+      "body": "圓 O 的半徑是 4，圓外一點 P 到圓心的距離 OP ＝ 10。從 P 畫一條切線，切點是 A。",
+      "visual": "steps",
+      "bullets": [
+        "切線和半徑 $\\overline{OA}$ 有什麼關係？",
+        "用畢氏定理算 $\\overline{PA}^2$",
+        "估 $\\sqrt{84}$ 在哪兩個整數之間"
+      ],
+      "activity": {
+        "id": "warmup-est",
+        "type": "numeric",
+        "prompt": "切線段 $\\overline{PA}$ 大約多長？（寫到小數點後一位）",
+        "answer": "√84",
+        "tolerance": 0.15,
+        "explanation": "切線垂直於過切點的半徑，所以 $\\triangle OAP$ 是直角三角形：$\\overline{PA}^2 = 10^2 - 4^2 = 84$，$\\overline{PA} = \\sqrt{84} = 2\\sqrt{21} \\approx 9.2$（$9^2 = 81$、$9.2^2 = 84.64$）。"
+      },
+      "notes": "容許誤差 ±0.15：9.1、9.2、9.17 都算對。先看全班答案的分布，再請估得最近、最遠的同學說怎麼想。",
+      "source": "暖身：估一估（複習切線與畢氏定理）"
+    }
+  ]
+}

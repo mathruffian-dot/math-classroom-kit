@@ -1,0 +1,545 @@
+/* 根式步驟格鬥 */
+#duel-board-host:empty {
+  display: none;
+}
+#duel-board-host {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+}
+.duel-board {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: clamp(10px, 2vh, 22px) clamp(12px, 2vw, 28px);
+  color: #fff;
+  background: radial-gradient(circle at 50% 40%, #3b2a6b, #1a1236 70%);
+  border-radius: 20px;
+  overflow: hidden;
+}
+.dl-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.dl-head strong {
+  font-size: clamp(18px, 2.4vw, 32px);
+}
+.dl-clock {
+  font-size: clamp(24px, 3.4vw, 46px);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.dl-clock.small {
+  font-size: 18px;
+  color: #1f2a5a;
+}
+.dl-bars {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.dl-bar {
+  position: relative;
+  height: 26px;
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.15);
+  overflow: hidden;
+}
+.dl-bar i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  transition: width 0.4s ease;
+}
+.dl-bar.red i {
+  background: linear-gradient(90deg, #ff6b6b, #c92a2a);
+}
+.dl-bar.blue i {
+  background: linear-gradient(90deg, #4dabf7, #1864ab);
+  left: auto;
+  right: 0;
+}
+.dl-bar span {
+  position: relative;
+  display: block;
+  padding: 0 12px;
+  line-height: 26px;
+  font-weight: 800;
+  font-size: 14px;
+}
+.dl-bar.blue span {
+  text-align: right;
+}
+.dl-bar.small {
+  height: 20px;
+}
+.dl-bar.small span {
+  line-height: 20px;
+  font-size: 12px;
+  color: #1f2a5a;
+}
+.dl-bar.small {
+  background: #eceaf5;
+}
+.dl-bar.small.mine {
+  outline: 2px solid #f59f00;
+}
+.dl-arena {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: end;
+}
+.dl-side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-height: 0;
+}
+.dl-side.blue .dl-fighter {
+  transform: scaleX(-1);
+}
+.dl-fighter {
+  max-height: clamp(120px, 38vh, 340px);
+  max-width: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.45));
+}
+.dl-name {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+.dl-name b {
+  font-size: clamp(16px, 2vw, 26px);
+}
+.dl-side.red .dl-name b {
+  color: #ff8787;
+}
+.dl-side.blue .dl-name b {
+  color: #74c0fc;
+}
+.dl-side.atk {
+  animation: dl-atk-red 0.5s ease;
+}
+.dl-side.blue.atk {
+  animation: dl-atk-blue 0.5s ease;
+}
+.dl-side.atk.big .dl-fighter {
+  filter: drop-shadow(0 0 26px #ffd43b);
+}
+.dl-side.hurt .dl-fighter {
+  animation: dl-hurt 0.45s ease;
+}
+.dl-side.oops .dl-fighter {
+  animation: dl-oops 0.5s ease;
+}
+@keyframes dl-atk-red {
+  40% {
+    transform: translateX(16%);
+  }
+}
+@keyframes dl-atk-blue {
+  40% {
+    transform: translateX(-16%);
+  }
+}
+@keyframes dl-hurt {
+  20%,
+  60% {
+    filter: brightness(2) drop-shadow(0 0 12px #fff);
+  }
+  40% {
+    translate: 6px 0;
+  }
+  80% {
+    translate: -6px 0;
+  }
+}
+@keyframes dl-oops {
+  50% {
+    filter: grayscale(1) brightness(0.7);
+    translate: 0 6px;
+  }
+}
+.dl-center {
+  align-self: center;
+  text-align: center;
+  padding: 0 12px;
+}
+.dl-vs {
+  font-size: clamp(34px, 5vw, 72px);
+  color: #ffd43b;
+  text-shadow: 0 0 18px rgba(255, 212, 59, 0.6);
+}
+.dl-count {
+  font-size: clamp(60px, 9vw, 130px);
+  color: #ffd43b;
+}
+.dl-result {
+  font-size: clamp(26px, 3.6vw, 52px);
+  color: #ffd43b;
+}
+.dl-fx {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.dl-pop {
+  position: absolute;
+  top: calc(30% + var(--y, 0%));
+  left: calc(var(--at, 50%) + var(--x));
+  translate: -50% 0;
+  font-size: clamp(22px, 3vw, 40px);
+  font-weight: 900;
+  animation: dl-pop 1.2s ease forwards;
+}
+.dl-pop.red {
+  color: #ffa8a8;
+}
+.dl-pop.blue {
+  color: #a5d8ff;
+}
+.dl-pop.finish {
+  color: #ffd43b;
+  font-size: clamp(28px, 4vw, 54px);
+}
+.dl-pop.miss {
+  color: #ced4da;
+  font-size: clamp(16px, 2vw, 26px);
+}
+@keyframes dl-pop {
+  to {
+    translate: -50% -80px;
+    opacity: 0;
+  }
+}
+.dl-feed {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+  font-size: clamp(12px, 1.4vw, 17px);
+  max-height: 7.5em;
+  overflow: hidden;
+}
+.dl-feed li.red {
+  color: #ffc9c9;
+}
+.dl-feed li.blue {
+  color: #d0ebff;
+}
+.dl-feed li.miss {
+  opacity: 0.7;
+}
+.dl-feed li.finish {
+  font-weight: 800;
+}
+/* 老師結算 */
+.dl-results {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.dl-results th,
+.dl-results td {
+  padding: 4px 6px;
+  border-bottom: 1px solid var(--line, #e5e5e5);
+  text-align: center;
+}
+.dl-results tr.red td:first-child {
+  border-left: 4px solid #e03131;
+}
+.dl-results tr.blue td:first-child {
+  border-left: 4px solid #1c7ed6;
+}
+.dl-badges td {
+  text-align: left;
+}
+.dl-badges i,
+.dl-badge {
+  font-style: normal;
+  display: inline-block;
+  margin: 2px 4px 2px 0;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: #fff3bf;
+  font-size: 12px;
+  font-weight: 700;
+}
+.dl-weak {
+  display: grid;
+  gap: 4px;
+  margin: 8px 0;
+  padding: 10px;
+  border-radius: 12px;
+  background: #fff5f5;
+}
+.dl-weak div {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0 8px;
+}
+.dl-weak small {
+  grid-column: 1;
+  color: var(--muted, #667);
+}
+.dl-weak em {
+  grid-row: 1 / span 2;
+  grid-column: 2;
+  align-self: center;
+  font-style: normal;
+  font-weight: 800;
+  color: #c92a2a;
+}
+/* 學生作答卡 */
+.duel-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.dl-card-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.dl-card-head h2 {
+  margin: 0;
+  font-size: 20px;
+  flex: 1;
+}
+.dl-team-tag {
+  padding: 4px 10px;
+  border-radius: 12px;
+  color: #fff;
+  font-weight: 800;
+}
+.dl-team-tag.red {
+  background: #e03131;
+}
+.dl-team-tag.blue {
+  background: #1c7ed6;
+}
+.dl-mini {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.dl-big-count {
+  font-size: 64px;
+  font-weight: 900;
+  text-align: center;
+  margin: 8px 0;
+}
+.dl-over {
+  font-size: 26px;
+  font-weight: 900;
+  text-align: center;
+  margin: 8px 0;
+}
+.dl-mine {
+  text-align: center;
+  line-height: 1.8;
+}
+.dl-work {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.dl-family {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted, #667);
+}
+.dl-start {
+  font-size: 26px;
+}
+.dl-done {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+.dl-done li {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 22px;
+}
+.dl-eq {
+  color: var(--muted, #667);
+  font-weight: 700;
+}
+.dl-rule-chip {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: #efe7ff;
+  color: #5f3dc4;
+  font-weight: 700;
+}
+.dl-ask {
+  margin: 4px 0 0;
+  font-weight: 800;
+}
+.dl-rules {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.dl-rule {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-height: 64px;
+  padding: 10px;
+  border-radius: 12px;
+  border: 2px solid var(--line, #ddd);
+  background: var(--surface, #fff);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.dl-rule small {
+  color: var(--muted, #667);
+}
+.dl-rule.hint {
+  border-color: #f59f00;
+  box-shadow: 0 0 0 3px rgba(245, 159, 0, 0.3);
+}
+.dl-hint {
+  margin: 0;
+  color: #b06d00;
+  font-weight: 700;
+}
+.dl-next {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 24px;
+  padding: 10px;
+  border-radius: 12px;
+  background: var(--soft, #f4f2fb);
+}
+.dl-line {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px;
+}
+.dl-t {
+  padding: 0 1px;
+}
+.dl-sqrt {
+  display: inline-flex;
+  align-items: stretch;
+}
+/* 根號：√ 的右上角接著上面那條線（線畫在被開方的部分上方） */
+.dl-rad {
+  display: inline-flex;
+  align-items: flex-end;
+  font-size: 1.15em;
+  line-height: 1;
+  margin-right: -0.06em;
+  transform: scaleY(1.15);
+  transform-origin: bottom;
+}
+.dl-under {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  border-top: 0.09em solid currentColor;
+  margin-top: 0.02em;
+  padding: 0.12em 0.12em 0;
+}
+.dl-frac {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  vertical-align: middle;
+  font-size: 0.9em;
+}
+.dl-num,
+.dl-den {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0 4px;
+}
+.dl-num {
+  border-bottom: 2px solid currentColor;
+  padding-bottom: 2px;
+}
+.dl-den {
+  padding-top: 2px;
+}
+.dl-blank {
+  min-width: 44px;
+  min-height: 40px;
+  padding: 0 6px;
+  border-radius: 8px;
+  border: 2px dashed #7b2ff7;
+  background: #fff;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+span.dl-blank {
+  display: inline-block;
+  min-width: 26px;
+  min-height: 24px;
+}
+.dl-blank.filled {
+  border-style: solid;
+  background: #f4efff;
+}
+.dl-blank.active {
+  border-color: #f59f00;
+  box-shadow: 0 0 0 3px rgba(245, 159, 0, 0.35);
+}
+.dl-tiles {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.dl-tile {
+  min-height: 52px;
+  border-radius: 12px;
+  border: 2px solid #7b2ff7;
+  background: #f4efff;
+  font: inherit;
+  font-size: 22px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.dl-flash {
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-weight: 800;
+}
+.dl-flash.ok {
+  background: #e6fcf5;
+  color: #087f5b;
+}
+.dl-flash.no {
+  background: #fff5f5;
+  color: #c92a2a;
+}
+@media (max-width: 520px) {
+  .dl-rules {
+    grid-template-columns: 1fr;
+  }
+}

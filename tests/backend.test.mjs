@@ -7,7 +7,7 @@ import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 const dir=await mkdtemp(join(tmpdir(),'classroom-backend-'));
-await build({entryPoints:[resolve('worker/app.ts'),resolve('worker/storage.ts'),resolve('worker/index.ts'),resolve('worker/ai.ts'),resolve('worker/validation.ts'),resolve('shared/expr.ts'),resolve('shared/practice.ts'),resolve('shared/quiz.ts'),resolve('shared/raid.ts'),resolve('shared/make.ts')],outdir:dir,bundle:true,platform:'node',format:'esm',outExtension:{'.js':'.mjs'},logLevel:'silent'});
+await build({entryPoints:[resolve('worker/app.ts'),resolve('worker/storage.ts'),resolve('worker/index.ts'),resolve('worker/ai.ts'),resolve('worker/validation.ts'),resolve('shared/expr.ts'),resolve('shared/practice.ts'),resolve('shared/quiz.ts'),resolve('shared/raid.ts'),resolve('shared/make.ts'),resolve('shared/duel.ts')],outdir:dir,bundle:true,platform:'node',format:'esm',outExtension:{'.js':'.mjs'},logLevel:'silent'});
 const {handleApi,liveTicket,liveView}=await import(pathToFileURL(join(dir,'worker','app.mjs')).href);
 const {SupabaseStore,DurableStore,SessionSplitStore,MAX_SNAPSHOT_BYTES}=await import(pathToFileURL(join(dir,'worker','storage.mjs')).href);
 const {ClassroomDurableObject}=await import(pathToFileURL(join(dir,'worker','index.mjs')).href);
@@ -1251,6 +1251,83 @@ test('make (radical 24-game): every card once, + − × ÷ and brackets; judged 
   const t=(await f.call(`/api/sessions/${s.id}`)).body;
   assert.equal(t.aggregate.correct,2);assert.equal(t.aggregate.counts['[0]*[1]+[3]/[2]'],1);
   assert.equal((await f.call(`/api/sessions/${s.id}`,'GET',null,'seat2')).body.aggregate.correct,undefined,'hidden until the results');
+});
+
+test('radical step duel: balanced red/blue teams, rule then fill for each step, hints after two misses, damage, results and records',async()=>{
+  const duelLib=await import(pathToFileURL(join(dir,'shared','duel.mjs')).href);
+  const {readFile}=await import('node:fs/promises');
+  const {f}=await setup();
+  const s=(await f.call('/api/sessions','POST',{lessonId:'g8-2-2a',classId:'demo-class'})).body.session;
+  const lesson=(await f.call(`/api/sessions/${s.id}`)).body.lesson;
+  const at=lesson.slides.findIndex(x=>x.duelPage);
+  assert(at>0&&lesson.slides[at+1]?.quizPage,'the duel page sits right before the after-class quiz');
+  await goOnline(f,[1,2,3,4]);
+  const ctl=(body)=>f.call(`/api/sessions/${s.id}/control`,'POST',body);
+  assert.equal((await ctl({action:'duel-start',seconds:480})).status,200);
+  const run=(await f.call(`/api/sessions/${s.id}`)).body.duel.run;
+  const teams=Object.values(run.teams);
+  assert.equal(teams.filter(t=>t==='red').length,2);assert.equal(teams.filter(t=>t==='blue').length,2);
+  const duel=(who,body)=>f.call(`/api/sessions/${s.id}/duel`,'POST',{runId:run.id,...body},who);
+  assert.equal((await duel('seat1',{op:'next'})).status,409,'countdown');
+  f.data.sessions[s.id].session.duel.startedAt-=4000;
+  const bank=JSON.parse(await readFile('content/duels/g8-2-2a.json','utf8'));
+  const first=(await duel('seat1',{op:'next'})).body;
+  assert.equal(first.team,run.teams['1']);
+  const p=first.problem;
+  assert.equal(p.phase,'rule');assert.equal(p.rules.length,4);assert.equal(JSON.stringify(first).includes('"fill"'),false,'no answers sent');
+  const item=bank.problems.find(x=>x.id===p.id);
+  // 選錯規則兩次：扣自己隊伍、出現提示（正確的規則）
+  const wrongRule=p.rules.findIndex(r=>r!==item.steps[0].rule);
+  const w1=(await duel('seat1',{op:'answer',phase:'rule',choice:wrongRule})).body;
+  assert.equal(w1.ok,false);
+  const w2=(await duel('seat1',{op:'answer',phase:'rule',choice:wrongRule})).body;
+  assert.equal(w2.problem.hint,item.steps[0].rule,'hint after two misses');
+  assert.equal((await duel('seat1',{op:'answer',phase:'fill',values:item.steps[0].fill[0]})).status,409,'pick the rule first');
+  // 做完整題：每一步選對規則、填對算式
+  let cur=w2.problem,last;
+  for(let k=0;k<item.steps.length;k++){
+    const stp=item.steps[k];
+    const r1=(await duel('seat1',{op:'answer',phase:'rule',choice:cur.rules.indexOf(stp.rule)})).body;
+    assert.equal(r1.ok,true);assert.equal(r1.problem.phase,'fill');assert.deepEqual([...r1.problem.tiles].sort(),[...stp.tiles].sort());
+    if(k===0){
+      const bad=(await duel('seat1',{op:'answer',phase:'fill',values:stp.fill[0].map(()=>stp.tiles.find(x=>!stp.fill[0].includes(x))||stp.tiles[0])})).body;
+      assert.equal(bad.ok,false,'wrong fill');
+      assert.equal((await duel('seat1',{op:'answer',phase:'fill',values:stp.fill[0].map(()=>'999')})).status,400,'only tiles');
+    }
+    last=(await duel('seat1',{op:'answer',phase:'fill',values:stp.fill[stp.fill.length-1]})).body;
+    assert.equal(last.ok,true,`step ${k+1}`);
+    cur=last.problem;
+  }
+  assert.equal(last.final,true);assert.equal(last.solved,1);assert.notEqual(last.problem.id,p.id,'next problem right away');
+  // 戰況：對方隊伍掉血、自己隊伍因為答錯掉一點
+  const tv=(await f.call(`/api/sessions/${s.id}`)).body.duel;
+  const mine=run.teams['1'],foe=mine==='red'?'blue':'red';
+  assert(tv.state.hp[foe]<100&&tv.state.hp[mine]<100);
+  assert(tv.state.log.some(e=>e.k==='finish'&&e.seat===1));
+  assert(tv.weak.length>=1,'class accuracy per rule');
+  const sv=(await f.call(`/api/sessions/${s.id}`,'GET',null,'seat2')).body.duel;
+  assert.deepEqual(Object.keys(sv.state.stats),[],'students only get their own stats');
+  // 規則：傷害依人數平均；答錯不會直接輸
+  const st=duelLib.duelReplay([{t:1,seat:1,team:'red',phase:'fill',rule:'mul',ok:true,final:true,w:1}],{red:1,blue:1},480,10);
+  assert.equal(Math.round((100-st.hp.blue)*1000)/1000,Math.round(duelLib.DUEL_POINTS.final*duelLib.duelScale(480,1)*1000)/1000);
+  const miss=duelLib.duelReplay(Array.from({length:999},(_,i)=>({t:i,seat:1,team:'red',phase:'rule',rule:'mul',ok:false,w:1})),{red:1,blue:1},480,2000);
+  assert.equal(miss.result,null);assert(miss.hp.red>=1);
+  // 結束：結算與紀錄
+  await ctl({action:'duel-end'});
+  const done=(await f.call(`/api/sessions/${s.id}`)).body.duel;
+  assert(done.results.some(r=>r.seat===1&&r.finished===1));
+  assert.equal((await f.call(`/api/sessions/${s.id}`,'GET',null,'seat1')).body.duel.results.length,1);
+  assert.equal((await duel('seat1',{op:'next'})).status,409,'over');
+  const csv=new TextDecoder().decode((await f.call(`/api/sessions/${s.id}/export?format=csv`)).body);
+  assert(csv.includes('"步驟格鬥"'));
+  const backup=(await f.call('/api/backup')).body;
+  const g=fixture();await g.call('/api/login','POST',TEACHER);
+  assert.equal((await g.call('/api/restore','POST',{backup})).status,200);
+  assert.equal(g.data.sessions[s.id].duelRuns.length,1);assert(g.data.sessions[s.id].duelPlay[run.id].actions.length>=6);
+  // 開魔王戰或課後檢核時收起步驟格鬥
+  await ctl({action:'duel-start',seconds:300});
+  await ctl({action:'quiz-class'});
+  assert.equal((await f.call(`/api/sessions/${s.id}`)).body.session.duel,null);
 });
 
 test('fullSlide: one figure fills the slide; zero or several figures are rejected',()=>{
