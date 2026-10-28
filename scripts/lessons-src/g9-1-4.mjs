@@ -861,6 +861,7 @@ const lessonC = {
       body: '在直角三角形中，∠A 的對邊 a、鄰邊 b、斜邊 c。拖拉 ∠A，看三個比值怎麼變。',
       source: src(70),
       figures: [fig('trig-def.png', '課本 p.70 直角三角形的邊長比值'), fig('keybox-trig.png', '課本 p.70 Key point')],
+      videos: [{ youtube: 'L6vBdX9rc2o', title: '三角函數，打起精神來！王貞儀饒舌（三帥爸 Sense Bar）', vertical: true }],
       interactive: {
         view: { xMin: -0.6, xMax: 17, yMin: -1.4, yMax: 8.6, aspect: 'equal' },
         params: [{ id: 'ang', label: '∠A', min: 10, max: 75, step: 1, value: 30, unit: '°' }],

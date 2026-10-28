@@ -208,6 +208,13 @@ export interface Animation {
   /** 只由伺服器設定：學生端尚未解鎖時，src／poster 會被移除。 */
   locked?: boolean;
 }
+/** YouTube 影片：只在老師端顯示縮圖，點了在對話框裡播放（youtube-nocookie）。vertical 是直式 Shorts。 */
+export interface SlideVideo {
+  youtube: string;
+  title: string;
+  vertical?: boolean;
+  start?: number;
+}
 export interface Slide {
   id: string;
   title: string;
@@ -228,6 +235,7 @@ export interface Slide {
   /** 整頁簡報圖：唯一一張 figure 填滿投影片區（不加「課本」標籤），標題只留給頁碼點與備註，不另外顯示。 */
   fullSlide?: boolean;
   animation?: Animation;
+  videos?: SlideVideo[];
   activity?: Activity;
   notes?: string;
   source?: string;

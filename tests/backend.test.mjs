@@ -117,6 +117,16 @@ test('animations stay locked for students until results are shown on that slide;
   assert.equal((await f.call('/api/lessons/anim-bad','PUT',{lesson:bad})).status,400);
 });
 
+test('YouTube videos on a slide: 11-character id, title required, vertical/start kept',async()=>{
+  const real=JSON.parse((await import('node:fs')).readFileSync(resolve('content/lessons/g8-2-3a.json'),'utf8'));
+  const first=real.slides.find(s=>!s.videos);delete first.activity;
+  const base={...real,slides:[first]};
+  const ok=validateLesson({...base,slides:[{...base.slides[0],videos:[{youtube:'XkDKOFpIYDk',title:'影片',vertical:true,start:5}]}]});
+  assert.deepEqual(ok.slides[0].videos,[{youtube:'XkDKOFpIYDk',title:'影片',vertical:true,start:5}]);
+  for(const videos of [[{youtube:'https://youtu.be/XkDKOFpIYDk',title:'x'}],[{youtube:'XkDKOFpIYD"',title:'x'}],[{youtube:'XkDKOFpIYDk'}],[],{}])
+    assert.throws(()=>validateLesson({...base,slides:[{...base.slides[0],videos}]}));
+});
+
 test('solution steps stay hidden from students until results are shown on that slide',async()=>{
   const f=fixture();assert.equal((await f.call('/api/login','POST',TEACHER)).status,200);
   const d=(await f.call('/api/dashboard')).body;
@@ -150,6 +160,23 @@ test('per-class student code switch: off by default, teacher-only, enabling revo
   assert.equal((await f.call('/api/login','POST',{role:'student',classCode:'DEMO801',seat:5,code:'DEMO05'},'student')).status,200);
   await f.call(`/api/classes/${cl.id}`,'PATCH',{requireCode:false});
   assert.equal((await f.call('/api/login','POST',{role:'student',classCode:'DEMO801',seat:6},'third')).status,200);
+});
+
+test('deleting a class: teacher-only, needs withRecords when it has sessions, removes sessions, photos and logins',async()=>{
+  const {f,session}=await setup();
+  const cl=session.classId;
+  f.vaultMap.set('blob:img1','x');f.data.images={img1:{sessionId:session.id}};
+  assert.equal((await f.call(`/api/classes/${cl}`,'DELETE',undefined,'student')).status,403);
+  assert.equal((await f.call(`/api/classes/${cl}`,'DELETE')).status,409);
+  assert.ok((await f.call('/api/dashboard')).body.classes.some(c=>c.id===cl));
+  assert.equal((await f.call(`/api/classes/${cl}`,'DELETE',{withRecords:true})).status,200);
+  const d=(await f.call('/api/dashboard')).body;
+  assert.ok(!d.classes.some(c=>c.id===cl));assert.ok(!d.sessions.some(s=>s.classId===cl));
+  assert.ok(!f.vaultMap.has('blob:img1'));assert.ok(!f.data.images.img1);
+  assert.equal((await f.call('/api/me','GET',null,'student')).body.user,null);
+  const empty=(await f.call('/api/classes','POST',{name:'空班',seats:2})).body.classroom;
+  assert.equal((await f.call(`/api/classes/${empty.id}`,'DELETE')).status,200);
+  assert.equal((await f.call(`/api/classes/${empty.id}`,'DELETE')).status,404);
 });
 
 test('backup excludes secrets; valid restore works; malformed input cannot commit; class reset revokes student session',async()=>{

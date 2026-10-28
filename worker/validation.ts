@@ -502,6 +502,21 @@ export function validateLesson(input: unknown): Lesson {
           }
           slide.animation = anim;
         }
+        if (s.videos !== undefined) {
+          assert(Array.isArray(s.videos) && s.videos.length >= 1 && s.videos.length <= 3, '每頁 YouTube 影片 1–3 支');
+          slide.videos = s.videos.map((raw) => {
+            const v = record(raw);
+            const id = str(v.youtube, 'YouTube 影片 ID', 11, 11);
+            assert(/^[A-Za-z0-9_-]{11}$/.test(id), `YouTube 影片 ID「${id}」格式不正確（網址裡 11 個字元的那段）`);
+            const video: NonNullable<Lesson['slides'][number]['videos']>[number] = { youtube: id, title: str(v.title, '影片標題', 120, 1) };
+            if (v.vertical !== undefined) {
+              assert(typeof v.vertical === 'boolean', 'vertical 必須是 true 或 false');
+              if (v.vertical) video.vertical = true;
+            }
+            if (v.start !== undefined) video.start = integer(v.start, 0, 3600);
+            return video;
+          });
+        }
         if (s.activity) {
           slide.activity = validateActivity(s.activity, slide.interactive);
           assert(!activityIds.has(slide.activity.id), '活動 ID 不可重複');

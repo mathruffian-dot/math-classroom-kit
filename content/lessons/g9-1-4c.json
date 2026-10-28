@@ -423,6 +423,13 @@
           "alt": "課本 p.70 Key point"
         }
       ],
+      "videos": [
+        {
+          "youtube": "L6vBdX9rc2o",
+          "title": "三角函數，打起精神來！王貞儀饒舌（三帥爸 Sense Bar）",
+          "vertical": true
+        }
+      ],
       "interactive": {
         "view": {
           "xMin": -0.6,

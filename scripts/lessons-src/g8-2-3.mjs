@@ -389,6 +389,7 @@ const lessonA = {
       body: '按「下一步」：三邊各畫一個正方形，顏色和式子對應。只有直角三角形才成立。',
       source: src(94),
       figures: [fig('keybox-pythagoras.png', '課本 p.94 畢氏定理重點框')],
+      videos: [{ youtube: 'XkDKOFpIYDk', title: '兩股平方和＝斜邊的平方！畢達哥拉斯饒舌（三帥爸 Sense Bar）', vertical: true }],
       interactive: V.figSteps({
         view: VIEW,
         figure: P.theoremFigure(),
@@ -1275,6 +1276,7 @@ const lessonC = {
       body: '看課本重點回顧，用一句話說明：兩點距離公式和畢氏定理有什麼關係？',
       source: src(103),
       figures: [fig('summary-1.png', '課本 p.103 重點回顧：畢氏定理、斜邊上的高'), fig('summary-2.png', '課本 p.103 重點回顧：平面上兩點的距離')],
+      videos: [{ youtube: 'XyVs0EUNWko', title: '正名之戰：畢達哥拉斯 vs 趙爽 數學史饒舌對決（三帥爸 Sense Bar）' }],
       activity: {
         id: 'c-exit-q',
         type: 'short',

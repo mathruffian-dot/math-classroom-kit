@@ -1226,6 +1226,17 @@ td small {
 .figure-only .textbook-fig img {
   max-height: 44cqh;
 }
+/* 只有課本圖、又有動畫／影片卡：排成一排，卡片放最左邊，才不會疊太高被切掉 */
+.figure-only .textbook-figs:has(.anim-card) {
+  flex-direction: row;
+  align-items: center;
+}
+.figure-only .textbook-figs:has(.anim-card) .textbook-fig {
+  flex: 1 1 0;
+}
+.figure-only .textbook-figs:has(.anim-card) .textbook-fig img {
+  max-height: 60cqh;
+}
 /* 整頁簡報圖（fullSlide）：簡報頁本身就有標題，圖填滿投影片區；動畫卡（若有）縮到同一排 */
 .slide-head.full-slide h1 {
   position: absolute;
@@ -1312,6 +1323,36 @@ td small {
   color: #fff;
   border-radius: 6px;
   padding: 0 5px;
+}
+.yt-thumb::after {
+  content: '▶ YouTube';
+  background: #ff3b30;
+  color: #fff;
+}
+.modal:has(.yt-frame) {
+  width: min(1120px, 100%);
+}
+.modal:has(.yt-frame.vertical) {
+  width: min(480px, 100%);
+}
+.yt-frame {
+  width: min(100%, calc((100dvh - 160px) * 16 / 9));
+  aspect-ratio: 16 / 9;
+  margin: 0 auto;
+}
+.yt-frame.vertical {
+  width: auto;
+  height: min(calc(100dvh - 160px), 780px);
+  max-width: 100%;
+  aspect-ratio: 9 / 16;
+}
+.yt-frame iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: 12px;
+  background: #000;
 }
 .anim-card.locked .anim-thumb {
   cursor: default;

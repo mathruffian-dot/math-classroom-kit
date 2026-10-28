@@ -214,7 +214,7 @@ function renderClasses() {
   shell(
     'classes',
     '班級與學生',
-    `<p class="page-description">學生以班級代碼、座號登入，不需要姓名；每個班級可另外開啟「個人識別碼」驗證。</p><div class="class-grid">${dashboard!.classes.map((c) => `<article class="class-card"><h2>${esc(c.name)}</h2><p>${c.seats} 位學生</p><code class="class-code">${esc(c.code)}</code><label class="switch"><input type="checkbox" data-require-code="${esc(c.id)}" ${c.requireCode ? 'checked' : ''} data-testid="toggle-require-code"><span></span>學生登入需要個人識別碼</label><p class="muted small-text">${c.requireCode ? (config.mode === 'demo' && c.code === 'DEMO801' ? '示範識別碼：DEMO01–DEMO40' : '個人識別碼只在建立時提供一次，請妥善保存。') : '目前停用（測試用）：知道班級代碼的人都能用任一座號登入。正式上課前請開啟。'}</p><div class="actions">${btn('學生入口', 'join-code', 'secondary', 'users', `data-code="${esc(c.code)}"`)}${btn('重發識別碼', 'reset-code', 'quiet', 'shield', `data-id="${esc(c.id)}" data-seats="${c.seats}"`)}</div></article>`).join('') || '<p class="empty-state">還沒有班級。</p>'}</div>`,
+    `<p class="page-description">學生以班級代碼、座號登入，不需要姓名；每個班級可另外開啟「個人識別碼」驗證。</p><div class="class-grid">${dashboard!.classes.map((c) => `<article class="class-card"><h2>${esc(c.name)}</h2><p>${c.seats} 位學生</p><code class="class-code">${esc(c.code)}</code><label class="switch"><input type="checkbox" data-require-code="${esc(c.id)}" ${c.requireCode ? 'checked' : ''} data-testid="toggle-require-code"><span></span>學生登入需要個人識別碼</label><p class="muted small-text">${c.requireCode ? (config.mode === 'demo' && c.code === 'DEMO801' ? '示範識別碼：DEMO01–DEMO40' : '個人識別碼只在建立時提供一次，請妥善保存。') : '目前停用（測試用）：知道班級代碼的人都能用任一座號登入。正式上課前請開啟。'}</p><div class="actions">${btn('學生入口', 'join-code', 'secondary', 'users', `data-code="${esc(c.code)}"`)}${btn('重發識別碼', 'reset-code', 'quiet', 'shield', `data-id="${esc(c.id)}" data-seats="${c.seats}"`)}${btn('刪除班級', 'delete-class', 'quiet danger', 'trash', `data-id="${esc(c.id)}" data-testid="delete-class"`)}</div></article>`).join('') || '<p class="empty-state">還沒有班級。</p>'}</div>`,
     btn('建立班級', 'new-class', 'primary', 'plus'),
   );
 }
@@ -377,9 +377,19 @@ function figureFocusHtml(slide: Slide) {
   if (!f) return '';
   return `<div class="fig-focus" data-testid="figure-focus"><figure><img src="/api/assets/lessons/${esc(f.src)}" alt="${esc(f.alt)}"><figcaption>${esc(f.alt)}</figcaption></figure></div>${close('縮小課本截圖')}`;
 }
+// YouTube 影片只給老師（投影播放）；學生 iPad 不顯示，避免全班一起出聲
+const slideVideos = (slide: Slide) => (user?.role === 'teacher' ? slide.videos || [] : []);
+function videosHtml(slide: Slide) {
+  return slideVideos(slide)
+    .map(
+      (v) =>
+        `<figure class="anim-card yt-card"><button type="button" class="anim-thumb yt-thumb" data-action="play-youtube" data-yt="${esc(v.youtube)}" data-title="${esc(v.title)}" data-start="${v.start || 0}" ${v.vertical ? 'data-vertical="1"' : ''} aria-label="播放影片：${esc(v.title)}" data-testid="play-youtube"><img src="https://i.ytimg.com/vi/${esc(v.youtube)}/hqdefault.jpg" alt="" loading="lazy" referrerpolicy="no-referrer"><span class="anim-play">${icon('play')}</span></button><figcaption>${esc(v.title)}</figcaption></figure>`,
+    )
+    .join('');
+}
 function figuresHtml(slide: Slide) {
-  if (!slide.figures?.length && !slide.animation) return '';
-  return `<div class="textbook-figs">${animationHtml(slide)}${(slide.figures || [])
+  if (!slide.figures?.length && !slide.animation && !slideVideos(slide).length) return '';
+  return `<div class="textbook-figs">${animationHtml(slide)}${videosHtml(slide)}${(slide.figures || [])
     .map(
       (f, i) =>
         `<figure class="textbook-fig"><button type="button" data-action="zoom-figure" data-index="${i}" data-src="${esc(f.src)}" data-alt="${esc(f.alt)}" aria-label="放大課本截圖：${esc(f.alt)}"><img src="/api/assets/lessons/${esc(f.src)}" alt="${esc(f.alt)}" loading="lazy"></button>${f.caption ? `<figcaption>${md(f.caption)}</figcaption>` : ''}</figure>`,
@@ -387,7 +397,7 @@ function figuresHtml(slide: Slide) {
     .join('')}</div>`;
 }
 function slideMarkup(slide: Slide, index: number, total: number) {
-  const figs = !!(slide.figures?.length || slide.animation);
+  const figs = !!(slide.figures?.length || slide.animation || slideVideos(slide).length);
   // 標了 visual 的選擇／自評題：卡片由選項產生（不需要 bullets）
   const optionCards = !!slide.visual && ['single', 'multiple', 'scale'].includes(slide.activity?.type || '');
   const hasVisual = slide.interactive || slide.customHtml || slide.bullets?.length || optionCards || figs || slide.activity?.type === 'make';
@@ -2850,6 +2860,23 @@ async function action(el: HTMLElement) {
       const result = await api(`/classes/${id}/credentials`, 'POST', { seat });
       return modal('新的識別碼', `<p>${seat} 號的新識別碼只顯示這一次：</p><code class="class-code">${esc(result.credential.code)}</code>`);
     }
+    case 'delete-class': {
+      const c = dashboard?.classes.find((x) => x.id === id);
+      if (!c) return;
+      const n = dashboard!.sessions.filter((s) => s.classId === id).length;
+      return modal(
+        `刪除「${esc(c.name)}」？`,
+        `<p>${n ? `這個班級有 <strong>${n} 堂課堂紀錄</strong>，作答、批改、作答照片和學習紀錄會一起刪除，無法復原。請先到「課堂紀錄」下載備份。` : '班級、學生登入與學習紀錄會刪除，無法復原。'}</p><p>請輸入班級代碼 <strong>${esc(c.code)}</strong> 確認刪除。</p><label>班級代碼<input id="delete-class-code" autocomplete="off" spellcheck="false" data-testid="delete-class-code"></label>${btn('確認刪除', 'confirm-delete-class', 'danger-fill', 'trash', `data-id="${esc(id!)}" data-code="${esc(c.code)}" data-records="${n}"`)}`,
+      );
+    }
+    case 'confirm-delete-class': {
+      const typed = document.querySelector<HTMLInputElement>('#delete-class-code')!.value.trim().toUpperCase();
+      if (typed !== el.dataset.code!.toUpperCase()) return toast('班級代碼不正確', true);
+      await api(`/classes/${id}`, 'DELETE', Number(el.dataset.records) ? { withRecords: true } : undefined);
+      closeModal();
+      await renderRoute();
+      return toast('班級已刪除');
+    }
     case 'join-code':
       return showJoinInfo(el.dataset.code!);
     case 'copy-student': {
@@ -2892,6 +2919,19 @@ async function action(el: HTMLElement) {
       closeModal();
       await renderRoute();
       return toast('課堂紀錄已刪除');
+    case 'play-youtube': {
+      // 對話框在 #app 外面，課堂畫面重畫時影片不會中斷
+      const yt = el.dataset.yt!,
+        start = Number(el.dataset.start) || 0,
+        vertical = !!el.dataset.vertical;
+      const src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(yt)}?autoplay=1&rel=0&playsinline=1${start ? `&start=${start}` : ''}`;
+      const watch = vertical ? `https://www.youtube.com/shorts/${encodeURIComponent(yt)}` : `https://youtu.be/${encodeURIComponent(yt)}${start ? `?t=${start}` : ''}`;
+      return modal(
+        `🎬 ${esc(el.dataset.title || '影片')}`,
+        `<div class="yt-frame ${vertical ? 'vertical' : ''}"><iframe src="${src}" title="${esc(el.dataset.title || 'YouTube 影片')}" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" data-testid="youtube-player"></iframe></div><p class="muted small-text">播不出來（學校網路擋 YouTube）時，<a href="${watch}" target="_blank" rel="noopener noreferrer">改在 YouTube 開啟</a>。</p>`,
+        vertical ? '' : 'wide',
+      );
+    }
     case 'play-animation': {
       // 授課中：在投影片區內播放，工具照常可用
       if (view && document.querySelector('#slide-stage')) {

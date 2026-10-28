@@ -80,6 +80,17 @@
 - 頁面有 IRS 時，學生端要等老師在這一頁按「公布結果」才解鎖（伺服器端鎖定，直接讀檔也會被擋）；`"reveal": "always"` 則一律可看。預測頁若要「保留疑問到下一頁」，就不要放動畫。
 - 2-2 的動畫由 `八年級/影片/根式的運算_動畫簡報_v1/tools/export_classroom.py` 從解說影片剪出，對照表在 `scripts/lessons-src/g8-2-2-animations.json`。
 
+**YouTube 影片（videos）**
+
+```json
+"videos": [{ "youtube": "XkDKOFpIYDk", "title": "兩股平方和＝斜邊的平方！（三帥爸 Sense Bar）", "vertical": true }]
+```
+
+- `youtube` 是網址裡 11 個字元的影片 ID（`youtu.be/<ID>`、`youtube.com/shorts/<ID>`）。直式 Shorts 加 `"vertical": true`；`"start": 秒數` 從中間開始播。每頁最多 3 支。
+- 只有老師端顯示紅色「▶ YouTube」縮圖卡片，點了在對話框裡播放（`youtube-nocookie.com`，課堂畫面更新時不會中斷）；學生 iPad 不顯示，避免全班同時出聲。
+- 學校網路擋 YouTube 時，對話框下方有「改在 YouTube 開啟」的連結。
+- 影片不下載、不進 git，只嵌入播放器。
+
 ## 三、可操作視覺化（interactive）
 
 **座標**：使用數學座標（y 向上）。幾何圖形請加上 `aspect: "equal"`。

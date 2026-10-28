@@ -1269,11 +1269,19 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
       requireTeacher(user);
       const cl = state.classes[classDelete[1]];
       assert(cl && cl.ownerId === user.id, '找不到班級', 404);
-      assert(
-        ![...Object.values(state.sessions), ...Object.values(state.archive || {})].some((s) => s.session.classId === cl.classroom.id),
-        '請先刪除這個班級的課堂紀錄',
-        409,
-      );
+      const records = [...Object.values(state.sessions), ...Object.values(state.archive || {})].filter((s) => s.session.classId === cl.classroom.id);
+      // 有課堂紀錄時要明確要求一起刪除（作答、照片一併刪掉）
+      assert(!records.length || body.withRecords === true, '請先刪除這個班級的課堂紀錄', 409);
+      const ids = new Set(records.map((s) => s.session.id));
+      for (const [id, meta] of Object.entries(state.images))
+        if (ids.has(meta.sessionId)) {
+          await vault.delete(`blob:${id}`);
+          delete state.images[id];
+        }
+      for (const id of ids) {
+        delete state.sessions[id];
+        delete state.archive?.[id];
+      }
       for (const [key, login] of Object.entries(state.logins))
         if (login.user.classId === cl.classroom.id) delete state.logins[key];
       delete state.classes[cl.classroom.id];
