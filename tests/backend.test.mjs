@@ -650,8 +650,13 @@ test('live push views are scoped per user and stop after logout or wrong origin 
   await assert.rejects(()=>liveTicket(req('teacher','?sessionId=nope'),f.data),/找不到課堂/);
   await f.call('/api/logout','POST',{},'second');
   assert.equal(liveView(f.data,tSecond),null,'logged-out sockets get closed');
-  await f.call(`/api/sessions/${session.id}/control`,'POST',{action:'end'});
+  const ended=await f.call(`/api/sessions/${session.id}/control`,'POST',{action:'end'});
   assert.deepEqual(liveView(f.data,tStudent),{session:null},'students return to the waiting room when class ends');
+  const endedAt=ended.body.session.endedAt;
+  const again=await f.call(`/api/sessions/${session.id}/control`,'POST',{action:'end'});
+  assert.equal(again.status,200,'ending twice (lost response on a flaky network) is not an error');
+  assert.equal(again.body.session.endedAt,endedAt,'the first end time is kept');
+  assert.equal((await f.call(`/api/sessions/${session.id}/control`,'POST',{action:'slide',index:0})).status,409);
 });
 
 test('original-question practice: redo each wrong item once; all right passes, any miss needs help',()=>{

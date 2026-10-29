@@ -1369,6 +1369,8 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
       }
       if (action === 'control' && method === 'POST') {
         requireTeacher(user);
+        // 已經結束了再按一次（例如網路不穩，第一次的回應沒收到）：直接回傳結束後的畫面
+        if (session.ended && body.action === 'end') return json(sessionView(state, s, user, ctx.online?.()));
         assert(!session.ended || body.action === 'release-grades', '課堂已結束', 409);
         switch (body.action) {
           case 'slide':
