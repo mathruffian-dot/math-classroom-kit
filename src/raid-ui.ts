@@ -420,21 +420,42 @@ function goalChoices(prev?: number): [number, string][] {
   if (prev === undefined || prev < 1) return [[3, '穩穩來'], [5, '拚一下'], [8, '挑戰']];
   return [[prev, '追平紀錄'], [prev + 2, '突破紀錄'], [prev + 4, '大挑戰']];
 }
-/** 上方的小戰況（每 0.25 秒更新）。 */
+/**
+ * 上方的小戰況（每 0.25 秒更新）。行數固定：血條、存量／大招、自己的進度、一格固定兩行高的提示。
+ * 2026-10-30 第三輪：以前「已答對」、抗性提示、大招預告是有才出現，文字長度每秒在變，在不同寬度換行成 1～4 行，
+ * 戰況區高度一變，下面的題目就被推上推下（沒往下捲、或題目放得下的學生沒有捲動補償可以救）。現在每一行都不換行、
+ * 提示格的高度固定，戰況區的高度在整場魔王戰中不變。
+ * 提示格的兩行各自不換行，關鍵數字放在最前面（太長只會省略尾巴）：
+ * 大招預告和抗性同時成立時第 1 行大招預告、第 2 行抗性，兩個都看得到（≤760px 的作答分頁看不到戰場，這裡是唯一來源，Codex 審查）。
+ */
 export function raidMiniHtml(v: RaidView, now: number) {
   const s = liveState(v, now),
     c = v.run.config;
   const bank = shieldMs(s);
+  const warning = s.bossUltAt !== null && !s.result;
+  const warn = warning ? `⚠ 魔王大招 ${Math.max(0, Math.ceil(((s.bossUltAt ?? 0) - s.t) / 1000))} 秒後・防護罩 ${bank / 1000}／${RAID_ULT_BLOCK_MS / 1000} 秒` : '';
+  const eff = raidEffect(s, 'attack', s.t, c.players);
+  const resist = eff < 1 ? `🧬 ${KIND_NAME.attack}效果只剩 ${Math.round(eff * 100)}%，換別的招！` : '';
+  const line = (cls: string, text: string) => `<span class="raid-alert-line ${cls}" data-testid="raid-alert-${cls}">${text}</span>`;
+  const lines = warning
+    ? [line('warn', warn), resist ? line('resist', resist) : line('tip', `「${bossMove(s.bossUltMove || undefined)?.name || ''}」：做理解題存防護罩擋下！`)]
+    : resist
+      ? [line('resist', resist), line('tip', '理解題、應用題不受影響')]
+      : [line('tip', '記憶題攻擊・理解題存防護罩・應用題累積大招'), line('tip', '')];
   return `<div class="raid-mini-bars"><div class="raid-bar boss small"><i class="hp" style="width:${pct(s.bossHp, c.bossHp)}"></i><span>魔王 ${s.bossHp}</span></div><div class="raid-bar team small"><i style="width:${pct(s.teamHp, c.teamHp)}"></i><span>英雄 ${s.teamHp}</span></div></div><div class="raid-mini-info">${
     bank > 0 ? `<span class="on">🛡 存量 ${bank / 1000} 秒</span>` : '<span>🛡 存量 0</span>'
-  }<span>💥 大招 ${Math.round((s.ult / RAID_ULT_NEED) * 100)}%</span></div>${myLine(v, s)}${resistText(s, c.players) ? `<p class="raid-mini-resist">${resistText(s, c.players)}</p>` : ''}${s.bossUltAt !== null && !s.result ? `<p class="raid-mini-warn">⚠ 魔王大招「${bossMove(s.bossUltMove || undefined)?.name || ''}」${Math.max(0, Math.ceil((s.bossUltAt - s.t) / 1000))} 秒後落下！防護罩存量 ${bank / 1000}／${RAID_ULT_BLOCK_MS / 1000} 秒，做理解題存防護罩！</p>` : ''}`;
+  }<span>💥 大招 ${Math.round((s.ult / RAID_ULT_NEED) * 100)}%</span></div>${myLine(v, s)}<div class="raid-mini-alert ${warning ? 'warn' : resist ? 'resist' : 'idle'}" data-testid="raid-mini-alert">${lines.join('')}</div>`;
 }
-/** 自己的進度：目標、答對題數、連對。 */
+/**
+ * 自己的進度：目標、答對題數、連對（這一行一直都在）。
+ * 自己的座號從伺服器給的戰況取（學生只拿得到自己的成績）；liveState 往前推算時會替別的座號建立成績（防護罩、大招），
+ * 不可以拿 Object.values(s.stats)[0]——座號比較小的同學會排在前面（2026-10-30 第三輪）。
+ */
 function myLine(v: RaidView, s: RaidState) {
-  const me = Object.values(s.stats)[0];
+  const seat = Object.keys(v.state.stats)[0];
+  const me = seat ? s.stats[seat] : undefined;
   const ok = me ? me.ok.attack + me.ok.shield + me.ok.ultimate : 0;
   const goal = v.mine?.goal;
-  if (!goal && !me) return '';
   return `<div class="raid-mini-me">${goal ? `<span>🎯 目標 ${goal} 題：已答對 <b>${ok}</b>${ok >= goal ? ' ✓ 達成！' : ''}</span>` : `<span>已答對 <b>${ok}</b> 題</span>`}${me && me.streak >= 2 ? `<span>🔥 連對 ${me.streak}${me.saved ? '' : '・有保護'}</span>` : ''}</div>`;
 }
 /**

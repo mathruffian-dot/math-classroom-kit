@@ -1657,16 +1657,15 @@ function refreshRaid() {
     wireArt(card);
   }
   // 只改有變的節點（patchHtml）：題目沒變就不動題目的 DOM，iPad 上的觸控捲動不會被打斷、捲動位置不會被重設
+  // 戰況區（#raid-mini）的高度固定（src/raid.css），不需要、也不可以補償 scrollTop：iPad 上寫 scrollTop 會打斷正在進行的慣性捲動（第三輪）
   const scroller = card.closest<HTMLElement>('.raid-scroll');
   const mini = card.querySelector<HTMLElement>('#raid-mini');
-  const miniH = mini?.offsetHeight ?? 0;
-  const top0 = scroller?.scrollTop ?? 0;
   if (card.dataset.raidKey !== key) {
     const newQuestion = (card.dataset.raidKey || '').split('|')[4] !== key.split('|')[4];
     card.dataset.raidKey = key;
     patchHtml(card, raidCardHtml(v.raid, now));
     wireArt(card);
-    if (newQuestion && scroller) scroller.scrollTop = 0;
+    if (newQuestion && scroller && scroller.scrollTop) scroller.scrollTop = 0;
   } else {
     if (mini) patchHtml(mini, raidMiniHtml(v.raid, now));
     card.querySelectorAll<HTMLElement>('[data-lock-until]').forEach((el) => {
@@ -1681,10 +1680,6 @@ function refreshRaid() {
       if (sk.disabled !== dis) sk.disabled = dis;
     }
   }
-  // 題目上方的戰況變高／變矮（大招預告、抗性提示出現或消失）：已經往下捲的話補回去，題目不會被推上推下
-  // （用原本的位置算：變矮時瀏覽器可能已經把 scrollTop 夾到底，不能再用 += 重複扣）
-  const dh = (mini?.isConnected ? mini.offsetHeight : miniH) - miniH;
-  if (dh && scroller && top0 > 0 && scroller.scrollTop > 0) scroller.scrollTop = top0 + dh;
 }
 setInterval(() => {
   if (view?.raid && view.session.raid) refreshRaid();

@@ -614,6 +614,11 @@
   margin: 0;
   font-size: 18px;
 }
+/*
+ * 戰況區的高度在整場魔王戰中固定（2026-10-30 第三輪：少數 iPad 題目區仍會跳）。
+ * 以前大招預告、抗性提示、「已答對」有才出現，文字長度每秒在變，依面板寬度換成 1～4 行（iPad 橫向的側欄最窄），
+ * 高度一變，下面的題目就被推上推下。現在：每一行都不換行（太長就省略），數字等寬，提示格固定兩行高、一直都在。
+ */
 .raid-mini {
   display: flex;
   flex-direction: column;
@@ -622,6 +627,59 @@
   border-radius: 14px;
   background: #1d1535;
   color: #f6f1e7;
+  font-variant-numeric: tabular-nums;
+}
+/* 一行的高度寫死：🔥、🎯 這類 emoji 出現時，備用字型的行高不同，不能讓這一行跟著變高 */
+.raid-mini-info,
+.raid-mini-me {
+  height: 1.45em;
+  line-height: 1.45em;
+  overflow: hidden;
+}
+.raid-mini-info > span,
+.raid-mini-me > span {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.raid-mini-alert {
+  box-sizing: border-box;
+  height: calc(2 * 1.35em + 12px);
+  margin: 0;
+  padding: 6px 10px;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.35;
+  font-weight: 800;
+  overflow: hidden;
+}
+/* 兩行各自不換行：第 1 行大招預告（倒數、防護罩），第 2 行抗性；關鍵數字在前面，太長只省略尾巴 */
+.raid-alert-line {
+  display: block;
+  height: 1.35em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.raid-mini-alert.warn .raid-alert-line.resist {
+  color: #e6d4ff;
+}
+.raid-alert-line.tip {
+  font-weight: 600;
+  opacity: 0.85;
+}
+.raid-mini-alert.warn {
+  background: #c8143c;
+  animation: warn-blink 0.9s ease-in-out infinite;
+}
+.raid-mini-alert.resist {
+  background: #6b2bc4;
+}
+.raid-mini-alert.idle {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(246, 241, 231, 0.6);
+  font-weight: 600;
 }
 .raid-mini-bars {
   display: grid;
@@ -644,15 +702,6 @@
 .raid-mini-info .on {
   color: #9fd3ff;
   font-weight: 700;
-}
-.raid-mini-warn {
-  margin: 0;
-  padding: 6px 10px;
-  border-radius: 10px;
-  background: #c8143c;
-  font-weight: 800;
-  font-size: 14px;
-  animation: warn-blink 0.9s ease-in-out infinite;
 }
 .raid-h {
   margin: 4px 0;
@@ -844,14 +893,6 @@
   text-align: center;
   max-width: 96%;
   box-shadow: 0 0 18px rgba(170, 90, 255, 0.7);
-}
-.raid-mini-resist {
-  margin: 0;
-  padding: 6px 10px;
-  border-radius: 10px;
-  background: #6b2bc4;
-  font-weight: 800;
-  font-size: 13px;
 }
 .raid-kind-btn.weak {
   filter: saturate(0.45) brightness(0.9);
