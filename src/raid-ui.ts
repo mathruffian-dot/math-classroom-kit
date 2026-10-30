@@ -437,13 +437,43 @@ function myLine(v: RaidView, s: RaidState) {
   if (!goal && !me) return '';
   return `<div class="raid-mini-me">${goal ? `<span>🎯 目標 ${goal} 題：已答對 <b>${ok}</b>${ok >= goal ? ' ✓ 達成！' : ''}</span>` : `<span>已答對 <b>${ok}</b> 題</span>`}${me && me.streak >= 2 ? `<span>🔥 連對 ${me.streak}${me.saved ? '' : '・有保護'}</span>` : ''}</div>`;
 }
+/**
+ * 把 el 的內容改成 html，但只動真的不一樣的節點（同位置、同標籤就沿用，只改屬性和文字）。
+ * 作答卡每 0.25 秒更新一次：用 innerHTML 整塊換掉，iPad 上正在觸控捲動的節點會被拿掉（捲動卡住）、
+ * 動畫重新開始、附圖重新載入時高度歸零、捲動位置被重設（2026-10-30 第二輪）。
+ */
+export function patchHtml(el: Element, html: string) {
+  const tpl = document.createElement('template');
+  tpl.innerHTML = html;
+  patchChildren(el, tpl.content);
+}
+function patchChildren(cur: Node, next: Node) {
+  const a = Array.from(cur.childNodes),
+    b = Array.from(next.childNodes);
+  b.forEach((n, i) => {
+    const o = a[i];
+    if (!o) cur.appendChild(n);
+    else if (o.nodeType !== n.nodeType || o.nodeName !== n.nodeName) cur.replaceChild(n, o);
+    else if (o.nodeType !== 1) {
+      if (o.nodeValue !== n.nodeValue) o.nodeValue = n.nodeValue;
+    } else {
+      const oe = o as Element,
+        ne = n as Element;
+      for (const { name } of Array.from(oe.attributes)) if (!ne.hasAttribute(name)) oe.removeAttribute(name);
+      for (const { name, value } of Array.from(ne.attributes)) if (oe.getAttribute(name) !== value) oe.setAttribute(name, value);
+      patchChildren(o, n);
+    }
+  });
+  for (let i = b.length; i < a.length; i++) cur.removeChild(a[i]);
+}
 /** 作答卡的主體會變的時候才重畫（題目、結果、鎖住、階段），避免每次推送都重排數學式。 */
 export function raidCardKey(v: RaidView, now: number) {
   const s = liveState(v, now);
   const lock = v.mine?.lockUntil && v.mine.lockUntil > now ? 'lock' : '';
   const skipReady = !v.mine?.skipAt || now - v.mine.skipAt >= RAID_SKIP_COOLDOWN_MS ? 'skip' : '';
-  // 抗性變了（每 10% 一級）也要重畫選招按鈕
-  const eff = (['attack', 'ultimate'] as const).map((k) => Math.round(raidEffect(s, k, s.t, v.run.config.players) * 10)).join('');
+  // 抗性變了（每 10% 一級）也要重畫選招按鈕；只有選招畫面看得到，作答中不算（同學一作答抗性就變，不可以因此重畫題目）
+  const choosing = !v.mine?.question && !lock;
+  const eff = choosing ? (['attack', 'ultimate'] as const).map((k) => Math.round(raidEffect(s, k, s.t, v.run.config.players) * 10)).join('') : '';
   return [v.run.id, raidPhase(v, s, now), v.mine?.role || '', v.mine?.goal || raidLocal.noGoal, v.mine?.question?.id || '', lock, raidLocal.flash, v.results ? 'r' : '', eff, skipReady].join('|');
 }
 export function raidCardHtml(v: RaidView, now: number): string {

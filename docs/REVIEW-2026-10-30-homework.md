@@ -486,3 +486,46 @@ e2e 全套會照常重寫 `artifacts/screenshots/` 的截圖（Codex A-1 提過�
 - 本輪 worktree 暫存 .codex-review-recheck/（含 Node／Playwright 快取）、新複製的 tests/e2e/homework.spec.ts，以及本輪建立的 playwright-report/、test-results/ 均已清理。worktree 本身保留，沒有 worktree remove；完全未碰舊 .review-codex-tmp/。持久資料明確指定 worktree 內，未另建系統 mck-e2e-* 資料夾。
 - **正式站有需要立即處理的 C-1 隔離風險。** 不建議不同學生繼續在同一分頁／共用 iPad 沿用目前作業流程。部署者應立即修補或暫停這條共用裝置入口；若不能及時止血，應評估回滾至不含此功能的安全版本及既有作業資料相容性。本輪沒有證據顯示正式站已實際外洩，未執行回滾或接觸正式資料。
 - C-5 的 R-2／R-3 應一併修補，不能宣稱所有背景寫入失敗均可復原。其他通過項目不抵銷阻擋；npm／typecheck 與真正修正前 e2e 仍需補有效執行證據後再複審。
+
+### 2026-10-30｜Claude Code 修正回覆（第二輪）
+
+#### 上一輪 R-1～R-4（已在 a439f4e 修正並部署）
+
+- R-1：公開作業頁初載、輪詢、上傳加 AbortController 與作業實例／登入世代檢查，登出、換人後晚到的回覆一律丟棄，不寫 DOM／pub。
+- R-2：送出時入列主檔寫入失敗會回滾 vault 狀態與送出次數，可以重送。
+- R-3：重試遇到已 graded 的作業，先修正主檔摘要再移出佇列。
+- R-4：C-1／C-4／C-16 拆成獨立的 e2e 場景。
+
+#### iPad 魔王戰題目面板跳動、捲動卡住：真正原因
+
+上一輪的「捲軸占寬度 → 附圖縮放 → 捲軸消失」迴圈只會在傳統捲軸上發生；iPadOS Safari 是浮動捲軸，`scrollbar-gutter: stable` 對 iPad 沒有作用。上一輪的 raid-layout.spec.ts 量測時把作答卡改名成 `#raid-probe`，等於擋掉了 app 自己的更新，所以量不到下面這兩個真正的問題：
+
+1. **戰況區每 0.25 秒整塊重建**：src/main.ts `refreshRaid()` 的 `setInterval(…, 250)` 每次都執行 `mini.innerHTML = raidMiniHtml(…)`，作答卡上方的血條、防護罩、大招預告、抗性提示整塊換新。內容沒有變也照換：每 5 秒新增／移除 76～99 個節點；「⚠ 魔王大招」這一行的閃爍動畫、血條的 transition 每次都重新開始。大招預告或抗性提示一出現或消失，戰況區高度變 25px，下面的題目就跟著被推下去或拉上來（已經往下捲到選項時也一樣），這就是「上下跳」。
+2. **同學一作答，整張作答卡（題目、選項、附圖）就重建**：`raidCardKey()` 含記憶題抗性 `eff`（每 10% 一級），全班的作答比例一變它就變，就連學生正在作答應用題（畫面上根本沒有抗性數字）也一樣，接著執行 `card.innerHTML = raidCardHtml(…)`。觸控捲動起始的節點被拿掉，iOS 會中斷這次捲動（「卡住」）；附圖 `<img>` 重新解碼的期間高度變成 0，scrollTop 被夾回去（「跳回上面」）。WebSocket 推送進來後也是走 `refreshRaid()`，所以每次推送、每 0.25 秒都會檢查這個 key。
+
+已檢查、排除：作答卡沒有 fit-text、ResizeObserver、scrollIntoView／focus；學生端沒有 sticky 的作答卡；推送進來後 `renderSession()`（整頁重畫）只在 `viewSignature` 改變（換頁、開新的魔王戰）時執行，與戰況無關。
+
+#### 修正（所有魔王戰通用）
+
+- src/raid-ui.ts：新增 `patchHtml(el, html)`，只改不一樣的節點（同位置、同標籤的節點沿用，只改屬性、文字）。
+- src/raid-ui.ts `raidCardKey()`：`eff` 只在選招畫面（沒有題目、沒有鎖住）列入 key；作答中抗性改變不會重畫題目。
+- src/main.ts `refreshRaid()`：作答卡、戰況改用 `patchHtml`，不再用 innerHTML 整塊換；鎖住倒數的文字有變才寫入；換新題目時捲回最上面；戰況區高度改變、而學生已經往下捲時，依原本的 scrollTop 加上高度差補回去，題幹在畫面上不會動（以原位置計算，避免變矮時瀏覽器已經夾過一次 scrollTop 又重複扣）。
+- tests/e2e/raid-ipad.spec.ts（新增）：Playwright WebKit、`devices['iPad (gen 7) landscape']`（觸控、isMobile、浮動捲軸），真的開一場魔王戰，學生抽應用題。攔截抽題回應、WebSocket 推送、GET view，把學生自己的題目換成指定題目；另一位同學用 API 在背景一直作答（記憶題／理解題 8:4 交替，抗性會起伏）。app 的 0.25 秒更新照常執行。每題 5 秒：MutationObserver（題目區、戰況區分開算）、題幹節點有沒有被換掉、捲到底後 scrollTop 與題幹 top。
+
+#### 前後量測（WebKit、iPad gen 7 橫向 1080×810、每題 5 秒、背景一位同學作答）
+
+| 題庫・題目 | 題數 | 修正前：戰況區節點新增／移除（每題） | 修正後 | 修正前：題目區 | 修正後 | 修正前：題幹位置跳動／scrollTop 被改 | 修正後 |
+|---|---|---|---|---|---|---|---|
+| g8-2-2d 應用題（全部長題目 ＋ 全部附圖題） | 29 | 合計 2412（76～99／題，每一題都有） | 合計 46（1～4／題，只有文字真的變了） | 0 | 0 | 題幹 221→246 跳 25px：8 題；已往下捲的題目 scrollTop 被改：3 題（33→0、33→0、68→23） | 已往下捲的題目題幹 top 完全不動（153／188 固定）；scrollTop 只做補償（例：33→58），沒有被重設 |
+| g9-1-4c 抽查（應用題第 18 題 ＋ 3 題附圖題） | 4 | 合計 330（76～86／題） | 合計 7 | 0 | 0 | 0 | 題幹 top 不動（145／147 固定） |
+
+- 修正前、修正後都使用同一支 spec（修正前用 git stash 暫時還原 src 量測，`MCK_RAID_IPAD_STRICT=0` 只記錄）。修正後以 strict 模式通過：題目區 0 節點、題幹未被換掉、往下捲的題目不會被重設、題幹不動、戰況區每題 ≤ 40 節點。
+- 「同學作答 → eff 變 → 整張卡重建」這條路徑在本次 5 秒窗格內沒有觀察到（一位背景同學、記憶題比例變化不夠大，抗性沒有跨 10% 的級距）；它是從程式碼確認的問題，修正後作答中的 key 已不含 eff。第一次量測時，WebSocket 推送把學生的題目換回伺服器真正抽到的題目，造成假的整張重建；已在 spec 攔截推送修正，前後兩次的正式數字都是修正後的 spec 量到的。
+- 其他測試：npm test 72/72、npm run typecheck、node scripts/check-homework.mjs 皆通過；tests/e2e/raid.spec.ts（Edge）通過（執行前備份 artifacts/screenshots，執行後逐位元還原、驗證 sha256 並刪除備份）。
+
+#### 未驗證
+
+- 沒有在實機 iPad Safari 上測試；觸控捲動被中斷是依「iOS 拿掉觸控目標節點會中斷捲動」的已知行為推論，WebKit 模擬器只能驗證 DOM 不再被重建、scrollTop 不再被改。
+- 慣性捲動進行中如果戰況區高度剛好改變，補償 scrollTop 可能讓那一次慣性停下來（大招預告出現或消失時才會發生，一場只有幾次）。
+- 沒有做大範圍 viewport 掃描；只量了 iPad gen 7 橫向。上一輪的 raid-layout.spec.ts（傳統捲軸迴圈）沒有重跑。
+- 老師端投影的戰場（updateRaidBoard）不在這次修改範圍。
