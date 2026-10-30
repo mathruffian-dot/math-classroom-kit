@@ -1,0 +1,613 @@
+{
+  "lessonId": "g8-2-2a",
+  "section": "8-2-2",
+  "title": "2-2(1) 根式的乘除",
+  "source": "八上課本 2-2 p.73–76（題目改寫自課後檢核並自編，答案與詳解已用 SymPy 核算）；備課用書 01-115國中數學2上-備課-目次 p.28（教學活動連結分析表：學習表現）、p.29（學習內容）；03-115國中數學2上-備課-L02 p.115（PDF 第 10 頁，本章學習內容解析）",
+  "curriculum": {
+    "performance": [
+      {
+        "code": "n-IV-5",
+        "text": "理解二次方根的意義、符號與根式的四則運算，並能運用到日常生活的情境解決問題。"
+      }
+    ],
+    "content": [
+      {
+        "code": "N-8-1",
+        "text": "二次方根：二次方根的意義；根式的化簡及四則運算。"
+      }
+    ]
+  },
+  "slots": [
+    {
+      "id": "q1",
+      "topic": "簡記：整數 × 根式",
+      "objective": 0,
+      "performance": [
+        "n-IV-5"
+      ],
+      "content": [
+        "N-8-1"
+      ],
+      "variants": [
+        {
+          "stem": "計算 $(-5)\\times2\\sqrt{3}$。",
+          "answer": "$-10\\sqrt{3}$",
+          "solution": "整數和係數相乘：$(-5)\\times2=-10$，根號部分 $\\sqrt{3}$ 不變，得 $-10\\sqrt{3}$。",
+          "space": 1
+        },
+        {
+          "stem": "計算 $4\\times(-3\\sqrt{2})$。",
+          "answer": "$-12\\sqrt{2}$",
+          "solution": "整數和係數相乘：$4\\times(-3)=-12$，根號部分 $\\sqrt{2}$ 不變，得 $-12\\sqrt{2}$。",
+          "space": 1
+        },
+        {
+          "stem": "計算 $(-6)\\times5\\sqrt{7}$。",
+          "answer": "$-30\\sqrt{7}$",
+          "solution": "整數和係數相乘：$(-6)\\times5=-30$，根號部分 $\\sqrt{7}$ 不變，得 $-30\\sqrt{7}$。",
+          "space": 1
+        },
+        {
+          "stem": "計算 $\\left(-\\dfrac{3}{2}\\sqrt{5}\\right)\\times(-4)$。",
+          "answer": "$6\\sqrt{5}$",
+          "solution": "係數相乘：$\\left(-\\dfrac{3}{2}\\right)\\times(-4)=6$，根號部分 $\\sqrt{5}$ 不變，得 $6\\sqrt{5}$。",
+          "space": 1
+        },
+        {
+          "stem": "計算 $7\\times(-2\\sqrt{5})$。",
+          "answer": "$-14\\sqrt{5}$",
+          "solution": "整數和係數相乘：$7\\times(-2)=-14$，根號部分 $\\sqrt{5}$ 不變，得 $-14\\sqrt{5}$。",
+          "space": 1
+        },
+        {
+          "stem": "計算 $(-3)\\times(-4\\sqrt{6})$。",
+          "answer": "$12\\sqrt{6}$",
+          "solution": "整數和係數相乘：$(-3)\\times(-4)=12$，根號部分 $\\sqrt{6}$ 不變，得 $12\\sqrt{6}$。",
+          "space": 1
+        }
+      ]
+    },
+    {
+      "id": "q2",
+      "topic": "簡記：根式 ÷ 整數",
+      "objective": 0,
+      "performance": [
+        "n-IV-5"
+      ],
+      "content": [
+        "N-8-1"
+      ],
+      "variants": [
+        {
+          "stem": "計算 $(-4\\sqrt{2})\\div6$。",
+          "answer": "$-\\dfrac{2\\sqrt{2}}{3}$",
+          "solution": "係數相除：$-4\\div6=-\\dfrac{2}{3}$，根號部分不變：$-\\dfrac{2}{3}\\sqrt{2}=-\\dfrac{2\\sqrt{2}}{3}$。",
+          "space": 1
+        },
+        {
+          "stem": "計算 $(-6\\sqrt{5})\\div4$。",
+          "answer": "$-\\dfrac{3\\sqrt{5}}{2}$",
+          "solution": "係數相除：$-6\\div4=-\\dfrac{3}{2}$，根號部分不變：$-\\dfrac{3}{2}\\sqrt{5}=-\\dfrac{3\\sqrt{5}}{2}$。",
+          "space": 1
+        },
+        {
+          "stem": "計算 $9\\sqrt{3}\\div(-6)$。",
+          "answer": "$-\\dfrac{3\\sqrt{3}}{2}$",
+          "solution": "係數相除：$9\\div(-6)=-\\dfrac{3}{2}$，根號部分不變：$-\\dfrac{3}{2}\\sqrt{3}=-\\dfrac{3\\sqrt{3}}{2}$。",
+          "space": 1
+        },
+        {
+          "stem": "計算 $10\\sqrt{7}\\div(-4)$。",
+          "answer": "$-\\dfrac{5\\sqrt{7}}{2}$",
+          "solution": "係數相除：$10\\div(-4)=-\\dfrac{5}{2}$，根號部分不變：$-\\dfrac{5}{2}\\sqrt{7}=-\\dfrac{5\\sqrt{7}}{2}$。",
+          "space": 1
+        },
+        {
+          "stem": "計算 $(-12\\sqrt{2})\\div(-8)$。",
+          "answer": "$\\dfrac{3\\sqrt{2}}{2}$",
+          "solution": "係數相除：$-12\\div(-8)=\\dfrac{3}{2}$，根號部分不變：$\\dfrac{3}{2}\\sqrt{2}=\\dfrac{3\\sqrt{2}}{2}$。",
+          "space": 1
+        },
+        {
+          "stem": "計算 $8\\sqrt{6}\\div12$。",
+          "answer": "$\\dfrac{2\\sqrt{6}}{3}$",
+          "solution": "係數相除：$8\\div12=\\dfrac{2}{3}$，根號部分不變：$\\dfrac{2}{3}\\sqrt{6}=\\dfrac{2\\sqrt{6}}{3}$。",
+          "space": 1
+        }
+      ]
+    },
+    {
+      "id": "q3",
+      "topic": "根式乘法：√a × √b",
+      "objective": 1,
+      "performance": [
+        "n-IV-5"
+      ],
+      "content": [
+        "N-8-1"
+      ],
+      "variants": [
+        {
+          "stem": "計算 $\\sqrt{3}\\times\\sqrt{7}$。",
+          "answer": "$\\sqrt{21}$",
+          "solution": "根號乘根號，根號內相乘（不是相加）：$\\sqrt{3}\\times\\sqrt{7}=\\sqrt{3\\times7}=\\sqrt{21}$。",
+          "space": 1
+        },
+        {
+          "stem": "計算 $\\sqrt{5}\\times\\sqrt{6}$。",
+          "answer": "$\\sqrt{30}$",
+          "solution": "根號乘根號，根號內相乘（不是相加）：$\\sqrt{5}\\times\\sqrt{6}=\\sqrt{5\\times6}=\\sqrt{30}$。",
+          "space": 1
+        },
+        {
+          "stem": "計算 $\\sqrt{2}\\times\\sqrt{11}$。",
+          "answer": "$\\sqrt{22}$",
+          "solution": "根號乘根號，根號內相乘（不是相加）：$\\sqrt{2}\\times\\sqrt{11}=\\sqrt{2\\times11}=\\sqrt{22}$。",
+          "space": 1
+        },
+        {
+          "stem": "計算 $\\sqrt{7}\\times\\sqrt{5}$。",
+          "answer": "$\\sqrt{35}$",
+          "solution": "根號乘根號，根號內相乘（不是相加）：$\\sqrt{7}\\times\\sqrt{5}=\\sqrt{7\\times5}=\\sqrt{35}$。",
+          "space": 1
+        },
+        {
+          "stem": "計算 $\\sqrt{13}\\times\\sqrt{2}$。",
+          "answer": "$\\sqrt{26}$",
+          "solution": "根號乘根號，根號內相乘（不是相加）：$\\sqrt{13}\\times\\sqrt{2}=\\sqrt{13\\times2}=\\sqrt{26}$。",
+          "space": 1
+        },
+        {
+          "stem": "計算 $\\sqrt{2}\\times\\sqrt{3}\\times\\sqrt{7}$。",
+          "answer": "$\\sqrt{42}$",
+          "solution": "三個根號相乘，根號內全部相乘：$\\sqrt{2}\\times\\sqrt{3}\\times\\sqrt{7}=\\sqrt{2\\times3\\times7}=\\sqrt{42}$。",
+          "space": 1
+        }
+      ]
+    },
+    {
+      "id": "q4",
+      "topic": "係數乘係數、根號乘根號",
+      "objective": 1,
+      "performance": [
+        "n-IV-5"
+      ],
+      "content": [
+        "N-8-1"
+      ],
+      "variants": [
+        {
+          "stem": "計算 $3\\sqrt{3}\\times(-2\\sqrt{5})$。",
+          "answer": "$-6\\sqrt{15}$",
+          "solution": "係數乘係數：$3\\times(-2)=-6$；根號乘根號：$\\sqrt{3}\\times\\sqrt{5}=\\sqrt{15}$，得 $-6\\sqrt{15}$。",
+          "space": 1
+        },
+        {
+          "stem": "計算 $(-2\\sqrt{3})\\times4\\sqrt{2}$。",
+          "answer": "$-8\\sqrt{6}$",
+          "solution": "係數乘係數：$-2\\times4=-8$；根號乘根號：$\\sqrt{3}\\times\\sqrt{2}=\\sqrt{6}$，得 $-8\\sqrt{6}$。",
+          "space": 1
+        },
+        {
+          "stem": "計算 $5\\sqrt{2}\\times(-3\\sqrt{7})$。",
+          "answer": "$-15\\sqrt{14}$",
+          "solution": "係數乘係數：$5\\times(-3)=-15$；根號乘根號：$\\sqrt{2}\\times\\sqrt{7}=\\sqrt{14}$，得 $-15\\sqrt{14}$。",
+          "space": 1
+        },
+        {
+          "stem": "計算 $(-4\\sqrt{5})\\times(-3\\sqrt{2})$。",
+          "answer": "$12\\sqrt{10}$",
+          "solution": "係數乘係數：$-4\\times(-3)=12$；根號乘根號：$\\sqrt{5}\\times\\sqrt{2}=\\sqrt{10}$，得 $12\\sqrt{10}$。",
+          "space": 1
+        },
+        {
+          "stem": "計算 $2\\sqrt{7}\\times6\\sqrt{3}$。",
+          "answer": "$12\\sqrt{21}$",
+          "solution": "係數乘係數：$2\\times6=12$；根號乘根號：$\\sqrt{7}\\times\\sqrt{3}=\\sqrt{21}$，得 $12\\sqrt{21}$。",
+          "space": 1
+        },
+        {
+          "stem": "計算 $\\left(-\\dfrac{1}{2}\\sqrt{6}\\right)\\times4\\sqrt{5}$。",
+          "answer": "$-2\\sqrt{30}$",
+          "solution": "係數乘係數：$-\\dfrac{1}{2}\\times4=-2$；根號乘根號：$\\sqrt{6}\\times\\sqrt{5}=\\sqrt{30}$，得 $-2\\sqrt{30}$。",
+          "space": 1
+        }
+      ]
+    },
+    {
+      "id": "q5",
+      "topic": "乘完要化簡",
+      "objective": 1,
+      "performance": [
+        "n-IV-5"
+      ],
+      "content": [
+        "N-8-1"
+      ],
+      "variants": [
+        {
+          "stem": "計算 $\\sqrt{2}\\times\\sqrt{8}$。",
+          "answer": "$4$",
+          "solution": "$\\sqrt{2}\\times\\sqrt{8}=\\sqrt{16}=4$（$16=4^2$ 是完全平方數，要開出來）。",
+          "space": 1
+        },
+        {
+          "stem": "計算 $\\sqrt{3}\\times\\sqrt{12}$。",
+          "answer": "$6$",
+          "solution": "$\\sqrt{3}\\times\\sqrt{12}=\\sqrt{36}=6$（$36=6^2$ 是完全平方數，要開出來）。",
+          "space": 1
+        },
+        {
+          "stem": "計算 $\\sqrt{5}\\times\\sqrt{20}$。",
+          "answer": "$10$",
+          "solution": "$\\sqrt{5}\\times\\sqrt{20}=\\sqrt{100}=10$（$100=10^2$ 是完全平方數，要開出來）。",
+          "space": 1
+        },
+        {
+          "stem": "計算 $\\sqrt{6}\\times\\sqrt{24}$。",
+          "answer": "$12$",
+          "solution": "$\\sqrt{6}\\times\\sqrt{24}=\\sqrt{144}=12$（$144=12^2$ 是完全平方數，要開出來）。",
+          "space": 1
+        },
+        {
+          "stem": "計算 $3\\sqrt{2}\\times\\sqrt{32}$。",
+          "answer": "$24$",
+          "solution": "$3\\sqrt{2}\\times\\sqrt{32}=3\\sqrt{2\\times32}=3\\sqrt{64}=3\\times8=24$。",
+          "space": 1
+        },
+        {
+          "stem": "計算 $\\sqrt{\\dfrac{1}{3}}\\times\\sqrt{27}$。",
+          "answer": "$3$",
+          "solution": "$\\sqrt{\\dfrac{1}{3}}\\times\\sqrt{27}=\\sqrt{\\dfrac{1}{3}\\times27}=\\sqrt{9}=3$。",
+          "space": 1
+        }
+      ]
+    },
+    {
+      "id": "q6",
+      "topic": "長方形面積（課本隨堂 2）",
+      "objective": 1,
+      "performance": [
+        "n-IV-5"
+      ],
+      "content": [
+        "N-8-1"
+      ],
+      "variants": [
+        {
+          "stem": "一個長方形的長是 $\\sqrt{13}$ 公分、寬是 $\\sqrt{5}$ 公分，求它的面積。",
+          "answer": "$\\sqrt{65}$ 平方公分",
+          "solution": "面積＝長×寬：$\\sqrt{13}\\times\\sqrt{5}=\\sqrt{65}$（平方公分）。",
+          "space": 1,
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 420 220\" width=\"420\" height=\"220\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"55.7,176.0 268.5,176.0 268.5,44.0 55.7,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"64.7,176.0 64.7,167.0 55.7,167.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"162.1\" y=\"195.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">√13 公分</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"277.5\" y=\"115.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"start\" fill=\"#1b1b1b\" font-weight=\"600\">√5 公分</text></svg>"
+        },
+        {
+          "stem": "一個長方形的長是 $\\sqrt{7}$ 公分、寬是 $\\sqrt{3}$ 公分，求它的面積。",
+          "answer": "$\\sqrt{21}$ 平方公分",
+          "solution": "面積＝長×寬：$\\sqrt{7}\\times\\sqrt{3}=\\sqrt{21}$（平方公分）。",
+          "space": 1,
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 420 220\" width=\"420\" height=\"220\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"63.8,176.0 265.4,176.0 265.4,44.0 63.8,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"72.8,176.0 72.8,167.0 63.8,167.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"164.6\" y=\"195.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">√7 公分</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"274.4\" y=\"115.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"start\" fill=\"#1b1b1b\" font-weight=\"600\">√3 公分</text></svg>"
+        },
+        {
+          "stem": "一個長方形的長是 $2\\sqrt{3}$ 公分、寬是 $\\sqrt{5}$ 公分，求它的面積。",
+          "answer": "$2\\sqrt{15}$ 平方公分",
+          "solution": "面積＝長×寬：$2\\sqrt{3}\\times\\sqrt{5}=2\\sqrt{15}$（平方公分）。",
+          "space": 1,
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 420 220\" width=\"420\" height=\"220\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"61.7,176.0 266.2,176.0 266.2,44.0 61.7,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"70.7,176.0 70.7,167.0 61.7,167.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"164.0\" y=\"195.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">2√3 公分</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"275.2\" y=\"115.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"start\" fill=\"#1b1b1b\" font-weight=\"600\">√5 公分</text></svg>"
+        },
+        {
+          "stem": "一個長方形的長是 $3\\sqrt{2}$ 公分、寬是 $\\sqrt{5}$ 公分，求它的面積。",
+          "answer": "$3\\sqrt{10}$ 平方公分",
+          "solution": "面積＝長×寬：$3\\sqrt{2}\\times\\sqrt{5}=3\\sqrt{10}$（平方公分）。",
+          "space": 1,
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 420 220\" width=\"420\" height=\"220\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"44.0,170.3 273.0,170.3 273.0,49.7 44.0,49.7\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"53.0,170.3 53.0,161.3 44.0,161.3\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"158.5\" y=\"189.3\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">3√2 公分</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"282.0\" y=\"115.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"start\" fill=\"#1b1b1b\" font-weight=\"600\">√5 公分</text></svg>"
+        },
+        {
+          "stem": "一個長方形的長是 $\\sqrt{12}$ 公分、寬是 $\\sqrt{3}$ 公分，求它的面積。",
+          "answer": "$6$ 平方公分",
+          "solution": "面積＝長×寬：$\\sqrt{12}\\times\\sqrt{3}=\\sqrt{36}=6$（平方公分）。",
+          "space": 1,
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 420 220\" width=\"420\" height=\"220\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"44.0,167.2 273.0,167.2 273.0,52.8 44.0,52.8\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"53.0,167.2 53.0,158.2 44.0,158.2\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"158.5\" y=\"186.2\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">√12 公分</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"282.0\" y=\"115.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"start\" fill=\"#1b1b1b\" font-weight=\"600\">√3 公分</text></svg>"
+        },
+        {
+          "stem": "一個長方形的長是 $2\\sqrt{5}$ 公分、寬是 $3\\sqrt{2}$ 公分，求它的面積。",
+          "answer": "$6\\sqrt{10}$ 平方公分",
+          "solution": "面積＝長×寬：$2\\sqrt{5}\\times3\\sqrt{2}=(2\\times3)\\sqrt{5\\times2}=6\\sqrt{10}$（平方公分）。",
+          "space": 1,
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 420 220\" width=\"420\" height=\"220\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"109.1,176.0 248.3,176.0 248.3,44.0 109.1,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"118.1,176.0 118.1,167.0 109.1,167.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"178.7\" y=\"195.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">2√5 公分</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"257.3\" y=\"115.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"start\" fill=\"#1b1b1b\" font-weight=\"600\">3√2 公分</text></svg>"
+        }
+      ]
+    },
+    {
+      "id": "q7",
+      "topic": "比較大小（係數移進根號）",
+      "objective": 2,
+      "performance": [
+        "n-IV-5"
+      ],
+      "content": [
+        "N-8-1"
+      ],
+      "variants": [
+        {
+          "stem": "比較 $3\\sqrt{2}$ 和 $2\\sqrt{3}$ 的大小，用「＞」、「＜」或「＝」寫出兩數的關係，並說明理由。",
+          "answer": "$3\\sqrt{2}>2\\sqrt{3}$",
+          "solution": "把係數移進根號：$3\\sqrt{2}=\\sqrt{18}$、$2\\sqrt{3}=\\sqrt{12}$，因為 $18>12$，所以 $3\\sqrt{2}>2\\sqrt{3}$。",
+          "space": 2
+        },
+        {
+          "stem": "比較 $6\\sqrt{2}$ 和 $5\\sqrt{3}$ 的大小，用「＞」、「＜」或「＝」寫出兩數的關係，並說明理由。",
+          "answer": "$6\\sqrt{2}<5\\sqrt{3}$",
+          "solution": "把係數移進根號：$6\\sqrt{2}=\\sqrt{72}$、$5\\sqrt{3}=\\sqrt{75}$，因為 $72<75$，所以 $6\\sqrt{2}<5\\sqrt{3}$。",
+          "space": 2
+        },
+        {
+          "stem": "比較 $4\\sqrt{3}$ 和 $3\\sqrt{5}$ 的大小，用「＞」、「＜」或「＝」寫出兩數的關係，並說明理由。",
+          "answer": "$4\\sqrt{3}>3\\sqrt{5}$",
+          "solution": "把係數移進根號：$4\\sqrt{3}=\\sqrt{48}$、$3\\sqrt{5}=\\sqrt{45}$，因為 $48>45$，所以 $4\\sqrt{3}>3\\sqrt{5}$。",
+          "space": 2
+        },
+        {
+          "stem": "比較 $2\\sqrt{7}$ 和 $3\\sqrt{3}$ 的大小，用「＞」、「＜」或「＝」寫出兩數的關係，並說明理由。",
+          "answer": "$2\\sqrt{7}>3\\sqrt{3}$",
+          "solution": "把係數移進根號：$2\\sqrt{7}=\\sqrt{28}$、$3\\sqrt{3}=\\sqrt{27}$，因為 $28>27$，所以 $2\\sqrt{7}>3\\sqrt{3}$。",
+          "space": 2
+        },
+        {
+          "stem": "比較 $2\\sqrt{6}$ 和 $3\\sqrt{3}$ 的大小，用「＞」、「＜」或「＝」寫出兩數的關係，並說明理由。",
+          "answer": "$2\\sqrt{6}<3\\sqrt{3}$",
+          "solution": "把係數移進根號：$2\\sqrt{6}=\\sqrt{24}$、$3\\sqrt{3}=\\sqrt{27}$，因為 $24<27$，所以 $2\\sqrt{6}<3\\sqrt{3}$。",
+          "space": 2
+        },
+        {
+          "stem": "把 $2\\sqrt{5}$、$3\\sqrt{2}$、$\\sqrt{19}$ 由小到大排列（用「＜」連接），並說明理由。",
+          "answer": "$3\\sqrt{2}<\\sqrt{19}<2\\sqrt{5}$",
+          "solution": "把係數移進根號：$2\\sqrt{5}=\\sqrt{20}$、$3\\sqrt{2}=\\sqrt{18}$，因為 $18<19<20$，所以 $3\\sqrt{2}<\\sqrt{19}<2\\sqrt{5}$。",
+          "space": 2
+        }
+      ]
+    },
+    {
+      "id": "q8",
+      "topic": "根式除法：√a ÷ √b",
+      "objective": 1,
+      "performance": [
+        "n-IV-5"
+      ],
+      "content": [
+        "N-8-1"
+      ],
+      "variants": [
+        {
+          "stem": "計算 $\\sqrt{35}\\div\\sqrt{7}$。",
+          "answer": "$\\sqrt{5}$",
+          "solution": "根號除以根號，根號內相除：$\\sqrt{35}\\div\\sqrt{7}=\\sqrt{35\\div7}=\\sqrt{5}$。",
+          "space": 1
+        },
+        {
+          "stem": "計算 $\\sqrt{48}\\div\\sqrt{8}$。",
+          "answer": "$\\sqrt{6}$",
+          "solution": "根號除以根號，根號內相除：$\\sqrt{48}\\div\\sqrt{8}=\\sqrt{48\\div8}=\\sqrt{6}$。",
+          "space": 1
+        },
+        {
+          "stem": "計算 $\\sqrt{54}\\div\\sqrt{6}$。",
+          "answer": "$3$",
+          "solution": "根號除以根號，根號內相除：$\\sqrt{54}\\div\\sqrt{6}=\\sqrt{54\\div6}=\\sqrt{9}=3$。",
+          "space": 1
+        },
+        {
+          "stem": "計算 $\\sqrt{66}\\div\\sqrt{11}$。",
+          "answer": "$\\sqrt{6}$",
+          "solution": "根號除以根號，根號內相除：$\\sqrt{66}\\div\\sqrt{11}=\\sqrt{66\\div11}=\\sqrt{6}$。",
+          "space": 1
+        },
+        {
+          "stem": "計算 $(6\\sqrt{30})\\div(2\\sqrt{5})$。",
+          "answer": "$3\\sqrt{6}$",
+          "solution": "係數相除：$6\\div2=3$；根號相除：$\\sqrt{30}\\div\\sqrt{5}=\\sqrt{6}$，得 $3\\sqrt{6}$。",
+          "space": 1
+        },
+        {
+          "stem": "計算 $(-8\\sqrt{42})\\div(4\\sqrt{7})$。",
+          "answer": "$-2\\sqrt{6}$",
+          "solution": "係數相除：$(-8)\\div4=-2$；根號相除：$\\sqrt{42}\\div\\sqrt{7}=\\sqrt{6}$，得 $-2\\sqrt{6}$。",
+          "space": 1
+        }
+      ]
+    },
+    {
+      "id": "q9",
+      "topic": "除以分數形式的根式",
+      "objective": 1,
+      "performance": [
+        "n-IV-5"
+      ],
+      "content": [
+        "N-8-1"
+      ],
+      "variants": [
+        {
+          "stem": "計算 $\\dfrac{\\sqrt{6}}{\\sqrt{3}}\\div\\sqrt{\\dfrac{2}{3}}$。",
+          "answer": "$\\sqrt{3}$",
+          "solution": "$\\dfrac{\\sqrt{6}}{\\sqrt{3}}=\\sqrt{6\\div3}=\\sqrt{2}$；除以分數要乘倒數：$\\sqrt{2}\\div\\sqrt{\\dfrac{2}{3}}=\\sqrt{2\\times\\dfrac{3}{2}}=\\sqrt{3}$。",
+          "space": 2
+        },
+        {
+          "stem": "計算 $\\sqrt{\\dfrac{7}{2}}\\div\\dfrac{\\sqrt{3}}{\\sqrt{6}}$。",
+          "answer": "$\\sqrt{7}$",
+          "solution": "$\\dfrac{\\sqrt{3}}{\\sqrt{6}}=\\sqrt{\\dfrac{3}{6}}=\\sqrt{\\dfrac{1}{2}}$，$\\sqrt{\\dfrac{7}{2}\\div\\dfrac{1}{2}}=\\sqrt{\\dfrac{7}{2}\\times2}=\\sqrt{7}$。",
+          "space": 2
+        },
+        {
+          "stem": "計算 $\\sqrt{\\dfrac{5}{3}}\\div\\sqrt{\\dfrac{1}{6}}$。",
+          "answer": "$\\sqrt{10}$",
+          "solution": "$\\sqrt{\\dfrac{5}{3}\\div\\dfrac{1}{6}}=\\sqrt{\\dfrac{5}{3}\\times6}=\\sqrt{10}$（除以分數要乘倒數）。",
+          "space": 2
+        },
+        {
+          "stem": "計算 $\\sqrt{\\dfrac{3}{5}}\\div\\sqrt{\\dfrac{1}{10}}$。",
+          "answer": "$\\sqrt{6}$",
+          "solution": "$\\sqrt{\\dfrac{3}{5}\\div\\dfrac{1}{10}}=\\sqrt{\\dfrac{3}{5}\\times10}=\\sqrt{6}$。",
+          "space": 2
+        },
+        {
+          "stem": "計算 $\\dfrac{\\sqrt{10}}{\\sqrt{2}}\\div\\sqrt{\\dfrac{5}{7}}$。",
+          "answer": "$\\sqrt{7}$",
+          "solution": "$\\dfrac{\\sqrt{10}}{\\sqrt{2}}=\\sqrt{10\\div2}=\\sqrt{5}$，$\\sqrt{5\\div\\dfrac{5}{7}}=\\sqrt{5\\times\\dfrac{7}{5}}=\\sqrt{7}$。",
+          "space": 2
+        },
+        {
+          "stem": "計算 $\\sqrt{\\dfrac{2}{7}}\\div\\sqrt{\\dfrac{2}{21}}$。",
+          "answer": "$\\sqrt{3}$",
+          "solution": "$\\sqrt{\\dfrac{2}{7}\\div\\dfrac{2}{21}}=\\sqrt{\\dfrac{2}{7}\\times\\dfrac{21}{2}}=\\sqrt{3}$。",
+          "space": 2
+        }
+      ]
+    },
+    {
+      "id": "q10",
+      "topic": "哪一個算對了？（常見錯誤）",
+      "objective": 1,
+      "performance": [
+        "n-IV-5"
+      ],
+      "content": [
+        "N-8-1"
+      ],
+      "variants": [
+        {
+          "stem": "小華計算 $2\\sqrt{3}\\times3\\sqrt{2}=6\\sqrt{5}$，這是錯的。請說明錯在哪裡，並寫出正確的計算過程與答案。",
+          "answer": "$6\\sqrt{6}$",
+          "solution": "根號乘根號要把根號內相乘，不是相加：$2\\sqrt{3}\\times3\\sqrt{2}=(2\\times3)\\sqrt{3\\times2}=6\\sqrt{6}$。",
+          "space": 2
+        },
+        {
+          "stem": "小明計算 $\\sqrt{2}\\times\\sqrt{8}=\\sqrt{10}$，這是錯的。請說明錯在哪裡，並寫出正確的計算過程與答案。",
+          "answer": "$4$",
+          "solution": "根號內要相乘，不是相加：$\\sqrt{2}\\times\\sqrt{8}=\\sqrt{16}=4$。",
+          "space": 2
+        },
+        {
+          "stem": "小美計算 $\\sqrt{12}\\div\\sqrt{3}=\\sqrt{9}$，這是錯的。請說明錯在哪裡，並寫出正確的計算過程與答案。",
+          "answer": "$2$",
+          "solution": "根號內要相除，不是相減：$\\sqrt{12}\\div\\sqrt{3}=\\sqrt{12\\div3}=\\sqrt{4}=2$。",
+          "space": 2
+        },
+        {
+          "stem": "阿哲計算 $3\\sqrt{2}\\times2\\sqrt{2}=6\\sqrt{2}$，這是錯的。請說明錯在哪裡，並寫出正確的計算過程與答案。",
+          "answer": "$12$",
+          "solution": "$\\sqrt{2}\\times\\sqrt{2}=2$，根號會消失：$3\\sqrt{2}\\times2\\sqrt{2}=(3\\times2)\\times(\\sqrt{2}\\times\\sqrt{2})=6\\times2=12$。",
+          "space": 2
+        },
+        {
+          "stem": "小安計算 $\\sqrt{3}\\times\\sqrt{3}=9$，這是錯的。請說明錯在哪裡，並寫出正確的計算過程與答案。",
+          "answer": "$3$",
+          "solution": "$\\sqrt{3}\\times\\sqrt{3}=\\sqrt{9}=3$，也就是 $(\\sqrt{3})^2=3$，不是 $3$ 的平方。",
+          "space": 2
+        },
+        {
+          "stem": "小芸計算 $4\\sqrt{2}\\div2=2$，這是錯的。請說明錯在哪裡，並寫出正確的計算過程與答案。",
+          "answer": "$2\\sqrt{2}$",
+          "solution": "只有係數相除，根號要留著：$4\\sqrt{2}\\div2=(4\\div2)\\sqrt{2}=2\\sqrt{2}$。",
+          "space": 2
+        }
+      ]
+    }
+  ],
+  "links": {
+    "activities": {
+      "a-notation": [
+        "q1",
+        "q2"
+      ],
+      "a-predict": [
+        "q3"
+      ],
+      "a-ex1": [
+        "q3",
+        "q4"
+      ],
+      "a-ex1-practice": [
+        "q3",
+        "q4",
+        "q6"
+      ],
+      "a-ex2": [
+        "q7"
+      ],
+      "a-ex2-practice": [
+        "q7"
+      ],
+      "a-ex3": [
+        "q8",
+        "q9"
+      ],
+      "a-ex3-practice": [
+        "q8",
+        "q9"
+      ],
+      "a-error": [
+        "q4",
+        "q10"
+      ],
+      "a-exit": [
+        "q5"
+      ]
+    },
+    "items": {
+      "a-notation": [
+        [
+          "q1"
+        ],
+        [
+          "q1"
+        ],
+        [
+          "q2"
+        ]
+      ],
+      "a-ex1": [
+        [
+          "q3"
+        ],
+        [
+          "q4"
+        ]
+      ],
+      "a-ex1-practice": [
+        [
+          "q3"
+        ],
+        [
+          "q4"
+        ],
+        [
+          "q6"
+        ]
+      ],
+      "a-ex3": [
+        [
+          "q8"
+        ],
+        [
+          "q9"
+        ]
+      ],
+      "a-ex3-practice": [
+        [
+          "q8"
+        ],
+        [
+          "q9"
+        ]
+      ]
+    },
+    "duelFamilies": {
+      "√a × √b（乘起來是完全平方數）": "q5",
+      "√a × √b": "q3",
+      "√a ÷ √b": "q8",
+      "a√b × c√d": "q4"
+    }
+  }
+}

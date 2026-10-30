@@ -117,6 +117,8 @@ export interface RaidAction {
   seat: number;
   kind: RaidKind;
   ok: boolean;
+  /** 題目 ID（學習紀錄用：對到題型）。 */
+  q?: string;
   /** 作答時的角色（職業被動技能）。 */
   role?: RaidRole;
 }

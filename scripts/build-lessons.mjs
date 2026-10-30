@@ -275,5 +275,23 @@ for (const id of Object.keys(duels))
     errors++;
   }
 await writeFile(join(root, 'content/duels.generated.json'), JSON.stringify({ banks: duels }) + '\n');
+// 回家作業手寫題庫：content/homework/<課程 id>.json（scripts/homework-src/*.py 產生；格式見 docs/HOMEWORK.md，詳細檢查用 scripts/check-homework.mjs）。
+// 含答案，另外存成 content/homework.generated.json，只在伺服器。
+const homework = {};
+for (const file of (await readdir(join(root, 'content/homework')).catch(() => [])).filter((f) => f.endsWith('.json')).sort()) {
+  try {
+    const bank = JSON.parse(await readFile(join(root, 'content/homework', file), 'utf8'));
+    if (`${bank.lessonId}.json` !== file) throw new Error(`檔名要和 lessonId（${bank.lessonId}）一樣`);
+    if (!ids.has(bank.lessonId)) throw new Error(`找不到課程 ${bank.lessonId}`);
+    if (!bank.section || !Array.isArray(bank.slots) || !bank.slots.every((s) => s.id && s.topic && Array.isArray(s.variants) && s.variants.every((v) => v.stem && v.answer)))
+      throw new Error('格式不正確（見 docs/HOMEWORK.md）');
+    homework[bank.lessonId] = bank;
+    console.log(`✓ 回家作業 ${file}（${bank.slots.length} 個題型、${bank.slots.reduce((n, s) => n + s.variants.length, 0)} 題）`);
+  } catch (e) {
+    console.error(`✗ 回家作業 ${file}：${e.message}`);
+    errors++;
+  }
+}
+await writeFile(join(root, 'content/homework.generated.json'), JSON.stringify({ banks: homework }) + '\n');
 console.log(`\n${lessons.length} 份課程通過驗證，${errors} 份錯誤，${warned} 則提醒。`);
 if (errors || (strict && warned)) process.exitCode = 1;

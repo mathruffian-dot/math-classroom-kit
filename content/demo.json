@@ -1,0 +1,437 @@
+{
+  "schemaVersion": 1,
+  "id": "g8-sum-square",
+  "title": "和的平方公式：用面積看見 (a+b)²",
+  "description": "八年級 1-1 乘法公式。從分配律出發，拖拉滑桿切開正方形，把圖形、算式與心算連在一起；每頁都有對應的即時提問，最後以錯誤分析與出場券檢核。",
+  "subject": "數學・八年級 1-1",
+  "duration": 45,
+  "objectives": [
+    "能用長方形面積說明分配律 a(b+c) = ab + ac",
+    "能用正方形切割圖說明 (a+b)² = a² + 2ab + b²",
+    "能用和的平方公式做心算與代數式展開",
+    "能找出 (a+b)² = a² + b² 的錯誤並說明理由"
+  ],
+  "slides": [
+    {
+      "id": "warmup",
+      "phase": "提取練習",
+      "eyebrow": "01 / 先想起舊知識",
+      "title": "長方形切兩塊，面積怎麼算？",
+      "body": "長 a、寬 (b+c) 的長方形，沿虛線切成兩塊。拖拉滑桿，比較「整塊算」和「分開算」。",
+      "source": "對應課本 1-1 p.8 分配律（長方形面積）",
+      "notes": "提取練習：先不講公式，讓學生從面積說出分配律。學生作答後追問：為什麼兩種算法一定一樣？",
+      "interactive": {
+        "view": { "xMin": -1.6, "xMax": 9, "yMin": -1.2, "yMax": 10.2, "aspect": "equal", "grid": 1 },
+        "params": [
+          { "id": "a", "label": "長 a", "min": 2, "max": 7, "step": 1, "value": 5 },
+          { "id": "b", "label": "寬 b", "min": 1, "max": 5, "step": 1, "value": 3 },
+          { "id": "c", "label": "寬 c", "min": 1, "max": 4, "step": 1, "value": 2 }
+        ],
+        "shapes": [
+          { "type": "rect", "x": 0, "y": "c", "w": "a", "h": "b", "fill": "rgba(47,128,237,.22)", "color": "#2f80ed" },
+          { "type": "rect", "x": 0, "y": 0, "w": "a", "h": "c", "fill": "rgba(255,138,61,.25)", "color": "#ff8a3d" },
+          { "type": "segment", "points": [[0, "c"], ["a", "c"]], "color": "#1f2a56", "dash": true, "width": 2.5 },
+          { "type": "text", "x": "a/2", "y": "c+b/2", "text": "ab = {a*b}", "color": "#1d4fa3", "size": 22 },
+          { "type": "text", "x": "a/2", "y": "c/2", "text": "ac = {a*c}", "color": "#b4541a", "size": 22 },
+          { "type": "brace", "points": [[0, "b+c"], ["a", "b+c"]], "text": "a = {a}" },
+          { "type": "brace", "points": [["a", "b+c"], ["a", "c"]], "text": "b" },
+          { "type": "brace", "points": [["a", "c"], ["a", 0]], "text": "c" }
+        ],
+        "readouts": [
+          { "label": "整塊算 a(b+c)", "expr": "a*(b+c)" },
+          { "label": "分開算 ab + ac", "expr": "a*b+a*c" }
+        ],
+        "caption": "兩種算法的面積永遠相同 → 分配律"
+      },
+      "activity": {
+        "id": "warmup-distributive",
+        "type": "single",
+        "prompt": "長 a、寬 (b+c) 的長方形，面積可以寫成哪一個？",
+        "options": ["ab + c", "ab + ac", "a + bc", "abc"],
+        "correct": [1],
+        "explanation": "切成長 a 寬 b、長 a 寬 c 兩塊，面積分別是 ab 與 ac，所以 a(b+c) = ab + ac。",
+        "aiAllowed": false
+      }
+    },
+    {
+      "id": "predict",
+      "phase": "預測",
+      "eyebrow": "02 / 先猜再驗證",
+      "title": "(a+b)² 會等於 a² + b² 嗎？",
+      "body": "先別計算，憑直覺選一個。等一下用圖形驗證你的預測——猜錯也沒關係，猜過會記得更牢。",
+      "visual": "cards",
+      "bullets": ["(a+b)² = a² + b²？", "還少了什麼？", "用圖形驗證"],
+      "notes": "預測題（pretesting / generation effect）：公布統計但先不公布答案，保留認知衝突到下一頁。",
+      "activity": {
+        "id": "predict-square",
+        "type": "single",
+        "prompt": "你認為 (a+b)² 和 a² + b² 一樣嗎？",
+        "options": ["一樣，平方可以分開算", "不一樣，還少了一些東西", "不確定，要畫圖看看"],
+        "correct": [1],
+        "explanation": "不一樣。下一頁的正方形會告訴我們少了兩塊 ab。",
+        "aiAllowed": false
+      }
+    },
+    {
+      "id": "explore",
+      "phase": "具體操作",
+      "eyebrow": "03 / 動手切正方形",
+      "title": "把邊長 (a+b) 的正方形切開",
+      "body": "拖拉 a、b 滑桿，再點「切割線」。大正方形被切成哪四塊？哪兩塊是 a² + b² 沒算到的？",
+      "source": "對應課本 1-1 p.12 探索活動：圖解 (a+b)²",
+      "notes": "CRA 的具體階段。請學生先描述四塊的形狀與邊長，再完成操作題。完成後點名說明 a、b 的找法。",
+      "interactive": {
+        "view": { "xMin": -1.8, "xMax": 12.5, "yMin": -1.4, "yMax": 12.5, "aspect": "equal", "grid": 1 },
+        "params": [
+          { "id": "a", "label": "a", "min": 1, "max": 8, "step": 1, "value": 5 },
+          { "id": "b", "label": "b", "min": 1, "max": 4, "step": 1, "value": 2 },
+          { "id": "cut", "label": "切割線", "kind": "toggle", "value": 0 }
+        ],
+        "shapes": [
+          { "type": "rect", "x": 0, "y": 0, "w": "a+b", "h": "a+b", "fill": "rgba(123,97,255,.10)", "color": "#1f2a56", "width": 2.5, "show": "!cut", "toggle": "cut" },
+          { "type": "text", "x": "(a+b)/2", "y": "(a+b)/2", "text": "(a+b)² = {(a+b)^2}", "size": 24, "show": "!cut" },
+          { "type": "rect", "x": 0, "y": "b", "w": "a", "h": "a", "fill": "rgba(123,97,255,.28)", "color": "#7b61ff", "show": "cut", "toggle": "cut" },
+          { "type": "rect", "x": "a", "y": "b", "w": "b", "h": "a", "fill": "rgba(47,128,237,.28)", "color": "#2f80ed", "show": "cut", "toggle": "cut" },
+          { "type": "rect", "x": 0, "y": 0, "w": "a", "h": "b", "fill": "rgba(47,128,237,.28)", "color": "#2f80ed", "show": "cut", "toggle": "cut" },
+          { "type": "rect", "x": "a", "y": 0, "w": "b", "h": "b", "fill": "rgba(255,138,61,.32)", "color": "#ff8a3d", "show": "cut", "toggle": "cut" },
+          { "type": "text", "x": "a/2", "y": "b+a/2", "text": "a² = {a^2}", "color": "#5a3fd6", "size": 20, "show": "cut" },
+          { "type": "text", "x": "a+b/2", "y": "b+a/2", "text": "ab", "color": "#1d4fa3", "size": 18, "show": "cut" },
+          { "type": "text", "x": "a/2", "y": "b/2", "text": "ab = {a*b}", "color": "#1d4fa3", "size": 18, "show": "cut" },
+          { "type": "text", "x": "a+b/2", "y": "b/2", "text": "b²", "color": "#b4541a", "size": 18, "show": "cut" },
+          { "type": "brace", "points": [[0, "a+b"], ["a", "a+b"]], "text": "a" },
+          { "type": "brace", "points": [["a", "a+b"], ["a+b", "a+b"]], "text": "b" },
+          { "type": "brace", "points": [["a+b", "a+b"], ["a+b", "b"]], "text": "a" },
+          { "type": "brace", "points": [["a+b", "b"], ["a+b", 0]], "text": "b" }
+        ],
+        "readouts": [
+          { "label": "(a+b)²", "expr": "(a+b)^2" },
+          { "label": "a² + b²", "expr": "a^2+b^2" },
+          { "label": "少算的兩塊 2ab", "expr": "(a+b)^2-(a^2+b^2)" }
+        ],
+        "caption": "點圖形或「切割線」開關，切開大正方形"
+      },
+      "activity": {
+        "id": "explore-find-ab",
+        "type": "manipulate",
+        "prompt": "調整 a、b，讓右下角 b² 那一塊面積是 4，而且兩塊 ab 的面積合計是 24，再按「送出我的操作」。",
+        "check": "b==2 && 2*a*b==24",
+        "record": ["a", "b"],
+        "explanation": "b² = 4 → b = 2；2ab = 24 → 2 × a × 2 = 24 → a = 6。",
+        "aiAllowed": false
+      }
+    },
+    {
+      "id": "connect",
+      "phase": "圖式連結",
+      "eyebrow": "04 / 圖和式對起來",
+      "title": "分配律展開的每一項，在圖上的哪一塊？",
+      "body": "按「下一步」逐步展開 (a+b)(a+b)。同一個顏色＝同一塊面積＝同一項。",
+      "source": "對應課本 1-1 p.12 和的平方公式推導",
+      "notes": "雙重編碼：顏色固定（a² 紫、ab 藍、b² 橘），讓符號與圖形一一對應。逐步揭示控制認知負荷。",
+      "interactive": {
+        "view": { "xMin": -1.5, "xMax": 16.5, "yMin": -1.2, "yMax": 9.2, "aspect": "equal" },
+        "shapes": [
+          { "type": "rect", "x": 0, "y": 0, "w": 7, "h": 7, "fill": "rgba(31,42,86,.04)", "color": "#1f2a56", "width": 2.5 },
+          { "type": "segment", "points": [[5, 0], [5, 7]], "color": "#1f2a56", "dash": true, "step": 1 },
+          { "type": "segment", "points": [[0, 2], [7, 2]], "color": "#1f2a56", "dash": true, "step": 1 },
+          { "type": "rect", "x": 0, "y": 2, "w": 5, "h": 5, "fill": "rgba(123,97,255,.30)", "color": "#7b61ff", "step": 1 },
+          { "type": "text", "x": 2.5, "y": 4.5, "text": "a·a = a²", "color": "#5a3fd6", "size": 18, "step": 1 },
+          { "type": "rect", "x": 5, "y": 2, "w": 2, "h": 5, "fill": "rgba(47,128,237,.30)", "color": "#2f80ed", "step": 2 },
+          { "type": "rect", "x": 0, "y": 0, "w": 5, "h": 2, "fill": "rgba(47,128,237,.30)", "color": "#2f80ed", "step": 2 },
+          { "type": "text", "x": 6, "y": 4.5, "text": "ab", "color": "#1d4fa3", "size": 16, "step": 2 },
+          { "type": "text", "x": 2.5, "y": 1, "text": "ba", "color": "#1d4fa3", "size": 16, "step": 2 },
+          { "type": "rect", "x": 5, "y": 0, "w": 2, "h": 2, "fill": "rgba(255,138,61,.35)", "color": "#ff8a3d", "step": 3 },
+          { "type": "text", "x": 6, "y": 1, "text": "b²", "color": "#b4541a", "size": 16, "step": 3 },
+          { "type": "brace", "points": [[0, 7], [5, 7]], "text": "a" },
+          { "type": "brace", "points": [[5, 7], [7, 7]], "text": "b" },
+          { "type": "text", "x": 12, "y": 7.6, "text": "(a+b)² = (a+b)(a+b)", "size": 19, "color": "#1f2a56" },
+          { "type": "text", "x": 12, "y": 6.2, "text": "= a·a", "size": 19, "color": "#5a3fd6", "step": 1 },
+          { "type": "text", "x": 12, "y": 4.8, "text": "+ a·b + b·a", "size": 19, "color": "#1d4fa3", "step": 2 },
+          { "type": "text", "x": 12, "y": 3.4, "text": "+ b·b", "size": 19, "color": "#b4541a", "step": 3 },
+          { "type": "text", "x": 12, "y": 1.6, "text": "= a² + 2ab + b²", "size": 23, "color": "#1f2a56", "step": 4 }
+        ],
+        "steps": [
+          "大正方形邊長是 a + b，面積寫成 (a+b)(a+b)",
+          "第一個 a 乘第二個 a：左上紫色正方形 a²",
+          "a·b 與 b·a：兩塊一樣大的藍色長方形",
+          "b·b：右下橘色小正方形 b²",
+          "兩塊 ab 合併成 2ab，得到和的平方公式"
+        ],
+        "caption": "按「下一步」逐步揭示"
+      },
+      "activity": {
+        "id": "connect-2ab",
+        "type": "numeric",
+        "prompt": "若 a = 30、b = 4，圖中兩塊藍色長方形的面積合計（2ab）是多少？",
+        "answer": "240",
+        "explanation": "2ab = 2 × 30 × 4 = 240。",
+        "aiAllowed": false
+      }
+    },
+    {
+      "id": "worked",
+      "phase": "工作範例",
+      "eyebrow": "05 / 看懂一題完整解法",
+      "title": "用公式心算 31²",
+      "body": "把 31 拆成 30 + 1。按「下一步」看每一塊面積怎麼算，再自己做一題。",
+      "source": "對應課本 1-1 p.12–13 利用和的平方公式求值（數字為自編）",
+      "notes": "工作範例：老師放慢逐步講，請學生說出每一步「為什麼」。接著同結構的近遷移題由學生獨立完成。",
+      "interactive": {
+        "view": { "xMin": -2, "xMax": 70, "yMin": -2.5, "yMax": 36, "aspect": "equal" },
+        "shapes": [
+          { "type": "rect", "x": 0, "y": 3, "w": 30, "h": 30, "fill": "rgba(123,97,255,.25)", "color": "#7b61ff" },
+          { "type": "rect", "x": 30, "y": 3, "w": 3, "h": 30, "fill": "rgba(47,128,237,.35)", "color": "#2f80ed", "step": 2 },
+          { "type": "rect", "x": 0, "y": 0, "w": 30, "h": 3, "fill": "rgba(47,128,237,.35)", "color": "#2f80ed", "step": 2 },
+          { "type": "rect", "x": 30, "y": 0, "w": 3, "h": 3, "fill": "rgba(255,138,61,.45)", "color": "#ff8a3d", "step": 3 },
+          { "type": "text", "x": 15, "y": 18, "text": "30² = 900", "color": "#5a3fd6", "size": 20, "step": 1 },
+          { "type": "brace", "points": [[0, 33], [30, 33]], "text": "30" },
+          { "type": "brace", "points": [[30, 33], [33, 33]], "text": "1" },
+          { "type": "text", "x": 52, "y": 31, "text": "31² = (30 + 1)²", "size": 19 },
+          { "type": "text", "x": 52, "y": 25, "text": "= 30² + 2×30×1 + 1²", "size": 19, "step": 1 },
+          { "type": "text", "x": 52, "y": 19, "text": "= 900 + 60 + 1", "size": 19, "step": 3 },
+          { "type": "text", "x": 52, "y": 13, "text": "= 961", "size": 24, "color": "#1f2a56", "step": 4 },
+          { "type": "text", "x": 52, "y": 6, "text": "兩條細長方形：30×1 各一塊 → 60", "size": 14, "color": "#1d4fa3", "step": 2 }
+        ],
+        "steps": [
+          "拆數：31 = 30 + 1（選一個好算的整十數）",
+          "套公式：a = 30、b = 1，先算 a² = 900",
+          "兩塊細長方形：2ab = 2 × 30 × 1 = 60",
+          "右下小正方形：b² = 1，再相加",
+          "答案：31² = 961（圖中比例為示意，細條已放大）"
+        ],
+        "caption": "圖形未按比例：細長方形寬度放大以便觀察"
+      },
+      "activity": {
+        "id": "worked-41",
+        "type": "numeric",
+        "prompt": "換你：用和的平方公式算 41² = ？",
+        "answer": "1681",
+        "explanation": "41² = (40+1)² = 1600 + 80 + 1 = 1681。",
+        "aiAllowed": false
+      }
+    },
+    {
+      "id": "faded",
+      "phase": "半完成範例",
+      "eyebrow": "06 / 換你補關鍵步驟",
+      "title": "(x + 5)² = x² + □x + 25",
+      "body": "□ 是兩塊長方形合起來的係數。拖拉 x，確認你的答案對任何 x 都成立。",
+      "source": "對應課本 1-1 p.13 代數式的展開（題目自編）",
+      "notes": "褪除（fading）：只留關鍵步驟給學生。若學生填 5，請他指出圖上的兩塊長方形。",
+      "interactive": {
+        "view": { "xMin": -1.6, "xMax": 15, "yMin": -1.2, "yMax": 14.6, "aspect": "equal", "grid": 1 },
+        "params": [{ "id": "x", "label": "x", "min": 1, "max": 8, "step": 1, "value": 3 }],
+        "shapes": [
+          { "type": "rect", "x": 0, "y": 5, "w": "x", "h": "x", "fill": "rgba(123,97,255,.28)", "color": "#7b61ff" },
+          { "type": "rect", "x": "x", "y": 5, "w": 5, "h": "x", "fill": "rgba(47,128,237,.28)", "color": "#2f80ed" },
+          { "type": "rect", "x": 0, "y": 0, "w": "x", "h": 5, "fill": "rgba(47,128,237,.28)", "color": "#2f80ed" },
+          { "type": "rect", "x": "x", "y": 0, "w": 5, "h": 5, "fill": "rgba(255,138,61,.32)", "color": "#ff8a3d" },
+          { "type": "text", "x": "x/2", "y": "5+x/2", "text": "x²", "color": "#5a3fd6", "size": 18 },
+          { "type": "text", "x": "x+2.5", "y": "5+x/2", "text": "5x", "color": "#1d4fa3", "size": 18 },
+          { "type": "text", "x": "x/2", "y": 2.5, "text": "5x", "color": "#1d4fa3", "size": 18 },
+          { "type": "text", "x": "x+2.5", "y": 2.5, "text": "25", "color": "#b4541a", "size": 18 },
+          { "type": "brace", "points": [[0, "x+5"], ["x", "x+5"]], "text": "x = {x}" },
+          { "type": "brace", "points": [["x", "x+5"], ["x+5", "x+5"]], "text": "5" }
+        ],
+        "readouts": [
+          { "label": "(x+5)²", "expr": "(x+5)^2" },
+          { "label": "x² + 25", "expr": "x^2+25" },
+          { "label": "兩塊長方形", "expr": "(x+5)^2-x^2-25" }
+        ]
+      },
+      "activity": {
+        "id": "faded-coefficient",
+        "type": "numeric",
+        "prompt": "(x + 5)² = x² + □x + 25，□ 應填多少？",
+        "answer": "10",
+        "explanation": "兩塊長方形各是 5x，合計 10x，所以 □ = 10（也就是 2 × x × 5 的係數）。",
+        "aiAllowed": false
+      }
+    },
+    {
+      "id": "error-analysis",
+      "phase": "錯誤分析",
+      "eyebrow": "07 / 當小老師",
+      "title": "小明寫：(2x + 3)² = 4x² + 9",
+      "body": "在畫布圈出錯誤、寫出正確展開，並畫面積圖說明少了哪兩塊。也可以寫在紙上拍照上傳。",
+      "source": "對應課本 1-1 p.12–13 和的平方公式（錯例自編）",
+      "notes": "錯誤分析＋自我解釋。開放作答約 4 分鐘；收件後用「AI 批改」依規準批改，教師覆核後再「發回」。可挑兩份不同作法投影討論。",
+      "interactive": {
+        "view": { "xMin": -1.6, "xMax": 13, "yMin": -1.2, "yMax": 12.4, "aspect": "equal", "grid": 1 },
+        "params": [
+          { "id": "x", "label": "x", "min": 1, "max": 4, "step": 0.5, "value": 3 },
+          { "id": "ming", "label": "只看小明算到的", "kind": "toggle", "value": 1 }
+        ],
+        "shapes": [
+          { "type": "rect", "x": 0, "y": 3, "w": "2*x", "h": "2*x", "fill": "rgba(123,97,255,.28)", "color": "#7b61ff" },
+          { "type": "rect", "x": "2*x", "y": 0, "w": 3, "h": 3, "fill": "rgba(255,138,61,.32)", "color": "#ff8a3d" },
+          { "type": "rect", "x": "2*x", "y": 3, "w": 3, "h": "2*x", "fill": "rgba(47,128,237,.28)", "color": "#2f80ed", "show": "!ming" },
+          { "type": "rect", "x": 0, "y": 0, "w": "2*x", "h": 3, "fill": "rgba(47,128,237,.28)", "color": "#2f80ed", "show": "!ming" },
+          { "type": "rect", "x": "2*x", "y": 3, "w": 3, "h": "2*x", "color": "#e5484d", "dash": true, "show": "ming" },
+          { "type": "rect", "x": 0, "y": 0, "w": "2*x", "h": 3, "color": "#e5484d", "dash": true, "show": "ming" },
+          { "type": "text", "x": "2*x+1.5", "y": "3+x", "text": "？", "color": "#e5484d", "size": 26, "show": "ming" },
+          { "type": "text", "x": "x", "y": 1.5, "text": "？", "color": "#e5484d", "size": 26, "show": "ming" },
+          { "type": "text", "x": "x", "y": "3+x", "text": "4x²", "color": "#5a3fd6", "size": 18 },
+          { "type": "text", "x": "2*x+1.5", "y": 1.5, "text": "9", "color": "#b4541a", "size": 18 },
+          { "type": "brace", "points": [[0, "2*x+3"], ["2*x", "2*x+3"]], "text": "2x" },
+          { "type": "brace", "points": [["2*x", "2*x+3"], ["2*x+3", "2*x+3"]], "text": "3" }
+        ],
+        "readouts": [
+          { "label": "正確面積 (2x+3)²", "expr": "(2*x+3)^2", "digits": 2 },
+          { "label": "小明的 4x² + 9", "expr": "4*x^2+9", "digits": 2 }
+        ],
+        "caption": "關掉「只看小明算到的」，看看漏掉的部分"
+      },
+      "activity": {
+        "id": "error-canvas",
+        "type": "canvas",
+        "prompt": "小明寫 (2x + 3)² = 4x² + 9。① 圈出錯誤 ② 寫出正確展開 ③ 畫面積圖說明少了哪兩塊。",
+        "canvas": "grid",
+        "allowPhoto": true,
+        "aiAllowed": true,
+        "rubric": {
+          "criteria": [
+            {
+              "id": "find",
+              "label": "找出錯誤",
+              "points": 2,
+              "levels": [
+                { "score": 0, "description": "未指出錯誤，或認為小明是對的" },
+                { "score": 1, "description": "只說「錯了」或指出位置不明確" },
+                { "score": 2, "description": "明確指出漏了中間項 2·(2x)·3 = 12x（兩塊長方形）" }
+              ]
+            },
+            {
+              "id": "expand",
+              "label": "正確展開",
+              "points": 3,
+              "levels": [
+                { "score": 0, "description": "未展開或展開形式錯誤" },
+                { "score": 1, "description": "有中間項但係數錯誤（如 6x、12x²）且有其他錯誤" },
+                { "score": 2, "description": "只有一處計算錯誤（如 2x² 或 6x）" },
+                { "score": 3, "description": "寫出 (2x+3)² = 4x² + 12x + 9" }
+              ]
+            },
+            {
+              "id": "model",
+              "label": "面積圖說明",
+              "points": 3,
+              "levels": [
+                { "score": 0, "description": "沒有圖，也沒有用圖說明" },
+                { "score": 1, "description": "有畫正方形，但沒有切成四塊或沒有標示" },
+                { "score": 2, "description": "切成四塊，但邊長或面積只標示一部分" },
+                { "score": 3, "description": "正確切成四塊並標出 4x²、6x、6x、9，指出 6x 兩塊是漏掉的部分" }
+              ]
+            }
+          ],
+          "reference": "(2x+3)² = (2x)² + 2·(2x)·3 + 3² = 4x² + 12x + 9。小明只算了兩個正方形 4x² 與 9，漏了兩塊 2x × 3 的長方形（各 6x，共 12x）。",
+          "graderNotes": "接受用 (2x+3)(2x+3) 分配律展開的做法；面積圖不必按比例。拍照作答可能歪斜，以內容為準。"
+        }
+      }
+    },
+    {
+      "id": "lab",
+      "phase": "交錯練習",
+      "eyebrow": "08 / 數字實驗室",
+      "title": "公式對所有的數都成立嗎？",
+      "body": "拖拉 a、b（可以是負數或小數），比較三根長條。哪兩根永遠一樣高？",
+      "notes": "把面積模型推廣到所有實數（面積圖只適用正數）。接著做交錯判斷題：混合數字與代數、正確與錯誤例子。",
+      "interactive": {
+        "view": { "xMin": 0, "xMax": 12, "yMin": -1.8, "yMax": 12, "aspect": "fill" },
+        "params": [
+          { "id": "a", "label": "a", "min": -5, "max": 6, "step": 0.5, "value": 3 },
+          { "id": "b", "label": "b", "min": -5, "max": 6, "step": 0.5, "value": 2 }
+        ],
+        "shapes": [
+          { "type": "segment", "points": [[0.4, 0], [11.6, 0]], "color": "#1f2a56", "width": 2 },
+          { "type": "rect", "x": 1, "y": 0, "w": 2.6, "h": "min((a+b)^2,121)/11", "fill": "rgba(31,42,86,.75)" },
+          { "type": "rect", "x": 4.7, "y": 0, "w": 2.6, "h": "min(a^2+b^2,121)/11", "fill": "rgba(229,72,77,.7)" },
+          { "type": "rect", "x": 8.4, "y": 0, "w": 2.6, "h": "min(a^2+2*a*b+b^2,121)/11", "fill": "rgba(18,163,154,.75)" },
+          { "type": "text", "x": 2.3, "y": -0.9, "text": "(a+b)²", "size": 15 },
+          { "type": "text", "x": 6, "y": -0.9, "text": "a² + b²", "size": 15 },
+          { "type": "text", "x": 9.7, "y": -0.9, "text": "a² + 2ab + b²", "size": 15 },
+          { "type": "text", "x": 2.3, "y": "min((a+b)^2,121)/11+0.6", "text": "{(a+b)^2}", "size": 16 },
+          { "type": "text", "x": 6, "y": "min(a^2+b^2,121)/11+0.6", "text": "{a^2+b^2}", "size": 16, "color": "#c0383c" },
+          { "type": "text", "x": 9.7, "y": "min(a^2+2*a*b+b^2,121)/11+0.6", "text": "{a^2+2*a*b+b^2}", "size": 16, "color": "#0c7c75" }
+        ],
+        "readouts": [{ "label": "2ab", "expr": "2*a*b", "digits": 2 }],
+        "caption": "長條高度上限 121；a、b 異號時 2ab 是負的"
+      },
+      "activity": {
+        "id": "lab-interleave",
+        "type": "multiple",
+        "prompt": "下列哪些展開或計算是正確的？（可複選）",
+        "options": [
+          "(a + 2b)² = a² + 4ab + 4b²",
+          "(3 + y)² = 9 + y²",
+          "102² = 10000 + 400 + 4",
+          "(x + 1)² = x² + x + 1"
+        ],
+        "correct": [0, 2],
+        "explanation": "(a+2b)² 的中間項是 2·a·2b = 4ab；102² = (100+2)² = 10000 + 400 + 4。另外兩個都漏了或算錯中間項 2ab。",
+        "aiAllowed": false
+      }
+    },
+    {
+      "id": "exit-ticket",
+      "phase": "出場券",
+      "eyebrow": "09 / 用自己的話說",
+      "title": "向沒來上課的同學解釋",
+      "body": "用一到兩句話說明：為什麼 (a+b)² 不等於 a² + b²？可以用面積圖或分配律當理由。",
+      "visual": "steps",
+      "bullets": ["說出差在哪裡", "給一個理由", "舉一個數字例子更好"],
+      "notes": "出場券（自我解釋）。可用「AI 批改」依規準給回饋，或用「AI 整理回答」看全班迷思分布。",
+      "activity": {
+        "id": "exit-explain",
+        "type": "short",
+        "prompt": "為什麼 (a+b)² 不等於 a² + b²？",
+        "aiAllowed": true,
+        "rubric": {
+          "criteria": [
+            {
+              "id": "concept",
+              "label": "指出差異",
+              "points": 2,
+              "levels": [
+                { "score": 0, "description": "沒有指出差異，或說明錯誤" },
+                { "score": 1, "description": "只說「還有別的項」但沒說是什麼" },
+                { "score": 2, "description": "明確指出少了 2ab（兩塊 ab）" }
+              ]
+            },
+            {
+              "id": "reason",
+              "label": "提出理由",
+              "points": 2,
+              "levels": [
+                { "score": 0, "description": "沒有理由" },
+                { "score": 1, "description": "只舉數字例子，沒有一般性的理由" },
+                { "score": 2, "description": "用面積圖（四塊）或分配律 (a+b)(a+b) 說明" }
+              ]
+            }
+          ],
+          "reference": "(a+b)² = (a+b)(a+b) = a² + ab + ba + b² = a² + 2ab + b²。面積圖上邊長 a+b 的正方形切成 a²、b² 與兩塊 ab，a² + b² 少算了兩塊長方形 2ab。"
+        }
+      }
+    },
+    {
+      "id": "reflect",
+      "phase": "後設認知",
+      "eyebrow": "10 / 給自己打分數",
+      "title": "我能用面積圖解釋和的平方公式嗎？",
+      "body": "誠實評估自己的理解程度。下一節課會從你們的自評與錯誤類型開始複習。",
+      "visual": "cards",
+      "bullets": ["還需要再看一次", "看得懂例題", "可以教別人"],
+      "notes": "後設認知自評。3 分以下的學生，下節課開頭用「提取練習」再操作一次面積模型（間隔複習）。",
+      "activity": {
+        "id": "reflect-confidence",
+        "type": "scale",
+        "prompt": "我能用面積圖向同學解釋 (a+b)² = a² + 2ab + b²",
+        "min": 1,
+        "max": 5,
+        "minLabel": "還需要再看一次",
+        "maxLabel": "可以教別人",
+        "aiAllowed": false
+      }
+    }
+  ]
+}

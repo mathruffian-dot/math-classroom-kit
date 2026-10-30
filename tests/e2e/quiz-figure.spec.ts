@@ -43,7 +43,10 @@ test('geometry quiz: every question shows its figure on the phone, and the teach
   await phone.page.locator('#login-form').getByRole('button', { name: '登入' }).click();
   await expect(phone.page.getByTestId('session-slide')).toBeVisible();
 
-  await teacher.page.locator('.slide-dots button').last().click();
+  // 課後檢核頁（後面可能還有魔王戰頁）
+  const sid = teacher.page.url().split('/session/')[1];
+  const slides = (await (await teacher.page.request.get(`/api/sessions/${sid}`)).json()).lesson.slides;
+  await teacher.page.locator('.slide-dots button').nth(slides.findIndex((x: { quizPage?: boolean }) => x.quizPage)).click();
   await teacher.page.getByTestId('quiz-class').click();
   const tab = phone.page.locator('.phone-tabs [data-tab="answer"]');
   if (await tab.isVisible()) await tab.click();

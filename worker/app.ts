@@ -6,6 +6,11 @@ import type {
   Credential,
   Danmaku,
   Grade,
+  Homework,
+  HomeworkMeta,
+  HomeworkSheet,
+  LearningRecord,
+  LearningRecords,
   Lesson,
   PracticeEntry,
   QuizBank,
@@ -55,6 +60,28 @@ import {
   verifyPassword,
 } from './security';
 import { type StorageEnv, type Store, MAX_RESTORE_BYTES, supabaseUrl } from './storage';
+import {
+  HOMEWORK_SYSTEM,
+  curriculumCodes,
+  homeworkBank,
+  homeworkPlan,
+  homeworkPrompt,
+  homeworkRecords,
+  mockHomework,
+  newSheet,
+  normalizeHomework,
+  pickItems,
+  bankQuestions,
+  frozenKey,
+  questionsOf,
+  scoreResult,
+  scopeSlots,
+  sectionHost,
+  sessionRecords,
+  sheetView,
+  slotInfo,
+} from './homework';
+import { type PhotoEnv, base64Bytes, photoStore } from './photos';
 import {
   type Vault,
   GRADER_SYSTEM,
@@ -165,6 +192,10 @@ export interface State {
   catalog?: Record<string, string>;
   /** 已封存的課堂（紀錄另外存、不在每次讀取時載入）：課堂 ID → 摘要。 */
   archive?: Record<string, { session: Session; ownerId: string }>;
+  /** 回家作業摘要（詳細內容存在 vault 的 hw:<id>）。 */
+  homework?: Record<string, HomeworkMeta>;
+  /** 等待 AI 批改的作業（「作業 ID:座號」，依送出先後）。結果寫回後才移除；批改中的由 sheet.lease 標示。 */
+  hwQueue?: string[];
 }
 export type Deferred = {
   operation: () => Promise<unknown>;
@@ -186,6 +217,8 @@ export interface AppContext {
   loadSession?: (id: string) => Promise<StoredSession | undefined>;
   /** 免費額度用量（Durable Object 分開存時才有）。 */
   usage?: () => Promise<{ dataBytes: number; rowsToday: number; sessions: number }>;
+  /** 有作業等待批改：Durable Object 排一個 alarm 在背景批改（學生關掉網頁也會繼續）。沒有時當場批改；排不進去會丟出錯誤。 */
+  kickHomework?: () => Promise<void>;
 }
 /** 這一堂課的題庫：開課後才加的題庫也拿得到（複製進這一堂的課程）。 */
 /** CSV：每一次測驗／PK 的每一題作答。 */
@@ -933,6 +966,7 @@ function largeBodyLimit(path: string, method: string): number | undefined {
   if (path === '/api/restore') return MAX_RESTORE_BYTES;
   if (path === '/api/ai') return 6 * 1024 * 1024;
   if (/^\/api\/sessions\/[\w-]+\/images$/.test(path)) return 2 * 1024 * 1024;
+  if (HW_PHOTO_PATH.test(path)) return 2.5 * 1024 * 1024;
   return undefined;
 }
 export async function handleApi(request: Request, ctx: AppContext): Promise<Response> {
@@ -965,7 +999,11 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
     // 備份、AI 教材轉換與作答照片可能超過一般 1 MiB 上限；先驗證身分再讀取。
     let preAuth: Awaited<ReturnType<typeof authenticate>> | undefined;
     const large = largeBodyLimit(path, method);
-    if (large) {
+    if (large && HW_PHOTO_PATH.test(path)) {
+      // 回家作業照片：用 QR code 裡的憑證，不用登入；先確認憑證再讀照片
+      const m = path.match(HW_PHOTO_PATH)!;
+      await sheetByToken(vault, state, m[1], m[2], url.searchParams.get('t'));
+    } else if (large) {
       preAuth = await authenticate(request, state, env);
       assert(preAuth, '請先登入', 401);
       // 作答照片學生也能上傳；其餘大型請求只限教師。
@@ -1002,6 +1040,8 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
         'Set-Cookie': 'mck_session=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0',
       });
     }
+    const hwPublic = path.match(/^\/api\/hw\/([\w-]+)\/(\d+)(?:\/(photos|submit)(?:\/([\w-]+))?)?$/);
+    if (hwPublic) return await homeworkPublic(request, ctx, state, vault, hwPublic, body);
     let auth: Awaited<ReturnType<typeof authenticate>>;
     try {
       auth = preAuth || (await authenticate(request, state, env));
@@ -1075,6 +1115,7 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
       requireTeacher(user);
       const usage = await ctx.usage?.();
       const images = Object.values(state.images);
+      const hwPhotos = Object.values(state.homework || {}).flatMap((h) => Object.values(h.sheets));
       return json({
         available: !!usage,
         dataBytes: usage?.dataBytes || 0,
@@ -1082,8 +1123,9 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
         sessions: usage?.sessions || Object.keys(state.sessions).length,
         archived: Object.keys(state.archive || {}).length,
         photos: images.length,
-        // 照片以 base64 文字存，約比原檔大 1/3
-        photoBytes: Math.round(images.reduce((sum, m) => sum + m.bytes, 0) * 4 / 3),
+        // 照片以 base64 文字存，約比原檔大 1/3（含回家作業照片；存到 Supabase 時不占 Durable Object）
+        photoBytes: Math.round((images.reduce((sum, m) => sum + m.bytes, 0) + (photoStore(env as PhotoEnv, vault).kind === 'durable' ? hwPhotos.reduce((sum, s) => sum + (s.photoBytes || 0), 0) : 0)) * 4 / 3),
+        homeworkPhotoBytes: Math.round(hwPhotos.reduce((sum, s) => sum + (s.photoBytes || 0), 0) * 4 / 3),
         limits: { storageBytes: 5 * 1024 ** 3, rowsPerDay: 100_000 },
       });
     }
@@ -1099,6 +1141,32 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
         await vault.delete(`blob:${id}`);
         delete state.images[id];
         removed++;
+      }
+      // 回家作業照片：批改結果（每題對錯、評語）留著，只刪照片。先寫入新的照片清單再刪照片，刪到一半出錯時清單不會指到已刪的照片
+      const photos = photoStore(env as PhotoEnv, vault);
+      for (const meta of Object.values(state.homework || {})) {
+        if (meta.ownerId !== user.id) continue;
+        const hw = await loadHw(vault, meta.id);
+        if (!hw) continue;
+        const drop: string[] = [];
+        for (const sheet of Object.values(hw.sheets)) {
+          if (['queued', 'grading'].includes(sheet.status)) continue;
+          const old = sheet.photos.filter((p) => Date.parse(p.at) < before);
+          drop.push(...old.map((p) => photoKey(hw.id, sheet.seat, p.id)));
+          if (old.length) {
+            sheet.photos = sheet.photos.filter((p) => !old.includes(p));
+            // 紅筆位置是照著照片畫的；照片刪掉後只留每題結果
+            sheet.result?.items.forEach((m) => {
+              delete m.photo;
+              delete m.x;
+              delete m.y;
+            });
+            removed += old.length;
+          }
+        }
+        if (!drop.length) continue;
+        await saveHw(vault, state, hw);
+        for (const key of drop) await photos.delete(key);
       }
       return save({ removed });
     }
@@ -1284,9 +1352,12 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
       }
       for (const [key, login] of Object.entries(state.logins))
         if (login.user.classId === cl.classroom.id) delete state.logins[key];
+      for (const meta of Object.values(state.homework || {})) if (meta.classId === cl.classroom.id) await deleteHomework(env, vault, state, meta.id);
       delete state.classes[cl.classroom.id];
       return save({ ok: true });
     }
+    const hwRoute = await homeworkRoutes(request, ctx, state, vault, user, body, save);
+    if (hwRoute) return hwRoute;
     if (path === '/api/sessions' && method === 'POST') {
       requireTeacher(user);
       const lesson = state.lessons[identifier(body.lessonId)],
@@ -2243,6 +2314,8 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
         {
           schemaVersion: 1,
           exportedAt: now(),
+          // 回家作業（派發、題目、照片、批改結果與作業的學習紀錄）目前不在備份裡，見 docs/HOMEWORK.md「備份」
+          excludes: ['homework', 'photos', 'credentials'],
           lessons: Object.values(state.lessons)
             .filter((l) => l.ownerId === user.id)
             .map(cleanLesson),
@@ -2734,4 +2807,428 @@ async function analyze(
     await store.write(latest);
   }
   return result;
+}
+
+/* ───────────── 學習紀錄與回家作業 ───────────── */
+const HW_PHOTO_PATH = /^\/api\/hw\/([\w-]+)\/(\d+)\/photos$/;
+const HW_MAX_PHOTOS = 6;
+const HW_MAX_SUBMISSIONS = 3;
+/** 批改租約：比一次批改可能花的時間（讀照片＋AI 150 秒）長；逾期還沒寫回就當作中斷，重新批改。 */
+export const HW_LEASE_MS = 6 * 60_000;
+const photoKey = (id: string, seat: string | number, photoId: string) => `${id}/${seat}/${photoId}`;
+async function loadHw(vault: Vault, id: string): Promise<Homework | undefined> {
+  return vault.get<Homework>(`hw:${id}`);
+}
+function hwMeta(hw: Homework): HomeworkMeta {
+  const sheets: HomeworkMeta['sheets'] = {};
+  for (const [seat, s] of Object.entries(hw.sheets))
+    sheets[seat] = { status: s.status, ...(s.result ? { score: s.result.score, max: s.result.max } : {}), ...(s.photos.length ? { photoBytes: s.photos.reduce((n, p) => n + p.bytes, 0) } : {}) };
+  const { id, ownerId, classId, className, title, lessonIds, scope, createdAt } = hw;
+  return { id, ownerId, classId, className, title, lessonIds, scope, createdAt, sheets };
+}
+async function saveHw(vault: Vault, state: State, hw: Homework) {
+  await vault.put(`hw:${hw.id}`, hw);
+  (state.homework ||= {})[hw.id] = hwMeta(hw);
+}
+/** 一位同學的作業卷畫面（題目讀凍結的版本；學生在批改完成前拿不到答案）。 */
+async function viewOf(vault: Vault, hw: Homework, sheet: HomeworkSheet, origin: string, teacher: boolean) {
+  const answers = teacher || (sheet.status === 'graded' && !!sheet.result);
+  return sheetView(hw, sheet, origin, await questionsOf(vault, hw.id, sheet, answers));
+}
+const photoKeys = (hw: Homework, sheet: HomeworkSheet, list = sheet.photos) => list.map((p) => photoKey(hw.id, sheet.seat, p.id));
+/**
+ * 刪除一份作業：每張照片（Durable Object 的 hwphoto:）、凍結的題目、作業內容，最後才拿掉主檔摘要。
+ * 中途出錯時整個請求失敗、主檔不寫入；全部都是「刪除」，老師再按一次會把剩下的刪完。
+ */
+async function deleteHomework(env: StorageEnv, vault: Vault, state: State, id: string) {
+  const hw = await loadHw(vault, id);
+  const photos = photoStore(env as PhotoEnv, vault);
+  for (const sheet of Object.values(hw?.sheets || {})) {
+    for (const key of photoKeys(hw!, sheet)) await photos.delete(key);
+    await vault.delete(frozenKey(id, sheet.seat));
+  }
+  await vault.delete(`hw:${id}`);
+  delete state.homework?.[id];
+  if (state.hwQueue) state.hwQueue = state.hwQueue.filter((k) => !k.startsWith(`${id}:`));
+}
+/** QR code 連結的憑證：作業 ID＋座號＋token 都對才能看、能上傳。 */
+async function sheetByToken(vault: Vault, state: State, id: string, seat: string, token: string | null) {
+  const meta = state.homework?.[identifier(id)];
+  assert(meta && token && /^[0-9a-f]{24}$/.test(token), '找不到這份作業，請重新掃描 QR code', 404);
+  const hw = await loadHw(vault, meta.id);
+  const sheet = hw?.sheets[String(Number(seat))];
+  assert(hw && sheet && sheet.token === token, '找不到這份作業，請重新掃描 QR code', 404);
+  return { hw, sheet };
+}
+function photoResponse(dataUrl: string | undefined) {
+  assert(dataUrl, '照片資料遺失', 404);
+  const m = dataUrl.match(/^data:([\w/+-]+);base64,(.+)$/);
+  assert(m, '照片資料損壞', 500);
+  return new Response(base64Bytes(m[2]), { headers: { 'Content-Type': m[1], 'Cache-Control': 'private, max-age=3600' } });
+}
+function ownedLessons(state: State, ownerId: string): Record<string, Lesson> {
+  return Object.fromEntries(Object.values(state.lessons).filter((l) => l.ownerId === ownerId).map((l) => [l.id, l]));
+}
+/** 一個班級全部的作答紀錄：每一堂課（封存的也讀回來）加上批改完的回家作業。 */
+async function classRecords(state: State, ctx: AppContext, vault: Vault, classId: string): Promise<LearningRecord[]> {
+  const ids = [...Object.values(state.sessions), ...Object.values(state.archive || {})].filter((s) => s.session.classId === classId).map((s) => s.session.id);
+  const out: LearningRecord[] = [];
+  for (const id of ids) {
+    await hydrateSession(state, ctx.loadSession, id);
+    const s = state.sessions[id];
+    if (s) out.push(...sessionRecords(s));
+  }
+  for (const meta of Object.values(state.homework || {})) {
+    if (meta.classId !== classId) continue;
+    const hw = await loadHw(vault, meta.id);
+    if (hw) out.push(...homeworkRecords(hw));
+  }
+  return out.sort((a, b) => a.at - b.at);
+}
+function hwScope(state: State, user: User, lessonId: string, scope: unknown) {
+  const lesson = state.lessons[identifier(lessonId)];
+  assert(lesson && lesson.ownerId === user.id, '找不到課程', 404);
+  const bank = homeworkBank(lesson.id);
+  assert(bank, '這一課還沒有回家作業題庫', 409);
+  const section = sectionHost(lesson.id);
+  if (scope === 'section') {
+    assert(section, '這一課不能派整節作業（魔王戰那一課或一節的最後一課才可以）', 400);
+    return { lessonIds: section, scope: 'section' as const, title: `${bank.section} 整節回家作業`, section };
+  }
+  return { lessonIds: [lesson.id], scope: 'lesson' as const, title: `${lesson.title}・回家作業`, section };
+}
+/**
+ * 背景批改：依序處理等待中的作業（Durable Object 的 alarm 呼叫；測試與沒有 alarm 的環境當場呼叫）。
+ * 佇列裡的工作要到結果寫回後才移除：取工作時只在作業卷上記一個租約（lease），
+ * 寫回失敗、程序中斷時租約到期，下一次 alarm 會重新批改。
+ * 回傳下一次該叫醒的時間（還有工作在別人的租約裡）；沒有工作時回傳 undefined。
+ */
+export async function drainHomework(
+  ctx: { env: StorageEnv; store: Store<State>; vault: Vault },
+  run: <T>(job: () => Promise<T>) => Promise<T> = (job) => job(),
+): Promise<number | undefined> {
+  const { env, store, vault } = ctx;
+  const photos = photoStore(env as PhotoEnv, vault);
+  for (let guard = 0; guard < 500; guard++) {
+    const job = await run(async () => {
+      const state = await store.read();
+      if (!state?.hwQueue?.length) return null;
+      const at = Date.now();
+      let wait: number | undefined,
+        dirty = false;
+      for (const key of [...state.hwQueue]) {
+        const [id, seat] = key.split(':');
+        const hw = await loadHw(vault, id);
+        const sheet = hw?.sheets[seat];
+        if (!hw || !sheet || !['queued', 'grading'].includes(sheet.status)) {
+          // 作業刪了、老師改判完、已經寫回：不用批改
+          state.hwQueue = state.hwQueue!.filter((k) => k !== key);
+          dirty = true;
+          continue;
+        }
+        if (sheet.status === 'grading' && sheet.lease && sheet.lease.until > at) {
+          wait = Math.min(wait ?? Infinity, sheet.lease.until);
+          continue;
+        }
+        const config = await resolveAi(env, vault).catch(() => null);
+        if (config) {
+          const day = new Date().toISOString().slice(0, 10),
+            usageKey = `${hw.ownerId}:${day}`;
+          if ((state.aiUsage[usageKey] || 0) + 1 > config.dailyLimit) {
+            sheet.status = 'error';
+            sheet.error = `今日 AI 批改已達 ${config.dailyLimit} 次上限，請老師明天按「重新批改」`;
+            delete sheet.lease;
+            state.hwQueue = state.hwQueue!.filter((k) => k !== key);
+            await saveHw(vault, state, hw);
+            dirty = true;
+            continue;
+          }
+          state.aiUsage[usageKey] = (state.aiUsage[usageKey] || 0) + 1;
+        }
+        const lease = { id: uuid(), until: at + HW_LEASE_MS };
+        sheet.status = 'grading';
+        sheet.lease = lease;
+        await saveHw(vault, state, hw);
+        await store.write(state);
+        return {
+          kind: 'job' as const,
+          key,
+          id,
+          seat,
+          jobAt: sheet.jobAt,
+          lease: lease.id,
+          questions: await questionsOf(vault, id, sheet, true),
+          keys: photoKeys(hw, sheet),
+          config,
+        };
+      }
+      if (dirty) await store.write(state);
+      return wait === undefined ? null : { kind: 'wait' as const, until: wait };
+    });
+    if (!job) return undefined;
+    if (job.kind === 'wait') return job.until;
+    let result: HomeworkSheet['result'],
+      error = '';
+    try {
+      if (!job.config) result = mockHomework(job.questions.length, Math.max(1, job.keys.length));
+      else {
+        const images: string[] = [];
+        for (const k of job.keys) {
+          const d = await photos.get(k);
+          if (d) images.push(d);
+        }
+        assert(images.length, '找不到作答照片', 409);
+        const content: Parameters<typeof chat>[2] = [{ type: 'text', text: homeworkPrompt(job.questions, images.length) }, ...images.map((url) => ({ type: 'image_url' as const, image_url: { url } }))];
+        const reply = await chat(job.config, HOMEWORK_SYSTEM, content, { maxTokens: 3000, timeoutMs: 150_000, json: true });
+        result = normalizeHomework(extractJson(reply), job.questions.length, images.length, 'live');
+      }
+    } catch (e) {
+      error = e instanceof Error ? e.message : String(e);
+    }
+    // 寫回失敗會丟出錯誤：工作還在佇列、租約到期後重新批改
+    await run(async () => {
+      const state = await store.read();
+      if (!state) return;
+      const hw = await loadHw(vault, job.id);
+      const sheet = hw?.sheets[job.seat];
+      // 批改期間學生重新上傳、老師重新批改、租約被接手：這一次的結果不要了（佇列交給新的那一次）
+      if (!hw || !sheet || sheet.jobAt !== job.jobAt || sheet.lease?.id !== job.lease) return;
+      if (result) {
+        sheet.result = result;
+        sheet.status = 'graded';
+        delete sheet.error;
+      } else {
+        sheet.status = 'error';
+        sheet.error = `AI 批改失敗（${error.slice(0, 120)}），請老師按「重新批改」`;
+      }
+      delete sheet.lease;
+      state.hwQueue = (state.hwQueue || []).filter((k) => k !== job.key);
+      await saveHw(vault, state, hw);
+      await store.write(state);
+    });
+  }
+  return undefined;
+}
+/** 排進批改佇列；有 alarm 就背景批改（排不進去時改成當場批改），沒有就當場批改。 */
+async function queueGrading(ctx: AppContext, vault: Vault, state: State, hw: Homework, sheet: HomeworkSheet) {
+  sheet.status = 'queued';
+  sheet.jobAt = now();
+  delete sheet.lease;
+  delete sheet.error;
+  await saveHw(vault, state, hw);
+  const key = `${hw.id}:${sheet.seat}`;
+  state.hwQueue = [...(state.hwQueue || []).filter((k) => k !== key), key];
+  await ctx.store.write(state);
+  if (ctx.kickHomework)
+    try {
+      return await ctx.kickHomework();
+    } catch {
+      /* alarm 排不進去：工作已存在佇列裡，下面當場批改 */
+    }
+  await drainHomework({ env: ctx.env, store: ctx.store, vault });
+}
+/** 學生用 QR code 連結（不用登入）：看作業、上傳照片、送出批改、看結果。 */
+async function homeworkPublic(request: Request, ctx: AppContext, state: State, vault: Vault, m: RegExpMatchArray, body: Record<string, unknown>): Promise<Response> {
+  const url = new URL(request.url),
+    method = request.method;
+  const { hw, sheet } = await sheetByToken(vault, state, m[1], m[2], url.searchParams.get('t'));
+  const photos = photoStore(ctx.env as PhotoEnv, vault);
+  const view = async () => {
+    const fresh = (await loadHw(vault, hw.id)) || hw;
+    const own = fresh.sheets[String(sheet.seat)] || sheet;
+    return json({ sheet: await viewOf(vault, fresh, own, url.origin, false) });
+  };
+  if (!m[3] && method === 'GET') return view();
+  if (m[3] === 'photos' && m[4] && method === 'GET') {
+    const p = sheet.photos.find((x) => x.id === m[4]);
+    assert(p, '找不到照片', 404);
+    return photoResponse(await photos.get(photoKey(hw.id, sheet.seat, p.id)));
+  }
+  assert(!['queued', 'grading'].includes(sheet.status), 'AI 正在批改，請稍候', 409);
+  if (m[3] === 'photos' && !m[4] && method === 'POST') {
+    const restart = sheet.status === 'graded';
+    if (restart) {
+      // 訂正後重新上傳：新照片存好、新狀態寫入後，才清掉上一次的照片與結果
+      assert(body.restart === true, '已經批改完了；要重新上傳請按「重新上傳」', 409);
+      assert((sheet.submissions || 0) < HW_MAX_SUBMISSIONS, `每份作業最多送出 ${HW_MAX_SUBMISSIONS} 次`, 429);
+    } else assert(sheet.photos.length < HW_MAX_PHOTOS, `最多 ${HW_MAX_PHOTOS} 張照片`, 429);
+    // Durable Object 一筆資料上限約 2 MB（和課堂作答照片同樣上限）
+    const dataUrl = str(body.dataUrl, '照片', 1_900_000, 30);
+    const p = dataUrl.match(/^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/]+=*)$/);
+    assert(p, '只接受 JPEG、PNG 或 WebP 圖片');
+    // 1. 先存新照片（hwphoto:<作業>/<座號>/<新 ID>）：失敗時什麼都沒改
+    const id = uuid(),
+      key = photoKey(hw.id, sheet.seat, id);
+    await photos.put(key, dataUrl);
+    // 2. 再一次寫入新的照片清單與狀態（作業內容 hw:<id> 一筆；主檔只放摘要）
+    const old = restart ? photoKeys(hw, sheet) : [];
+    const before = { photos: sheet.photos, result: sheet.result, status: sheet.status };
+    if (restart) {
+      sheet.photos = [];
+      delete sheet.result;
+      sheet.status = 'assigned';
+    }
+    sheet.photos = [...sheet.photos, { id, type: p[1], bytes: Math.floor((p[2].length * 3) / 4), at: now() }];
+    try {
+      await saveHw(vault, state, hw);
+      await ctx.store.write(state);
+    } catch (e) {
+      // 沒寫進去：舊照片與結果原封不動。作業內容可能已寫入、只有主檔沒寫進去，
+      // 先把舊內容寫回，成功了才收回新照片（避免清單指到不存在的照片）
+      Object.assign(sheet, before);
+      if (!before.result) delete sheet.result;
+      if (await saveHw(vault, state, hw).then(() => true, () => false)) await photos.delete(key).catch(() => undefined);
+      throw e;
+    }
+    // 3. 新清單寫入成功後才刪舊照片。這時已經沒有任何清單指到它們；刪除失敗只會留下沒人用的舊照片，不影響作業
+    for (const k of old) await photos.delete(k).catch(() => undefined);
+    return view();
+  }
+  if (m[3] === 'photos' && m[4] && method === 'DELETE') {
+    assert(sheet.status !== 'graded', '已經批改完了', 409);
+    const gone = sheet.photos.find((x) => x.id === m[4]);
+    assert(gone, '找不到照片', 404);
+    // 先寫入新的照片清單，再刪照片（清單不會指到已刪的照片）
+    sheet.photos = sheet.photos.filter((x) => x !== gone);
+    await saveHw(vault, state, hw);
+    await ctx.store.write(state);
+    await photos.delete(photoKey(hw.id, sheet.seat, gone.id));
+    return view();
+  }
+  if (m[3] === 'submit' && method === 'POST') {
+    assert(sheet.status !== 'graded', '已經批改完了', 409);
+    assert(sheet.photos.length, '請先拍照上傳作答紙', 400);
+    assert((sheet.submissions || 0) < HW_MAX_SUBMISSIONS, `每份作業最多送出 ${HW_MAX_SUBMISSIONS} 次`, 429);
+    sheet.submissions = (sheet.submissions || 0) + 1;
+    sheet.submittedAt = now();
+    await queueGrading(ctx, vault, state, hw, sheet);
+    return view();
+  }
+  throw new HttpError(404, '找不到 API');
+}
+/** 老師：學習紀錄、派發作業、作業清單與批改結果；學生：自己的作業清單。不是這些路徑時回傳 undefined。 */
+async function homeworkRoutes(
+  request: Request,
+  ctx: AppContext,
+  state: State,
+  vault: Vault,
+  user: User,
+  body: Record<string, unknown>,
+  save: (value: unknown) => Promise<Response>,
+): Promise<Response | undefined> {
+  const url = new URL(request.url),
+    path = url.pathname,
+    method = request.method;
+  if (path === '/api/student/homework' && method === 'GET') {
+    assert(user.role === 'student', '需要學生身分', 403);
+    const list = [];
+    for (const meta of Object.values(state.homework || {}).sort((a, b) => b.createdAt.localeCompare(a.createdAt))) {
+      if (meta.classId !== user.classId || !meta.sheets[String(user.seat)]) continue;
+      const hw = await loadHw(vault, meta.id);
+      const sheet = hw?.sheets[String(user.seat)];
+      if (!hw || !sheet) continue;
+      list.push({ id: hw.id, title: hw.title, createdAt: hw.createdAt, status: sheet.status, ...(sheet.result ? { score: sheet.result.score, max: sheet.result.max } : {}), url: `${url.origin}/#/hw/${hw.id}/${sheet.seat}/${sheet.token}` });
+    }
+    return json({ homework: list });
+  }
+  const recordsMatch = path.match(/^\/api\/classes\/([\w-]+)\/records$/);
+  if (!recordsMatch && !path.startsWith('/api/homework')) return undefined;
+  requireTeacher(user);
+  const lessons = ownedLessons(state, user.id);
+  if (recordsMatch && method === 'GET') {
+    const cl = state.classes[recordsMatch[1]];
+    assert(cl && cl.ownerId === user.id, '找不到班級', 404);
+    const records = await classRecords(state, ctx, vault, cl.classroom.id);
+    const slots: LearningRecords['slots'] = {};
+    for (const r of records) if (r.slot && !slots[r.slot]) { const info = slotInfo(r.slot, lessons); if (info) slots[r.slot] = info; }
+    const result: LearningRecords = { classId: cl.classroom.id, className: cl.classroom.name, seats: cl.classroom.seats, records, slots, codes: curriculumCodes() };
+    return json(result);
+  }
+  if (path === '/api/homework/plan' && method === 'GET') {
+    const cl = state.classes[identifier(url.searchParams.get('classId'))];
+    assert(cl && cl.ownerId === user.id, '找不到班級', 404);
+    const scope = hwScope(state, user, String(url.searchParams.get('lessonId')), url.searchParams.get('scope'));
+    const records = await classRecords(state, ctx, vault, cl.classroom.id);
+    const plan = homeworkPlan(records, scope.lessonIds, cl.classroom.seats, scope.title, scope.scope, lessons);
+    const host = sectionHost(String(url.searchParams.get('lessonId')));
+    if (host) plan.section = { id: homeworkBank(host[0])!.section, lessonIds: host, title: `${homeworkBank(host[0])!.section} 整節（${host.length} 個重點）` };
+    return json({ plan, slots: Object.fromEntries(scopeSlots(scope.lessonIds).map((k) => [k, slotInfo(k, lessons)])) });
+  }
+  if (path === '/api/homework' && method === 'POST') {
+    const cl = state.classes[identifier(body.classId)];
+    assert(cl && cl.ownerId === user.id, '找不到班級', 404);
+    const scope = hwScope(state, user, String(body.lessonId), body.scope);
+    assert(Array.isArray(body.seats) && body.seats.length >= 1 && body.seats.length <= cl.classroom.seats, '請至少選一位同學');
+    const seats = [...new Set(body.seats.map((n) => integer(n, 1, cl.classroom.seats)))].sort((a, b) => a - b);
+    const records = await classRecords(state, ctx, vault, cl.classroom.id);
+    // 以前的作業出過的題目（同一位同學盡量不重複）
+    const used = new Map<number, Set<string>>();
+    for (const meta of Object.values(state.homework || {})) {
+      if (meta.classId !== cl.classroom.id) continue;
+      const old = await loadHw(vault, meta.id);
+      for (const sh of Object.values(old?.sheets || {})) for (const it of sh.items) (used.get(sh.seat) || used.set(sh.seat, new Set()).get(sh.seat)!).add(`${it.lessonId}:${it.slot}#${it.variant}`);
+    }
+    const hw: Homework = { id: uuid(), ownerId: user.id, classId: cl.classroom.id, className: cl.classroom.name, title: scope.title, lessonIds: scope.lessonIds, scope: scope.scope, createdAt: now(), sheets: {} };
+    for (const seat of seats) {
+      const sheet = newSheet(seat, pickItems(records, seat, scope.lessonIds, used.get(seat) || new Set()));
+      // 凍結這份作業卷的題目、附圖、答案與詳解：之後改題庫，重新下載、批改都用派發時的版本
+      await vault.put(frozenKey(hw.id, seat), bankQuestions(sheet.items));
+      sheet.frozen = true;
+      hw.sheets[String(seat)] = sheet;
+    }
+    await saveHw(vault, state, hw);
+    await ctx.store.write(state);
+    const sheets = [];
+    for (const s of Object.values(hw.sheets)) sheets.push(await viewOf(vault, hw, s, url.origin, true));
+    return json({ homework: hwMeta(hw), sheets });
+  }
+  if (path === '/api/homework' && method === 'GET') {
+    const classId = url.searchParams.get('classId');
+    const list = Object.values(state.homework || {})
+      .filter((h) => h.ownerId === user.id && (!classId || h.classId === classId))
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    return json({ homework: list });
+  }
+  const one = path.match(/^\/api\/homework\/([\w-]+)(?:\/(\d+)\/(items|regrade|photos)(?:\/([\w-]+))?)?$/);
+  assert(one, '找不到 API', 404);
+  const meta = state.homework?.[one[1]];
+  assert(meta && meta.ownerId === user.id, '找不到這份作業', 404);
+  if (!one[2] && method === 'DELETE') {
+    await deleteHomework(ctx.env, vault, state, meta.id);
+    return save({ ok: true });
+  }
+  const hw = await loadHw(vault, meta.id);
+  assert(hw, '作業資料遺失', 404);
+  if (!one[2] && method === 'GET') {
+    const sheets = [];
+    for (const s of Object.values(hw.sheets).sort((a, b) => a.seat - b.seat)) sheets.push(await viewOf(vault, hw, s, url.origin, true));
+    return json({ homework: hwMeta(hw), sheets });
+  }
+  const sheet = hw.sheets[String(Number(one[2]))];
+  assert(sheet, '這位同學沒有這份作業', 404);
+  if (one[3] === 'photos' && one[4] && method === 'GET') {
+    const p = sheet.photos.find((x) => x.id === one[4]);
+    assert(p, '找不到照片', 404);
+    return photoResponse(await photoStore(ctx.env as PhotoEnv, vault).get(photoKey(hw.id, sheet.seat, p.id)));
+  }
+  if (one[3] === 'items' && one[4] && method === 'PUT') {
+    // 老師改判一題（對、錯、看不清楚）並可改評語
+    assert(sheet.result, '這份作業還沒批改', 409);
+    const n = integer(Number(one[4]), 1, sheet.result.items.length);
+    const mark = sheet.result.items[n - 1];
+    assert(body.correct === true || body.correct === false || body.correct === null, '對錯格式不正確');
+    mark.correct = body.correct;
+    if (body.comment !== undefined) mark.comment = str(body.comment, '評語', 40, 0);
+    mark.teacher = true;
+    scoreResult(sheet.result);
+    await saveHw(vault, state, hw);
+    return save({ sheet: await viewOf(vault, hw, sheet, url.origin, true) });
+  }
+  if (one[3] === 'regrade' && method === 'POST') {
+    assert(sheet.photos.length, '學生還沒有上傳照片', 409);
+    await queueGrading(ctx, vault, state, hw, sheet);
+    const fresh = (await loadHw(vault, hw.id)) || hw;
+    return json({ sheet: await viewOf(vault, fresh, fresh.sheets[String(sheet.seat)], url.origin, true) });
+  }
+  throw new HttpError(404, '找不到 API');
 }

@@ -79,6 +79,12 @@
 - 第 2 層紅筆批改用的額度較多。
 - 每份作答投票 3 次時，費用是 3 倍。
 
+## 選用：回家作業照片存到 Supabase Storage
+
+> 2026-10-30 老師決定：**目前不用**，作業照片以 Cloudflare Durable Object 為準，這一節只留作參考。啟用前要先修審核 C-7、C-8（見 `docs/REVIEW-2026-10-30-homework.md`）。
+
+回家作業的照片預設存在 Durable Object。要改存到 Supabase Storage（私人 bucket），只要設定 `SUPABASE_URL`、`SUPABASE_SECRET_KEY` 兩個 secret，`APP_MODE` 不用改。步驟見 [HOMEWORK.md](HOMEWORK.md#supabase-storage參考目前不用)。
+
 ## 選用：Supabase 模式
 
 舊版的 Supabase 模式（`APP_MODE=supabase`）仍然保留，設定方式見 [SUPABASE-AGENT-SETUP.md](SUPABASE-AGENT-SETUP.md)。

@@ -1,4 +1,5 @@
 import {
+  drainHomework,
   handleApi,
   hydrateSession,
   liveTicket,
@@ -32,7 +33,7 @@ declare const WebSocketPair: { new (): { 0: LiveSocket; 1: LiveSocket } };
 declare const WebSocketRequestResponsePair: { new (request: string, response: string): unknown };
 
 interface DurableState {
-  storage: LocalStorage;
+  storage: LocalStorage & { setAlarm?(at: number): Promise<void>; getAlarm?(): Promise<number | null> };
   acceptWebSocket?(socket: LiveSocket, tags?: string[]): void;
   getWebSockets?(tag?: string): LiveSocket[];
   setWebSocketAutoResponse?(pair: unknown): void;
@@ -129,6 +130,23 @@ export class ClassroomDurableObject {
         );
       }
     });
+  }
+  /**
+   * 回家作業背景批改：一份一份處理佇列；AI 呼叫在佇列外，讀寫狀態在佇列內（不擋課堂）。
+   * 還有工作在租約裡（別的批改正在進行、或上一次寫回失敗）就排到租約到期再叫醒；出錯時 30 秒後重試。
+   * 已經排了更早的 alarm（例如批改期間又有人送出）就不要改晚。
+   */
+  async alarm() {
+    let next: number | undefined;
+    try {
+      next = await drainHomework({ env: this.env, store: this.store(), vault: this.vault() }, (job) => this.enqueue(job));
+    } catch {
+      next = Date.now() + 30_000;
+    }
+    if (next === undefined || !this.state.storage.setAlarm) return;
+    const pending = await this.state.storage.getAlarm?.();
+    if (pending && pending <= next) return;
+    await this.state.storage.setAlarm(Math.max(next, Date.now() + 1000));
   }
   /** 建立即時連線：驗證身分後接受 WebSocket（可休眠），並立刻送出目前畫面。 */
   private async openLive(request: Request): Promise<Response> {
@@ -302,6 +320,7 @@ export class ClassroomDurableObject {
         deferAi,
         loadSession: this.loader(),
         usage: this.env.APP_MODE === 'supabase' ? undefined : () => this.splitStore().usage(),
+        kickHomework: this.state.storage.setAlarm ? () => this.state.storage.setAlarm!(Date.now() + 50) : undefined,
       });
     } catch (error) {
       return Response.json(

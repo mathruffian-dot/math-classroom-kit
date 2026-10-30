@@ -101,7 +101,7 @@ export function answerRaid(bank: RaidBank, run: RaidRun, store: RaidStore, seatN
   const t = Math.max(0, raidElapsed(run, now));
   // 前後各推算一次：告訴學生這一題有沒有用到連對保護、有沒有贖回成功
   const before = raidState(run, store, now).stats[String(seatNo)];
-  play.actions.push({ t, seat: seatNo, kind: cur.kind, ok, ...(seat.role ? { role: seat.role } : {}) });
+  play.actions.push({ t, seat: seatNo, kind: cur.kind, ok, q: cur.id, ...(seat.role ? { role: seat.role } : {}) });
   const after = raidState(run, store, now).stats[String(seatNo)];
   delete seat.cur;
   if (!ok) seat.lockUntil = now + (cur.kind === 'ultimate' ? RAID_LOCK_ULT_MS : RAID_LOCK_MS);
@@ -257,7 +257,7 @@ export function restoreRaid(runsInput: unknown, playInput: unknown, seats: numbe
     const actions = p.actions.map((x) => {
       const a = record(x);
       assert(kinds.has(String(a.kind)), '魔王戰題目類型不正確');
-      return { t: ms(a.t), seat: integer(a.seat, 1, seats), kind: a.kind as RaidKind, ok: a.ok === true, ...(['knight', 'mage', 'archer'].includes(String(a.role)) ? { role: a.role as RaidSeat['role'] } : {}) };
+      return { t: ms(a.t), seat: integer(a.seat, 1, seats), kind: a.kind as RaidKind, ok: a.ok === true, ...(typeof a.q === 'string' && /^[\w-]{1,80}$/.test(a.q) ? { q: a.q } : {}), ...(['knight', 'mage', 'archer'].includes(String(a.role)) ? { role: a.role as RaidSeat['role'] } : {}) };
     });
     const seatsOut: Record<string, RaidSeat> = {};
     for (const [seat, s] of Object.entries(record(p.seats ?? {}))) {

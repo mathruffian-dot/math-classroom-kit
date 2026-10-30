@@ -1,0 +1,645 @@
+{
+  "lessonId": "g8-2-2c",
+  "section": "8-2-2",
+  "title": "2-2(3) 根式的加減與混合運算",
+  "source": "八上課本 2-2 p.82–85（題目改寫自課後檢核並自編，答案與詳解已用 SymPy 核算）；備課用書 01-115國中數學2上-備課-目次 p.28（教學活動連結分析表：學習表現）、p.29（學習內容）；03-115國中數學2上-備課-L02 p.115（PDF 第 10 頁，本章學習內容解析）",
+  "curriculum": {
+    "performance": [
+      {
+        "code": "n-IV-5",
+        "text": "理解二次方根的意義、符號與根式的四則運算，並能運用到日常生活的情境解決問題。"
+      }
+    ],
+    "content": [
+      {
+        "code": "N-8-1",
+        "text": "二次方根：二次方根的意義；根式的化簡及四則運算。"
+      }
+    ]
+  },
+  "slots": [
+    {
+      "id": "q1",
+      "topic": "同類方根合併",
+      "objective": 0,
+      "performance": [
+        "n-IV-5"
+      ],
+      "content": [
+        "N-8-1"
+      ],
+      "variants": [
+        {
+          "stem": "計算 $7\\sqrt{3}-3\\sqrt{3}$。",
+          "answer": "$4\\sqrt{3}$",
+          "solution": "同類方根像同類項，係數相減：$(7-3)\\sqrt{3}=4\\sqrt{3}$，根號部分不變。",
+          "space": 1
+        },
+        {
+          "stem": "計算 $5\\sqrt{2}+3\\sqrt{2}$。",
+          "answer": "$8\\sqrt{2}$",
+          "solution": "係數相加：$(5+3)\\sqrt{2}=8\\sqrt{2}$，根號內不相加。",
+          "space": 1
+        },
+        {
+          "stem": "計算 $3\\sqrt{11}-8\\sqrt{11}$。",
+          "answer": "$-5\\sqrt{11}$",
+          "solution": "$(3-8)\\sqrt{11}=-5\\sqrt{11}$。",
+          "space": 1
+        },
+        {
+          "stem": "計算 $2\\sqrt{5}+3\\sqrt{5}-4\\sqrt{5}$。",
+          "answer": "$\\sqrt{5}$",
+          "solution": "$(2+3-4)\\sqrt{5}=1\\sqrt{5}=\\sqrt{5}$。",
+          "space": 1
+        },
+        {
+          "stem": "計算 $\\sqrt{6}-4\\sqrt{6}+2\\sqrt{6}$。",
+          "answer": "$-\\sqrt{6}$",
+          "solution": "$\\sqrt{6}$ 的係數是 $1$：$(1-4+2)\\sqrt{6}=-\\sqrt{6}$。",
+          "space": 1
+        },
+        {
+          "stem": "計算 $\\dfrac{1}{2}\\sqrt{3}+\\dfrac{3}{2}\\sqrt{3}$。",
+          "answer": "$2\\sqrt{3}$",
+          "solution": "$\\left(\\dfrac{1}{2}+\\dfrac{3}{2}\\right)\\sqrt{3}=2\\sqrt{3}$。",
+          "space": 1
+        }
+      ]
+    },
+    {
+      "id": "q2",
+      "topic": "不是同類方根不能合併",
+      "objective": 0,
+      "performance": [
+        "n-IV-5"
+      ],
+      "content": [
+        "N-8-1"
+      ],
+      "variants": [
+        {
+          "stem": "計算 $\\sqrt{2}-5\\sqrt{2}+\\sqrt{3}$。",
+          "answer": "$-4\\sqrt{2}+\\sqrt{3}$",
+          "solution": "只有 $\\sqrt{2}$ 的項能合併：$\\sqrt{2}-5\\sqrt{2}=-4\\sqrt{2}$；$\\sqrt{3}$ 不是同類方根，留著，得 $-4\\sqrt{2}+\\sqrt{3}$。",
+          "space": 1
+        },
+        {
+          "stem": "計算 $7\\sqrt{2}-2\\sqrt{3}-3\\sqrt{2}$。",
+          "answer": "$4\\sqrt{2}-2\\sqrt{3}$",
+          "solution": "$7\\sqrt{2}-3\\sqrt{2}=4\\sqrt{2}$；$-2\\sqrt{3}$ 不能和 $\\sqrt{2}$ 的項合併，得 $4\\sqrt{2}-2\\sqrt{3}$。",
+          "space": 1
+        },
+        {
+          "stem": "計算 $5\\sqrt{5}+2\\sqrt{7}-\\sqrt{5}$。",
+          "answer": "$4\\sqrt{5}+2\\sqrt{7}$",
+          "solution": "$5\\sqrt{5}-\\sqrt{5}=4\\sqrt{5}$；$2\\sqrt{7}$ 留著，得 $4\\sqrt{5}+2\\sqrt{7}$。",
+          "space": 1
+        },
+        {
+          "stem": "計算 $3\\sqrt{6}+2\\sqrt{3}-5\\sqrt{6}+\\sqrt{3}$。",
+          "answer": "$-2\\sqrt{6}+3\\sqrt{3}$",
+          "solution": "$3\\sqrt{6}-5\\sqrt{6}=-2\\sqrt{6}$，$2\\sqrt{3}+\\sqrt{3}=3\\sqrt{3}$，兩種方根不能再合併，得 $-2\\sqrt{6}+3\\sqrt{3}$。",
+          "space": 1
+        },
+        {
+          "stem": "計算 $4-\\sqrt{2}+3\\sqrt{2}-1$。",
+          "answer": "$3+2\\sqrt{2}$",
+          "solution": "整數和整數合併：$4-1=3$；$-\\sqrt{2}+3\\sqrt{2}=2\\sqrt{2}$。整數和根式不能合併，得 $3+2\\sqrt{2}$。",
+          "space": 1
+        },
+        {
+          "stem": "計算 $2\\sqrt{5}-3\\sqrt{2}+\\sqrt{2}-\\sqrt{5}$。",
+          "answer": "$\\sqrt{5}-2\\sqrt{2}$",
+          "solution": "$2\\sqrt{5}-\\sqrt{5}=\\sqrt{5}$，$-3\\sqrt{2}+\\sqrt{2}=-2\\sqrt{2}$，得 $\\sqrt{5}-2\\sqrt{2}$。",
+          "space": 1
+        }
+      ]
+    },
+    {
+      "id": "q3",
+      "topic": "先化成最簡根式再合併",
+      "objective": 1,
+      "performance": [
+        "n-IV-5"
+      ],
+      "content": [
+        "N-8-1"
+      ],
+      "variants": [
+        {
+          "stem": "計算 $\\sqrt{8}+\\sqrt{18}$，並化成最簡根式。",
+          "answer": "$5\\sqrt{2}$",
+          "solution": "先化成最簡根式：$\\sqrt{8}=2\\sqrt{2}$、$\\sqrt{18}=3\\sqrt{2}$，是同類方根：$2\\sqrt{2}+3\\sqrt{2}=5\\sqrt{2}$。",
+          "space": 2
+        },
+        {
+          "stem": "計算 $\\sqrt{50}-\\sqrt{32}$，並化成最簡根式。",
+          "answer": "$\\sqrt{2}$",
+          "solution": "$\\sqrt{50}=5\\sqrt{2}$、$\\sqrt{32}=4\\sqrt{2}$，$5\\sqrt{2}-4\\sqrt{2}=\\sqrt{2}$。根號內不能直接相減。",
+          "space": 2
+        },
+        {
+          "stem": "計算 $\\sqrt{12}+\\sqrt{27}$，並化成最簡根式。",
+          "answer": "$5\\sqrt{3}$",
+          "solution": "$\\sqrt{12}=2\\sqrt{3}$、$\\sqrt{27}=3\\sqrt{3}$，$2\\sqrt{3}+3\\sqrt{3}=5\\sqrt{3}$。",
+          "space": 2
+        },
+        {
+          "stem": "計算 $\\sqrt{75}-\\sqrt{12}+\\sqrt{20}$，並化成最簡根式。",
+          "answer": "$3\\sqrt{3}+2\\sqrt{5}$",
+          "solution": "$\\sqrt{75}-\\sqrt{12}+\\sqrt{20}=5\\sqrt{3}-2\\sqrt{3}+2\\sqrt{5}=3\\sqrt{3}+2\\sqrt{5}$；$\\sqrt{3}$ 和 $\\sqrt{5}$ 不是同類方根，不能再合併。",
+          "space": 2
+        },
+        {
+          "stem": "計算 $2\\sqrt{18}-\\sqrt{50}+\\sqrt{8}$，並化成最簡根式。",
+          "answer": "$3\\sqrt{2}$",
+          "solution": "$2\\sqrt{18}-\\sqrt{50}+\\sqrt{8}=6\\sqrt{2}-5\\sqrt{2}+2\\sqrt{2}=3\\sqrt{2}$。",
+          "space": 2
+        },
+        {
+          "stem": "如圖，面積分別是 $20$ 平方公分和 $45$ 平方公分的兩個正方形並排在一起，求底邊的全長。",
+          "answer": "$5\\sqrt{5}$ 公分",
+          "solution": "兩個正方形的邊長分別是 $\\sqrt{20}=2\\sqrt{5}$、$\\sqrt{45}=3\\sqrt{5}$，底邊全長 $2\\sqrt{5}+3\\sqrt{5}=5\\sqrt{5}$（公分）。不能寫成 $\\sqrt{65}$。",
+          "space": 2,
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 420 220\" width=\"420\" height=\"220\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"100.0,176.0 188.0,176.0 188.0,88.0 100.0,88.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polygon points=\"188.0,176.0 320.0,176.0 320.0,44.0 188.0,44.0\" fill=\"#cfd8ee\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><g stroke=\"#6b6b6b\" stroke-width=\"1.1\"><line x1=\"100.0\" y1=\"198.0\" x2=\"320.0\" y2=\"198.0\"/><line x1=\"100.0\" y1=\"193.0\" x2=\"100.0\" y2=\"203.0\"/><line x1=\"320.0\" y1=\"193.0\" x2=\"320.0\" y2=\"203.0\"/></g><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"210.0\" y=\"211.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"144.0\" y=\"137.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\">20 cm²</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"254.0\" y=\"115.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\">45 cm²</text></svg>"
+        },
+        {
+          "stem": "一個長方形的長是 $\\sqrt{50}$ 公分、寬是 $\\sqrt{8}$ 公分，求它的周長。",
+          "answer": "$14\\sqrt{2}$ 公分",
+          "solution": "$\\sqrt{50}=5\\sqrt{2}$、$\\sqrt{8}=2\\sqrt{2}$，周長＝$2(5\\sqrt{2}+2\\sqrt{2})=2\\times7\\sqrt{2}=14\\sqrt{2}$（公分）。",
+          "space": 2,
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 420 220\" width=\"420\" height=\"220\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"44.0,155.8 273.0,155.8 273.0,64.2 44.0,64.2\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"53.0,155.8 53.0,146.8 44.0,146.8\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"158.5\" y=\"174.8\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">√50 公分</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"282.0\" y=\"115.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"start\" fill=\"#1b1b1b\" font-weight=\"600\">√8 公分</text></svg>"
+        }
+      ]
+    },
+    {
+      "id": "q4",
+      "topic": "有理化後合併",
+      "objective": 1,
+      "performance": [
+        "n-IV-5"
+      ],
+      "content": [
+        "N-8-1"
+      ],
+      "variants": [
+        {
+          "stem": "計算 $\\dfrac{6}{\\sqrt{3}}+\\sqrt{3}$，並化成最簡根式。",
+          "answer": "$3\\sqrt{3}$",
+          "solution": "先有理化：$\\dfrac{6}{\\sqrt{3}}=\\dfrac{6\\sqrt{3}}{3}=2\\sqrt{3}$，再合併：$2\\sqrt{3}+\\sqrt{3}=3\\sqrt{3}$。",
+          "space": 2
+        },
+        {
+          "stem": "計算 $\\dfrac{4}{\\sqrt{2}}+\\sqrt{2}$，並化成最簡根式。",
+          "answer": "$3\\sqrt{2}$",
+          "solution": "$\\dfrac{4}{\\sqrt{2}}=\\dfrac{4\\sqrt{2}}{2}=2\\sqrt{2}$，$2\\sqrt{2}+\\sqrt{2}=3\\sqrt{2}$。",
+          "space": 2
+        },
+        {
+          "stem": "計算 $\\dfrac{1}{\\sqrt{5}}+\\dfrac{4}{5}\\sqrt{5}$，並化成最簡根式。",
+          "answer": "$\\sqrt{5}$",
+          "solution": "$\\dfrac{1}{\\sqrt{5}}=\\dfrac{\\sqrt{5}}{5}$，$\\dfrac{\\sqrt{5}}{5}+\\dfrac{4\\sqrt{5}}{5}=\\dfrac{5\\sqrt{5}}{5}=\\sqrt{5}$。",
+          "space": 2
+        },
+        {
+          "stem": "計算 $\\dfrac{10}{\\sqrt{5}}-\\sqrt{20}+\\sqrt{45}$，並化成最簡根式。",
+          "answer": "$3\\sqrt{5}$",
+          "solution": "$\\dfrac{10}{\\sqrt{5}}=\\dfrac{10\\sqrt{5}}{5}=2\\sqrt{5}$、$\\sqrt{20}=2\\sqrt{5}$、$\\sqrt{45}=3\\sqrt{5}$，$2\\sqrt{5}-2\\sqrt{5}+3\\sqrt{5}=3\\sqrt{5}$。",
+          "space": 2
+        },
+        {
+          "stem": "計算 $\\sqrt{27}+\\dfrac{3}{\\sqrt{3}}$，並化成最簡根式。",
+          "answer": "$4\\sqrt{3}$",
+          "solution": "$\\sqrt{27}=3\\sqrt{3}$，$\\dfrac{3}{\\sqrt{3}}=\\dfrac{3\\sqrt{3}}{3}=\\sqrt{3}$，$3\\sqrt{3}+\\sqrt{3}=4\\sqrt{3}$。",
+          "space": 2
+        },
+        {
+          "stem": "計算 $\\sqrt{\\dfrac{1}{2}}+\\sqrt{18}$，並化成最簡根式。",
+          "answer": "$\\dfrac{7\\sqrt{2}}{2}$",
+          "solution": "$\\sqrt{\\dfrac{1}{2}}=\\dfrac{1}{\\sqrt{2}}=\\dfrac{\\sqrt{2}}{2}$，$\\sqrt{18}=3\\sqrt{2}$，$\\dfrac{\\sqrt{2}}{2}+3\\sqrt{2}=\\dfrac{\\sqrt{2}}{2}+\\dfrac{6\\sqrt{2}}{2}=\\dfrac{7\\sqrt{2}}{2}$。",
+          "space": 2
+        }
+      ]
+    },
+    {
+      "id": "q5",
+      "topic": "分配律：根式乘括號",
+      "objective": 2,
+      "performance": [
+        "n-IV-5"
+      ],
+      "content": [
+        "N-8-1"
+      ],
+      "variants": [
+        {
+          "stem": "計算 $\\sqrt{6}(\\sqrt{3}+2\\sqrt{2})$，並化成最簡根式。",
+          "answer": "$3\\sqrt{2}+4\\sqrt{3}$",
+          "solution": "括號裡每一項都要乘：$\\sqrt{6}\\times\\sqrt{3}=\\sqrt{18}=3\\sqrt{2}$，$\\sqrt{6}\\times2\\sqrt{2}=2\\sqrt{12}=4\\sqrt{3}$，得 $3\\sqrt{2}+4\\sqrt{3}$。",
+          "space": 2
+        },
+        {
+          "stem": "計算 $-2\\sqrt{3}(\\sqrt{6}-\\sqrt{2})$，並化成最簡根式。",
+          "answer": "$-6\\sqrt{2}+2\\sqrt{6}$",
+          "solution": "負號要分配到每一項：$-2\\sqrt{3}\\times\\sqrt{6}=-2\\sqrt{18}=-6\\sqrt{2}$，$-2\\sqrt{3}\\times(-\\sqrt{2})=2\\sqrt{6}$，得 $-6\\sqrt{2}+2\\sqrt{6}$。",
+          "space": 2
+        },
+        {
+          "stem": "計算 $\\sqrt{2}(\\sqrt{6}-\\sqrt{10})$，並化成最簡根式。",
+          "answer": "$2\\sqrt{3}-2\\sqrt{5}$",
+          "solution": "$\\sqrt{2}\\times\\sqrt{6}=\\sqrt{12}=2\\sqrt{3}$，$\\sqrt{2}\\times\\sqrt{10}=\\sqrt{20}=2\\sqrt{5}$，得 $2\\sqrt{3}-2\\sqrt{5}$。",
+          "space": 2
+        },
+        {
+          "stem": "計算 $\\sqrt{5}(\\sqrt{10}+\\sqrt{15})$，並化成最簡根式。",
+          "answer": "$5\\sqrt{2}+5\\sqrt{3}$",
+          "solution": "$\\sqrt{5}\\times\\sqrt{10}=\\sqrt{50}=5\\sqrt{2}$，$\\sqrt{5}\\times\\sqrt{15}=\\sqrt{75}=5\\sqrt{3}$，得 $5\\sqrt{2}+5\\sqrt{3}$。",
+          "space": 2
+        },
+        {
+          "stem": "計算 $3\\sqrt{2}(\\sqrt{6}-2)$，並化成最簡根式。",
+          "answer": "$6\\sqrt{3}-6\\sqrt{2}$",
+          "solution": "$3\\sqrt{2}\\times\\sqrt{6}=3\\sqrt{12}=6\\sqrt{3}$，$3\\sqrt{2}\\times2=6\\sqrt{2}$，得 $6\\sqrt{3}-6\\sqrt{2}$。",
+          "space": 2
+        },
+        {
+          "stem": "計算 $-\\sqrt{3}(\\sqrt{12}-\\sqrt{6})$，並化成最簡根式。",
+          "answer": "$-6+3\\sqrt{2}$",
+          "solution": "$-\\sqrt{3}\\times\\sqrt{12}=-\\sqrt{36}=-6$，$-\\sqrt{3}\\times(-\\sqrt{6})=\\sqrt{18}=3\\sqrt{2}$，得 $-6+3\\sqrt{2}$。",
+          "space": 2
+        }
+      ]
+    },
+    {
+      "id": "q6",
+      "topic": "兩個括號相乘（逐項乘開）",
+      "objective": 2,
+      "performance": [
+        "n-IV-5"
+      ],
+      "content": [
+        "N-8-1"
+      ],
+      "variants": [
+        {
+          "stem": "計算 $(\\sqrt{3}-\\sqrt{2})(\\sqrt{6}+1)$，並化成最簡根式。",
+          "answer": "$2\\sqrt{2}-\\sqrt{3}$",
+          "solution": "用分配律逐項乘開：$(\\sqrt{3}-\\sqrt{2})(\\sqrt{6}+1)=\\sqrt{18}+\\sqrt{3}-\\sqrt{12}-\\sqrt{2}=3\\sqrt{2}+\\sqrt{3}-2\\sqrt{3}-\\sqrt{2}=2\\sqrt{2}-\\sqrt{3}$。",
+          "space": 3
+        },
+        {
+          "stem": "計算 $(\\sqrt{2}-1)(\\sqrt{6}+\\sqrt{3})$，並化成最簡根式。",
+          "answer": "$\\sqrt{3}$",
+          "solution": "$(\\sqrt{2}-1)(\\sqrt{6}+\\sqrt{3})=\\sqrt{12}+\\sqrt{6}-\\sqrt{6}-\\sqrt{3}=2\\sqrt{3}-\\sqrt{3}=\\sqrt{3}$。",
+          "space": 3
+        },
+        {
+          "stem": "計算 $(\\sqrt{3}+1)(\\sqrt{3}+2)$，並化成最簡根式。",
+          "answer": "$5+3\\sqrt{3}$",
+          "solution": "$(\\sqrt{3}+1)(\\sqrt{3}+2)=\\sqrt{3}\\times\\sqrt{3}+2\\sqrt{3}+\\sqrt{3}+2=3+3\\sqrt{3}+2=5+3\\sqrt{3}$。",
+          "space": 3
+        },
+        {
+          "stem": "計算 $(\\sqrt{5}+2)(\\sqrt{5}-3)$，並化成最簡根式。",
+          "answer": "$-1-\\sqrt{5}$",
+          "solution": "$(\\sqrt{5}+2)(\\sqrt{5}-3)=5-3\\sqrt{5}+2\\sqrt{5}-6=-1-\\sqrt{5}$。",
+          "space": 3
+        },
+        {
+          "stem": "計算 $(2\\sqrt{2}+1)(\\sqrt{2}+3)$，並化成最簡根式。",
+          "answer": "$7+7\\sqrt{2}$",
+          "solution": "$(2\\sqrt{2}+1)(\\sqrt{2}+3)=2\\sqrt{2}\\times\\sqrt{2}+6\\sqrt{2}+\\sqrt{2}+3=4+6\\sqrt{2}+\\sqrt{2}+3=7+7\\sqrt{2}$。",
+          "space": 3
+        },
+        {
+          "stem": "計算 $(\\sqrt{6}-\\sqrt{2})(\\sqrt{3}+1)$，並化成最簡根式。",
+          "answer": "$2\\sqrt{2}$",
+          "solution": "$(\\sqrt{6}-\\sqrt{2})(\\sqrt{3}+1)=\\sqrt{18}+\\sqrt{6}-\\sqrt{6}-\\sqrt{2}=3\\sqrt{2}-\\sqrt{2}=2\\sqrt{2}$。",
+          "space": 3
+        }
+      ]
+    },
+    {
+      "id": "q7",
+      "topic": "括號除以根式",
+      "objective": 2,
+      "performance": [
+        "n-IV-5"
+      ],
+      "content": [
+        "N-8-1"
+      ],
+      "variants": [
+        {
+          "stem": "計算 $(6\\sqrt{3}+\\sqrt{6})\\div\\sqrt{3}$，並化成最簡根式。",
+          "answer": "$6+\\sqrt{2}$",
+          "solution": "括號裡每一項都除以 $\\sqrt{3}$：$6\\sqrt{3}\\div\\sqrt{3}=6$，$\\sqrt{6}\\div\\sqrt{3}=\\sqrt{2}$，得 $6+\\sqrt{2}$。",
+          "space": 2
+        },
+        {
+          "stem": "計算 $(4\\sqrt{6}-2)\\div\\sqrt{2}$，並化成最簡根式。",
+          "answer": "$4\\sqrt{3}-\\sqrt{2}$",
+          "solution": "$4\\sqrt{6}\\div\\sqrt{2}=4\\sqrt{3}$，$2\\div\\sqrt{2}=\\dfrac{2}{\\sqrt{2}}=\\dfrac{2\\sqrt{2}}{2}=\\sqrt{2}$，得 $4\\sqrt{3}-\\sqrt{2}$。",
+          "space": 2
+        },
+        {
+          "stem": "計算 $(4\\sqrt{2}+\\sqrt{6})\\div\\sqrt{3}$，並化成最簡根式。",
+          "answer": "$\\dfrac{4\\sqrt{6}}{3}+\\sqrt{2}$",
+          "solution": "$4\\sqrt{2}\\div\\sqrt{3}=\\dfrac{4\\sqrt{2}}{\\sqrt{3}}=\\dfrac{4\\sqrt{6}}{3}$，$\\sqrt{6}\\div\\sqrt{3}=\\sqrt{2}$，得 $\\dfrac{4\\sqrt{6}}{3}+\\sqrt{2}$。",
+          "space": 2
+        },
+        {
+          "stem": "計算 $(\\sqrt{15}-\\sqrt{10})\\div\\sqrt{5}$，並化成最簡根式。",
+          "answer": "$\\sqrt{3}-\\sqrt{2}$",
+          "solution": "$\\sqrt{15}\\div\\sqrt{5}=\\sqrt{3}$，$\\sqrt{10}\\div\\sqrt{5}=\\sqrt{2}$，得 $\\sqrt{3}-\\sqrt{2}$。",
+          "space": 2
+        },
+        {
+          "stem": "計算 $(6\\sqrt{2}+\\sqrt{10})\\div\\sqrt{2}$，並化成最簡根式。",
+          "answer": "$6+\\sqrt{5}$",
+          "solution": "$6\\sqrt{2}\\div\\sqrt{2}=6$，$\\sqrt{10}\\div\\sqrt{2}=\\sqrt{5}$，得 $6+\\sqrt{5}$。",
+          "space": 2
+        },
+        {
+          "stem": "計算 $(3\\sqrt{5}-\\sqrt{10})\\div\\sqrt{2}$，並化成最簡根式。",
+          "answer": "$\\dfrac{3\\sqrt{10}}{2}-\\sqrt{5}$",
+          "solution": "$3\\sqrt{5}\\div\\sqrt{2}=\\dfrac{3\\sqrt{5}}{\\sqrt{2}}=\\dfrac{3\\sqrt{10}}{2}$，$\\sqrt{10}\\div\\sqrt{2}=\\sqrt{5}$，得 $\\dfrac{3\\sqrt{10}}{2}-\\sqrt{5}$。",
+          "space": 2
+        }
+      ]
+    },
+    {
+      "id": "q8",
+      "topic": "乘除混合：合成一個根號",
+      "objective": 2,
+      "performance": [
+        "n-IV-5"
+      ],
+      "content": [
+        "N-8-1"
+      ],
+      "variants": [
+        {
+          "stem": "計算 $\\sqrt{\\dfrac{1}{3}}\\times\\sqrt{\\dfrac{2}{3}}\\div\\sqrt{\\dfrac{1}{4}}$，並化成最簡根式。",
+          "answer": "$\\dfrac{2\\sqrt{2}}{3}$",
+          "solution": "除以 $\\sqrt{\\dfrac{1}{4}}$ 就是乘 $\\sqrt{4}$：$\\sqrt{\\dfrac{1}{3}\\times\\dfrac{2}{3}\\times4}=\\sqrt{\\dfrac{8}{9}}=\\dfrac{\\sqrt{8}}{3}=\\dfrac{2\\sqrt{2}}{3}$。",
+          "space": 2
+        },
+        {
+          "stem": "計算 $\\sqrt{\\dfrac{3}{4}}\\times\\sqrt{\\dfrac{1}{2}}\\div\\sqrt{\\dfrac{3}{2}}$，並化成最簡根式。",
+          "answer": "$\\dfrac{1}{2}$",
+          "solution": "$\\sqrt{\\dfrac{3}{4}\\times\\dfrac{1}{2}\\times\\dfrac{2}{3}}=\\sqrt{\\dfrac{1}{4}}=\\dfrac{1}{2}$。",
+          "space": 2
+        },
+        {
+          "stem": "計算 $\\sqrt{\\dfrac{2}{5}}\\times\\sqrt{\\dfrac{5}{6}}\\div\\sqrt{\\dfrac{1}{3}}$，並化成最簡根式。",
+          "answer": "$1$",
+          "solution": "$\\sqrt{\\dfrac{2}{5}\\times\\dfrac{5}{6}\\times3}=\\sqrt{1}=1$。",
+          "space": 2
+        },
+        {
+          "stem": "計算 $\\sqrt{\\dfrac{5}{6}}\\times\\sqrt{\\dfrac{3}{10}}\\div\\sqrt{\\dfrac{1}{8}}$，並化成最簡根式。",
+          "answer": "$\\sqrt{2}$",
+          "solution": "$\\sqrt{\\dfrac{5}{6}\\times\\dfrac{3}{10}\\times8}=\\sqrt{\\dfrac{1}{4}\\times8}=\\sqrt{2}$。",
+          "space": 2
+        },
+        {
+          "stem": "計算 $\\sqrt{\\dfrac{3}{5}}\\times\\sqrt{\\dfrac{10}{7}}\\div\\sqrt{\\dfrac{3}{14}}$，並化成最簡根式。",
+          "answer": "$2$",
+          "solution": "$\\sqrt{\\dfrac{3}{5}\\times\\dfrac{10}{7}\\times\\dfrac{14}{3}}=\\sqrt{4}=2$。",
+          "space": 2
+        },
+        {
+          "stem": "計算 $\\sqrt{\\dfrac{1}{2}}\\times\\sqrt{\\dfrac{3}{5}}\\div\\sqrt{\\dfrac{9}{10}}$，並化成最簡根式。",
+          "answer": "$\\dfrac{\\sqrt{3}}{3}$",
+          "solution": "$\\sqrt{\\dfrac{1}{2}\\times\\dfrac{3}{5}\\times\\dfrac{10}{9}}=\\sqrt{\\dfrac{1}{3}}=\\dfrac{1}{\\sqrt{3}}=\\dfrac{\\sqrt{3}}{3}$。",
+          "space": 2
+        }
+      ]
+    },
+    {
+      "id": "q9",
+      "topic": "比較大小：根號不能直接相加",
+      "objective": 1,
+      "performance": [
+        "n-IV-5"
+      ],
+      "content": [
+        "N-8-1"
+      ],
+      "variants": [
+        {
+          "stem": "比較 $\\sqrt{2}+\\sqrt{3}$ 和 $\\sqrt{5}$ 的大小，用「＞」、「＜」或「＝」寫出兩數的關係，並說明理由。",
+          "answer": "$\\sqrt{2}+\\sqrt{3}>\\sqrt{5}$",
+          "solution": "$\\sqrt{2}+\\sqrt{3}\\approx1.414+1.732=3.146$，$\\sqrt{5}\\approx2.236$，所以 $\\sqrt{2}+\\sqrt{3}>\\sqrt{5}$。根號不能直接相加。",
+          "space": 2
+        },
+        {
+          "stem": "比較 $\\sqrt{3}+\\sqrt{12}$ 和 $\\sqrt{27}$ 的大小，用「＞」、「＜」或「＝」寫出兩數的關係，並說明理由。",
+          "answer": "$\\sqrt{3}+\\sqrt{12}=\\sqrt{27}$",
+          "solution": "化成最簡根式：$\\sqrt{3}+\\sqrt{12}=\\sqrt{3}+2\\sqrt{3}=3\\sqrt{3}$，$\\sqrt{27}=3\\sqrt{3}$，所以 $\\sqrt{3}+\\sqrt{12}=\\sqrt{27}$。",
+          "space": 2
+        },
+        {
+          "stem": "比較 $2\\sqrt{2}$ 和 $\\sqrt{2}+\\sqrt{3}$ 的大小，用「＞」、「＜」或「＝」寫出兩數的關係，並說明理由。",
+          "answer": "$2\\sqrt{2}<\\sqrt{2}+\\sqrt{3}$",
+          "solution": "$2\\sqrt{2}=\\sqrt{2}+\\sqrt{2}$，而 $\\sqrt{2}<\\sqrt{3}$，所以 $2\\sqrt{2}<\\sqrt{2}+\\sqrt{3}$。",
+          "space": 2
+        },
+        {
+          "stem": "比較 $\\sqrt{5}+\\sqrt{20}$ 和 $\\sqrt{45}$ 的大小，用「＞」、「＜」或「＝」寫出兩數的關係，並說明理由。",
+          "answer": "$\\sqrt{5}+\\sqrt{20}=\\sqrt{45}$",
+          "solution": "$\\sqrt{5}+\\sqrt{20}=\\sqrt{5}+2\\sqrt{5}=3\\sqrt{5}$，$\\sqrt{45}=3\\sqrt{5}$，所以 $\\sqrt{5}+\\sqrt{20}=\\sqrt{45}$。",
+          "space": 2
+        },
+        {
+          "stem": "比較 $\\sqrt{8}+\\sqrt{2}$ 和 $\\sqrt{10}$ 的大小，用「＞」、「＜」或「＝」寫出兩數的關係，並說明理由。",
+          "answer": "$\\sqrt{8}+\\sqrt{2}>\\sqrt{10}$",
+          "solution": "$\\sqrt{8}+\\sqrt{2}=2\\sqrt{2}+\\sqrt{2}=3\\sqrt{2}=\\sqrt{18}$，因為 $18>10$，所以 $\\sqrt{8}+\\sqrt{2}>\\sqrt{10}$。",
+          "space": 2
+        },
+        {
+          "stem": "比較 $\\sqrt{12}+\\sqrt{3}$ 和 $4\\sqrt{2}$ 的大小，用「＞」、「＜」或「＝」寫出兩數的關係，並說明理由。",
+          "answer": "$\\sqrt{12}+\\sqrt{3}<4\\sqrt{2}$",
+          "solution": "$\\sqrt{12}+\\sqrt{3}=2\\sqrt{3}+\\sqrt{3}=3\\sqrt{3}=\\sqrt{27}$，$4\\sqrt{2}=\\sqrt{32}$，因為 $27<32$，所以 $\\sqrt{12}+\\sqrt{3}<4\\sqrt{2}$。",
+          "space": 2
+        }
+      ]
+    },
+    {
+      "id": "q10",
+      "topic": "哪一個算對了？（常見錯誤）",
+      "objective": 0,
+      "performance": [
+        "n-IV-5"
+      ],
+      "content": [
+        "N-8-1"
+      ],
+      "variants": [
+        {
+          "stem": "小明計算 $\\sqrt{2}+\\sqrt{8}=\\sqrt{10}$，這是錯的。請說明錯在哪裡，並寫出正確的計算過程與答案。",
+          "answer": "$3\\sqrt{2}$",
+          "solution": "根號不能直接相加。先化成最簡根式：$\\sqrt{8}=2\\sqrt{2}$，再合併同類方根：$\\sqrt{2}+2\\sqrt{2}=3\\sqrt{2}$。",
+          "space": 2
+        },
+        {
+          "stem": "小華計算 $5\\sqrt{2}-\\sqrt{2}=5$，這是錯的。請說明錯在哪裡，並寫出正確的計算過程與答案。",
+          "answer": "$4\\sqrt{2}$",
+          "solution": "$\\sqrt{2}$ 的係數是 $1$：$5\\sqrt{2}-\\sqrt{2}=(5-1)\\sqrt{2}=4\\sqrt{2}$，根號不會消失。",
+          "space": 2
+        },
+        {
+          "stem": "小美計算 $\\sqrt{3}+\\sqrt{3}=\\sqrt{6}$，這是錯的。請說明錯在哪裡，並寫出正確的計算過程與答案。",
+          "answer": "$2\\sqrt{3}$",
+          "solution": "同類方根相加是係數相加，根號內不相加：$\\sqrt{3}+\\sqrt{3}=(1+1)\\sqrt{3}=2\\sqrt{3}$。",
+          "space": 2
+        },
+        {
+          "stem": "阿哲計算 $\\sqrt{12}-\\sqrt{3}=3$，這是錯的。請說明錯在哪裡，並寫出正確的計算過程與答案。",
+          "answer": "$\\sqrt{3}$",
+          "solution": "根號內不能直接相減（$12-3=9$ 再開方是錯的）。$\\sqrt{12}=2\\sqrt{3}$，$2\\sqrt{3}-\\sqrt{3}=\\sqrt{3}$。",
+          "space": 2
+        },
+        {
+          "stem": "小安計算 $\\sqrt{50}-\\sqrt{2}=\\sqrt{48}$，這是錯的。請說明錯在哪裡，並寫出正確的計算過程與答案。",
+          "answer": "$4\\sqrt{2}$",
+          "solution": "根號內不能直接相減。$\\sqrt{50}=5\\sqrt{2}$，$5\\sqrt{2}-\\sqrt{2}=4\\sqrt{2}$。",
+          "space": 2
+        },
+        {
+          "stem": "小芸計算 $\\sqrt{6}(\\sqrt{2}+1)=\\sqrt{12}+1$，這是錯的。請說明錯在哪裡，並寫出正確的計算過程與答案。",
+          "answer": "$2\\sqrt{3}+\\sqrt{6}$",
+          "solution": "分配律要每一項都乘，$1$ 也要乘 $\\sqrt{6}$：$\\sqrt{6}(\\sqrt{2}+1)=\\sqrt{12}+\\sqrt{6}=2\\sqrt{3}+\\sqrt{6}$。",
+          "space": 2
+        }
+      ]
+    }
+  ],
+  "links": {
+    "activities": {
+      "c-predict": [
+        "q9"
+      ],
+      "c-like": [
+        "q2",
+        "q3"
+      ],
+      "c-ex7": [
+        "q1",
+        "q2"
+      ],
+      "c-ex7-practice": [
+        "q1",
+        "q2"
+      ],
+      "c-ex8": [
+        "q3",
+        "q4"
+      ],
+      "c-ex8-practice": [
+        "q3",
+        "q4"
+      ],
+      "c-ex9": [
+        "q5",
+        "q6"
+      ],
+      "c-ex9-practice": [
+        "q5",
+        "q6"
+      ],
+      "c-ex10": [
+        "q7",
+        "q8"
+      ],
+      "c-ex10-practice": [
+        "q7",
+        "q8"
+      ],
+      "c-error": [
+        "q3",
+        "q10"
+      ]
+    },
+    "items": {
+      "c-ex7": [
+        [
+          "q1"
+        ],
+        [
+          "q2"
+        ]
+      ],
+      "c-ex7-practice": [
+        [
+          "q1"
+        ],
+        [
+          "q2"
+        ]
+      ],
+      "c-ex8": [
+        [
+          "q3"
+        ],
+        [
+          "q4"
+        ]
+      ],
+      "c-ex8-practice": [
+        [
+          "q3"
+        ],
+        [
+          "q4"
+        ]
+      ],
+      "c-ex9": [
+        [
+          "q5"
+        ],
+        [
+          "q6"
+        ]
+      ],
+      "c-ex9-practice": [
+        [
+          "q5"
+        ],
+        [
+          "q6"
+        ]
+      ],
+      "c-ex10": [
+        [
+          "q8"
+        ],
+        [
+          "q7"
+        ]
+      ],
+      "c-ex10-practice": [
+        [
+          "q8"
+        ],
+        [
+          "q7"
+        ]
+      ]
+    },
+    "duelFamilies": {
+      "a√b × c√d": "g8-2-2a:q4",
+      "c ÷ √n 分母有理化": "g8-2-2b:q3",
+      "√(a/b) 分母有理化": "g8-2-2b:q4",
+      "√a × √b": "g8-2-2a:q3",
+      "√a × √b 再化成最簡根式": "g8-2-2b:q6",
+      "√a × √b（乘起來是完全平方數）": "g8-2-2a:q5",
+      "√a ÷ √b": "g8-2-2a:q8",
+      "√n 化成最簡根式": "g8-2-2b:q1",
+      "√a ± √b（化成同類方根再合併）": "q3",
+      "√a(√b ＋ c) 分配律": "q5"
+    }
+  }
+}

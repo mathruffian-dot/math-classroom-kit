@@ -46,6 +46,7 @@ import type { RaidKind } from '../shared/raid';
 import { duelBlanks, duelBoardHtml, duelCardHtml, duelCardKey, duelLocal, duelPanelHtml, duelPhase, duelPutTile, initDuelUi, updateDuelBoard } from './duel-ui';
 import { DUEL_TEAM_NAME, type DuelTok } from '../shared/duel';
 import QRCode from 'qrcode';
+import { homeworkAction, initHomeworkUi, openPlan, renderHomeworkDetail, renderHomeworkList, renderLearning, renderStudentSheet, studentHomeworkHtml } from './homework';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 const BRAND = '數感課堂';
@@ -167,6 +168,8 @@ const NAV: [string, string, string][] = [
   ['generate', 'wand', 'AI 草稿'],
   ['classes', 'users', '班級'],
   ['records', 'chart', '紀錄'],
+  ['learning', 'target', '學習'],
+  ['homework', 'pen', '作業'],
   ['settings', 'settings', '設定'],
 ];
 function shell(active: string, title: string, body: string, actions = '') {
@@ -223,7 +226,7 @@ function renderRecords() {
   shell(
     'records',
     '課堂紀錄',
-    `<section class="panel"><div class="table-wrap"><table><thead><tr><th>課程與班級</th><th>時間</th><th>狀態</th><th>操作</th></tr></thead><tbody>${rows.map((s) => `<tr><td><strong>${esc(s.title)}</strong><small>${esc(s.className)}</small></td><td>${new Date(s.createdAt).toLocaleString('zh-TW', { timeZone: 'Asia/Taipei', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}</td><td>${tag(s.ended ? '已結束' : '進行中', s.ended ? '' : 'green')}</td><td><div class="actions">${btn('開啟', 'resume', 'quiet', 'eye', `data-id="${s.id}"`)}${btn('CSV', 'export-session', 'quiet', 'download', `data-id="${s.id}"`)}${btn('刪除', 'delete-session', 'quiet danger', 'trash', `data-id="${s.id}"`)}</div></td></tr>`).join('') || '<tr><td colspan="4" class="empty-state">還沒有課堂紀錄。</td></tr>'}</tbody></table></div></section><p class="muted small-text">備份含每一次送出的作答、批改分數、「原題再做一次」與彈幕紀錄；不含作答照片與任何金鑰。CSV 每一次送出一列（attempt＝第幾次）。</p>`,
+    `<section class="panel"><div class="table-wrap"><table><thead><tr><th>課程與班級</th><th>時間</th><th>狀態</th><th>操作</th></tr></thead><tbody>${rows.map((s) => `<tr><td><strong>${esc(s.title)}</strong><small>${esc(s.className)}</small></td><td>${new Date(s.createdAt).toLocaleString('zh-TW', { timeZone: 'Asia/Taipei', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}</td><td>${tag(s.ended ? '已結束' : '進行中', s.ended ? '' : 'green')}</td><td><div class="actions">${btn('開啟', 'resume', 'quiet', 'eye', `data-id="${s.id}"`)}${btn('CSV', 'export-session', 'quiet', 'download', `data-id="${s.id}"`)}${btn('派發作業', 'hw-plan-row', 'quiet', 'pen', `data-class="${esc(s.classId)}" data-lesson="${esc(s.lessonId)}"`)}${btn('刪除', 'delete-session', 'quiet danger', 'trash', `data-id="${s.id}"`)}</div></td></tr>`).join('') || '<tr><td colspan="4" class="empty-state">還沒有課堂紀錄。</td></tr>'}</tbody></table></div></section><p class="muted small-text">備份含每一次送出的作答、批改分數、「原題再做一次」與彈幕紀錄；不含作答照片與任何金鑰，<strong>也不含回家作業</strong>（派發、作業卷、照片、批改結果與作業的學習紀錄）。CSV 每一次送出一列（attempt＝第幾次）。</p>`,
     `${btn('還原備份', 'restore', 'secondary', 'upload')}${btn('下載備份', 'backup', 'primary', 'download')}`,
   );
 }
@@ -239,7 +242,7 @@ function usagePanel(u: StorageUsageInfo | null): string {
   if (!u?.available)
     return `<section class="panel settings-panel"><h2>${icon('screen')}儲存空間</h2><p class="muted">這個部署模式沒有用量資料。</p></section>`;
   const total = u.dataBytes + u.photoBytes;
-  return `<section class="panel settings-panel" id="usage-panel"><h2>${icon('screen')}儲存空間（Cloudflare 免費額度）</h2><dl class="setting-list"><div><dt>課堂資料</dt><dd>${bytesText(u.dataBytes)}・${u.sessions} 堂（封存 ${u.archived}）</dd></div><div><dt>作答照片</dt><dd>${u.photos} 張・約 ${bytesText(u.photoBytes)}</dd></div></dl><p class="usage-label">合計 ${bytesText(total)} / 5 GB</p>${meter(total, u.limits.storageBytes)}<p class="usage-label">今天寫入約 ${u.rowsToday.toLocaleString()} / ${u.limits.rowsPerDay.toLocaleString()} 列</p>${meter(u.rowsToday, u.limits.rowsPerDay)}<p class="muted small-text">結束超過 1 小時的課堂會自動封存，只在打開時讀取。照片最占空間：清除舊照片後，辨識稿、分數與圈記號都還在（備份本來就不含照片）。</p><div class="actions"><label class="inline-field">清除<select id="prune-days">${[30, 60, 90, 180].map((d) => `<option value="${d}" ${d === 90 ? 'selected' : ''}>${d} 天前</option>`).join('')}</select>的照片</label>${btn('清除', 'prune-photos', 'quiet danger', 'trash')}</div></section>`;
+  return `<section class="panel settings-panel" id="usage-panel"><h2>${icon('screen')}儲存空間（Cloudflare 免費額度）</h2><dl class="setting-list"><div><dt>課堂資料</dt><dd>${bytesText(u.dataBytes)}・${u.sessions} 堂（封存 ${u.archived}）</dd></div><div><dt>作答照片</dt><dd>${u.photos} 張・約 ${bytesText(u.photoBytes)}${u.homeworkPhotoBytes ? `（含回家作業照片 ${bytesText(u.homeworkPhotoBytes)}）` : ''}</dd></div></dl><p class="usage-label">合計 ${bytesText(total)} / 5 GB</p>${meter(total, u.limits.storageBytes)}<p class="usage-label">今天寫入約 ${u.rowsToday.toLocaleString()} / ${u.limits.rowsPerDay.toLocaleString()} 列</p>${meter(u.rowsToday, u.limits.rowsPerDay)}<p class="muted small-text">結束超過 1 小時的課堂會自動封存，只在打開時讀取。照片最占空間：清除舊照片後，辨識稿、分數與圈記號都還在（備份本來就不含照片）。</p><div class="actions"><label class="inline-field">清除<select id="prune-days">${[30, 60, 90, 180].map((d) => `<option value="${d}" ${d === 90 ? 'selected' : ''}>${d} 天前</option>`).join('')}</select>的照片</label>${btn('清除', 'prune-photos', 'quiet danger', 'trash')}</div></section>`;
 }
 async function renderSettings() {
   let ai: AiSettings | null = null,
@@ -1163,7 +1166,7 @@ function teacherPanel(a: Activity | undefined, screen: boolean) {
     s.slideIndex === 0 && sp && !s.quiz && !s.pkLobby && !s.raid && !s.ended
       ? `<section class="quiz-tools spaced-tools" data-testid="spaced-panel"><header><strong>${icon('target')}間隔複習（約 3 分鐘）</strong></header><p class="muted small-text">上一課〈${esc(sp.title)}〉全班錯最多的 ${sp.topics.length} 個題型：${sp.topics.map(esc).join('、')}。每題換數字，答完馬上看到對錯與解析。</p>${btn('派間隔複習', 'quiz-spaced', 'primary', 'target', 'data-testid="quiz-spaced"')}</section>`
       : '';
-  return `<div class="panel-scroll">${spacedSection}${duelSection}${raidSection}${quizSection}${onQuizPage || onRaidPage || onDuelPage ? '' : activity}<section class="seat-map" id="seat-map" data-testid="seat-map">${seatMapInner()}</section>${gradable && !screen ? gradingBar(a!) : ''}<section class="class-tools">${screen && a ? drawFilterBar() : ''}<div class="tool-row">${btn(drawLabel(a), 'draw', 'secondary', 'dice', 'data-testid="draw-seat"')}${btn('搶答', 'buzz-open', 'secondary', 'bolt', 'data-testid="buzz-open"')}</div><div id="danmaku-tools">${danmakuTools()}</div><div id="class-events">${eventsHtml()}</div></section>${screen ? '' : `<section class="room-options">${btn(s.followTeacher ? '同步翻頁中' : '學生自主瀏覽', 'toggle-follow', 'quiet', s.followTeacher ? 'screen' : 'book', s.ended ? 'disabled' : '')}${btn('學生加入', 'join-info', 'quiet', 'users')}${btn('結束課堂', 'end-session', 'quiet danger', 'logout', s.ended ? 'disabled' : '')}</section>${view!.lesson.slides[s.slideIndex]?.notes ? `<details class="teacher-notes"><summary>教師備註（學生看不到）</summary><p>${esc(view!.lesson.slides[s.slideIndex].notes)}</p></details>` : ''}`}</div>`;
+  return `<div class="panel-scroll">${spacedSection}${duelSection}${raidSection}${quizSection}${onQuizPage || onRaidPage || onDuelPage ? '' : activity}<section class="seat-map" id="seat-map" data-testid="seat-map">${seatMapInner()}</section>${gradable && !screen ? gradingBar(a!) : ''}<section class="class-tools">${screen && a ? drawFilterBar() : ''}<div class="tool-row">${btn(drawLabel(a), 'draw', 'secondary', 'dice', 'data-testid="draw-seat"')}${btn('搶答', 'buzz-open', 'secondary', 'bolt', 'data-testid="buzz-open"')}</div><div id="danmaku-tools">${danmakuTools()}</div><div id="class-events">${eventsHtml()}</div></section>${screen ? '' : `<section class="room-options">${btn(s.followTeacher ? '同步翻頁中' : '學生自主瀏覽', 'toggle-follow', 'quiet', s.followTeacher ? 'screen' : 'book', s.ended ? 'disabled' : '')}${btn('學生加入', 'join-info', 'quiet', 'users')}${btn('派發作業', 'hw-plan-session', 'quiet', 'pen', 'data-testid="hw-plan-open"')}${btn('結束課堂', 'end-session', 'quiet danger', 'logout', s.ended ? 'disabled' : '')}</section>${view!.lesson.slides[s.slideIndex]?.notes ? `<details class="teacher-notes"><summary>教師備註（學生看不到）</summary><p>${esc(view!.lesson.slides[s.slideIndex].notes)}</p></details>` : ''}`}</div>`;
 }
 /* ───────────── 作答限時與補救練習 ───────────── */
 const TIME_LIMITS: [number, string][] = [
@@ -1459,6 +1462,7 @@ function quizFigure(svg: string | undefined, cls = '') {
 }
 /* ───────────── 魔王戰 ───────────── */
 initRaidUi({ esc, md, btn, icon, figure: (svg) => quizFigure(svg), serverTime });
+initHomeworkUi({ toast, modal, closeModal, navigate, shell, classes: () => dashboard?.classes || [] });
 initDuelUi({ esc, btn, icon, serverTime });
 /* ───────────── 根式步驟格鬥 ───────────── */
 /** 學生作答回應的 revision：比它舊的推送不蓋掉本機的題目。 */
@@ -2395,6 +2399,7 @@ async function refreshSession() {
       clearTimeout(poll);
       disconnectLive();
       user = null;
+      clearStudentHomework();
       view = null;
       board?.destroy();
       board = null;
@@ -2542,9 +2547,29 @@ function updateSync(online: boolean) {
     el.innerHTML = `<i></i>${online ? (liveOpen ? '即時連線' : '已連線') : '重新連線中'}`;
   }
 }
+/** 等待室的作業清單快取（連結含 QR 憑證）：以登入身分為鍵，登入、登出都清掉，換人時不沿用。 */
+let homeworkHtml = { who: '', at: 0, html: '' };
+const homeworkOwner = () => (user?.role === 'student' ? `${user.id}:${user.classId}:${user.seat}` : '');
+function clearStudentHomework() {
+  homeworkHtml = { who: '', at: 0, html: '' };
+}
+/** 等待室下方的回家作業清單（同一位同學一分鐘內不重抓）。 */
+async function showStudentHomework() {
+  const who = homeworkOwner();
+  if (!who) return;
+  if (homeworkHtml.who !== who || Date.now() - homeworkHtml.at > 60_000) {
+    const html = await studentHomeworkHtml();
+    // 等回覆期間換了帳號：這份清單不是現在這位同學的，丟掉
+    if (homeworkOwner() !== who) return;
+    homeworkHtml = { who, at: Date.now(), html };
+  }
+  const main = document.querySelector('.waiting-room main');
+  if (main && homeworkHtml.who === who && homeworkHtml.html && !main.querySelector('.hw-mine')) main.insertAdjacentHTML('beforeend', homeworkHtml.html);
+}
 function studentWaiting() {
   app.className = 'waiting-room';
   app.innerHTML = `<header>${brand()}${btn('登出', 'logout', 'quiet', 'logout')}</header><main><div class="waiting-graph" aria-hidden="true"><i></i><i></i><i></i><i></i></div><h1>你已入座，<br>等老師開始上課。</h1><p>${esc(user?.name)}・畫面會自動更新。</p></main>`;
+  void showStudentHomework();
 }
 async function loadStudent() {
   const result = await api<SessionView | { session: null }>('/student/session');
@@ -2575,6 +2600,15 @@ async function renderRoute() {
   viz = null;
   previewViz?.destroy();
   previewViz = null;
+  if (currentRoute.startsWith('/hw/')) {
+    // 學生掃作業卷 QR code：不用登入
+    disconnectLive();
+    await renderStudentSheet(app, currentRoute).catch((e) => {
+      app.className = 'hw-student';
+      app.innerHTML = `<main class="hw-main"><section class="panel"><h2>打不開這份作業</h2><p>${esc((e as Error).message)}</p></section></main>`;
+    });
+    return;
+  }
   if (!user) {
     landing(currentRoute.startsWith('/student') ? 'student' : 'teacher');
     return;
@@ -2597,6 +2631,9 @@ async function renderRoute() {
     if (version !== routeVersion) return;
     if (currentRoute === '/classes') renderClasses();
     else if (currentRoute === '/records') renderRecords();
+    else if (currentRoute === '/learning') await renderLearning();
+    else if (currentRoute === '/homework') await renderHomeworkList();
+    else if (currentRoute.startsWith('/homework/')) await renderHomeworkDetail(currentRoute.split('/')[2]);
     else if (currentRoute === '/settings') await renderSettings();
     else if (currentRoute === '/generate') renderGenerate();
     else if (currentRoute.startsWith('/lesson/')) {
@@ -2774,7 +2811,14 @@ async function showJoinInfo(code: string) {
 async function action(el: HTMLElement) {
   const act = el.dataset.action,
     id = el.dataset.id;
+  if (/^(hw|learn)-/.test(act || '') && (await homeworkAction(el))) return;
   switch (act) {
+    case 'hw-plan-session':
+      if (view) await openPlan(view.session.classId, view.session.lessonId);
+      return;
+    case 'hw-plan-row':
+      await openPlan(el.dataset.class!, el.dataset.lesson!);
+      return;
     case 'close-modal':
       return closeModal();
     case 'login-tab':
@@ -2785,6 +2829,7 @@ async function action(el: HTMLElement) {
       await api('/logout', 'POST', {});
       for (const key of Object.keys(localStorage).filter((k) => k.startsWith(pendingPrefix))) localStorage.removeItem(key);
       user = null;
+      clearStudentHomework();
       view = null;
       sketches.clear();
       sketchPreview.clear();
@@ -2895,7 +2940,7 @@ async function action(el: HTMLElement) {
     case 'backup': {
       const b = await api('/backup');
       download('classroom-backup.json', JSON.stringify(b, null, 2));
-      return toast('備份已下載（含作答與分數），請妥善保存。');
+      return toast('備份已下載（含課堂作答與分數，不含回家作業與照片），請妥善保存。');
     }
     case 'restore':
       return modal('還原備份', `<p>匯入會與現有資料合併；建議先下載目前的備份。</p>${btn('選擇備份 JSON', 'restore-file', 'primary', 'upload')}`);
@@ -3575,6 +3620,7 @@ document.addEventListener('submit', (e) => {
         code: data.get('code'),
       });
       user = result.user;
+      clearStudentHomework();
       if (new URLSearchParams(location.search).get('class')) history.replaceState(null, '', location.pathname + location.hash);
       navigate(user!.role === 'teacher' ? '/dashboard' : '/student');
       if (result.mustChange && config.mode !== 'demo')

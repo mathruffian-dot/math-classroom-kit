@@ -1,0 +1,53 @@
+{
+  "banks": {
+    "g8-2-2a": {
+      "lessonId": "g8-2-2a",
+      "section": "8-2-2",
+      "title": "測試用題庫 2-2(1)",
+      "curriculum": {
+        "performance": [{ "code": "n-IV-2", "text": "測試用學習表現" }],
+        "content": [{ "code": "N-8-2", "text": "測試用學習內容" }]
+      },
+      "slots": [
+        { "id": "q1", "topic": "簡記：整數 × 根式", "objective": 0, "performance": ["n-IV-2"], "content": ["N-8-2"], "variants": [
+          { "stem": "化簡 $3\\times\\sqrt{2}$。", "answer": "$3\\sqrt{2}$", "solution": "直接寫成 $3\\sqrt{2}$", "space": 1 },
+          { "stem": "化簡 $5\\times\\sqrt{3}$。", "answer": "$5\\sqrt{3}$", "solution": "直接寫成 $5\\sqrt{3}$", "space": 1 },
+          { "stem": "化簡 $2\\times\\sqrt{7}$。", "answer": "$2\\sqrt{7}$", "solution": "直接寫成 $2\\sqrt{7}$", "space": 1 }
+        ] },
+        { "id": "q2", "topic": "簡記：根式 ÷ 整數", "objective": 0, "performance": ["n-IV-2"], "content": ["N-8-2"], "variants": [
+          { "stem": "化簡 $\\sqrt{5}\\div 2$。", "answer": "$\\dfrac{\\sqrt{5}}{2}$", "solution": "寫成分數", "space": 1 },
+          { "stem": "化簡 $\\sqrt{3}\\div 4$。", "answer": "$\\dfrac{\\sqrt{3}}{4}$", "solution": "寫成分數", "space": 1 },
+          { "stem": "化簡 $\\sqrt{6}\\div 5$。", "answer": "$\\dfrac{\\sqrt{6}}{5}$", "solution": "寫成分數", "space": 1 }
+        ] },
+        { "id": "q3", "topic": "根式乘法：√a × √b", "objective": 1, "performance": ["n-IV-2"], "content": ["N-8-2"], "variants": [
+          { "stem": "計算 $\\sqrt{3}\\times\\sqrt{7}$。", "answer": "$\\sqrt{21}$", "solution": "$\\sqrt{3\\times7}=\\sqrt{21}$", "space": 2 },
+          { "stem": "計算 $\\sqrt{2}\\times\\sqrt{5}$。", "answer": "$\\sqrt{10}$", "solution": "$\\sqrt{2\\times5}=\\sqrt{10}$", "space": 2 },
+          { "stem": "計算 $\\sqrt{6}\\times\\sqrt{11}$。", "answer": "$\\sqrt{66}$", "solution": "$\\sqrt{6\\times11}=\\sqrt{66}$", "space": 2 }
+        ] },
+        { "id": "q4", "topic": "係數乘係數、根號乘根號", "objective": 1, "performance": ["n-IV-2"], "content": ["N-8-2"], "variants": [
+          { "stem": "計算 $2\\sqrt{3}\\times3\\sqrt{5}$。", "answer": "$6\\sqrt{15}$", "solution": "$2\\times3\\times\\sqrt{15}$", "space": 2 },
+          { "stem": "計算 $4\\sqrt{2}\\times\\sqrt{3}$。", "answer": "$4\\sqrt{6}$", "solution": "$4\\sqrt{6}$", "space": 2 },
+          { "stem": "計算 $3\\sqrt{7}\\times2\\sqrt{2}$。", "answer": "$6\\sqrt{14}$", "solution": "$6\\sqrt{14}$", "space": 3 }
+        ] }
+      ],
+      "links": { "activities": { "a-ex1": ["q3", "q4"], "a-predict": ["q3"], "a-two": ["q1", "q2"], "a-both": ["q1", "q2"] }, "items": { "a-ex1": [["q3"], ["q4"]] }, "duelFamilies": { "√a × √b": "q3" } }
+    },
+    "g8-2-2b": {
+      "lessonId": "g8-2-2b",
+      "section": "8-2-2",
+      "title": "測試用題庫 2-2(2)",
+      "curriculum": {
+        "performance": [{ "code": "n-IV-2", "text": "測試用學習表現" }],
+        "content": [{ "code": "N-8-2", "text": "測試用學習內容" }]
+      },
+      "slots": [
+        { "id": "q1", "topic": "最簡根式：搬出最大的平方因數", "objective": 0, "performance": ["n-IV-2"], "content": ["N-8-2"], "variants": [
+          { "stem": "把 $\\sqrt{12}$ 化成最簡根式。", "answer": "$2\\sqrt{3}$", "solution": "$\\sqrt{4\\times3}=2\\sqrt{3}$", "space": 1 },
+          { "stem": "把 $\\sqrt{18}$ 化成最簡根式。", "answer": "$3\\sqrt{2}$", "solution": "$\\sqrt{9\\times2}=3\\sqrt{2}$", "space": 1 },
+          { "stem": "把 $\\sqrt{50}$ 化成最簡根式。", "answer": "$5\\sqrt{2}$", "solution": "$\\sqrt{25\\times2}=5\\sqrt{2}$", "space": 1 }
+        ] }
+      ],
+      "links": { "activities": {} }
+    }
+  }
+}

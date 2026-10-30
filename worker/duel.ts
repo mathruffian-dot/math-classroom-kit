@@ -126,7 +126,7 @@ export function answerDuel(bank: DuelBank, run: DuelRun, store: DuelStore, seatN
   const hint = ok && cur.wrong >= DUEL_HINT_AFTER;
   const final = ok && cur.phase === 'fill' && cur.step === p.steps.length - 1;
   const w = duelSize(run)[team];
-  play.actions.push({ t: Math.max(0, duelElapsed(run, now)), seat: seatNo, team, phase: cur.phase, rule: st.rule, ok, ...(hint ? { hint } : {}), ...(final ? { final } : {}), w });
+  play.actions.push({ t: Math.max(0, duelElapsed(run, now)), seat: seatNo, team, phase: cur.phase, rule: st.rule, ok, p: p.id, ...(hint ? { hint } : {}), ...(final ? { final } : {}), w });
   const phase = cur.phase;
   if (!ok) cur.wrong++;
   else if (phase === 'rule') {
@@ -249,6 +249,7 @@ export function restoreDuel(runsInput: unknown, playInput: unknown, seats: numbe
         phase: (a.phase === 'fill' ? 'fill' : 'rule') as DuelAction['phase'],
         rule: String(a.rule ?? '').slice(0, 20),
         ok: a.ok === true,
+        ...(typeof a.p === 'string' && /^[\w-]{1,80}$/.test(a.p) ? { p: a.p } : {}),
         ...(a.hint === true ? { hint: true } : {}),
         ...(a.final === true ? { final: true } : {}),
         ...(a.w !== undefined ? { w: integer(a.w, 1, 100) } : {}),

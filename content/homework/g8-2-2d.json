@@ -1,0 +1,647 @@
+{
+  "lessonId": "g8-2-2d",
+  "section": "8-2-2",
+  "title": "2-2(4) 乘法公式與根式",
+  "source": "八上課本 2-2 p.86–88（含第 1 章乘法公式）（題目改寫自課後檢核並自編，答案與詳解已用 SymPy 核算）；備課用書 01-115國中數學2上-備課-目次 p.28（教學活動連結分析表：學習表現）、p.29（學習內容）；03-115國中數學2上-備課-L02 p.115（PDF 第 10 頁，本章學習內容解析）",
+  "curriculum": {
+    "performance": [
+      {
+        "code": "n-IV-5",
+        "text": "理解二次方根的意義、符號與根式的四則運算，並能運用到日常生活的情境解決問題。"
+      }
+    ],
+    "content": [
+      {
+        "code": "N-8-1",
+        "text": "二次方根：二次方根的意義；根式的化簡及四則運算。"
+      }
+    ]
+  },
+  "slots": [
+    {
+      "id": "q1",
+      "topic": "和的平方 (a+b)²",
+      "objective": 0,
+      "performance": [
+        "n-IV-5"
+      ],
+      "content": [
+        "N-8-1"
+      ],
+      "variants": [
+        {
+          "stem": "計算 $(2+\\sqrt{3})^2$，並化成最簡根式。",
+          "answer": "$7+4\\sqrt{3}$",
+          "solution": "$(a+b)^2=a^2+2ab+b^2$：$(2+\\sqrt{3})^2=2^2+2\\times2\\times\\sqrt{3}+(\\sqrt{3})^2=4+4\\sqrt{3}+3=7+4\\sqrt{3}$。中間的 $2ab$ 不能漏。",
+          "space": 2
+        },
+        {
+          "stem": "計算 $(\\sqrt{5}+2)^2$，並化成最簡根式。",
+          "answer": "$9+4\\sqrt{5}$",
+          "solution": "$(\\sqrt{5}+2)^2=(\\sqrt{5})^2+2\\times\\sqrt{5}\\times2+2^2=5+4\\sqrt{5}+4=9+4\\sqrt{5}$。",
+          "space": 2
+        },
+        {
+          "stem": "計算 $(3+2\\sqrt{5})^2$，並化成最簡根式。",
+          "answer": "$29+12\\sqrt{5}$",
+          "solution": "$(3+2\\sqrt{5})^2=3^2+2\\times3\\times2\\sqrt{5}+(2\\sqrt{5})^2=9+12\\sqrt{5}+20=29+12\\sqrt{5}$。注意 $(2\\sqrt{5})^2=20$。",
+          "space": 2
+        },
+        {
+          "stem": "計算 $(\\sqrt{3}+\\sqrt{2})^2$，並化成最簡根式。",
+          "answer": "$5+2\\sqrt{6}$",
+          "solution": "$(\\sqrt{3}+\\sqrt{2})^2=(\\sqrt{3})^2+2\\sqrt{3}\\times\\sqrt{2}+(\\sqrt{2})^2=3+2\\sqrt{6}+2=5+2\\sqrt{6}$。",
+          "space": 2
+        },
+        {
+          "stem": "計算 $(2\\sqrt{2}+1)^2$，並化成最簡根式。",
+          "answer": "$9+4\\sqrt{2}$",
+          "solution": "$(2\\sqrt{2}+1)^2=(2\\sqrt{2})^2+2\\times2\\sqrt{2}\\times1+1^2=8+4\\sqrt{2}+1=9+4\\sqrt{2}$。",
+          "space": 2
+        },
+        {
+          "stem": "計算 $(\\sqrt{6}+\\sqrt{3})^2$，並化成最簡根式。",
+          "answer": "$9+6\\sqrt{2}$",
+          "solution": "$(\\sqrt{6}+\\sqrt{3})^2=6+2\\sqrt{18}+3=9+2\\times3\\sqrt{2}=9+6\\sqrt{2}$。",
+          "space": 2
+        }
+      ]
+    },
+    {
+      "id": "q2",
+      "topic": "差的平方 (a−b)²",
+      "objective": 0,
+      "performance": [
+        "n-IV-5"
+      ],
+      "content": [
+        "N-8-1"
+      ],
+      "variants": [
+        {
+          "stem": "計算 $(\\sqrt{7}-\\sqrt{3})^2$，並化成最簡根式。",
+          "answer": "$10-2\\sqrt{21}$",
+          "solution": "$(a-b)^2=a^2-2ab+b^2$：$(\\sqrt{7}-\\sqrt{3})^2=7-2\\sqrt{21}+3=10-2\\sqrt{21}$。不是 $7-3$。",
+          "space": 2
+        },
+        {
+          "stem": "計算 $(\\sqrt{5}-1)^2$，並化成最簡根式。",
+          "answer": "$6-2\\sqrt{5}$",
+          "solution": "$(\\sqrt{5}-1)^2=(\\sqrt{5})^2-2\\times\\sqrt{5}\\times1+1^2=5-2\\sqrt{5}+1=6-2\\sqrt{5}$。",
+          "space": 2
+        },
+        {
+          "stem": "計算 $(3-\\sqrt{2})^2$，並化成最簡根式。",
+          "answer": "$11-6\\sqrt{2}$",
+          "solution": "$(3-\\sqrt{2})^2=9-6\\sqrt{2}+2=11-6\\sqrt{2}$。",
+          "space": 2
+        },
+        {
+          "stem": "計算 $(2\\sqrt{3}-1)^2$，並化成最簡根式。",
+          "answer": "$13-4\\sqrt{3}$",
+          "solution": "$(2\\sqrt{3}-1)^2=(2\\sqrt{3})^2-2\\times2\\sqrt{3}\\times1+1=12-4\\sqrt{3}+1=13-4\\sqrt{3}$。",
+          "space": 2
+        },
+        {
+          "stem": "計算 $(\\sqrt{6}-\\sqrt{2})^2$，並化成最簡根式。",
+          "answer": "$8-4\\sqrt{3}$",
+          "solution": "$(\\sqrt{6}-\\sqrt{2})^2=6-2\\sqrt{12}+2=8-2\\times2\\sqrt{3}=8-4\\sqrt{3}$。",
+          "space": 2
+        },
+        {
+          "stem": "計算 $(3\\sqrt{2}-2\\sqrt{3})^2$，並化成最簡根式。",
+          "answer": "$30-12\\sqrt{6}$",
+          "solution": "$(3\\sqrt{2}-2\\sqrt{3})^2=(3\\sqrt{2})^2-2\\times3\\sqrt{2}\\times2\\sqrt{3}+(2\\sqrt{3})^2=18-12\\sqrt{6}+12=30-12\\sqrt{6}$。",
+          "space": 2
+        }
+      ]
+    },
+    {
+      "id": "q3",
+      "topic": "平方差 (a+b)(a−b)：整數與根式",
+      "objective": 1,
+      "performance": [
+        "n-IV-5"
+      ],
+      "content": [
+        "N-8-1"
+      ],
+      "variants": [
+        {
+          "stem": "計算 $(3+\\sqrt{5})(3-\\sqrt{5})$。",
+          "answer": "$4$",
+          "solution": "平方差公式 $(a+b)(a-b)=a^2-b^2$：$3^2-(\\sqrt{5})^2=9-5=4$，根號不見了。",
+          "space": 1
+        },
+        {
+          "stem": "計算 $(\\sqrt{7}+2)(\\sqrt{7}-2)$。",
+          "answer": "$3$",
+          "solution": "$(\\sqrt{7})^2-2^2=7-4=3$。",
+          "space": 1
+        },
+        {
+          "stem": "計算 $(2\\sqrt{2}+1)(2\\sqrt{2}-1)$。",
+          "answer": "$7$",
+          "solution": "$(2\\sqrt{2})^2-1^2=8-1=7$。注意 $(2\\sqrt{2})^2=8$。",
+          "space": 1
+        },
+        {
+          "stem": "計算 $(4-\\sqrt{11})(4+\\sqrt{11})$。",
+          "answer": "$5$",
+          "solution": "$4^2-(\\sqrt{11})^2=16-11=5$。",
+          "space": 1
+        },
+        {
+          "stem": "計算 $(3\\sqrt{2}-4)(3\\sqrt{2}+4)$。",
+          "answer": "$2$",
+          "solution": "$(3\\sqrt{2})^2-4^2=18-16=2$。",
+          "space": 1
+        },
+        {
+          "stem": "計算 $(1+2\\sqrt{3})(1-2\\sqrt{3})$。",
+          "answer": "$-11$",
+          "solution": "$1^2-(2\\sqrt{3})^2=1-12=-11$。",
+          "space": 1
+        }
+      ]
+    },
+    {
+      "id": "q4",
+      "topic": "平方差：兩個根式",
+      "objective": 1,
+      "performance": [
+        "n-IV-5"
+      ],
+      "content": [
+        "N-8-1"
+      ],
+      "variants": [
+        {
+          "stem": "計算 $(\\sqrt{3}+\\sqrt{5})(\\sqrt{3}-\\sqrt{5})$。",
+          "answer": "$-2$",
+          "solution": "$(\\sqrt{3})^2-(\\sqrt{5})^2=3-5=-2$。是前面的平方減後面的平方，順序不能反。",
+          "space": 1
+        },
+        {
+          "stem": "計算 $(\\sqrt{6}+\\sqrt{2})(\\sqrt{6}-\\sqrt{2})$。",
+          "answer": "$4$",
+          "solution": "$(\\sqrt{6})^2-(\\sqrt{2})^2=6-2=4$。",
+          "space": 1
+        },
+        {
+          "stem": "計算 $(\\sqrt{10}+\\sqrt{3})(\\sqrt{10}-\\sqrt{3})$。",
+          "answer": "$7$",
+          "solution": "$(\\sqrt{10})^2-(\\sqrt{3})^2=10-3=7$。",
+          "space": 1
+        },
+        {
+          "stem": "計算 $(2\\sqrt{3}+\\sqrt{5})(2\\sqrt{3}-\\sqrt{5})$。",
+          "answer": "$7$",
+          "solution": "$(2\\sqrt{3})^2-(\\sqrt{5})^2=12-5=7$。",
+          "space": 1
+        },
+        {
+          "stem": "計算 $(\\sqrt{2}-\\sqrt{7})(\\sqrt{2}+\\sqrt{7})$。",
+          "answer": "$-5$",
+          "solution": "$(\\sqrt{2})^2-(\\sqrt{7})^2=2-7=-5$。",
+          "space": 1
+        },
+        {
+          "stem": "如圖，長方形的長是 $(\\sqrt{11}+\\sqrt{5})$ 公分、寬是 $(\\sqrt{11}-\\sqrt{5})$ 公分，求它的面積。",
+          "answer": "$6$ 平方公分",
+          "solution": "面積＝長×寬，用平方差公式：$(\\sqrt{11}+\\sqrt{5})(\\sqrt{11}-\\sqrt{5})=(\\sqrt{11})^2-(\\sqrt{5})^2=11-5=6$（平方公分）。",
+          "space": 2,
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 420 220\" width=\"420\" height=\"220\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"44.0,132.3 273.0,132.3 273.0,87.7 44.0,87.7\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"53.0,132.3 53.0,123.3 44.0,123.3\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"158.5\" y=\"151.3\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">√11＋√5 公分</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"282.0\" y=\"115.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"start\" fill=\"#1b1b1b\" font-weight=\"600\">√11－√5 公分</text></svg>"
+        }
+      ]
+    },
+    {
+      "id": "q5",
+      "topic": "共軛有理化：1 ÷ (√a ± √b)",
+      "objective": 2,
+      "performance": [
+        "n-IV-5"
+      ],
+      "content": [
+        "N-8-1"
+      ],
+      "variants": [
+        {
+          "stem": "把 $\\dfrac{1}{\\sqrt{5}-\\sqrt{3}}$ 的分母有理化，並化成最簡根式。",
+          "answer": "$\\dfrac{\\sqrt{5}+\\sqrt{3}}{2}$",
+          "solution": "分子、分母同乘 $\\sqrt{5}+\\sqrt{3}$：$\\dfrac{1}{\\sqrt{5}-\\sqrt{3}}=\\dfrac{\\sqrt{5}+\\sqrt{3}}{(\\sqrt{5}-\\sqrt{3})(\\sqrt{5}+\\sqrt{3})}=\\dfrac{\\sqrt{5}+\\sqrt{3}}{5-3}=\\dfrac{\\sqrt{5}+\\sqrt{3}}{2}$。",
+          "space": 2
+        },
+        {
+          "stem": "把 $\\dfrac{1}{\\sqrt{3}+\\sqrt{2}}$ 的分母有理化，並化成最簡根式。",
+          "answer": "$\\sqrt{3}-\\sqrt{2}$",
+          "solution": "同乘 $\\sqrt{3}-\\sqrt{2}$：$\\dfrac{\\sqrt{3}-\\sqrt{2}}{(\\sqrt{3}+\\sqrt{2})(\\sqrt{3}-\\sqrt{2})}=\\dfrac{\\sqrt{3}-\\sqrt{2}}{3-2}=\\sqrt{3}-\\sqrt{2}$。",
+          "space": 2
+        },
+        {
+          "stem": "把 $\\dfrac{2}{\\sqrt{5}+\\sqrt{3}}$ 的分母有理化，並化成最簡根式。",
+          "answer": "$\\sqrt{5}-\\sqrt{3}$",
+          "solution": "同乘 $\\sqrt{5}-\\sqrt{3}$：$\\dfrac{2(\\sqrt{5}-\\sqrt{3})}{(\\sqrt{5})^2-(\\sqrt{3})^2}=\\dfrac{2(\\sqrt{5}-\\sqrt{3})}{2}=\\sqrt{5}-\\sqrt{3}$。",
+          "space": 2
+        },
+        {
+          "stem": "把 $\\dfrac{1}{\\sqrt{7}-\\sqrt{5}}$ 的分母有理化，並化成最簡根式。",
+          "answer": "$\\dfrac{\\sqrt{7}+\\sqrt{5}}{2}$",
+          "solution": "同乘 $\\sqrt{7}+\\sqrt{5}$：$\\dfrac{\\sqrt{7}+\\sqrt{5}}{(\\sqrt{7}-\\sqrt{5})(\\sqrt{7}+\\sqrt{5})}=\\dfrac{\\sqrt{7}+\\sqrt{5}}{7-5}=\\dfrac{\\sqrt{7}+\\sqrt{5}}{2}$。",
+          "space": 2
+        },
+        {
+          "stem": "把 $\\dfrac{4}{\\sqrt{6}+\\sqrt{2}}$ 的分母有理化，並化成最簡根式。",
+          "answer": "$\\sqrt{6}-\\sqrt{2}$",
+          "solution": "同乘 $\\sqrt{6}-\\sqrt{2}$：$\\dfrac{4(\\sqrt{6}-\\sqrt{2})}{6-2}=\\dfrac{4(\\sqrt{6}-\\sqrt{2})}{4}=\\sqrt{6}-\\sqrt{2}$。",
+          "space": 2
+        },
+        {
+          "stem": "計算 $\\dfrac{1}{\\sqrt{6}+\\sqrt{5}}+\\dfrac{1}{\\sqrt{6}-\\sqrt{5}}$，並化成最簡根式。",
+          "answer": "$2\\sqrt{6}$",
+          "solution": "兩個分數分別有理化：$\\dfrac{1}{\\sqrt{6}+\\sqrt{5}}=\\dfrac{\\sqrt{6}-\\sqrt{5}}{6-5}=\\sqrt{6}-\\sqrt{5}$，$\\dfrac{1}{\\sqrt{6}-\\sqrt{5}}=\\dfrac{\\sqrt{6}+\\sqrt{5}}{6-5}=\\sqrt{6}+\\sqrt{5}$，相加：$(\\sqrt{6}-\\sqrt{5})+(\\sqrt{6}+\\sqrt{5})=2\\sqrt{6}$。",
+          "space": 3
+        }
+      ]
+    },
+    {
+      "id": "q6",
+      "topic": "共軛有理化：a ÷ (√b ± c)",
+      "objective": 2,
+      "performance": [
+        "n-IV-5"
+      ],
+      "content": [
+        "N-8-1"
+      ],
+      "variants": [
+        {
+          "stem": "把 $\\dfrac{3}{\\sqrt{7}-2}$ 的分母有理化，並化成最簡根式。",
+          "answer": "$\\sqrt{7}+2$",
+          "solution": "同乘 $\\sqrt{7}+2$：$\\dfrac{3(\\sqrt{7}+2)}{(\\sqrt{7})^2-2^2}=\\dfrac{3(\\sqrt{7}+2)}{3}=\\sqrt{7}+2$。分母是 $7-4$，不是 $7-2$。",
+          "space": 2
+        },
+        {
+          "stem": "把 $\\dfrac{1}{\\sqrt{3}+2}$ 的分母有理化，並化成最簡根式。",
+          "answer": "$2-\\sqrt{3}$",
+          "solution": "同乘 $2-\\sqrt{3}$：$\\dfrac{2-\\sqrt{3}}{(2+\\sqrt{3})(2-\\sqrt{3})}=\\dfrac{2-\\sqrt{3}}{4-3}=2-\\sqrt{3}$。",
+          "space": 2
+        },
+        {
+          "stem": "把 $\\dfrac{2}{\\sqrt{5}+1}$ 的分母有理化，並化成最簡根式。",
+          "answer": "$\\dfrac{\\sqrt{5}-1}{2}$",
+          "solution": "同乘 $\\sqrt{5}-1$：$\\dfrac{2(\\sqrt{5}-1)}{5-1}=\\dfrac{2(\\sqrt{5}-1)}{4}=\\dfrac{\\sqrt{5}-1}{2}$，記得約分。",
+          "space": 2
+        },
+        {
+          "stem": "把 $\\dfrac{4}{3-\\sqrt{5}}$ 的分母有理化，並化成最簡根式。",
+          "answer": "$3+\\sqrt{5}$",
+          "solution": "同乘 $3+\\sqrt{5}$：$\\dfrac{4(3+\\sqrt{5})}{3^2-(\\sqrt{5})^2}=\\dfrac{4(3+\\sqrt{5})}{4}=3+\\sqrt{5}$。",
+          "space": 2
+        },
+        {
+          "stem": "把 $\\dfrac{6}{\\sqrt{10}+2}$ 的分母有理化，並化成最簡根式。",
+          "answer": "$\\sqrt{10}-2$",
+          "solution": "同乘 $\\sqrt{10}-2$：$\\dfrac{6(\\sqrt{10}-2)}{10-4}=\\dfrac{6(\\sqrt{10}-2)}{6}=\\sqrt{10}-2$。",
+          "space": 2
+        },
+        {
+          "stem": "把 $\\dfrac{1}{2\\sqrt{2}-1}$ 的分母有理化，並化成最簡根式。",
+          "answer": "$\\dfrac{2\\sqrt{2}+1}{7}$",
+          "solution": "同乘 $2\\sqrt{2}+1$：$\\dfrac{2\\sqrt{2}+1}{(2\\sqrt{2})^2-1^2}=\\dfrac{2\\sqrt{2}+1}{8-1}=\\dfrac{2\\sqrt{2}+1}{7}$。",
+          "space": 2
+        }
+      ]
+    },
+    {
+      "id": "q7",
+      "topic": "共軛有理化：分子也有根號",
+      "objective": 2,
+      "performance": [
+        "n-IV-5"
+      ],
+      "content": [
+        "N-8-1"
+      ],
+      "variants": [
+        {
+          "stem": "把 $\\dfrac{\\sqrt{2}}{\\sqrt{6}+\\sqrt{5}}$ 的分母有理化，並化成最簡根式。",
+          "answer": "$2\\sqrt{3}-\\sqrt{10}$",
+          "solution": "同乘 $\\sqrt{6}-\\sqrt{5}$：分母 $(\\sqrt{6})^2-(\\sqrt{5})^2=1$，分子 $\\sqrt{2}(\\sqrt{6}-\\sqrt{5})=\\sqrt{12}-\\sqrt{10}=2\\sqrt{3}-\\sqrt{10}$。",
+          "space": 2
+        },
+        {
+          "stem": "把 $\\dfrac{\\sqrt{3}}{\\sqrt{6}-\\sqrt{2}}$ 的分母有理化，並化成最簡根式。",
+          "answer": "$\\dfrac{3\\sqrt{2}+\\sqrt{6}}{4}$",
+          "solution": "同乘 $\\sqrt{6}+\\sqrt{2}$：分母 $6-2=4$，分子 $\\sqrt{3}(\\sqrt{6}+\\sqrt{2})=\\sqrt{18}+\\sqrt{6}=3\\sqrt{2}+\\sqrt{6}$，得 $\\dfrac{3\\sqrt{2}+\\sqrt{6}}{4}$。",
+          "space": 2
+        },
+        {
+          "stem": "把 $\\dfrac{\\sqrt{2}}{\\sqrt{3}-1}$ 的分母有理化，並化成最簡根式。",
+          "answer": "$\\dfrac{\\sqrt{6}+\\sqrt{2}}{2}$",
+          "solution": "同乘 $\\sqrt{3}+1$：分母 $3-1=2$，分子 $\\sqrt{2}(\\sqrt{3}+1)=\\sqrt{6}+\\sqrt{2}$，得 $\\dfrac{\\sqrt{6}+\\sqrt{2}}{2}$。",
+          "space": 2
+        },
+        {
+          "stem": "把 $\\dfrac{\\sqrt{5}}{\\sqrt{10}+\\sqrt{5}}$ 的分母有理化，並化成最簡根式。",
+          "answer": "$\\sqrt{2}-1$",
+          "solution": "同乘 $\\sqrt{10}-\\sqrt{5}$：分母 $10-5=5$，分子 $\\sqrt{5}(\\sqrt{10}-\\sqrt{5})=\\sqrt{50}-5=5\\sqrt{2}-5$，所以 $\\dfrac{5\\sqrt{2}-5}{5}=\\sqrt{2}-1$。",
+          "space": 3
+        },
+        {
+          "stem": "把 $\\dfrac{\\sqrt{3}+1}{\\sqrt{3}-1}$ 的分母有理化，並化成最簡根式。",
+          "answer": "$2+\\sqrt{3}$",
+          "solution": "同乘 $\\sqrt{3}+1$：分母 $3-1=2$，分子 $(\\sqrt{3}+1)^2=3+2\\sqrt{3}+1=4+2\\sqrt{3}$，所以 $\\dfrac{4+2\\sqrt{3}}{2}=2+\\sqrt{3}$。",
+          "space": 3
+        },
+        {
+          "stem": "把 $\\dfrac{\\sqrt{6}}{\\sqrt{3}+\\sqrt{2}}$ 的分母有理化，並化成最簡根式。",
+          "answer": "$3\\sqrt{2}-2\\sqrt{3}$",
+          "solution": "同乘 $\\sqrt{3}-\\sqrt{2}$：分母 $3-2=1$，分子 $\\sqrt{6}(\\sqrt{3}-\\sqrt{2})=\\sqrt{18}-\\sqrt{12}=3\\sqrt{2}-2\\sqrt{3}$。",
+          "space": 2
+        }
+      ]
+    },
+    {
+      "id": "q8",
+      "topic": "平方後判斷相等或大小",
+      "objective": 0,
+      "performance": [
+        "n-IV-5"
+      ],
+      "content": [
+        "N-8-1"
+      ],
+      "variants": [
+        {
+          "stem": "比較 $\\sqrt{3}+\\sqrt{2}$ 和 $\\sqrt{5}$ 的大小，用「＞」、「＜」或「＝」寫出兩數的關係，並說明理由。",
+          "answer": "$\\sqrt{3}+\\sqrt{2}>\\sqrt{5}$",
+          "solution": "兩數都是正數，比較平方：$(\\sqrt{3}+\\sqrt{2})^2=5+2\\sqrt{6}$，$(\\sqrt{5})^2=5$，因為 $5+2\\sqrt{6}>5$，所以 $\\sqrt{3}+\\sqrt{2}>\\sqrt{5}$。",
+          "space": 3
+        },
+        {
+          "stem": "比較 $\\sqrt{7}-\\sqrt{5}$ 和 $\\sqrt{2}$ 的大小，用「＞」、「＜」或「＝」寫出兩數的關係，並說明理由。",
+          "answer": "$\\sqrt{7}-\\sqrt{5}<\\sqrt{2}$",
+          "solution": "兩數都是正數：$(\\sqrt{7}-\\sqrt{5})^2=12-2\\sqrt{35}$，$(\\sqrt{2})^2=2$。相減 $12-2\\sqrt{35}-2=10-2\\sqrt{35}=\\sqrt{100}-\\sqrt{140}<0$，所以 $\\sqrt{7}-\\sqrt{5}<\\sqrt{2}$。",
+          "space": 3
+        },
+        {
+          "stem": "比較 $\\sqrt{2}+\\sqrt{8}$ 和 $\\sqrt{18}$ 的大小，用「＞」、「＜」或「＝」寫出兩數的關係，並說明理由。",
+          "answer": "$\\sqrt{2}+\\sqrt{8}=\\sqrt{18}$",
+          "solution": "$(\\sqrt{2}+\\sqrt{8})^2=2+2\\sqrt{16}+8=18=(\\sqrt{18})^2$，兩數都是正數、平方相等，所以 $\\sqrt{2}+\\sqrt{8}=\\sqrt{18}$（也可以化簡：兩數都等於 $3\\sqrt{2}$）。",
+          "space": 3
+        },
+        {
+          "stem": "比較 $\\sqrt{5}+\\sqrt{3}$ 和 $\\sqrt{6}+\\sqrt{2}$ 的大小，用「＞」、「＜」或「＝」寫出兩數的關係，並說明理由。",
+          "answer": "$\\sqrt{5}+\\sqrt{3}>\\sqrt{6}+\\sqrt{2}$",
+          "solution": "兩數都是正數，比較平方：$(\\sqrt{5}+\\sqrt{3})^2=8+2\\sqrt{15}$，$(\\sqrt{6}+\\sqrt{2})^2=8+2\\sqrt{12}$，因為 $\\sqrt{15}>\\sqrt{12}$，所以 $\\sqrt{5}+\\sqrt{3}>\\sqrt{6}+\\sqrt{2}$。",
+          "space": 3
+        },
+        {
+          "stem": "比較 $2+\\sqrt{3}$ 和 $\\sqrt{6}+\\sqrt{2}$ 的大小，用「＞」、「＜」或「＝」寫出兩數的關係，並說明理由。",
+          "answer": "$2+\\sqrt{3}<\\sqrt{6}+\\sqrt{2}$",
+          "solution": "兩數都是正數，比較平方：$(2+\\sqrt{3})^2=7+4\\sqrt{3}$，$(\\sqrt{6}+\\sqrt{2})^2=8+2\\sqrt{12}=8+4\\sqrt{3}$，因為 $7+4\\sqrt{3}<8+4\\sqrt{3}$，所以 $2+\\sqrt{3}<\\sqrt{6}+\\sqrt{2}$。",
+          "space": 3
+        },
+        {
+          "stem": "比較 $3\\sqrt{2}$ 和 $\\sqrt{5}+\\sqrt{3}$ 的大小，用「＞」、「＜」或「＝」寫出兩數的關係，並說明理由。",
+          "answer": "$3\\sqrt{2}>\\sqrt{5}+\\sqrt{3}$",
+          "solution": "兩數都是正數，比較平方：$(3\\sqrt{2})^2=18$，$(\\sqrt{5}+\\sqrt{3})^2=8+2\\sqrt{15}$。因為 $2\\sqrt{15}=\\sqrt{60}<\\sqrt{100}=10$，所以 $8+2\\sqrt{15}<18$，得 $3\\sqrt{2}>\\sqrt{5}+\\sqrt{3}$。",
+          "space": 3
+        }
+      ]
+    },
+    {
+      "id": "q9",
+      "topic": "公式綜合",
+      "objective": 0,
+      "performance": [
+        "n-IV-5"
+      ],
+      "content": [
+        "N-8-1"
+      ],
+      "variants": [
+        {
+          "stem": "計算 $(\\sqrt{3}+1)^2-(\\sqrt{3}-1)^2$。",
+          "answer": "$4\\sqrt{3}$",
+          "solution": "$(\\sqrt{3}+1)^2=4+2\\sqrt{3}$，$(\\sqrt{3}-1)^2=4-2\\sqrt{3}$，相減：$(4+2\\sqrt{3})-(4-2\\sqrt{3})=4\\sqrt{3}$。",
+          "space": 2
+        },
+        {
+          "stem": "計算 $(2+\\sqrt{5})^2+(2-\\sqrt{5})^2$。",
+          "answer": "$18$",
+          "solution": "$(2+\\sqrt{5})^2=9+4\\sqrt{5}$，$(2-\\sqrt{5})^2=9-4\\sqrt{5}$，相加：$(9+4\\sqrt{5})+(9-4\\sqrt{5})=18$。",
+          "space": 2
+        },
+        {
+          "stem": "計算 $(\\sqrt{6}+\\sqrt{2})(\\sqrt{6}-\\sqrt{2})+(\\sqrt{2})^2$。",
+          "answer": "$6$",
+          "solution": "$(\\sqrt{6}+\\sqrt{2})(\\sqrt{6}-\\sqrt{2})=6-2=4$，$(\\sqrt{2})^2=2$，相加 $4+2=6$。",
+          "space": 2
+        },
+        {
+          "stem": "若 $x=\\sqrt{3}+1$，求 $x^2-2x$ 的值。",
+          "answer": "$2$",
+          "solution": "$x^2=(\\sqrt{3}+1)^2=4+2\\sqrt{3}$，$2x=2\\sqrt{3}+2$，所以 $x^2-2x=(4+2\\sqrt{3})-(2\\sqrt{3}+2)=2$。",
+          "space": 3
+        },
+        {
+          "stem": "若 $x=\\sqrt{5}+\\sqrt{3}$、$y=\\sqrt{5}-\\sqrt{3}$，求 $x^2+y^2$ 的值。",
+          "answer": "$16$",
+          "solution": "$x^2=(\\sqrt{5}+\\sqrt{3})^2=8+2\\sqrt{15}$，$y^2=(\\sqrt{5}-\\sqrt{3})^2=8-2\\sqrt{15}$，所以 $x^2+y^2=(8+2\\sqrt{15})+(8-2\\sqrt{15})=16$。",
+          "space": 3
+        },
+        {
+          "stem": "計算 $(2\\sqrt{3}-1)^2+\\sqrt{48}$。",
+          "answer": "$13$",
+          "solution": "$(2\\sqrt{3}-1)^2=12-4\\sqrt{3}+1=13-4\\sqrt{3}$，$\\sqrt{48}=4\\sqrt{3}$，相加：$13-4\\sqrt{3}+4\\sqrt{3}=13$。",
+          "space": 2
+        }
+      ]
+    },
+    {
+      "id": "q10",
+      "topic": "哪一個算對了？（常見錯誤）",
+      "objective": 0,
+      "performance": [
+        "n-IV-5"
+      ],
+      "content": [
+        "N-8-1"
+      ],
+      "variants": [
+        {
+          "stem": "小華計算 $(\\sqrt{3}+\\sqrt{2})^2=5$，這是錯的。請說明錯在哪裡，並寫出正確的計算過程與答案。",
+          "answer": "$5+2\\sqrt{6}$",
+          "solution": "漏了中間的 $2ab$：$(\\sqrt{3}+\\sqrt{2})^2=3+2\\sqrt{6}+2=5+2\\sqrt{6}$。",
+          "space": 2
+        },
+        {
+          "stem": "小明計算 $(\\sqrt{5}-1)^2=4$，這是錯的。請說明錯在哪裡，並寫出正確的計算過程與答案。",
+          "answer": "$6-2\\sqrt{5}$",
+          "solution": "$(a-b)^2$ 不是 $a^2-b^2$：$(\\sqrt{5}-1)^2=5-2\\sqrt{5}+1=6-2\\sqrt{5}$。",
+          "space": 2
+        },
+        {
+          "stem": "小美計算 $\\dfrac{1}{\\sqrt{2}+1}=\\sqrt{2}+1$，這是錯的。請說明錯在哪裡，並寫出正確的計算過程與答案。",
+          "answer": "$\\sqrt{2}-1$",
+          "solution": "要乘「共軛」$\\sqrt{2}-1$（中間的符號相反），分母才會變成整數：$\\dfrac{1}{\\sqrt{2}+1}=\\dfrac{\\sqrt{2}-1}{(\\sqrt{2}+1)(\\sqrt{2}-1)}=\\dfrac{\\sqrt{2}-1}{2-1}=\\sqrt{2}-1$。",
+          "space": 2
+        },
+        {
+          "stem": "阿哲計算 $(2+\\sqrt{3})(2-\\sqrt{3})=7$，這是錯的。請說明錯在哪裡，並寫出正確的計算過程與答案。",
+          "answer": "$1$",
+          "solution": "平方差公式是相減：$(2+\\sqrt{3})(2-\\sqrt{3})=2^2-(\\sqrt{3})^2=4-3=1$。",
+          "space": 2
+        },
+        {
+          "stem": "小安計算 $(\\sqrt{6}-\\sqrt{2})^2=4$，這是錯的。請說明錯在哪裡，並寫出正確的計算過程與答案。",
+          "answer": "$8-4\\sqrt{3}$",
+          "solution": "不能只算 $6-2$，中間還有 $-2ab$：$(\\sqrt{6}-\\sqrt{2})^2=6-2\\sqrt{12}+2=8-4\\sqrt{3}$。",
+          "space": 2
+        },
+        {
+          "stem": "小芸計算 $(\\sqrt{5}+\\sqrt{3})(\\sqrt{5}-\\sqrt{3})=8$，這是錯的。請說明錯在哪裡，並寫出正確的計算過程與答案。",
+          "answer": "$2$",
+          "solution": "平方差是相減，不是相加：$(\\sqrt{5})^2-(\\sqrt{3})^2=5-3=2$。",
+          "space": 2
+        },
+        {
+          "stem": "阿凱計算 $\\sqrt{5}\\div\\sqrt{2}=\\sqrt{3}$，這是錯的。請說明錯在哪裡，並寫出正確的計算過程與答案。",
+          "answer": "$\\dfrac{\\sqrt{10}}{2}$",
+          "solution": "根號相除是根號內相除，不是相減：$\\sqrt{5}\\div\\sqrt{2}=\\sqrt{\\dfrac{5}{2}}=\\dfrac{\\sqrt{5}}{\\sqrt{2}}=\\dfrac{\\sqrt{10}}{2}$。",
+          "space": 2
+        }
+      ]
+    }
+  ],
+  "links": {
+    "activities": {
+      "d-ex11": [
+        "q1"
+      ],
+      "d-ex11-practice": [
+        "q2"
+      ],
+      "d-thinking": [
+        "q8"
+      ],
+      "d-ex12": [
+        "q3"
+      ],
+      "d-ex12-practice": [
+        "q4"
+      ],
+      "d-conjugate": [
+        "q5"
+      ],
+      "d-ex13": [
+        "q6",
+        "q7"
+      ],
+      "d-ex13-practice": [
+        "q6",
+        "q7"
+      ],
+      "d-error": [
+        "q6",
+        "q10"
+      ]
+    },
+    "items": {
+      "d-ex13": [
+        [
+          "q6"
+        ],
+        [
+          "q7"
+        ]
+      ],
+      "d-ex13-practice": [
+        [
+          "q7"
+        ],
+        [
+          "q6"
+        ]
+      ]
+    },
+    "raidTopics": {
+      "簡記：整數 × 根式": "g8-2-2a:q1",
+      "簡記：根式 ÷ 整數": "g8-2-2a:q2",
+      "根式乘法：√a × √b": "g8-2-2a:q3",
+      "係數乘係數、根號乘根號": "g8-2-2a:q4",
+      "乘完要化簡": "g8-2-2a:q5",
+      "根式除法：√a ÷ √b": "g8-2-2a:q8",
+      "最簡根式：搬出最大的平方因數": "g8-2-2b:q1",
+      "最簡根式：次方的形式": "g8-2-2b:q2",
+      "分母有理化：a ÷ √n": "g8-2-2b:q3",
+      "根號內是分數": "g8-2-2b:q4",
+      "根號內是小數": "g8-2-2b:q5",
+      "同類方根合併": "g8-2-2c:q1",
+      "先化成最簡根式再合併": "g8-2-2c:q3",
+      "和的平方 (a+b)²": "g8-2-2d:q1",
+      "差的平方 (a−b)²": "g8-2-2d:q2",
+      "平方差 (a+b)(a−b)：整數與根式": "g8-2-2d:q3",
+      "平方差：兩個根式": "g8-2-2d:q4",
+      "根式乘法": "g8-2-2a:q3",
+      "化成最簡根式": "g8-2-2b:q1",
+      "同類方根相加": "g8-2-2c:q1",
+      "比較大小（係數移進根號）": "g8-2-2a:q7",
+      "哪一個算對了？（常見錯誤）": "g8-2-2d:q10",
+      "有理化前後比大小": "g8-2-2b:q9",
+      "哪一個是最簡根式？": "g8-2-2b:q10",
+      "不是同類方根不能合併": "g8-2-2c:q2",
+      "比較大小：根號不能直接相加": "g8-2-2c:q9",
+      "平方後判斷相等或大小": "g8-2-2d:q8",
+      "哪一個相等": "g8-2-2b:q1",
+      "同類方根": "g8-2-2c:q3",
+      "比大小": "g8-2-2a:q7",
+      "分母有理化的結果": "g8-2-2b:q3",
+      "哪一個正確（運算規則）": "g8-2-2d:q10",
+      "長方形面積（課本隨堂 2）": "g8-2-2a:q6",
+      "除以分數形式的根式": "g8-2-2a:q9",
+      "乘完再化成最簡": "g8-2-2b:q6",
+      "除完再有理化": "g8-2-2b:q7",
+      "乘除混合：合成一個根號再化簡": "g8-2-2b:q8",
+      "有理化後合併": "g8-2-2c:q4",
+      "分配律：根式乘括號": "g8-2-2c:q5",
+      "兩個括號相乘（逐項乘開）": "g8-2-2c:q6",
+      "括號除以根式": "g8-2-2c:q7",
+      "乘除混合：合成一個根號": "g8-2-2c:q8",
+      "共軛有理化：1 ÷ (√a ± √b)": "g8-2-2d:q5",
+      "共軛有理化：a ÷ (√b ± c)": "g8-2-2d:q6",
+      "共軛有理化：分子也有根號": "g8-2-2d:q7",
+      "公式綜合": "g8-2-2d:q9",
+      "長方形的周長": "g8-2-2c:q3",
+      "長方形的面積": "g8-2-2b:q6",
+      "平方差的面積": "g8-2-2d:q4",
+      "代入求值": "g8-2-2d:q9",
+      "x、y 的綜合": "g8-2-2d:q9",
+      "共軛有理化後相加": "g8-2-2d:q5",
+      "近似值": "g8-2-2b:q3",
+      "兩個正方形": "g8-2-2c:q3",
+      "乘法公式綜合": "g8-2-2d:q9"
+    },
+    "raidSkip": [
+      "估算"
+    ],
+    "duelFamilies": {
+      "a√b × c√d": "g8-2-2a:q4",
+      "c ÷ √n 分母有理化": "g8-2-2b:q3",
+      "√(a/b) 分母有理化": "g8-2-2b:q4",
+      "√a ± √b（化成同類方根再合併）": "g8-2-2c:q3",
+      "√a × √b": "g8-2-2a:q3",
+      "√a × √b 再化成最簡根式": "g8-2-2b:q6",
+      "√a × √b（乘起來是完全平方數）": "g8-2-2a:q5",
+      "√a ÷ √b": "g8-2-2a:q8",
+      "√a(√b ＋ c) 分配律": "g8-2-2c:q5",
+      "√n 化成最簡根式": "g8-2-2b:q1",
+      "(√a ＋ √b)(√a − √b)": "q4",
+      "(c ＋ √b)²": "q1",
+      "(√a − √b)²": "q2",
+      "c ÷ (√a − √b) 分母有理化": "q5"
+    }
+  }
+}

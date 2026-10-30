@@ -1,0 +1,595 @@
+{
+  "lessonId": "g8-2-3a",
+  "section": "8-2-3",
+  "title": "2-3(1) 畢氏定理與邊長計算",
+  "source": "八上課本 2-3 p.92–96（斜邊與股、畢氏定理、例 1、例 2 與隨堂）；備課用書 01-115國中數學2上-備課-目次(115f231509).pdf p.30–31（2-3 教學活動連結分析表：學習表現 s-IV-7、學習內容 S-8-6）、p.28–29（2-2：n-IV-5、N-8-1，用於化成最簡根式的題型）；備課用書 03-115國中數學2上-備課-L02(115f231511).pdf p.154（課本 p.92「對應學習內容 S-8-6」）",
+  "curriculum": {
+    "performance": [
+      {
+        "code": "s-IV-7",
+        "text": "理解畢氏定理與其逆敘述，並能應用於數學解題與日常生活的問題。"
+      },
+      {
+        "code": "n-IV-5",
+        "text": "理解二次方根的意義、符號與根式的四則運算，並能運用到日常生活的情境解決問題。"
+      }
+    ],
+    "content": [
+      {
+        "code": "S-8-6",
+        "text": "畢氏定理：畢氏定理（勾股弦定理、商高定理）的意義及其數學史；畢氏定理在生活上的應用；三邊長滿足畢氏定理的三角形必定是直角三角形。"
+      },
+      {
+        "code": "N-8-1",
+        "text": "二次方根：二次方根的意義；根式的化簡及四則運算。"
+      }
+    ]
+  },
+  "slots": [
+    {
+      "id": "q1",
+      "topic": "辨認斜邊（直角的對邊）",
+      "objective": 0,
+      "performance": [
+        "s-IV-7"
+      ],
+      "content": [
+        "S-8-6"
+      ],
+      "variants": [
+        {
+          "stem": "如圖，$\\triangle ABC$ 中 $\\angle C=90^\\circ$，寫出這個三角形的斜邊和兩股。",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"95.3,186.0 284.7,186.0 95.3,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"104.3,186.0 104.3,177.0 95.3,177.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"84.7\" y=\"202.6\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"297.5\" y=\"199.7\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"87.6\" y=\"37.1\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text></svg>",
+          "answer": "斜邊：$\\overline{AB}$；兩股：$\\overline{AC}$、$\\overline{BC}$",
+          "solution": "直角所對的邊叫做斜邊：$\\angle C$ 的對邊是 $\\overline{AB}$，所以斜邊是 $\\overline{AB}$；夾著直角的 $\\overline{AC}$、$\\overline{BC}$ 是兩股。斜邊不一定畫在下面。",
+          "space": 1
+        },
+        {
+          "stem": "如圖，$\\triangle ABC$ 中 $\\angle A=90^\\circ$，寫出這個三角形的斜邊和兩股。",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"284.7,44.0 95.3,44.0 284.7,186.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"275.7,44.0 275.7,53.0 284.7,53.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"295.3\" y=\"39.4\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"82.5\" y=\"42.3\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"292.4\" y=\"204.9\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text></svg>",
+          "answer": "斜邊：$\\overline{BC}$；兩股：$\\overline{AB}$、$\\overline{AC}$",
+          "solution": "直角所對的邊叫做斜邊：$\\angle A$ 的對邊是 $\\overline{BC}$，所以斜邊是 $\\overline{BC}$；夾著直角的 $\\overline{AB}$、$\\overline{AC}$ 是兩股。斜邊不一定畫在下面。",
+          "space": 1
+        },
+        {
+          "stem": "如圖，$\\triangle ABC$ 中 $\\angle B=90^\\circ$，寫出這個三角形的斜邊和兩股。",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"284.7,186.0 95.3,186.0 284.7,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"275.7,186.0 275.7,177.0 284.7,177.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"295.3\" y=\"202.6\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"82.5\" y=\"199.7\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"292.4\" y=\"37.1\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text></svg>",
+          "answer": "斜邊：$\\overline{AC}$；兩股：$\\overline{AB}$、$\\overline{BC}$",
+          "solution": "直角所對的邊叫做斜邊：$\\angle B$ 的對邊是 $\\overline{AC}$，所以斜邊是 $\\overline{AC}$；夾著直角的 $\\overline{AB}$、$\\overline{BC}$ 是兩股。斜邊不一定畫在下面。",
+          "space": 1
+        },
+        {
+          "stem": "如圖，$\\triangle DEF$ 中 $\\angle E=90^\\circ$，寫出這個三角形的斜邊和兩股。",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"71.7,44.0 308.3,44.0 71.7,186.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"80.7,44.0 80.7,53.0 71.7,53.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"61.1\" y=\"39.4\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">E</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"321.2\" y=\"42.3\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">F</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"63.9\" y=\"204.9\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">D</text></svg>",
+          "answer": "斜邊：$\\overline{DF}$；兩股：$\\overline{DE}$、$\\overline{EF}$",
+          "solution": "直角所對的邊叫做斜邊：$\\angle E$ 的對邊是 $\\overline{DF}$，所以斜邊是 $\\overline{DF}$；夾著直角的 $\\overline{DE}$、$\\overline{EF}$ 是兩股。斜邊不一定畫在下面。",
+          "space": 1
+        },
+        {
+          "stem": "如圖，$\\triangle PQR$ 中 $\\angle R=90^\\circ$，寫出這個三角形的斜邊和兩股。",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"237.3,44.0 142.7,44.0 237.3,186.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"228.3,44.0 228.3,53.0 237.3,53.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"247.9\" y=\"39.4\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">R</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"129.8\" y=\"42.3\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">P</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"245.1\" y=\"204.9\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">Q</text></svg>",
+          "answer": "斜邊：$\\overline{PQ}$；兩股：$\\overline{PR}$、$\\overline{QR}$",
+          "solution": "直角所對的邊叫做斜邊：$\\angle R$ 的對邊是 $\\overline{PQ}$，所以斜邊是 $\\overline{PQ}$；夾著直角的 $\\overline{PR}$、$\\overline{QR}$ 是兩股。斜邊不一定畫在下面。",
+          "space": 1
+        }
+      ]
+    },
+    {
+      "id": "q2",
+      "topic": "寫出畢氏定理的式子",
+      "objective": 1,
+      "performance": [
+        "s-IV-7"
+      ],
+      "content": [
+        "S-8-6"
+      ],
+      "variants": [
+        {
+          "stem": "如圖，$\\triangle ABC$ 中 $\\angle C=90^\\circ$，用三邊的長寫出畢氏定理的式子。",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"284.7,186.0 95.3,186.0 284.7,44.0\" fill=\"#cfd8ee\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"275.7,186.0 275.7,177.0 284.7,177.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"295.3\" y=\"202.6\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"82.5\" y=\"199.7\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"292.4\" y=\"37.1\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text></svg>",
+          "answer": "$\\overline{AC}^2+\\overline{BC}^2=\\overline{AB}^2$",
+          "solution": "$\\angle C$ 的對邊 $\\overline{AB}$ 是斜邊，$\\overline{AC}$、$\\overline{BC}$ 是兩股。兩股的平方和等於斜邊的平方：$\\overline{AC}^2+\\overline{BC}^2=\\overline{AB}^2$。",
+          "space": 1
+        },
+        {
+          "stem": "如圖，$\\triangle ABC$ 中 $\\angle A=90^\\circ$，用三邊的長寫出畢氏定理的式子。",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"71.7,44.0 308.3,44.0 71.7,186.0\" fill=\"#cfd8ee\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"80.7,44.0 80.7,53.0 71.7,53.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"61.1\" y=\"39.4\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"321.2\" y=\"42.3\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"63.9\" y=\"204.9\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text></svg>",
+          "answer": "$\\overline{AB}^2+\\overline{AC}^2=\\overline{BC}^2$",
+          "solution": "$\\angle A$ 的對邊 $\\overline{BC}$ 是斜邊，$\\overline{AB}$、$\\overline{AC}$ 是兩股。兩股的平方和等於斜邊的平方：$\\overline{AB}^2+\\overline{AC}^2=\\overline{BC}^2$。",
+          "space": 1
+        },
+        {
+          "stem": "如圖，$\\triangle ABC$ 中 $\\angle B=90^\\circ$，用三邊的長寫出畢氏定理的式子。",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"303.6,44.0 76.4,44.0 303.6,186.0\" fill=\"#cfd8ee\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"294.6,44.0 294.6,53.0 303.6,53.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"314.2\" y=\"39.4\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"63.5\" y=\"42.3\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"311.3\" y=\"204.9\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text></svg>",
+          "answer": "$\\overline{AB}^2+\\overline{BC}^2=\\overline{AC}^2$",
+          "solution": "$\\angle B$ 的對邊 $\\overline{AC}$ 是斜邊，$\\overline{AB}$、$\\overline{BC}$ 是兩股。兩股的平方和等於斜邊的平方：$\\overline{AB}^2+\\overline{BC}^2=\\overline{AC}^2$。",
+          "space": 1
+        },
+        {
+          "stem": "如圖，$\\triangle XYZ$ 中 $\\angle Y=90^\\circ$，用三邊的長寫出畢氏定理的式子。",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"136.8,186.0 243.2,186.0 136.8,44.0\" fill=\"#cfd8ee\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"145.8,186.0 145.8,177.0 136.8,177.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"126.1\" y=\"202.6\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">Y</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"256.1\" y=\"199.7\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">Z</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"129.0\" y=\"37.1\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">X</text></svg>",
+          "answer": "$\\overline{XY}^2+\\overline{YZ}^2=\\overline{XZ}^2$",
+          "solution": "$\\angle Y$ 的對邊 $\\overline{XZ}$ 是斜邊，$\\overline{XY}$、$\\overline{YZ}$ 是兩股。兩股的平方和等於斜邊的平方：$\\overline{XY}^2+\\overline{YZ}^2=\\overline{XZ}^2$。",
+          "space": 1
+        },
+        {
+          "stem": "如圖，$\\triangle ABC$ 中 $\\angle B=90^\\circ$，$\\overline{AB}=a$、$\\overline{BC}=b$、$\\overline{AC}=c$，寫出 $a$、$b$、$c$ 的關係式。",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"95.3,186.0 284.7,186.0 95.3,44.0\" fill=\"#cfd8ee\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"104.3,186.0 104.3,177.0 95.3,177.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"190.0\" y=\"205.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">b</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"86.3\" y=\"120.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"end\" fill=\"#1b1b1b\" font-weight=\"600\">a</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"198.4\" y=\"108.8\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">c</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"84.7\" y=\"202.6\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"297.5\" y=\"199.7\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"87.6\" y=\"37.1\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text></svg>",
+          "answer": "$a^2+b^2=c^2$",
+          "solution": "$\\angle B$ 的對邊 $\\overline{AC}=c$ 是斜邊，$a$、$b$ 是兩股：兩股的平方和＝斜邊的平方，$a^2+b^2=c^2$。",
+          "space": 1
+        }
+      ]
+    },
+    {
+      "id": "q3",
+      "topic": "三邊上正方形的面積",
+      "objective": 1,
+      "performance": [
+        "s-IV-7"
+      ],
+      "content": [
+        "S-8-6"
+      ],
+      "variants": [
+        {
+          "stem": "如圖，直角三角形 $ABC$ 中 $\\angle C=90^\\circ$，以三邊為邊長向外作正方形甲、乙、丙。甲、乙的面積分別是 $9$、$16$，求丙的面積。",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 420 280\" width=\"420\" height=\"280\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"175.1,166.2 175.1,113.8 122.7,113.8 122.7,166.2\" fill=\"#cfd8ee\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polygon points=\"175.1,166.2 244.9,166.2 244.9,236.0 175.1,236.0\" fill=\"#fbf3c4\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polygon points=\"175.1,113.8 244.9,166.2 297.3,96.4 227.5,44.0\" fill=\"#e2d3ec\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polygon points=\"175.1,166.2 244.9,166.2 175.1,113.8\" fill=\"#ffffff\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"183.1,166.2 183.1,158.2 175.1,158.2\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"164.5\" y=\"182.8\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"257.2\" y=\"180.8\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"166.5\" y=\"107.5\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"148.9\" y=\"145.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"16\" text-anchor=\"middle\" fill=\"#1b1b1b\">甲 9</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"210.0\" y=\"206.1\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"16\" text-anchor=\"middle\" fill=\"#1b1b1b\">乙 16</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"236.2\" y=\"110.1\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"16\" text-anchor=\"middle\" fill=\"#1b1b1b\">丙 ?</text></svg>",
+          "answer": "丙的面積是 $25$",
+          "solution": "兩股上的正方形面積和＝斜邊上的正方形面積：丙＝$9+16=25$。",
+          "space": 1
+        },
+        {
+          "stem": "如圖，直角三角形 $ABC$ 中 $\\angle C=90^\\circ$，以三邊為邊長向外作正方形甲、乙、丙。甲、丙的面積分別是 $25$、$74$，求乙的面積。",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 420 280\" width=\"420\" height=\"280\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"174.6,165.3 174.6,114.7 124.1,114.7 124.1,165.3\" fill=\"#cfd8ee\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polygon points=\"174.6,165.3 245.4,165.3 245.4,236.0 174.6,236.0\" fill=\"#fbf3c4\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polygon points=\"174.6,114.7 245.4,165.3 295.9,94.5 225.2,44.0\" fill=\"#e2d3ec\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polygon points=\"174.6,165.3 245.4,165.3 174.6,114.7\" fill=\"#ffffff\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"182.6,165.3 182.6,157.3 174.6,157.3\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"164.0\" y=\"181.9\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"257.7\" y=\"179.9\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"166.0\" y=\"108.4\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"149.4\" y=\"145.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"16\" text-anchor=\"middle\" fill=\"#1b1b1b\">甲 25</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"210.0\" y=\"205.6\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"16\" text-anchor=\"middle\" fill=\"#1b1b1b\">乙 ?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"235.3\" y=\"109.6\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"16\" text-anchor=\"middle\" fill=\"#1b1b1b\">丙 74</text></svg>",
+          "answer": "乙的面積是 $49$",
+          "solution": "甲＋乙＝丙，所以乙＝$74-25=49$。",
+          "space": 1
+        },
+        {
+          "stem": "如圖，直角三角形 $ABC$ 中 $\\angle C=90^\\circ$，以三邊為邊長向外作正方形甲、乙、丙。甲、丙的面積分別是 $25$、$169$，求乙的面積。",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 420 280\" width=\"420\" height=\"280\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"195.6,156.6 195.6,123.4 162.5,123.4 162.5,156.6\" fill=\"#cfd8ee\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polygon points=\"195.6,156.6 275.0,156.6 275.0,236.0 195.6,236.0\" fill=\"#fbf3c4\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polygon points=\"195.6,123.4 275.0,156.6 308.2,77.1 228.7,44.0\" fill=\"#e2d3ec\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polygon points=\"195.6,156.6 275.0,156.6 195.6,123.4\" fill=\"#ffffff\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"203.6,156.6 203.6,148.6 195.6,148.6\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"185.0\" y=\"173.2\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"287.3\" y=\"171.2\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"187.0\" y=\"117.2\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"155.7\" y=\"145.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"16\" text-anchor=\"end\" fill=\"#1b1b1b\">甲 25</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"235.3\" y=\"201.3\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"16\" text-anchor=\"middle\" fill=\"#1b1b1b\">乙 ?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"251.9\" y=\"105.3\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"16\" text-anchor=\"middle\" fill=\"#1b1b1b\">丙 169</text></svg>",
+          "answer": "乙的面積是 $144$",
+          "solution": "甲＋乙＝丙，所以乙＝$169-25=144$。",
+          "space": 1
+        },
+        {
+          "stem": "如圖，直角三角形 $ABC$ 中 $\\angle C=90^\\circ$，以三邊為邊長向外作正方形甲、乙、丙。甲、乙的面積分別是 $12$、$13$，求：(1) 丙的面積；(2) 斜邊 $\\overline{AB}$ 的長。",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 420 280\" width=\"420\" height=\"280\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"177.6,171.2 177.6,108.8 115.3,108.8 115.3,171.2\" fill=\"#cfd8ee\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polygon points=\"177.6,171.2 242.4,171.2 242.4,236.0 177.6,236.0\" fill=\"#fbf3c4\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polygon points=\"177.6,108.8 242.4,171.2 304.7,106.3 239.9,44.0\" fill=\"#e2d3ec\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polygon points=\"177.6,171.2 242.4,171.2 177.6,108.8\" fill=\"#ffffff\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"185.6,171.2 185.6,163.2 177.6,163.2\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"167.0\" y=\"187.8\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"254.7\" y=\"185.8\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"169.0\" y=\"102.6\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"146.4\" y=\"145.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"16\" text-anchor=\"middle\" fill=\"#1b1b1b\">甲 12</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"210.0\" y=\"208.6\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"16\" text-anchor=\"middle\" fill=\"#1b1b1b\">乙 13</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"241.2\" y=\"112.6\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"16\" text-anchor=\"middle\" fill=\"#1b1b1b\">丙 ?</text></svg>",
+          "answer": "(1) 丙的面積是 $25$；(2) $\\overline{AB}=5$",
+          "solution": "(1) 兩股上的正方形面積和＝斜邊上的正方形面積：丙＝$12+13=25$。(2) $\\overline{AB}^2=25$，$\\overline{AB}=\\sqrt{25}=5$。",
+          "space": 2
+        },
+        {
+          "stem": "如圖，直角三角形 $ABC$ 中 $\\angle C=90^\\circ$，以三邊為邊長向外作正方形甲、乙、丙。甲、丙的面積分別是 $18$、$50$，求：(1) 乙的面積；(2) $\\overline{BC}$ 的長。",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 420 280\" width=\"420\" height=\"280\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"175.1,166.2 175.1,113.8 122.7,113.8 122.7,166.2\" fill=\"#cfd8ee\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polygon points=\"175.1,166.2 244.9,166.2 244.9,236.0 175.1,236.0\" fill=\"#fbf3c4\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polygon points=\"175.1,113.8 244.9,166.2 297.3,96.4 227.5,44.0\" fill=\"#e2d3ec\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polygon points=\"175.1,166.2 244.9,166.2 175.1,113.8\" fill=\"#ffffff\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"183.1,166.2 183.1,158.2 175.1,158.2\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"164.5\" y=\"182.8\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"257.2\" y=\"180.8\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"166.5\" y=\"107.5\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"148.9\" y=\"145.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"16\" text-anchor=\"middle\" fill=\"#1b1b1b\">甲 18</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"210.0\" y=\"206.1\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"16\" text-anchor=\"middle\" fill=\"#1b1b1b\">乙 ?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"236.2\" y=\"110.1\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"16\" text-anchor=\"middle\" fill=\"#1b1b1b\">丙 50</text></svg>",
+          "answer": "(1) 乙的面積是 $32$；(2) $\\overline{BC}=4\\sqrt{2}$",
+          "solution": "(1) 甲＋乙＝丙，所以乙＝$50-18=32$。(2) 乙是以 $\\overline{BC}$ 為邊的正方形：$\\overline{BC}^2=32$，$\\overline{BC}=\\sqrt{32}=4\\sqrt{2}$。",
+          "space": 2
+        }
+      ]
+    },
+    {
+      "id": "q4",
+      "topic": "已知兩股求斜邊（整數）",
+      "objective": 2,
+      "performance": [
+        "s-IV-7"
+      ],
+      "content": [
+        "S-8-6"
+      ],
+      "variants": [
+        {
+          "stem": "如圖，直角三角形的兩股長是 $6$、$8$，求斜邊長。",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"95.3,186.0 284.7,186.0 95.3,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"104.3,186.0 104.3,177.0 95.3,177.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"190.0\" y=\"205.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">8</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"86.3\" y=\"120.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"end\" fill=\"#1b1b1b\" font-weight=\"600\">6</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"198.4\" y=\"108.8\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"84.7\" y=\"202.6\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"297.5\" y=\"199.7\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"87.6\" y=\"37.1\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text></svg>",
+          "answer": "$10$",
+          "solution": "設斜邊長為 $c$：$c^2=6^2+8^2=36+64=100$。因為 $c>0$，所以 $c=\\sqrt{100}=10$。",
+          "space": 1
+        },
+        {
+          "stem": "如圖，直角三角形的兩股長是 $9$、$12$，求斜邊長。",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"284.7,186.0 95.3,186.0 284.7,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"275.7,186.0 275.7,177.0 284.7,177.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"190.0\" y=\"205.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">12</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"293.7\" y=\"120.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"start\" fill=\"#1b1b1b\" font-weight=\"600\">9</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"181.6\" y=\"108.8\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"295.3\" y=\"202.6\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"82.5\" y=\"199.7\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"292.4\" y=\"37.1\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text></svg>",
+          "answer": "$15$",
+          "solution": "設斜邊長為 $c$：$c^2=9^2+12^2=81+144=225$。因為 $c>0$，所以 $c=\\sqrt{225}=15$。",
+          "space": 1
+        },
+        {
+          "stem": "如圖，直角三角形的兩股長是 $8$、$15$，求斜邊長。",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"56.9,186.0 323.1,186.0 56.9,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"65.9,186.0 65.9,177.0 56.9,177.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"190.0\" y=\"205.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">15</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"47.9\" y=\"120.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"end\" fill=\"#1b1b1b\" font-weight=\"600\">8</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"196.6\" y=\"107.6\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"46.3\" y=\"202.6\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"336.0\" y=\"199.7\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"49.2\" y=\"37.1\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text></svg>",
+          "answer": "$17$",
+          "solution": "設斜邊長為 $c$：$c^2=8^2+15^2=64+225=289$。因為 $c>0$，所以 $c=\\sqrt{289}=17$。",
+          "space": 1
+        },
+        {
+          "stem": "如圖，直角三角形的兩股長是 $7$、$24$，求斜邊長。",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"336.0,157.6 44.0,157.6 336.0,72.4\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"327.0,157.6 327.0,148.6 336.0,148.6\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"190.0\" y=\"176.6\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">24</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"345.0\" y=\"120.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"start\" fill=\"#1b1b1b\" font-weight=\"600\">7</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"186.1\" y=\"106.6\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"346.6\" y=\"174.2\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"31.1\" y=\"171.3\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"343.7\" y=\"65.6\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text></svg>",
+          "answer": "$25$",
+          "solution": "設斜邊長為 $c$：$c^2=7^2+24^2=49+576=625$。因為 $c>0$，所以 $c=\\sqrt{625}=25$。",
+          "space": 1
+        },
+        {
+          "stem": "如圖，直角三角形的兩股長是 $20$、$21$，求斜邊長。",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"115.5,186.0 264.6,186.0 115.5,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"124.5,186.0 124.5,177.0 115.5,177.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"190.0\" y=\"205.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">21</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"106.5\" y=\"120.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"end\" fill=\"#1b1b1b\" font-weight=\"600\">20</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"199.7\" y=\"109.9\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"104.8\" y=\"202.6\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"277.4\" y=\"199.7\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"107.7\" y=\"37.1\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text></svg>",
+          "answer": "$29$",
+          "solution": "設斜邊長為 $c$：$c^2=20^2+21^2=400+441=841$。因為 $c>0$，所以 $c=\\sqrt{841}=29$。",
+          "space": 1
+        }
+      ]
+    },
+    {
+      "id": "q5",
+      "topic": "已知兩股求斜邊（最簡根式）",
+      "objective": 2,
+      "performance": [
+        "s-IV-7",
+        "n-IV-5"
+      ],
+      "content": [
+        "S-8-6",
+        "N-8-1"
+      ],
+      "variants": [
+        {
+          "stem": "如圖，直角三角形的兩股長是 $2$、$4$，求斜邊長（化成最簡根式）。",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"332.0,186.0 48.0,186.0 332.0,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"323.0,186.0 323.0,177.0 332.0,177.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"190.0\" y=\"205.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">4</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"341.0\" y=\"120.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"start\" fill=\"#1b1b1b\" font-weight=\"600\">2</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"183.7\" y=\"107.5\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"342.6\" y=\"202.6\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"35.1\" y=\"199.7\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"339.7\" y=\"37.1\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text></svg>",
+          "answer": "$2\\sqrt{5}$",
+          "solution": "設斜邊長為 $c$：$c^2=2^2+4^2=4+16=20$。因為 $c>0$，所以 $c=\\sqrt{20}=2\\sqrt{5}$。",
+          "space": 2
+        },
+        {
+          "stem": "如圖，直角三角形的兩股長是 $3$、$6$，求斜邊長（化成最簡根式）。",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"48.0,186.0 332.0,186.0 48.0,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"57.0,186.0 57.0,177.0 48.0,177.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"190.0\" y=\"205.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">6</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"39.0\" y=\"120.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"end\" fill=\"#1b1b1b\" font-weight=\"600\">3</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"196.3\" y=\"107.5\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"37.4\" y=\"202.6\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"344.9\" y=\"199.7\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"40.3\" y=\"37.1\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text></svg>",
+          "answer": "$3\\sqrt{5}$",
+          "solution": "設斜邊長為 $c$：$c^2=3^2+6^2=9+36=45$。因為 $c>0$，所以 $c=\\sqrt{45}=3\\sqrt{5}$。",
+          "space": 2
+        },
+        {
+          "stem": "如圖，直角三角形的兩股長是 $4$、$4$，求斜邊長（化成最簡根式）。",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"261.0,186.0 119.0,186.0 261.0,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"252.0,186.0 252.0,177.0 261.0,177.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"190.0\" y=\"205.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">4</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"270.0\" y=\"120.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"start\" fill=\"#1b1b1b\" font-weight=\"600\">4</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"180.1\" y=\"110.1\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"271.6\" y=\"202.6\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"106.1\" y=\"199.7\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"268.7\" y=\"37.1\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text></svg>",
+          "answer": "$4\\sqrt{2}$",
+          "solution": "設斜邊長為 $c$：$c^2=4^2+4^2=16+16=32$。因為 $c>0$，所以 $c=\\sqrt{32}=4\\sqrt{2}$。",
+          "space": 2
+        },
+        {
+          "stem": "如圖，直角三角形的兩股長是 $2$、$6$，求斜邊長（化成最簡根式）。",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"44.0,163.7 336.0,163.7 44.0,66.3\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"53.0,163.7 53.0,154.7 44.0,154.7\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"190.0\" y=\"182.7\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">6</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"35.0\" y=\"120.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"end\" fill=\"#1b1b1b\" font-weight=\"600\">2</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"194.4\" y=\"106.7\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"33.4\" y=\"180.3\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"348.9\" y=\"177.4\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"36.3\" y=\"59.5\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text></svg>",
+          "answer": "$2\\sqrt{10}$",
+          "solution": "設斜邊長為 $c$：$c^2=2^2+6^2=4+36=40$。因為 $c>0$，所以 $c=\\sqrt{40}=2\\sqrt{10}$。",
+          "space": 2
+        },
+        {
+          "stem": "如圖，直角三角形的兩股長是 $6$、$9$，求斜邊長（化成最簡根式）。",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"296.5,186.0 83.5,186.0 296.5,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"287.5,186.0 287.5,177.0 296.5,177.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"190.0\" y=\"205.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">9</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"305.5\" y=\"120.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"start\" fill=\"#1b1b1b\" font-weight=\"600\">6</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"182.2\" y=\"108.4\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"307.1\" y=\"202.6\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"70.6\" y=\"199.7\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"304.2\" y=\"37.1\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text></svg>",
+          "answer": "$3\\sqrt{13}$",
+          "solution": "設斜邊長為 $c$：$c^2=6^2+9^2=36+81=117$。因為 $c>0$，所以 $c=\\sqrt{117}=3\\sqrt{13}$。",
+          "space": 2
+        }
+      ]
+    },
+    {
+      "id": "q6",
+      "topic": "已知斜邊與一股求另一股（整數）",
+      "objective": 2,
+      "performance": [
+        "s-IV-7"
+      ],
+      "content": [
+        "S-8-6"
+      ],
+      "variants": [
+        {
+          "stem": "如圖，直角三角形的斜邊長是 $13$、一股長是 $5$，求另一股長。",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"44.0,175.8 336.0,175.8 44.0,54.2\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"53.0,175.8 53.0,166.8 44.0,166.8\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"190.0\" y=\"194.8\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"35.0\" y=\"120.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"end\" fill=\"#1b1b1b\" font-weight=\"600\">5</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"195.4\" y=\"107.1\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">13</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"33.4\" y=\"192.4\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"348.9\" y=\"189.6\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"36.3\" y=\"47.3\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text></svg>",
+          "answer": "$12$",
+          "solution": "設另一股長為 $b$：$b^2=13^2-5^2=169-25=144$。因為 $b>0$，所以 $b=\\sqrt{144}=12$。斜邊最長，求股要用減的。",
+          "space": 1
+        },
+        {
+          "stem": "如圖，直角三角形的斜邊長是 $17$、一股長是 $8$，求另一股長。",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"323.1,186.0 56.9,186.0 323.1,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"314.1,186.0 314.1,177.0 323.1,177.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"190.0\" y=\"205.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"332.1\" y=\"120.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"start\" fill=\"#1b1b1b\" font-weight=\"600\">8</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"183.4\" y=\"107.6\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">17</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"333.7\" y=\"202.6\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"44.0\" y=\"199.7\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"330.8\" y=\"37.1\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text></svg>",
+          "answer": "$15$",
+          "solution": "設另一股長為 $b$：$b^2=17^2-8^2=289-64=225$。因為 $b>0$，所以 $b=\\sqrt{225}=15$。斜邊最長，求股要用減的。",
+          "space": 1
+        },
+        {
+          "stem": "如圖，直角三角形的斜邊長是 $25$、一股長是 $7$，求另一股長。",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"44.0,157.6 336.0,157.6 44.0,72.4\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"53.0,157.6 53.0,148.6 44.0,148.6\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"190.0\" y=\"176.6\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"35.0\" y=\"120.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"end\" fill=\"#1b1b1b\" font-weight=\"600\">7</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"193.9\" y=\"106.6\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">25</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"33.4\" y=\"174.2\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"348.9\" y=\"171.3\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"36.3\" y=\"65.6\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text></svg>",
+          "answer": "$24$",
+          "solution": "設另一股長為 $b$：$b^2=25^2-7^2=625-49=576$。因為 $b>0$，所以 $b=\\sqrt{576}=24$。斜邊最長，求股要用減的。",
+          "space": 1
+        },
+        {
+          "stem": "如圖，直角三角形的斜邊長是 $10$、一股長是 $6$，求另一股長。",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"243.2,186.0 136.8,186.0 243.2,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"234.2,186.0 234.2,177.0 243.2,177.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"190.0\" y=\"205.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">6</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"252.2\" y=\"120.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"start\" fill=\"#1b1b1b\" font-weight=\"600\">?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"182.8\" y=\"114.6\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"end\" fill=\"#1b1b1b\" font-weight=\"600\">10</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"253.9\" y=\"202.6\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"123.9\" y=\"199.7\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"251.0\" y=\"37.1\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text></svg>",
+          "answer": "$8$",
+          "solution": "設另一股長為 $b$：$b^2=10^2-6^2=100-36=64$。因為 $b>0$，所以 $b=\\sqrt{64}=8$。斜邊最長，求股要用減的。",
+          "space": 1
+        },
+        {
+          "stem": "如圖，直角三角形的斜邊長是 $29$、一股長是 $20$，求另一股長。",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"115.5,186.0 264.6,186.0 115.5,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"124.5,186.0 124.5,177.0 115.5,177.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"190.0\" y=\"205.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"106.5\" y=\"120.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"end\" fill=\"#1b1b1b\" font-weight=\"600\">20</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"199.7\" y=\"109.9\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">29</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"104.8\" y=\"202.6\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"277.4\" y=\"199.7\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"107.7\" y=\"37.1\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text></svg>",
+          "answer": "$21$",
+          "solution": "設另一股長為 $b$：$b^2=29^2-20^2=841-400=441$。因為 $b>0$，所以 $b=\\sqrt{441}=21$。斜邊最長，求股要用減的。",
+          "space": 1
+        }
+      ]
+    },
+    {
+      "id": "q7",
+      "topic": "已知斜邊與一股求另一股（最簡根式）",
+      "objective": 2,
+      "performance": [
+        "s-IV-7",
+        "n-IV-5"
+      ],
+      "content": [
+        "S-8-6",
+        "N-8-1"
+      ],
+      "variants": [
+        {
+          "stem": "如圖，直角三角形的斜邊長是 $6$、一股長是 $4$，求另一股長（化成最簡根式）。",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"126.5,44.0 253.5,44.0 126.5,186.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"135.5,44.0 135.5,53.0 126.5,53.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"190.0\" y=\"35.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">4</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"117.5\" y=\"120.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"end\" fill=\"#1b1b1b\" font-weight=\"600\">?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"200.4\" y=\"129.3\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">6</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"115.9\" y=\"39.4\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"266.4\" y=\"42.3\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"118.8\" y=\"204.9\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text></svg>",
+          "answer": "$2\\sqrt{5}$",
+          "solution": "設另一股長為 $b$：$b^2=6^2-4^2=36-16=20$。因為 $b>0$，所以 $b=\\sqrt{20}=2\\sqrt{5}$。斜邊最長，求股要用減的。",
+          "space": 2
+        },
+        {
+          "stem": "如圖，直角三角形的斜邊長是 $9$、一股長是 $3$，求另一股長（化成最簡根式）。",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"44.0,166.6 336.0,166.6 44.0,63.4\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"53.0,166.6 53.0,157.6 44.0,157.6\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"190.0\" y=\"185.6\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"35.0\" y=\"120.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"end\" fill=\"#1b1b1b\" font-weight=\"600\">3</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"194.7\" y=\"106.8\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">9</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"33.4\" y=\"183.2\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"348.9\" y=\"180.3\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"36.3\" y=\"56.5\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text></svg>",
+          "answer": "$6\\sqrt{2}$",
+          "solution": "設另一股長為 $b$：$b^2=9^2-3^2=81-9=72$。因為 $b>0$，所以 $b=\\sqrt{72}=6\\sqrt{2}$。斜邊最長，求股要用減的。",
+          "space": 2
+        },
+        {
+          "stem": "如圖，直角三角形的斜邊長是 $7$、一股長是 $5$，求另一股長（化成最簡根式）。",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"117.5,44.0 262.5,44.0 117.5,186.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"126.5,44.0 126.5,53.0 117.5,53.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"190.0\" y=\"35.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">5</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"108.5\" y=\"120.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"end\" fill=\"#1b1b1b\" font-weight=\"600\">?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"199.8\" y=\"130.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">7</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"106.9\" y=\"39.4\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"275.3\" y=\"42.3\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"109.8\" y=\"204.9\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text></svg>",
+          "answer": "$2\\sqrt{6}$",
+          "solution": "設另一股長為 $b$：$b^2=7^2-5^2=49-25=24$。因為 $b>0$，所以 $b=\\sqrt{24}=2\\sqrt{6}$。斜邊最長，求股要用減的。",
+          "space": 2
+        },
+        {
+          "stem": "如圖，直角三角形的斜邊長是 $8$、一股長是 $4$，求另一股長（化成最簡根式）。",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"313.0,186.0 67.0,186.0 313.0,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"304.0,186.0 304.0,177.0 313.0,177.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"190.0\" y=\"205.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"322.0\" y=\"120.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"start\" fill=\"#1b1b1b\" font-weight=\"600\">4</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"183.0\" y=\"107.9\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">8</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"323.6\" y=\"202.6\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"54.2\" y=\"199.7\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"320.7\" y=\"37.1\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text></svg>",
+          "answer": "$4\\sqrt{3}$",
+          "solution": "設另一股長為 $b$：$b^2=8^2-4^2=64-16=48$。因為 $b>0$，所以 $b=\\sqrt{48}=4\\sqrt{3}$。斜邊最長，求股要用減的。",
+          "space": 2
+        },
+        {
+          "stem": "如圖，直角三角形的斜邊長是 $10$、一股長是 $4$，求另一股長（化成最簡根式）。",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"159.0,186.0 221.0,186.0 159.0,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"168.0,186.0 168.0,177.0 159.0,177.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"190.0\" y=\"205.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">4</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"150.0\" y=\"120.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"end\" fill=\"#1b1b1b\" font-weight=\"600\">?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"198.2\" y=\"116.4\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"start\" fill=\"#1b1b1b\" font-weight=\"600\">10</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"148.4\" y=\"202.6\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"233.8\" y=\"199.7\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"151.3\" y=\"37.1\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text></svg>",
+          "answer": "$2\\sqrt{21}$",
+          "solution": "設另一股長為 $b$：$b^2=10^2-4^2=100-16=84$。因為 $b>0$，所以 $b=\\sqrt{84}=2\\sqrt{21}$。斜邊最長，求股要用減的。",
+          "space": 2
+        }
+      ]
+    },
+    {
+      "id": "q8",
+      "topic": "直角不在下面：先找出斜邊",
+      "objective": 2,
+      "performance": [
+        "s-IV-7"
+      ],
+      "content": [
+        "S-8-6"
+      ],
+      "variants": [
+        {
+          "stem": "如圖，$\\triangle ABC$ 中 $\\angle A=90^\\circ$，$\\overline{BC}=5$、$\\overline{AB}=3$，求 $\\overline{AC}$ 的長。",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 400 230\" width=\"400\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"52.1,186.0 347.9,186.0 158.6,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"153.2,51.2 160.4,56.6 165.8,49.4\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"200.0\" y=\"205.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">5</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"98.1\" y=\"114.6\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"end\" fill=\"#1b1b1b\" font-weight=\"600\">3</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"261.6\" y=\"108.8\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"38.7\" y=\"198.7\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"361.3\" y=\"198.7\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"158.6\" y=\"35.0\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text></svg>",
+          "answer": "$\\overline{AC}=4$",
+          "solution": "$\\angle A$ 的對邊 $\\overline{BC}$ 才是斜邊（雖然它畫在下面）。$\\overline{AC}^2=5^2-3^2=25-9=16$，$\\overline{AC}=\\sqrt{16}=4$。",
+          "space": 2
+        },
+        {
+          "stem": "如圖，$\\triangle ABC$ 中 $\\angle A=90^\\circ$，$\\overline{BC}=10$、$\\overline{AB}=6$，求 $\\overline{AC}$ 的長。",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 400 230\" width=\"400\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"52.1,186.0 347.9,186.0 158.6,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"153.2,51.2 160.4,56.6 165.8,49.4\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"200.0\" y=\"205.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">10</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"98.1\" y=\"114.6\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"end\" fill=\"#1b1b1b\" font-weight=\"600\">6</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"261.6\" y=\"108.8\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"38.7\" y=\"198.7\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"361.3\" y=\"198.7\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"158.6\" y=\"35.0\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text></svg>",
+          "answer": "$\\overline{AC}=8$",
+          "solution": "$\\angle A$ 的對邊 $\\overline{BC}$ 才是斜邊（雖然它畫在下面）。$\\overline{AC}^2=10^2-6^2=100-36=64$，$\\overline{AC}=\\sqrt{64}=8$。",
+          "space": 2
+        },
+        {
+          "stem": "如圖，$\\triangle ABC$ 中 $\\angle A=90^\\circ$，$\\overline{BC}=4$、$\\overline{AB}=2$，求 $\\overline{AC}$ 的長。",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 400 230\" width=\"400\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"44.0,182.5 356.0,182.5 122.0,47.5\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"117.5,55.2 125.3,59.7 129.8,52.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"200.0\" y=\"201.5\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">4</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"75.2\" y=\"115.5\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"end\" fill=\"#1b1b1b\" font-weight=\"600\">2</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"246.0\" y=\"107.9\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"30.6\" y=\"195.3\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"369.4\" y=\"195.3\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"122.0\" y=\"38.5\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text></svg>",
+          "answer": "$\\overline{AC}=2\\sqrt{3}$",
+          "solution": "$\\angle A$ 的對邊 $\\overline{BC}$ 才是斜邊（雖然它畫在下面）。$\\overline{AC}^2=4^2-2^2=16-4=12$，$\\overline{AC}=\\sqrt{12}=2\\sqrt{3}$。",
+          "space": 2
+        },
+        {
+          "stem": "如圖，$\\triangle ABC$ 中 $\\angle A=90^\\circ$，$\\overline{BC}=6$、$\\overline{AB}=4$，求 $\\overline{AC}$ 的長。",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 400 230\" width=\"400\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"57.1,186.0 342.9,186.0 184.1,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"178.1,50.7 184.8,56.7 190.8,50.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"200.0\" y=\"205.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">6</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"110.2\" y=\"110.7\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">4</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"272.8\" y=\"109.6\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"43.7\" y=\"198.7\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"356.3\" y=\"198.7\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"184.1\" y=\"35.0\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text></svg>",
+          "answer": "$\\overline{AC}=2\\sqrt{5}$",
+          "solution": "$\\angle A$ 的對邊 $\\overline{BC}$ 才是斜邊（雖然它畫在下面）。$\\overline{AC}^2=6^2-4^2=36-16=20$，$\\overline{AC}=\\sqrt{20}=2\\sqrt{5}$。",
+          "space": 2
+        },
+        {
+          "stem": "如圖，$\\triangle ABC$ 中 $\\angle A=90^\\circ$，$\\overline{AB}=5$、$\\overline{AC}=12$，求 $\\overline{BC}$ 的長。",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 400 230\" width=\"400\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"44.0,170.4 356.0,170.4 90.2,59.6\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"86.7,67.9 95.0,71.4 98.5,63.1\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"200.0\" y=\"189.4\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"58.8\" y=\"116.5\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"end\" fill=\"#1b1b1b\" font-weight=\"600\">5</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"228.5\" y=\"107.1\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">12</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"30.6\" y=\"183.1\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"369.4\" y=\"183.1\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"90.2\" y=\"50.6\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text></svg>",
+          "answer": "$\\overline{BC}=13$",
+          "solution": "$\\angle A$ 的對邊 $\\overline{BC}$ 是斜邊，$\\overline{AB}$、$\\overline{AC}$ 是兩股：$\\overline{BC}^2=5^2+12^2=25+144=169$，$\\overline{BC}=\\sqrt{169}=13$。",
+          "space": 2
+        }
+      ]
+    },
+    {
+      "id": "q9",
+      "topic": "梯子靠牆的高度",
+      "objective": 2,
+      "performance": [
+        "s-IV-7"
+      ],
+      "content": [
+        "S-8-6"
+      ],
+      "variants": [
+        {
+          "stem": "如圖，長 $10$ 公尺的梯子斜靠在垂直的牆上，梯子底端離牆腳 $6$ 公尺，求梯子頂端離地面的高度。",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 260\" width=\"380\" height=\"260\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"239.8,216.0 255.7,216.0 255.7,44.0 239.8,44.0\" fill=\"#e8d3c6\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><line x1=\"88.4\" y1=\"216.0\" x2=\"267.7\" y2=\"216.0\" stroke=\"#7a6a55\" stroke-width=\"1.2\"/><line x1=\"88.4\" y1=\"217.0\" x2=\"82.4\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"102.4\" y1=\"217.0\" x2=\"96.4\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"116.4\" y1=\"217.0\" x2=\"110.4\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"130.4\" y1=\"217.0\" x2=\"124.4\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"144.4\" y1=\"217.0\" x2=\"138.4\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"158.4\" y1=\"217.0\" x2=\"152.4\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"172.4\" y1=\"217.0\" x2=\"166.4\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"186.4\" y1=\"217.0\" x2=\"180.4\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"200.4\" y1=\"217.0\" x2=\"194.4\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"214.4\" y1=\"217.0\" x2=\"208.4\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"228.4\" y1=\"217.0\" x2=\"222.4\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"242.4\" y1=\"217.0\" x2=\"236.4\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"256.4\" y1=\"217.0\" x2=\"250.4\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"120.3\" y1=\"216.0\" x2=\"239.8\" y2=\"56.7\" stroke=\"#9a7b3c\" stroke-width=\"3.2\"/><polyline points=\"231.8,216.0 231.8,208.0 239.8,208.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"172.8\" y=\"136.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"end\" fill=\"#1b1b1b\" font-weight=\"600\">10 m</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"180.0\" y=\"235.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">6 m</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"263.7\" y=\"141.4\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"start\" fill=\"#1b1b1b\">?</text></svg>",
+          "answer": "$8$ 公尺",
+          "solution": "梯子、牆、地面圍成直角三角形，梯子是斜邊。設高為 $x$ 公尺：$x^2=10^2-6^2=100-36=64$，$x=\\sqrt{64}=8$。",
+          "space": 2
+        },
+        {
+          "stem": "如圖，長 $13$ 公尺的梯子斜靠在垂直的牆上，梯子底端離牆腳 $5$ 公尺，求梯子頂端離地面的高度。",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 260\" width=\"380\" height=\"260\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"214.6,216.0 228.4,216.0 228.4,44.0 214.6,44.0\" fill=\"#e8d3c6\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><line x1=\"118.9\" y1=\"216.0\" x2=\"240.4\" y2=\"216.0\" stroke=\"#7a6a55\" stroke-width=\"1.2\"/><line x1=\"118.9\" y1=\"217.0\" x2=\"112.9\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"132.9\" y1=\"217.0\" x2=\"126.9\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"146.9\" y1=\"217.0\" x2=\"140.9\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"160.9\" y1=\"217.0\" x2=\"154.9\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"174.9\" y1=\"217.0\" x2=\"168.9\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"188.9\" y1=\"217.0\" x2=\"182.9\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"202.9\" y1=\"217.0\" x2=\"196.9\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"216.9\" y1=\"217.0\" x2=\"210.9\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"230.9\" y1=\"217.0\" x2=\"224.9\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"148.2\" y1=\"216.0\" x2=\"214.6\" y2=\"56.7\" stroke=\"#9a7b3c\" stroke-width=\"3.2\"/><polyline points=\"206.6,216.0 206.6,208.0 214.6,208.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"173.1\" y=\"137.9\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"end\" fill=\"#1b1b1b\" font-weight=\"600\">13 m</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"181.4\" y=\"235.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">5 m</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"235.3\" y=\"141.4\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"start\" fill=\"#1b1b1b\">?</text></svg>",
+          "answer": "$12$ 公尺",
+          "solution": "梯子、牆、地面圍成直角三角形，梯子是斜邊。設高為 $x$ 公尺：$x^2=13^2-5^2=169-25=144$，$x=\\sqrt{144}=12$。",
+          "space": 2
+        },
+        {
+          "stem": "如圖，長 $17$ 公尺的梯子斜靠在垂直的牆上，梯子底端離牆腳 $8$ 公尺，求梯子頂端離地面的高度。",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 260\" width=\"380\" height=\"260\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"223.4,216.0 237.9,216.0 237.9,44.0 223.4,44.0\" fill=\"#e8d3c6\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><line x1=\"108.5\" y1=\"216.0\" x2=\"249.9\" y2=\"216.0\" stroke=\"#7a6a55\" stroke-width=\"1.2\"/><line x1=\"108.5\" y1=\"217.0\" x2=\"102.5\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"122.5\" y1=\"217.0\" x2=\"116.5\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"136.5\" y1=\"217.0\" x2=\"130.5\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"150.5\" y1=\"217.0\" x2=\"144.5\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"164.5\" y1=\"217.0\" x2=\"158.5\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"178.5\" y1=\"217.0\" x2=\"172.5\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"192.5\" y1=\"217.0\" x2=\"186.5\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"206.5\" y1=\"217.0\" x2=\"200.5\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"220.5\" y1=\"217.0\" x2=\"214.5\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"234.5\" y1=\"217.0\" x2=\"228.5\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"248.5\" y1=\"217.0\" x2=\"242.5\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"138.5\" y1=\"216.0\" x2=\"223.4\" y2=\"56.7\" stroke=\"#9a7b3c\" stroke-width=\"3.2\"/><polyline points=\"215.4,216.0 215.4,208.0 223.4,208.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"173.0\" y=\"137.1\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"end\" fill=\"#1b1b1b\" font-weight=\"600\">17 m</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"181.0\" y=\"235.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">8 m</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"245.1\" y=\"141.4\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"start\" fill=\"#1b1b1b\">?</text></svg>",
+          "answer": "$15$ 公尺",
+          "solution": "梯子、牆、地面圍成直角三角形，梯子是斜邊。設高為 $x$ 公尺：$x^2=17^2-8^2=289-64=225$，$x=\\sqrt{225}=15$。",
+          "space": 2
+        },
+        {
+          "stem": "如圖，長 $6$ 公尺的梯子斜靠在垂直的牆上，梯子底端離牆腳 $2$ 公尺，求梯子頂端離地面的高度。",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 260\" width=\"380\" height=\"260\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"209.7,216.0 223.2,216.0 223.2,44.0 209.7,44.0\" fill=\"#e8d3c6\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><line x1=\"124.5\" y1=\"216.0\" x2=\"235.2\" y2=\"216.0\" stroke=\"#7a6a55\" stroke-width=\"1.2\"/><line x1=\"124.5\" y1=\"217.0\" x2=\"118.5\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"138.5\" y1=\"217.0\" x2=\"132.5\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"152.5\" y1=\"217.0\" x2=\"146.5\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"166.5\" y1=\"217.0\" x2=\"160.5\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"180.5\" y1=\"217.0\" x2=\"174.5\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"194.5\" y1=\"217.0\" x2=\"188.5\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"208.5\" y1=\"217.0\" x2=\"202.5\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"222.5\" y1=\"217.0\" x2=\"216.5\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"153.4\" y1=\"216.0\" x2=\"209.7\" y2=\"56.7\" stroke=\"#9a7b3c\" stroke-width=\"3.2\"/><polyline points=\"201.7,216.0 201.7,208.0 209.7,208.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"173.1\" y=\"138.4\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"end\" fill=\"#1b1b1b\" font-weight=\"600\">6 m</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"181.6\" y=\"235.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">2 m</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"230.0\" y=\"141.4\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"start\" fill=\"#1b1b1b\">?</text></svg>",
+          "answer": "$4\\sqrt{2}$ 公尺",
+          "solution": "梯子、牆、地面圍成直角三角形，梯子是斜邊。設高為 $x$ 公尺：$x^2=6^2-2^2=36-4=32$，$x=\\sqrt{32}=4\\sqrt{2}$。",
+          "space": 2
+        },
+        {
+          "stem": "如圖，長 $15$ 公尺的梯子斜靠在垂直的牆上，梯子頂端離地面 $12$ 公尺，求梯子底端離牆腳多遠。",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 260\" width=\"380\" height=\"260\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"239.8,216.0 255.7,216.0 255.7,44.0 239.8,44.0\" fill=\"#e8d3c6\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><line x1=\"88.4\" y1=\"216.0\" x2=\"267.7\" y2=\"216.0\" stroke=\"#7a6a55\" stroke-width=\"1.2\"/><line x1=\"88.4\" y1=\"217.0\" x2=\"82.4\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"102.4\" y1=\"217.0\" x2=\"96.4\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"116.4\" y1=\"217.0\" x2=\"110.4\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"130.4\" y1=\"217.0\" x2=\"124.4\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"144.4\" y1=\"217.0\" x2=\"138.4\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"158.4\" y1=\"217.0\" x2=\"152.4\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"172.4\" y1=\"217.0\" x2=\"166.4\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"186.4\" y1=\"217.0\" x2=\"180.4\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"200.4\" y1=\"217.0\" x2=\"194.4\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"214.4\" y1=\"217.0\" x2=\"208.4\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"228.4\" y1=\"217.0\" x2=\"222.4\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"242.4\" y1=\"217.0\" x2=\"236.4\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"256.4\" y1=\"217.0\" x2=\"250.4\" y2=\"223.0\" stroke=\"#b5a68f\" stroke-width=\"1\"/><line x1=\"120.3\" y1=\"216.0\" x2=\"239.8\" y2=\"56.7\" stroke=\"#9a7b3c\" stroke-width=\"3.2\"/><polyline points=\"231.8,216.0 231.8,208.0 239.8,208.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"172.8\" y=\"136.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"end\" fill=\"#1b1b1b\" font-weight=\"600\">15 m</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"180.0\" y=\"235.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"263.7\" y=\"141.4\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"start\" fill=\"#1b1b1b\">12 m</text></svg>",
+          "answer": "$9$ 公尺",
+          "solution": "梯子是斜邊，頂端離地的 $12$ 公尺是一股。設底端離牆腳 $y$ 公尺：$y^2=15^2-12^2=225-144=81$，$y=\\sqrt{81}=9$。",
+          "space": 2
+        }
+      ]
+    },
+    {
+      "id": "q10",
+      "topic": "邊長是根式的直角三角形",
+      "objective": 2,
+      "performance": [
+        "s-IV-7",
+        "n-IV-5"
+      ],
+      "content": [
+        "S-8-6",
+        "N-8-1"
+      ],
+      "variants": [
+        {
+          "stem": "如圖，直角三角形的一股長是 $\\sqrt{3}$、斜邊長是 $\\sqrt{7}$，求另一股長。",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"272.0,186.0 108.0,186.0 272.0,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"263.0,186.0 263.0,177.0 272.0,177.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"190.0\" y=\"205.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"281.0\" y=\"120.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"start\" fill=\"#1b1b1b\" font-weight=\"600\">√3</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"180.8\" y=\"109.4\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">√7</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"282.6\" y=\"202.6\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"95.2\" y=\"199.7\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"279.7\" y=\"37.1\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text></svg>",
+          "answer": "$2$",
+          "solution": "設另一股長為 $x$：$x^2=(\\sqrt{7})^2-(\\sqrt{3})^2=7-3=4$，$x=\\sqrt{4}=2$。",
+          "space": 2
+        },
+        {
+          "stem": "如圖，直角三角形的兩股長是 $\\sqrt{5}$、$\\sqrt{11}$，求斜邊長。",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"84.7,186.0 295.3,186.0 84.7,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"93.7,186.0 93.7,177.0 84.7,177.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"190.0\" y=\"205.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">√11</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"75.7\" y=\"120.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"end\" fill=\"#1b1b1b\" font-weight=\"600\">√5</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"197.8\" y=\"108.4\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"74.1\" y=\"202.6\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"308.2\" y=\"199.7\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"77.0\" y=\"37.1\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text></svg>",
+          "answer": "$4$",
+          "solution": "設斜邊長為 $c$：$c^2=(\\sqrt{5})^2+(\\sqrt{11})^2=5+11=16$，$c=\\sqrt{16}=4$。$(\\sqrt{a})^2=a$；根號不能直接相加。",
+          "space": 2
+        },
+        {
+          "stem": "如圖，直角三角形的兩股長是 $2$、$\\sqrt{5}$，求斜邊長。",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"110.6,186.0 269.4,186.0 110.6,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"119.6,186.0 119.6,177.0 110.6,177.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"190.0\" y=\"205.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">√5</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"101.6\" y=\"120.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"end\" fill=\"#1b1b1b\" font-weight=\"600\">2</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"199.3\" y=\"109.6\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"100.0\" y=\"202.6\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"282.2\" y=\"199.7\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"102.9\" y=\"37.1\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text></svg>",
+          "answer": "$3$",
+          "solution": "設斜邊長為 $c$：$c^2=2^2+(\\sqrt{5})^2=4+5=9$，$c=\\sqrt{9}=3$。$(\\sqrt{a})^2=a$；根號不能直接相加。",
+          "space": 2
+        },
+        {
+          "stem": "如圖，直角三角形的兩股長是 $\\sqrt{2}$、$\\sqrt{6}$，求斜邊長。",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"67.0,186.0 313.0,186.0 67.0,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"76.0,186.0 76.0,177.0 67.0,177.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"190.0\" y=\"205.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">√6</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"58.0\" y=\"120.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"end\" fill=\"#1b1b1b\" font-weight=\"600\">√2</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"197.0\" y=\"107.9\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"56.4\" y=\"202.6\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"325.8\" y=\"199.7\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"59.3\" y=\"37.1\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text></svg>",
+          "answer": "$2\\sqrt{2}$",
+          "solution": "設斜邊長為 $c$：$c^2=(\\sqrt{2})^2+(\\sqrt{6})^2=2+6=8$，$c=\\sqrt{8}=2\\sqrt{2}$。$(\\sqrt{a})^2=a$；根號不能直接相加。",
+          "space": 2
+        },
+        {
+          "stem": "如圖，直角三角形的一股長是 $\\sqrt{5}$、斜邊長是 $\\sqrt{14}$，求另一股長。",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 380 230\" width=\"380\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"285.3,186.0 94.7,186.0 285.3,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"276.3,186.0 276.3,177.0 285.3,177.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"190.0\" y=\"205.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"294.3\" y=\"120.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"start\" fill=\"#1b1b1b\" font-weight=\"600\">√5</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"181.6\" y=\"108.8\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">√14</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"295.9\" y=\"202.6\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">C</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"81.9\" y=\"199.7\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">B</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"293.0\" y=\"37.1\" font-family=\"'Times New Roman',Times,serif\" font-style=\"italic\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">A</text></svg>",
+          "answer": "$3$",
+          "solution": "設另一股長為 $x$：$x^2=(\\sqrt{14})^2-(\\sqrt{5})^2=14-5=9$，$x=\\sqrt{9}=3$。",
+          "space": 2
+        }
+      ]
+    }
+  ],
+  "links": {
+    "activities": {
+      "a-warmup": [
+        "q4",
+        "q5"
+      ],
+      "a-intro": [
+        "q1",
+        "q8"
+      ],
+      "a-predict": [
+        "q4"
+      ],
+      "a-grid": [
+        "q3"
+      ],
+      "a-proof": [
+        "q2",
+        "q3"
+      ],
+      "a-theorem": [
+        "q2"
+      ],
+      "a-ex1": [
+        "q4",
+        "q5"
+      ],
+      "a-ex1-practice": [
+        "q4"
+      ],
+      "a-ex2": [
+        "q6",
+        "q7"
+      ],
+      "a-ex2-practice": [
+        "q9"
+      ],
+      "a-which": [
+        "q4",
+        "q7"
+      ],
+      "a-error": [
+        "q6"
+      ],
+      "a-exit": [
+        "q4",
+        "q6"
+      ]
+    },
+    "items": {
+      "a-warmup": [
+        [
+          "q4"
+        ],
+        [
+          "q4"
+        ],
+        [
+          "q5"
+        ]
+      ],
+      "a-ex1": [
+        [
+          "q4"
+        ],
+        [
+          "q5"
+        ]
+      ],
+      "a-ex2": [
+        [
+          "q6"
+        ],
+        [
+          "q7"
+        ]
+      ]
+    }
+  }
+}

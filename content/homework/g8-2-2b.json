@@ -1,0 +1,625 @@
+{
+  "lessonId": "g8-2-2b",
+  "section": "8-2-2",
+  "title": "2-2(2) 最簡根式與分母有理化",
+  "source": "八上課本 2-2 p.77–81（題目改寫自課後檢核並自編，答案與詳解已用 SymPy 核算）；備課用書 01-115國中數學2上-備課-目次 p.28（教學活動連結分析表：學習表現）、p.29（學習內容）；03-115國中數學2上-備課-L02 p.115（PDF 第 10 頁，本章學習內容解析）",
+  "curriculum": {
+    "performance": [
+      {
+        "code": "n-IV-5",
+        "text": "理解二次方根的意義、符號與根式的四則運算，並能運用到日常生活的情境解決問題。"
+      }
+    ],
+    "content": [
+      {
+        "code": "N-8-1",
+        "text": "二次方根：二次方根的意義；根式的化簡及四則運算。"
+      }
+    ]
+  },
+  "slots": [
+    {
+      "id": "q1",
+      "topic": "最簡根式：搬出最大的平方因數",
+      "objective": 1,
+      "performance": [
+        "n-IV-5"
+      ],
+      "content": [
+        "N-8-1"
+      ],
+      "variants": [
+        {
+          "stem": "把 $\\sqrt{72}$ 化成最簡根式。",
+          "answer": "$6\\sqrt{2}$",
+          "solution": "找出最大的平方因數：$\\sqrt{72}=\\sqrt{36\\times2}=6\\sqrt{2}$。",
+          "space": 1
+        },
+        {
+          "stem": "把 $\\sqrt{48}$ 化成最簡根式。",
+          "answer": "$4\\sqrt{3}$",
+          "solution": "找出最大的平方因數：$\\sqrt{48}=\\sqrt{16\\times3}=4\\sqrt{3}$。",
+          "space": 1
+        },
+        {
+          "stem": "把 $\\sqrt{108}$ 化成最簡根式。",
+          "answer": "$6\\sqrt{3}$",
+          "solution": "找出最大的平方因數：$\\sqrt{108}=\\sqrt{36\\times3}=6\\sqrt{3}$。",
+          "space": 1
+        },
+        {
+          "stem": "把 $\\sqrt{98}$ 化成最簡根式。",
+          "answer": "$7\\sqrt{2}$",
+          "solution": "找出最大的平方因數：$\\sqrt{98}=\\sqrt{49\\times2}=7\\sqrt{2}$。",
+          "space": 1
+        },
+        {
+          "stem": "把 $\\sqrt{180}$ 化成最簡根式。",
+          "answer": "$6\\sqrt{5}$",
+          "solution": "找出最大的平方因數：$\\sqrt{180}=\\sqrt{36\\times5}=6\\sqrt{5}$。",
+          "space": 1
+        },
+        {
+          "stem": "把 $2\\sqrt{75}$ 化成最簡根式。",
+          "answer": "$10\\sqrt{3}$",
+          "solution": "$\\sqrt{75}=\\sqrt{25\\times3}=5\\sqrt{3}$，所以 $2\\sqrt{75}=2\\times5\\sqrt{3}=10\\sqrt{3}$。",
+          "space": 1
+        }
+      ]
+    },
+    {
+      "id": "q2",
+      "topic": "最簡根式：次方的形式",
+      "objective": 1,
+      "performance": [
+        "n-IV-5"
+      ],
+      "content": [
+        "N-8-1"
+      ],
+      "variants": [
+        {
+          "stem": "把 $\\sqrt{3^{5}}$ 化成最簡根式。",
+          "answer": "$9\\sqrt{3}$",
+          "solution": "$3^{5}=3^{4}\\times3$，$3^{4}$ 是平方數：$\\sqrt{3^{5}}=\\sqrt{3^{4}}\\times\\sqrt{3}=3^{2}\\sqrt{3}=9\\sqrt{3}$。",
+          "space": 1
+        },
+        {
+          "stem": "把 $\\sqrt{5^{3}}$ 化成最簡根式。",
+          "answer": "$5\\sqrt{5}$",
+          "solution": "$5^{3}=5^{2}\\times5$，$5^{2}$ 是平方數：$\\sqrt{5^{3}}=\\sqrt{5^{2}}\\times\\sqrt{5}=5\\sqrt{5}$。",
+          "space": 1
+        },
+        {
+          "stem": "把 $\\sqrt{2^{7}}$ 化成最簡根式。",
+          "answer": "$8\\sqrt{2}$",
+          "solution": "$2^{7}=2^{6}\\times2$，$2^{6}$ 是平方數：$\\sqrt{2^{7}}=\\sqrt{2^{6}}\\times\\sqrt{2}=2^{3}\\sqrt{2}=8\\sqrt{2}$。",
+          "space": 1
+        },
+        {
+          "stem": "把 $\\sqrt{3^{7}}$ 化成最簡根式。",
+          "answer": "$27\\sqrt{3}$",
+          "solution": "$3^{7}=3^{6}\\times3$，$3^{6}$ 是平方數：$\\sqrt{3^{7}}=\\sqrt{3^{6}}\\times\\sqrt{3}=3^{3}\\sqrt{3}=27\\sqrt{3}$。",
+          "space": 1
+        },
+        {
+          "stem": "把 $\\sqrt{2^{3}\\times3^{2}}$ 化成最簡根式。",
+          "answer": "$6\\sqrt{2}$",
+          "solution": "把平方的部分分出來：$\\sqrt{2^{3}\\times3^{2}}=\\sqrt{2^{2}\\times3^{2}\\times2}=2\\times3\\sqrt{2}=6\\sqrt{2}$。",
+          "space": 1
+        },
+        {
+          "stem": "把 $\\sqrt{2^{4}\\times5^{3}}$ 化成最簡根式。",
+          "answer": "$20\\sqrt{5}$",
+          "solution": "$\\sqrt{2^{4}\\times5^{3}}=\\sqrt{2^{4}\\times5^{2}\\times5}=2^{2}\\times5\\sqrt{5}=20\\sqrt{5}$。",
+          "space": 1
+        }
+      ]
+    },
+    {
+      "id": "q3",
+      "topic": "分母有理化：a ÷ √n",
+      "objective": 2,
+      "performance": [
+        "n-IV-5"
+      ],
+      "content": [
+        "N-8-1"
+      ],
+      "variants": [
+        {
+          "stem": "把 $\\dfrac{5}{\\sqrt{2}}$ 的分母有理化，並化成最簡根式。",
+          "answer": "$\\dfrac{5\\sqrt{2}}{2}$",
+          "solution": "分子、分母同乘 $\\sqrt{2}$：$\\dfrac{5}{\\sqrt{2}}=\\dfrac{5\\sqrt{2}}{\\sqrt{2}\\times\\sqrt{2}}=\\dfrac{5\\sqrt{2}}{2}$。",
+          "space": 1
+        },
+        {
+          "stem": "把 $\\dfrac{6}{\\sqrt{3}}$ 的分母有理化，並化成最簡根式。",
+          "answer": "$2\\sqrt{3}$",
+          "solution": "分子、分母同乘 $\\sqrt{3}$：$\\dfrac{6}{\\sqrt{3}}=\\dfrac{6\\sqrt{3}}{\\sqrt{3}\\times\\sqrt{3}}=\\dfrac{6\\sqrt{3}}{3}=2\\sqrt{3}$，有理化後還要約分。",
+          "space": 1
+        },
+        {
+          "stem": "把 $\\dfrac{3}{2\\sqrt{6}}$ 的分母有理化，並化成最簡根式。",
+          "answer": "$\\dfrac{\\sqrt{6}}{4}$",
+          "solution": "分子、分母同乘 $\\sqrt{6}$：$\\dfrac{3}{2\\sqrt{6}}=\\dfrac{3\\sqrt{6}}{2\\sqrt{6}\\times\\sqrt{6}}=\\dfrac{3\\sqrt{6}}{12}=\\dfrac{\\sqrt{6}}{4}$，有理化後還要約分。",
+          "space": 1
+        },
+        {
+          "stem": "把 $\\dfrac{10}{\\sqrt{5}}$ 的分母有理化，並化成最簡根式。",
+          "answer": "$2\\sqrt{5}$",
+          "solution": "分子、分母同乘 $\\sqrt{5}$：$\\dfrac{10}{\\sqrt{5}}=\\dfrac{10\\sqrt{5}}{\\sqrt{5}\\times\\sqrt{5}}=\\dfrac{10\\sqrt{5}}{5}=2\\sqrt{5}$，有理化後還要約分。",
+          "space": 1
+        },
+        {
+          "stem": "把 $\\dfrac{2}{3\\sqrt{2}}$ 的分母有理化，並化成最簡根式。",
+          "answer": "$\\dfrac{\\sqrt{2}}{3}$",
+          "solution": "分子、分母同乘 $\\sqrt{2}$：$\\dfrac{2}{3\\sqrt{2}}=\\dfrac{2\\sqrt{2}}{3\\sqrt{2}\\times\\sqrt{2}}=\\dfrac{2\\sqrt{2}}{6}=\\dfrac{\\sqrt{2}}{3}$，有理化後還要約分。",
+          "space": 1
+        },
+        {
+          "stem": "把 $\\dfrac{15}{2\\sqrt{3}}$ 的分母有理化，並化成最簡根式。",
+          "answer": "$\\dfrac{5\\sqrt{3}}{2}$",
+          "solution": "分子、分母同乘 $\\sqrt{3}$：$\\dfrac{15}{2\\sqrt{3}}=\\dfrac{15\\sqrt{3}}{2\\sqrt{3}\\times\\sqrt{3}}=\\dfrac{15\\sqrt{3}}{6}=\\dfrac{5\\sqrt{3}}{2}$，有理化後還要約分。",
+          "space": 1
+        }
+      ]
+    },
+    {
+      "id": "q4",
+      "topic": "根號內是分數",
+      "objective": 2,
+      "performance": [
+        "n-IV-5"
+      ],
+      "content": [
+        "N-8-1"
+      ],
+      "variants": [
+        {
+          "stem": "把 $\\sqrt{\\dfrac{3}{8}}$ 化成最簡根式。",
+          "answer": "$\\dfrac{\\sqrt{6}}{4}$",
+          "solution": "根號內的分子、分母分開開方，再把分母有理化：$\\sqrt{\\dfrac{3}{8}}=\\dfrac{\\sqrt{3}}{\\sqrt{8}}=\\dfrac{\\sqrt{3}}{2\\sqrt{2}}=\\dfrac{\\sqrt{3}\\times\\sqrt{2}}{2\\sqrt{2}\\times\\sqrt{2}}=\\dfrac{\\sqrt{6}}{4}$。",
+          "space": 2
+        },
+        {
+          "stem": "把 $\\sqrt{\\dfrac{5}{12}}$ 化成最簡根式。",
+          "answer": "$\\dfrac{\\sqrt{15}}{6}$",
+          "solution": "根號內的分子、分母分開開方，再把分母有理化：$\\sqrt{\\dfrac{5}{12}}=\\dfrac{\\sqrt{5}}{\\sqrt{12}}=\\dfrac{\\sqrt{5}}{2\\sqrt{3}}=\\dfrac{\\sqrt{5}\\times\\sqrt{3}}{2\\sqrt{3}\\times\\sqrt{3}}=\\dfrac{\\sqrt{15}}{6}$。",
+          "space": 2
+        },
+        {
+          "stem": "把 $\\sqrt{\\dfrac{2}{27}}$ 化成最簡根式。",
+          "answer": "$\\dfrac{\\sqrt{6}}{9}$",
+          "solution": "根號內的分子、分母分開開方，再把分母有理化：$\\sqrt{\\dfrac{2}{27}}=\\dfrac{\\sqrt{2}}{\\sqrt{27}}=\\dfrac{\\sqrt{2}}{3\\sqrt{3}}=\\dfrac{\\sqrt{2}\\times\\sqrt{3}}{3\\sqrt{3}\\times\\sqrt{3}}=\\dfrac{\\sqrt{6}}{9}$。",
+          "space": 2
+        },
+        {
+          "stem": "把 $\\sqrt{\\dfrac{5}{18}}$ 化成最簡根式。",
+          "answer": "$\\dfrac{\\sqrt{10}}{6}$",
+          "solution": "根號內的分子、分母分開開方，再把分母有理化：$\\sqrt{\\dfrac{5}{18}}=\\dfrac{\\sqrt{5}}{\\sqrt{18}}=\\dfrac{\\sqrt{5}}{3\\sqrt{2}}=\\dfrac{\\sqrt{5}\\times\\sqrt{2}}{3\\sqrt{2}\\times\\sqrt{2}}=\\dfrac{\\sqrt{10}}{6}$。",
+          "space": 2
+        },
+        {
+          "stem": "把 $\\sqrt{\\dfrac{7}{20}}$ 化成最簡根式。",
+          "answer": "$\\dfrac{\\sqrt{35}}{10}$",
+          "solution": "根號內的分子、分母分開開方，再把分母有理化：$\\sqrt{\\dfrac{7}{20}}=\\dfrac{\\sqrt{7}}{\\sqrt{20}}=\\dfrac{\\sqrt{7}}{2\\sqrt{5}}=\\dfrac{\\sqrt{7}\\times\\sqrt{5}}{2\\sqrt{5}\\times\\sqrt{5}}=\\dfrac{\\sqrt{35}}{10}$。",
+          "space": 2
+        },
+        {
+          "stem": "把 $\\sqrt{\\dfrac{9}{50}}$ 化成最簡根式。",
+          "answer": "$\\dfrac{3\\sqrt{2}}{10}$",
+          "solution": "根號內的分子、分母分開開方，再把分母有理化：$\\sqrt{\\dfrac{9}{50}}=\\dfrac{\\sqrt{9}}{\\sqrt{50}}=\\dfrac{3}{5\\sqrt{2}}=\\dfrac{3\\times\\sqrt{2}}{5\\sqrt{2}\\times\\sqrt{2}}=\\dfrac{3\\sqrt{2}}{10}$。",
+          "space": 2
+        }
+      ]
+    },
+    {
+      "id": "q5",
+      "topic": "根號內是小數",
+      "objective": 2,
+      "performance": [
+        "n-IV-5"
+      ],
+      "content": [
+        "N-8-1"
+      ],
+      "variants": [
+        {
+          "stem": "把 $\\sqrt{0.3}$ 化成最簡根式。",
+          "answer": "$\\dfrac{\\sqrt{30}}{10}$",
+          "solution": "先把小數化成分數：$\\sqrt{0.3}=\\sqrt{\\dfrac{3}{10}}=\\dfrac{\\sqrt{3}}{\\sqrt{10}}=\\dfrac{\\sqrt{3}\\times\\sqrt{10}}{\\sqrt{10}\\times\\sqrt{10}}=\\dfrac{\\sqrt{30}}{10}$。根號內不能留小數，分母也不能有根號。",
+          "space": 2
+        },
+        {
+          "stem": "把 $\\sqrt{0.5}$ 化成最簡根式。",
+          "answer": "$\\dfrac{\\sqrt{2}}{2}$",
+          "solution": "先把小數化成分數：$\\sqrt{0.5}=\\sqrt{\\dfrac{1}{2}}=\\dfrac{1}{\\sqrt{2}}=\\dfrac{1\\times\\sqrt{2}}{\\sqrt{2}\\times\\sqrt{2}}=\\dfrac{\\sqrt{2}}{2}$。根號內不能留小數，分母也不能有根號。",
+          "space": 2
+        },
+        {
+          "stem": "把 $\\sqrt{1.2}$ 化成最簡根式。",
+          "answer": "$\\dfrac{\\sqrt{30}}{5}$",
+          "solution": "先把小數化成分數：$\\sqrt{1.2}=\\sqrt{\\dfrac{6}{5}}=\\dfrac{\\sqrt{6}}{\\sqrt{5}}=\\dfrac{\\sqrt{6}\\times\\sqrt{5}}{\\sqrt{5}\\times\\sqrt{5}}=\\dfrac{\\sqrt{30}}{5}$。根號內不能留小數，分母也不能有根號。",
+          "space": 2
+        },
+        {
+          "stem": "把 $\\sqrt{0.8}$ 化成最簡根式。",
+          "answer": "$\\dfrac{2\\sqrt{5}}{5}$",
+          "solution": "先把小數化成分數：$\\sqrt{0.8}=\\sqrt{\\dfrac{4}{5}}=\\dfrac{\\sqrt{4}}{\\sqrt{5}}=\\dfrac{2}{\\sqrt{5}}=\\dfrac{2\\times\\sqrt{5}}{\\sqrt{5}\\times\\sqrt{5}}=\\dfrac{2\\sqrt{5}}{5}$。根號內不能留小數，分母也不能有根號。",
+          "space": 2
+        },
+        {
+          "stem": "把 $\\sqrt{2.5}$ 化成最簡根式。",
+          "answer": "$\\dfrac{\\sqrt{10}}{2}$",
+          "solution": "先把小數化成分數：$\\sqrt{2.5}=\\sqrt{\\dfrac{5}{2}}=\\dfrac{\\sqrt{5}}{\\sqrt{2}}=\\dfrac{\\sqrt{5}\\times\\sqrt{2}}{\\sqrt{2}\\times\\sqrt{2}}=\\dfrac{\\sqrt{10}}{2}$。根號內不能留小數，分母也不能有根號。",
+          "space": 2
+        },
+        {
+          "stem": "把 $\\sqrt{0.18}$ 化成最簡根式。",
+          "answer": "$\\dfrac{3\\sqrt{2}}{10}$",
+          "solution": "先把小數化成分數：$\\sqrt{0.18}=\\sqrt{\\dfrac{9}{50}}=\\dfrac{\\sqrt{9}}{\\sqrt{50}}=\\dfrac{3}{5\\sqrt{2}}=\\dfrac{3\\times\\sqrt{2}}{5\\sqrt{2}\\times\\sqrt{2}}=\\dfrac{3\\sqrt{2}}{10}$。根號內不能留小數，分母也不能有根號。",
+          "space": 2
+        }
+      ]
+    },
+    {
+      "id": "q6",
+      "topic": "乘完再化成最簡",
+      "objective": 1,
+      "performance": [
+        "n-IV-5"
+      ],
+      "content": [
+        "N-8-1"
+      ],
+      "variants": [
+        {
+          "stem": "計算 $\\sqrt{6}\\times\\sqrt{8}$，並化成最簡根式。",
+          "answer": "$4\\sqrt{3}$",
+          "solution": "先乘再化簡：$\\sqrt{6}\\times\\sqrt{8}=\\sqrt{48}=\\sqrt{16\\times3}=4\\sqrt{3}$。",
+          "space": 1
+        },
+        {
+          "stem": "計算 $\\sqrt{10}\\times\\sqrt{15}$，並化成最簡根式。",
+          "answer": "$5\\sqrt{6}$",
+          "solution": "先乘再化簡：$\\sqrt{10}\\times\\sqrt{15}=\\sqrt{150}=\\sqrt{25\\times6}=5\\sqrt{6}$。",
+          "space": 1
+        },
+        {
+          "stem": "計算 $\\sqrt{12}\\times\\sqrt{6}$，並化成最簡根式。",
+          "answer": "$6\\sqrt{2}$",
+          "solution": "先乘再化簡：$\\sqrt{12}\\times\\sqrt{6}=\\sqrt{72}=\\sqrt{36\\times2}=6\\sqrt{2}$。",
+          "space": 1
+        },
+        {
+          "stem": "計算 $\\sqrt{14}\\times\\sqrt{21}$，並化成最簡根式。",
+          "answer": "$7\\sqrt{6}$",
+          "solution": "先乘再化簡：$\\sqrt{14}\\times\\sqrt{21}=\\sqrt{294}=\\sqrt{49\\times6}=7\\sqrt{6}$。",
+          "space": 1
+        },
+        {
+          "stem": "計算 $2\\sqrt{15}\\times3\\sqrt{10}$，並化成最簡根式。",
+          "answer": "$30\\sqrt{6}$",
+          "solution": "$2\\sqrt{15}\\times3\\sqrt{10}=6\\sqrt{150}=6\\sqrt{25\\times6}=6\\times5\\sqrt{6}=30\\sqrt{6}$。",
+          "space": 1
+        },
+        {
+          "stem": "一個長方形花圃的長是 $\\sqrt{18}$ 公尺、寬是 $\\sqrt{6}$ 公尺，求它的面積。",
+          "answer": "$6\\sqrt{3}$ 平方公尺",
+          "solution": "面積＝長×寬：$\\sqrt{18}\\times\\sqrt{6}=\\sqrt{108}=\\sqrt{36\\times3}=6\\sqrt{3}$（平方公尺）。",
+          "space": 1,
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 420 220\" width=\"420\" height=\"220\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"44.2,176.0 272.9,176.0 272.9,44.0 44.2,44.0\" fill=\"#fde3cf\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><polyline points=\"53.2,176.0 53.2,167.0 44.2,167.0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"1.3\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"158.6\" y=\"195.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">√18 公尺</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"281.9\" y=\"115.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"start\" fill=\"#1b1b1b\" font-weight=\"600\">√6 公尺</text></svg>"
+        }
+      ]
+    },
+    {
+      "id": "q7",
+      "topic": "除完再有理化",
+      "objective": 2,
+      "performance": [
+        "n-IV-5"
+      ],
+      "content": [
+        "N-8-1"
+      ],
+      "variants": [
+        {
+          "stem": "計算 $\\sqrt{45}\\div\\sqrt{30}$，並化成最簡根式。",
+          "answer": "$\\dfrac{\\sqrt{6}}{2}$",
+          "solution": "合成一個根號、約分，再有理化：$\\sqrt{45}\\div\\sqrt{30}=\\sqrt{\\dfrac{45}{30}}=\\sqrt{\\dfrac{3}{2}}=\\dfrac{\\sqrt{3}}{\\sqrt{2}}=\\dfrac{\\sqrt{3}\\times\\sqrt{2}}{\\sqrt{2}\\times\\sqrt{2}}=\\dfrac{\\sqrt{6}}{2}$。",
+          "space": 2
+        },
+        {
+          "stem": "計算 $\\sqrt{2}\\div\\sqrt{11}$，並化成最簡根式。",
+          "answer": "$\\dfrac{\\sqrt{22}}{11}$",
+          "solution": "合成一個根號、約分，再有理化：$\\sqrt{2}\\div\\sqrt{11}=\\sqrt{\\dfrac{2}{11}}=\\dfrac{\\sqrt{2}}{\\sqrt{11}}=\\dfrac{\\sqrt{2}\\times\\sqrt{11}}{\\sqrt{11}\\times\\sqrt{11}}=\\dfrac{\\sqrt{22}}{11}$。",
+          "space": 2
+        },
+        {
+          "stem": "計算 $\\sqrt{20}\\div\\sqrt{35}$，並化成最簡根式。",
+          "answer": "$\\dfrac{2\\sqrt{7}}{7}$",
+          "solution": "合成一個根號、約分，再有理化：$\\sqrt{20}\\div\\sqrt{35}=\\sqrt{\\dfrac{20}{35}}=\\sqrt{\\dfrac{4}{7}}=\\dfrac{\\sqrt{4}}{\\sqrt{7}}=\\dfrac{2}{\\sqrt{7}}=\\dfrac{2\\times\\sqrt{7}}{\\sqrt{7}\\times\\sqrt{7}}=\\dfrac{2\\sqrt{7}}{7}$。",
+          "space": 2
+        },
+        {
+          "stem": "計算 $\\sqrt{10}\\div\\sqrt{6}$，並化成最簡根式。",
+          "answer": "$\\dfrac{\\sqrt{15}}{3}$",
+          "solution": "合成一個根號、約分，再有理化：$\\sqrt{10}\\div\\sqrt{6}=\\sqrt{\\dfrac{10}{6}}=\\sqrt{\\dfrac{5}{3}}=\\dfrac{\\sqrt{5}}{\\sqrt{3}}=\\dfrac{\\sqrt{5}\\times\\sqrt{3}}{\\sqrt{3}\\times\\sqrt{3}}=\\dfrac{\\sqrt{15}}{3}$。",
+          "space": 2
+        },
+        {
+          "stem": "計算 $\\sqrt{21}\\div\\sqrt{28}$，並化成最簡根式。",
+          "answer": "$\\dfrac{\\sqrt{3}}{2}$",
+          "solution": "合成一個根號、約分，再有理化：$\\sqrt{21}\\div\\sqrt{28}=\\sqrt{\\dfrac{21}{28}}=\\sqrt{\\dfrac{3}{4}}=\\dfrac{\\sqrt{3}}{\\sqrt{4}}=\\dfrac{\\sqrt{3}}{2}$。",
+          "space": 2
+        },
+        {
+          "stem": "計算 $4\\sqrt{3}\\div\\sqrt{24}$，並化成最簡根式。",
+          "answer": "$\\sqrt{2}$",
+          "solution": "$4\\sqrt{3}\\div\\sqrt{24}=4\\sqrt{\\dfrac{3}{24}}=4\\sqrt{\\dfrac{1}{8}}=\\dfrac{4}{\\sqrt{8}}=\\dfrac{4}{2\\sqrt{2}}=\\dfrac{2}{\\sqrt{2}}=\\dfrac{2\\sqrt{2}}{2}=\\sqrt{2}$。",
+          "space": 2
+        }
+      ]
+    },
+    {
+      "id": "q8",
+      "topic": "乘除混合：合成一個根號再化簡",
+      "objective": 2,
+      "performance": [
+        "n-IV-5"
+      ],
+      "content": [
+        "N-8-1"
+      ],
+      "variants": [
+        {
+          "stem": "計算 $\\sqrt{\\dfrac{8}{3}}\\times\\sqrt{\\dfrac{27}{16}}$，並化成最簡根式。",
+          "answer": "$\\dfrac{3\\sqrt{2}}{2}$",
+          "solution": "合成一個根號：$\\sqrt{\\dfrac{8}{3}\\times\\dfrac{27}{16}}=\\sqrt{\\dfrac{9}{2}}=\\dfrac{3}{\\sqrt{2}}=\\dfrac{3\\sqrt{2}}{2}$。",
+          "space": 2
+        },
+        {
+          "stem": "計算 $\\sqrt{\\dfrac{3}{5}}\\times\\sqrt{\\dfrac{10}{9}}$，並化成最簡根式。",
+          "answer": "$\\dfrac{\\sqrt{6}}{3}$",
+          "solution": "$\\sqrt{\\dfrac{3}{5}\\times\\dfrac{10}{9}}=\\sqrt{\\dfrac{2}{3}}=\\dfrac{\\sqrt{2}}{\\sqrt{3}}=\\dfrac{\\sqrt{2}\\times\\sqrt{3}}{\\sqrt{3}\\times\\sqrt{3}}=\\dfrac{\\sqrt{6}}{3}$。",
+          "space": 2
+        },
+        {
+          "stem": "計算 $\\sqrt{\\dfrac{7}{2}}\\times\\sqrt{\\dfrac{3}{14}}$，並化成最簡根式。",
+          "answer": "$\\dfrac{\\sqrt{3}}{2}$",
+          "solution": "$\\sqrt{\\dfrac{7}{2}\\times\\dfrac{3}{14}}=\\sqrt{\\dfrac{3}{4}}=\\dfrac{\\sqrt{3}}{\\sqrt{4}}=\\dfrac{\\sqrt{3}}{2}$。",
+          "space": 2
+        },
+        {
+          "stem": "計算 $\\sqrt{\\dfrac{10}{3}}\\times\\sqrt{\\dfrac{6}{5}}$，並化成最簡根式。",
+          "answer": "$2$",
+          "solution": "$\\sqrt{\\dfrac{10}{3}\\times\\dfrac{6}{5}}=\\sqrt{4}=2$。",
+          "space": 2
+        },
+        {
+          "stem": "計算 $\\sqrt{12}\\times\\sqrt{\\dfrac{1}{6}}\\div\\sqrt{\\dfrac{1}{5}}$，並化成最簡根式。",
+          "answer": "$\\sqrt{10}$",
+          "solution": "除以 $\\sqrt{\\dfrac{1}{5}}$ 就是乘 $\\sqrt{5}$：$\\sqrt{12\\times\\dfrac{1}{6}\\times5}=\\sqrt{10}$。",
+          "space": 2
+        },
+        {
+          "stem": "計算 $\\sqrt{\\dfrac{5}{7}}\\div\\sqrt{\\dfrac{10}{21}}$，並化成最簡根式。",
+          "answer": "$\\dfrac{\\sqrt{6}}{2}$",
+          "solution": "$\\sqrt{\\dfrac{5}{7}\\div\\dfrac{10}{21}}=\\sqrt{\\dfrac{5}{7}\\times\\dfrac{21}{10}}=\\sqrt{\\dfrac{3}{2}}=\\dfrac{\\sqrt{3}}{\\sqrt{2}}=\\dfrac{\\sqrt{6}}{2}$。",
+          "space": 2
+        }
+      ]
+    },
+    {
+      "id": "q9",
+      "topic": "有理化前後比大小",
+      "objective": 2,
+      "performance": [
+        "n-IV-5"
+      ],
+      "content": [
+        "N-8-1"
+      ],
+      "variants": [
+        {
+          "stem": "比較 $\\dfrac{1}{\\sqrt{2}}$ 和 $\\dfrac{\\sqrt{2}}{2}$ 的大小，用「＞」、「＜」或「＝」寫出兩數的關係，並說明理由。",
+          "answer": "$\\dfrac{1}{\\sqrt{2}}=\\dfrac{\\sqrt{2}}{2}$",
+          "solution": "分子、分母同乘 $\\sqrt{2}$（等於乘以 $1$，值不變）：$\\dfrac{1}{\\sqrt{2}}=\\dfrac{1\\times\\sqrt{2}}{\\sqrt{2}\\times\\sqrt{2}}=\\dfrac{\\sqrt{2}}{2}$，所以 $\\dfrac{1}{\\sqrt{2}}=\\dfrac{\\sqrt{2}}{2}$。",
+          "space": 2
+        },
+        {
+          "stem": "比較 $\\dfrac{3}{\\sqrt{2}}$ 和 $2$ 的大小，用「＞」、「＜」或「＝」寫出兩數的關係，並說明理由。",
+          "answer": "$\\dfrac{3}{\\sqrt{2}}>2$",
+          "solution": "$\\dfrac{3}{\\sqrt{2}}=\\dfrac{3\\sqrt{2}}{2}=\\sqrt{\\dfrac{18}{4}}=\\sqrt{\\dfrac{9}{2}}$，$2=\\sqrt{4}$，因為 $\\dfrac{9}{2}>4$，所以 $\\dfrac{3}{\\sqrt{2}}>2$。",
+          "space": 2
+        },
+        {
+          "stem": "比較 $\\dfrac{\\sqrt{3}}{3}$ 和 $\\dfrac{1}{2}$ 的大小，用「＞」、「＜」或「＝」寫出兩數的關係，並說明理由。",
+          "answer": "$\\dfrac{\\sqrt{3}}{3}>\\dfrac{1}{2}$",
+          "solution": "$\\dfrac{\\sqrt{3}}{3}=\\sqrt{\\dfrac{3}{9}}=\\sqrt{\\dfrac{1}{3}}$，$\\dfrac{1}{2}=\\sqrt{\\dfrac{1}{4}}$，因為 $\\dfrac{1}{3}>\\dfrac{1}{4}$，所以 $\\dfrac{\\sqrt{3}}{3}>\\dfrac{1}{2}$。",
+          "space": 2
+        },
+        {
+          "stem": "比較 $\\dfrac{5}{\\sqrt{5}}$ 和 $\\sqrt{5}$ 的大小，用「＞」、「＜」或「＝」寫出兩數的關係，並說明理由。",
+          "answer": "$\\dfrac{5}{\\sqrt{5}}=\\sqrt{5}$",
+          "solution": "有理化：$\\dfrac{5}{\\sqrt{5}}=\\dfrac{5\\sqrt{5}}{5}=\\sqrt{5}$，所以 $\\dfrac{5}{\\sqrt{5}}=\\sqrt{5}$。",
+          "space": 2
+        },
+        {
+          "stem": "比較 $\\dfrac{4}{\\sqrt{2}}$ 和 $3$ 的大小，用「＞」、「＜」或「＝」寫出兩數的關係，並說明理由。",
+          "answer": "$\\dfrac{4}{\\sqrt{2}}<3$",
+          "solution": "$\\dfrac{4}{\\sqrt{2}}=\\dfrac{4\\sqrt{2}}{2}=2\\sqrt{2}=\\sqrt{8}$，$3=\\sqrt{9}$，因為 $8<9$，所以 $\\dfrac{4}{\\sqrt{2}}<3$。",
+          "space": 2
+        },
+        {
+          "stem": "比較 $\\dfrac{6}{\\sqrt{3}}$ 和 $3\\sqrt{2}$ 的大小，用「＞」、「＜」或「＝」寫出兩數的關係，並說明理由。",
+          "answer": "$\\dfrac{6}{\\sqrt{3}}<3\\sqrt{2}$",
+          "solution": "$\\dfrac{6}{\\sqrt{3}}=\\dfrac{6\\sqrt{3}}{3}=2\\sqrt{3}=\\sqrt{12}$，$3\\sqrt{2}=\\sqrt{18}$，因為 $12<18$，所以 $\\dfrac{6}{\\sqrt{3}}<3\\sqrt{2}$。",
+          "space": 2
+        }
+      ]
+    },
+    {
+      "id": "q10",
+      "topic": "哪一個是最簡根式？",
+      "objective": 0,
+      "performance": [
+        "n-IV-5"
+      ],
+      "content": [
+        "N-8-1"
+      ],
+      "variants": [
+        {
+          "stem": "判斷下列各數是不是最簡根式；不是的，請化成最簡根式。（1）$3\\sqrt{2}$　（2）$\\sqrt{12}$　（3）$\\sqrt{\\dfrac{2}{3}}$",
+          "answer": "（1）是　（2）不是，$2\\sqrt{3}$　（3）不是，$\\dfrac{\\sqrt{6}}{3}$",
+          "solution": "（1）根號內沒有平方因數、分數或小數，分母也沒有根號，是最簡根式。（2）根號內有平方因數 $4$：$\\sqrt{12}=\\sqrt{4\\times3}=2\\sqrt{3}$。（3）根號內是分數：$\\sqrt{\\dfrac{2}{3}}=\\dfrac{\\sqrt{2}}{\\sqrt{3}}=\\dfrac{\\sqrt{6}}{3}$。",
+          "space": 2
+        },
+        {
+          "stem": "判斷下列各數是不是最簡根式；不是的，請化成最簡根式。（1）$\\dfrac{2\\sqrt{6}}{3}$　（2）$\\dfrac{\\sqrt{24}}{2}$　（3）$\\dfrac{\\sqrt{5}}{\\sqrt{3}}$",
+          "answer": "（1）是　（2）不是，$\\sqrt{6}$　（3）不是，$\\dfrac{\\sqrt{15}}{3}$",
+          "solution": "（1）根號內沒有平方因數、分數或小數，分母也沒有根號，是最簡根式。（2）根號內有平方因數 $4$：$\\dfrac{\\sqrt{24}}{2}=\\dfrac{2\\sqrt{6}}{2}=\\sqrt{6}$。（3）分母有根號：$\\dfrac{\\sqrt{5}}{\\sqrt{3}}=\\dfrac{\\sqrt{5}\\times\\sqrt{3}}{\\sqrt{3}\\times\\sqrt{3}}=\\dfrac{\\sqrt{15}}{3}$。",
+          "space": 2
+        },
+        {
+          "stem": "判斷下列各數是不是最簡根式；不是的，請化成最簡根式。（1）$5\\sqrt{7}$　（2）$\\sqrt{18}$　（3）$\\dfrac{2}{\\sqrt{2}}$",
+          "answer": "（1）是　（2）不是，$3\\sqrt{2}$　（3）不是，$\\sqrt{2}$",
+          "solution": "（1）根號內沒有平方因數、分數或小數，分母也沒有根號，是最簡根式。（2）根號內有平方因數 $9$：$\\sqrt{18}=\\sqrt{9\\times2}=3\\sqrt{2}$。（3）分母有根號：$\\dfrac{2}{\\sqrt{2}}=\\dfrac{2\\sqrt{2}}{2}=\\sqrt{2}$。",
+          "space": 2
+        },
+        {
+          "stem": "判斷下列各數是不是最簡根式；不是的，請化成最簡根式。（1）$\\sqrt{\\dfrac{1}{3}}$　（2）$\\sqrt{0.5}$　（3）$\\sqrt{30}$",
+          "answer": "（1）不是，$\\dfrac{\\sqrt{3}}{3}$　（2）不是，$\\dfrac{\\sqrt{2}}{2}$　（3）是",
+          "solution": "（1）根號內是分數：$\\sqrt{\\dfrac{1}{3}}=\\dfrac{1}{\\sqrt{3}}=\\dfrac{\\sqrt{3}}{3}$。（2）根號內是小數：$\\sqrt{0.5}=\\sqrt{\\dfrac{1}{2}}=\\dfrac{1}{\\sqrt{2}}=\\dfrac{\\sqrt{2}}{2}$。（3）根號內沒有平方因數、分數或小數，分母也沒有根號，是最簡根式。",
+          "space": 2
+        },
+        {
+          "stem": "判斷下列各數是不是最簡根式；不是的，請化成最簡根式。（1）$\\sqrt{45}$　（2）$\\dfrac{\\sqrt{14}}{2}$　（3）$\\dfrac{3}{\\sqrt{6}}$",
+          "answer": "（1）不是，$3\\sqrt{5}$　（2）是　（3）不是，$\\dfrac{\\sqrt{6}}{2}$",
+          "solution": "（1）根號內有平方因數 $9$：$\\sqrt{45}=\\sqrt{9\\times5}=3\\sqrt{5}$。（2）根號內沒有平方因數、分數或小數，分母也沒有根號，是最簡根式。（3）分母有根號：$\\dfrac{3}{\\sqrt{6}}=\\dfrac{3\\sqrt{6}}{6}=\\dfrac{\\sqrt{6}}{2}$。",
+          "space": 2
+        },
+        {
+          "stem": "判斷下列各數是不是最簡根式；不是的，請化成最簡根式。（1）$\\sqrt{3^{3}}$　（2）$\\sqrt{1.5}$　（3）$\\dfrac{\\sqrt{10}}{5}$",
+          "answer": "（1）不是，$3\\sqrt{3}$　（2）不是，$\\dfrac{\\sqrt{6}}{2}$　（3）是",
+          "solution": "（1）根號內有平方因數 $3^{2}$：$\\sqrt{3^{3}}=\\sqrt{3^{2}\\times3}=3\\sqrt{3}$。（2）根號內是小數：$\\sqrt{1.5}=\\sqrt{\\dfrac{3}{2}}=\\dfrac{\\sqrt{3}}{\\sqrt{2}}=\\dfrac{\\sqrt{6}}{2}$。（3）根號內沒有平方因數、分數或小數，分母也沒有根號，是最簡根式。",
+          "space": 2
+        }
+      ]
+    }
+  ],
+  "links": {
+    "activities": {
+      "b-explore": [
+        "q1"
+      ],
+      "b-simplest": [
+        "q10"
+      ],
+      "b-ex4": [
+        "q1",
+        "q2"
+      ],
+      "b-ex4-practice": [
+        "q1",
+        "q2"
+      ],
+      "b-numberline": [
+        "q1"
+      ],
+      "b-rationalize": [
+        "q9"
+      ],
+      "b-ex5": [
+        "q3",
+        "q4",
+        "q5"
+      ],
+      "b-ex5-practice": [
+        "q3",
+        "q4",
+        "q5"
+      ],
+      "b-ex6": [
+        "q7",
+        "q8"
+      ],
+      "b-ex6-practice": [
+        "q7",
+        "q8"
+      ],
+      "b-error": [
+        "q3",
+        "q10"
+      ]
+    },
+    "items": {
+      "b-ex4": [
+        [
+          "q2"
+        ],
+        [
+          "q1"
+        ]
+      ],
+      "b-ex4-practice": [
+        [
+          "q2"
+        ],
+        [
+          "q1"
+        ]
+      ],
+      "b-ex5": [
+        [
+          "q3"
+        ],
+        [
+          "q4"
+        ],
+        [
+          "q5"
+        ]
+      ],
+      "b-ex5-practice": [
+        [
+          "q3"
+        ],
+        [
+          "q4"
+        ],
+        [
+          "q5"
+        ]
+      ],
+      "b-ex6": [
+        [
+          "q8"
+        ],
+        [
+          "q7"
+        ]
+      ],
+      "b-ex6-practice": [
+        [
+          "q8"
+        ],
+        [
+          "q7"
+        ]
+      ]
+    },
+    "duelFamilies": {
+      "a√b × c√d": "g8-2-2a:q4",
+      "√a × √b": "g8-2-2a:q3",
+      "√a × √b（乘起來是完全平方數）": "g8-2-2a:q5",
+      "√a ÷ √b": "g8-2-2a:q8",
+      "√n 化成最簡根式": "q1",
+      "√a × √b 再化成最簡根式": "q6",
+      "c ÷ √n 分母有理化": "q3",
+      "√(a/b) 分母有理化": "q4"
+    }
+  }
+}

@@ -692,6 +692,8 @@ export interface StorageUsageInfo {
   /** 作答照片／手寫圖：張數與大約大小（位元組）。 */
   photos: number;
   photoBytes: number;
+  /** 回家作業照片（存在 Durable Object 時算在 photoBytes 裡）。 */
+  homeworkPhotoBytes?: number;
   /** 今天（UTC）大約寫入的列數。 */
   rowsToday: number;
   sessions: number;
@@ -772,4 +774,194 @@ export interface DuelView {
   results?: DuelResult[];
   /** 老師：各規則全班的正確率（低的在前，最需要加強）。 */
   weak?: { rule: string; ok: number; n: number }[];
+}
+
+/* ───────────── 學習紀錄與回家作業 ───────────── */
+/** 108 課綱代碼（學習表現 n-IV-x、學習內容 N-8-x），敘述抄自備課用書。 */
+export interface CurriculumCode {
+  code: string;
+  text: string;
+}
+/** 回家作業手寫題（content/homework）：答案只在伺服器與老師端。 */
+export interface HomeworkVariant {
+  stem: string;
+  figure?: string;
+  answer: string;
+  solution: string;
+  /** 作答空間：1 短、2 中、3 長。 */
+  space?: 1 | 2 | 3;
+}
+/** 一個題型：id、topic 和課後檢核題庫的題位一樣。 */
+export interface HomeworkSlot {
+  id: string;
+  topic: string;
+  /** 對應這課 objectives 的第幾條。 */
+  objective: number;
+  performance: string[];
+  content: string[];
+  variants: HomeworkVariant[];
+}
+export interface HomeworkBank {
+  lessonId: string;
+  /** 同一節的各課相同（例如 "8-2-2"），整節作業用。 */
+  section: string;
+  title: string;
+  source?: string;
+  curriculum: { performance: CurriculumCode[]; content: CurriculumCode[] };
+  slots: HomeworkSlot[];
+  /** 課堂上的作答屬於哪個題型：IRS 頁、魔王戰題目 topic（「課程 id:題位 id」）、步驟格鬥題目 family。 */
+  links?: {
+    /** 頁面 ID → 題位（整頁一筆作答時用）。 */
+    activities?: Record<string, string[]>;
+    /** 多小題的頁：頁面 ID → 每一小題各自的題位（依 activity.items 順序）。有列就逐小題對，不用整頁的對應。 */
+    items?: Record<string, string[][]>;
+    raidTopics?: Record<string, string>;
+    /** 魔王戰裡刻意不對到題型的 topic（例如前一節的先備題），只算總答對率。 */
+    raidSkip?: string[];
+    /** family → 題位 id 或「課程 id:題位 id」（累積的步驟格鬥也列前面課的 family）。 */
+    duelFamilies?: Record<string, string>;
+  };
+}
+export type RecordSource = 'irs' | 'quiz' | 'pk' | 'review' | 'spaced' | 'practice' | 'raid' | 'duel' | 'homework';
+/** 一筆作答紀錄。slot 是「課程 id:題位 id」（對得到題型時才有）。 */
+export interface LearningRecord {
+  at: number;
+  seat: number;
+  lessonId: string;
+  source: RecordSource;
+  /** 頁面 ID、題位 ID、魔王戰題目 ID… */
+  item: string;
+  slot?: string;
+  correct: boolean | null;
+  /** 同一次作答對到兩個以上題型時，第二筆起標 true：各題型都算，但總答對率只算一次。 */
+  dup?: boolean;
+  sessionId?: string;
+  homeworkId?: string;
+}
+/** 題型的說明（學習紀錄、作業畫面用）。 */
+export interface SlotInfo {
+  lessonId: string;
+  lessonTitle: string;
+  topic: string;
+  objective: string;
+  performance: string[];
+  content: string[];
+}
+export interface LearningRecords {
+  classId: string;
+  className: string;
+  seats: number;
+  records: LearningRecord[];
+  slots: Record<string, SlotInfo>;
+  codes: Record<string, string>;
+}
+/** 派發前的建議：每個座號的答對率、作答數，以及最弱的題型。 */
+export interface HomeworkPlan {
+  lessonIds: string[];
+  title: string;
+  scope: 'lesson' | 'section';
+  seats: { seat: number; acc: number | null; n: number; weak: { slot: string; topic: string; acc: number | null }[] }[];
+  /** 預設勾選：答對率最低的 1/3（有作答紀錄的同學）。 */
+  suggested: number[];
+  /** 這一課可以派整節作業：整節包含哪些課。 */
+  section?: { id: string; lessonIds: string[]; title: string };
+}
+export interface HomeworkItem {
+  lessonId: string;
+  slot: string;
+  variant: number;
+}
+/** 一題的批改：correct＝null 表示看不清楚或沒寫；x、y 是答案在第 photo 張照片上的位置（0–1）。 */
+export interface HomeworkMark {
+  correct: boolean | null;
+  read: string;
+  comment: string;
+  photo?: number;
+  x?: number;
+  y?: number;
+  /** 老師改判過。 */
+  teacher?: boolean;
+}
+export interface HomeworkResult {
+  items: HomeworkMark[];
+  feedback: string;
+  score: number;
+  max: number;
+  mode: 'live' | 'mock';
+  gradedAt: string;
+}
+export type HomeworkStatus = 'assigned' | 'queued' | 'grading' | 'graded' | 'error';
+export interface HomeworkPhoto {
+  id: string;
+  type: string;
+  bytes: number;
+  at: string;
+}
+export interface HomeworkSheet {
+  seat: number;
+  /** QR code 裡的上傳憑證（學生不用登入就能上傳自己這一份）。 */
+  token: string;
+  items: HomeworkItem[];
+  status: HomeworkStatus;
+  photos: HomeworkPhoto[];
+  submittedAt?: string;
+  submissions?: number;
+  /** 這一次批改排進佇列的時間（批改中又重新送出時，舊的結果不寫回）。 */
+  jobAt?: string;
+  /** 批改租約：正在批改的那一次（id）與期限。寫回結果前佇列不移除；逾期沒寫回（程序中斷、寫入失敗）就重新批改。 */
+  lease?: { id: string; until: number };
+  /** 派發時已把題目、附圖、答案、詳解凍結存檔（vault 的 hwq:<作業>/<座號>）；之後改題庫不影響這份作業。 */
+  frozen?: boolean;
+  result?: HomeworkResult;
+  error?: string;
+}
+export interface Homework {
+  id: string;
+  ownerId: string;
+  classId: string;
+  className: string;
+  title: string;
+  lessonIds: string[];
+  scope: 'lesson' | 'section';
+  createdAt: string;
+  sheets: Record<string, HomeworkSheet>;
+}
+/** 作業清單用的摘要（存在主檔）。 */
+export interface HomeworkMeta {
+  id: string;
+  ownerId: string;
+  classId: string;
+  className: string;
+  title: string;
+  lessonIds: string[];
+  scope: 'lesson' | 'section';
+  createdAt: string;
+  sheets: Record<string, { status: HomeworkStatus; score?: number; max?: number; photoBytes?: number }>;
+}
+/** 作業卷上的一題（印 PDF、學生看結果用）；answer、solution 只給老師，或批改後給學生。 */
+export interface HomeworkQuestion {
+  n: number;
+  slot: string;
+  topic: string;
+  stem: string;
+  figure?: string;
+  space: 1 | 2 | 3;
+  answer?: string;
+  solution?: string;
+}
+/** 一位同學的作業卷（老師下載 PDF、學生打開 QR code 連結時看到的）。 */
+export interface HomeworkSheetView {
+  homeworkId: string;
+  title: string;
+  className: string;
+  seat: number;
+  createdAt: string;
+  /** QR code 連結（含憑證）。 */
+  url: string;
+  status: HomeworkStatus;
+  questions: HomeworkQuestion[];
+  photos: HomeworkPhoto[];
+  submittedAt?: string;
+  result?: HomeworkResult;
+  error?: string;
 }

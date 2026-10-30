@@ -70,6 +70,8 @@ export interface DuelAction {
   phase: 'rule' | 'fill';
   rule: string;
   ok: boolean;
+  /** 題目 ID（學習紀錄用：對到題型）。 */
+  p?: string;
   hint?: boolean;
   final?: boolean;
   /** 作答當時自己隊伍的人數（中途有人加入，之前的傷害不變）。 */

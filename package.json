@@ -23,6 +23,9 @@
     "wrangler": "4.150.0"
   },
   "dependencies": {
+    "html2canvas": "1.4.1",
+    "jspdf": "4.2.1",
+    "jszip": "3.10.2",
     "katex": "^0.16.22",
     "qrcode": "1.5.4"
   }
