@@ -589,6 +589,19 @@
 }
 
 /* ───────────── 魔王戰：學生作答卡 ───────────── */
+/*
+ * 作答卡的捲動區永遠保留捲軸的寬度（2026-10-30 老師在 iPad 上看到附圖題面板一直上下跳）：
+ * 附圖的高度跟著寬度縮放，捲軸一出現面板就變窄、附圖變矮、剛好放得下、捲軸消失、面板變寬、附圖又變高溢出……無限循環。
+ * 寬度不再隨捲軸改變，就沒有這個循環。不支援 scrollbar-gutter 的瀏覽器改成一直顯示捲軸（效果相同）。
+ */
+.raid-scroll {
+  scrollbar-gutter: stable;
+}
+@supports not (scrollbar-gutter: stable) {
+  .raid-scroll {
+    overflow-y: scroll;
+  }
+}
 .raid-card {
   display: flex;
   flex-direction: column;

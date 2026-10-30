@@ -1,5 +1,5 @@
 // 回家作業：老師在課堂上派發（預設答對率最低的 1/3）→ 下載 zip（每人一份 A4 PDF＋解答）→ 學生掃 QR code 拍照上傳 → 批改發回（紅筆）→ 老師看結果、改判；學習紀錄頁。
-import { test, expect, type BrowserContext, type APIRequestContext } from '@playwright/test';
+import { test, expect, type Browser, type BrowserContext, type APIRequestContext, type Page, type Request } from '@playwright/test';
 import JSZip from 'jszip';
 import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -132,10 +132,10 @@ test('teacher assigns differentiated homework; a student uploads the sheet and g
   if (shots) await tp.screenshot({ path: join(shots, 'hw-learning.png') });
 });
 
-// 2026-10-30 Codex 審核 C-1、C-4、C-16 的回歸測試
+// 2026-10-30 Codex 審核 C-1、C-4、C-16 的回歸測試（Codex 複審 R-4：各自獨立，前一項失敗不會遮住後面）
 const JPEG = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q==';
-test('a shared iPad never shows the previous student’s homework link; the learning page reloads; a failed re-upload can be retried', async ({ browser }) => {
-  test.setTimeout(120_000);
+/** 老師登入、DEMO801 不用班級代碼，派一份作業給 1 號；graded=true 時先上傳一張照片並等背景批改完成。 */
+async function teacherWithHomework(browser: Browser, graded = false) {
   const teacher = await browser.newContext({ baseURL, viewport: { width: 1440, height: 900 } });
   contexts.push(teacher);
   const tp = await teacher.newPage();
@@ -151,42 +151,89 @@ test('a shared iPad never shows the previous student’s homework link; the lear
   homeworkId = created.homework.id;
   const sheetUrl = new URL(created.sheets[0].url);
   const token = sheetUrl.hash.split('/')[4];
+  const pub = `/api/hw/${homeworkId}/1`;
+  if (graded) {
+    expect((await tp.request.post(`${pub}/photos?t=${token}`, { headers, data: { dataUrl: JPEG } })).status()).toBe(200);
+    expect((await tp.request.post(`${pub}/submit?t=${token}`, { headers, data: {} })).status()).toBe(200);
+    // 背景（alarm）批改
+    await expect.poll(async () => (await (await tp.request.get(`${pub}?t=${token}`)).json()).sheet.status, { timeout: 30_000 }).toBe('graded');
+  }
+  return { tp, headers, cl, token, sheetUrl, pub };
+}
+/** 共用 iPad：學生登入（座號）。 */
+async function studentLogin(page: Page, seat: number) {
+  await page.getByLabel('座號').fill(String(seat));
+  await page.locator('#login-form').getByRole('button', { name: '登入' }).click();
+  await expect(page.getByText('你已入座')).toBeVisible();
+}
+async function logoutToStudentLogin(page: Page) {
+  await page.getByRole('button', { name: '登出' }).click();
+  await expect(page.getByRole('heading', { name: '進入課堂' })).toBeVisible();
+  await page.getByRole('button', { name: '學生', exact: true }).click();
+}
+/** 前一位同學的作業（含 QR 憑證的連結或照片網址）不在畫面上。 */
+async function expectNoTrace(page: Page, token: string) {
+  await expect(page.locator('[data-testid="hw-student"]')).toHaveCount(0);
+  await expect(page.locator('#app')).not.toHaveClass(/hw-student/);
+  expect(await page.content()).not.toContain(token);
+}
+/** 攔住一個請求直到 release()；release 時請求可能已被頁面中止（修正後的行為），忽略那個錯誤。 */
+function holdRequest(page: Page, url: string | RegExp, match: (r: Request) => boolean = () => true) {
+  let release!: () => void;
+  const gate = new Promise<void>((r) => (release = r));
+  let held!: () => void;
+  const seen = new Promise<void>((r) => (held = r));
+  let done = false;
+  void page.route(url, async (route) => {
+    if (done || !match(route.request())) return route.fallback();
+    done = true;
+    held();
+    await gate;
+    await route.continue().catch(() => undefined);
+  });
+  return { seen, release: () => release() };
+}
 
-  // C-1：1 號在等待室看到作業連結 → 登出 → 同一個分頁 2 號登入：不能看到 1 號的連結（含憑證）
+test('C-1: a shared iPad never shows the previous student’s homework link after logout', async ({ browser }) => {
+  test.setTimeout(90_000);
+  const { token } = await teacherWithHomework(browser);
+  // 1 號在等待室看到作業連結 → 登出 → 同一個分頁 2 號登入：不能看到 1 號的連結（含憑證）
   const ipad = await browser.newContext({ baseURL, viewport: { width: 820, height: 1180 }, hasTouch: true });
   contexts.push(ipad);
   const ip = await ipad.newPage();
   await ip.goto('/#/student');
-  await ip.getByLabel('座號').fill('1');
-  await ip.locator('#login-form').getByRole('button', { name: '登入' }).click();
+  await studentLogin(ip, 1);
   await expect(ip.locator(`a[href*="${token}"]`)).toHaveCount(1);
-  await ip.getByRole('button', { name: '登出' }).click();
-  await expect(ip.getByRole('heading', { name: '進入課堂' })).toBeVisible();
-  await ip.getByRole('button', { name: '學生', exact: true }).click();
+  await logoutToStudentLogin(ip);
   await ip.getByLabel('座號').fill('2');
   const list = ip.waitForResponse((r) => r.url().endsWith('/api/student/homework'));
   await ip.locator('#login-form').getByRole('button', { name: '登入' }).click();
   await list;
   await expect(ip.getByText('你已入座')).toBeVisible();
   await expect(ip.locator(`a[href*="${token}"]`)).toHaveCount(0);
+});
 
-  // C-4：學習紀錄頁每次進來都重新讀
+test('C-4: the learning page reloads every time it is opened', async ({ browser }) => {
+  test.setTimeout(90_000);
+  const { tp, headers, cl, token, pub } = await teacherWithHomework(browser);
   await tp.goto('/#/learning');
   await tp.locator('[data-learn="class"]').selectOption(cl.id);
   const count = async () => Number((await tp.locator('.learn-filters .muted').innerText()).match(/(\d+) 筆作答/)![1]);
   await expect(tp.locator('.learn-filters .muted')).toContainText('筆作答');
   const before = await count();
-  const pub = `/api/hw/${homeworkId}/1`;
   expect((await tp.request.post(`${pub}/photos?t=${token}`, { headers, data: { dataUrl: JPEG } })).status()).toBe(200);
   expect((await tp.request.post(`${pub}/submit?t=${token}`, { headers, data: {} })).status()).toBe(200);
-  // 背景（alarm）批改
   await expect.poll(async () => (await (await tp.request.get(`${pub}?t=${token}`)).json()).sheet.status, { timeout: 30_000 }).toBe('graded');
   await tp.goto('/#/homework');
   await expect(tp.getByTestId('learn-table')).toHaveCount(0);
   await tp.goto('/#/learning');
   await expect.poll(count).toBe(before + 10);
+});
 
-  // C-16：訂正後重新上傳，第一張因網路失敗；再選一次照片要成功（不是 409「已經批改完了」）
+test('C-16: a failed re-upload after correction can be retried', async ({ browser }) => {
+  test.setTimeout(90_000);
+  const { tp, sheetUrl } = await teacherWithHomework(browser, true);
+  // 訂正後重新上傳，第一張因網路失敗；再選一次照片要成功（不是 409「已經批改完了」）
   const phone = await browser.newContext({ baseURL, viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
   contexts.push(phone);
   const sp = await phone.newPage();
@@ -206,4 +253,88 @@ test('a shared iPad never shows the previous student’s homework link; the lear
   await expect.poll(() => failed).toBe(true);
   await sp.getByTestId('hw-upload').setInputFiles(photo);
   await expect(sp.getByRole('button', { name: '送出批改（1 張）' })).toBeEnabled();
+});
+
+// 2026-10-30 Codex 複審 R-1：公開作業頁的晚到回覆（初載、輪詢、上傳）在換人後都要丟掉
+test('R-1: a late first load of the homework page is dropped after logout and another student logs in', async ({ browser }) => {
+  test.setTimeout(90_000);
+  const { token } = await teacherWithHomework(browser, true);
+  const ipad = await browser.newContext({ baseURL, viewport: { width: 820, height: 1180 }, hasTouch: true });
+  contexts.push(ipad);
+  const ip = await ipad.newPage();
+  await ip.goto('/#/student');
+  await studentLogin(ip, 1);
+  const load = holdRequest(ip, new RegExp(`/api/hw/${homeworkId}/1\\?t=`));
+  await ip.locator(`a[href*="${token}"]`).click();
+  await load.seen; // 1 號的作業還沒回來，畫面還是等待室
+  await logoutToStudentLogin(ip);
+  await studentLogin(ip, 2);
+  load.release();
+  await ip.waitForTimeout(1500);
+  await expectNoTrace(ip, token);
+  await expect(ip.getByText('你已入座')).toBeVisible();
+});
+
+test('R-1: a late poll reply of the homework page is dropped after leaving it and another student logs in', async ({ browser }) => {
+  test.setTimeout(90_000);
+  const { token } = await teacherWithHomework(browser, true);
+  const ipad = await browser.newContext({ baseURL, viewport: { width: 820, height: 1180 }, hasTouch: true });
+  contexts.push(ipad);
+  const ip = await ipad.newPage();
+  await ip.goto('/#/student');
+  await studentLogin(ip, 1);
+  // 第一次讀取改成「等待批改」，作業頁 4 秒後輪詢；輪詢的請求先攔住
+  const sheetApi = new RegExp(`/api/hw/${homeworkId}/1\\?t=`);
+  let first = true;
+  let release!: () => void;
+  const gate = new Promise<void>((r) => (release = r));
+  let polled!: () => void;
+  const seen = new Promise<void>((r) => (polled = r));
+  await ip.route(sheetApi, async (route) => {
+    if (first) {
+      first = false;
+      const res = await route.fetch();
+      const body = await res.json();
+      body.sheet.status = 'queued';
+      delete body.sheet.result;
+      return route.fulfill({ response: res, json: body });
+    }
+    polled();
+    await gate;
+    await route.continue().catch(() => undefined);
+  });
+  await ip.locator(`a[href*="${token}"]`).click();
+  await expect(ip.getByTestId('hw-wait')).toBeVisible();
+  await seen;
+  await ip.evaluate(() => (location.hash = '#/student'));
+  await expect(ip.getByText('你已入座')).toBeVisible();
+  await logoutToStudentLogin(ip);
+  await studentLogin(ip, 2);
+  release();
+  await ip.waitForTimeout(1500);
+  await expectNoTrace(ip, token);
+});
+
+test('R-1: a late photo-upload reply is dropped after leaving the homework page and another student logs in', async ({ browser }) => {
+  test.setTimeout(90_000);
+  const { tp, token } = await teacherWithHomework(browser);
+  const ipad = await browser.newContext({ baseURL, viewport: { width: 820, height: 1180 }, hasTouch: true });
+  contexts.push(ipad);
+  const ip = await ipad.newPage();
+  await ip.goto('/#/student');
+  await studentLogin(ip, 1);
+  await ip.locator(`a[href*="${token}"]`).click();
+  await expect(ip.getByTestId('hw-upload')).toBeAttached();
+  const upload = holdRequest(ip, '**/photos?t=*', (r) => r.method() === 'POST');
+  const photo = join(test.info().outputDir, 'hw-late.png');
+  await tp.screenshot({ path: photo });
+  await ip.getByTestId('hw-upload').setInputFiles(photo);
+  await upload.seen;
+  await ip.evaluate(() => (location.hash = '#/student'));
+  await expect(ip.getByText('你已入座')).toBeVisible();
+  await logoutToStudentLogin(ip);
+  await studentLogin(ip, 2);
+  upload.release();
+  await ip.waitForTimeout(1500);
+  await expectNoTrace(ip, token);
 });

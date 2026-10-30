@@ -224,23 +224,71 @@ function resultHtml(v: HomeworkSheetView, teacher: boolean) {
 }
 
 /* ───────────── 學生：QR code 連結頁（不用登入） ───────────── */
-let pub: { id: string; seat: string; token: string; view: HomeworkSheetView; timer?: number } | null = null;
-const pubPath = (p: { id: string; seat: string; token: string }, rest = '') => `/hw/${p.id}/${p.seat}${rest}?t=${p.token}`;
-export async function renderStudentSheet(app: HTMLElement, route: string) {
-  const [, , id, seat, token] = route.split('/');
-  clearTimeout(pub?.timer);
-  const r = await api<{ sheet: HomeworkSheetView }>(pubPath({ id, seat, token }));
-  pub = { id, seat, token, view: r.sheet };
-  drawStudentSheet(app);
+/**
+ * 打開中的作業頁（一個「實例」）。每次進入作業頁、換一份作業、離開、登入、登出都換掉：
+ * 舊實例的計時器停掉、在途請求中止；晚到的回覆（成功或失敗）用 alive() 檢查後丟掉，不會畫回前一位同學的作業與照片。
+ */
+interface PubSheet {
+  id: string;
+  seat: string;
+  token: string;
+  view?: HomeworkSheetView;
+  timer?: number;
+  abort: AbortController;
+  /** 學生按了「訂正後重新上傳」：下一張照片帶 restart，伺服器才清掉上一次的照片與結果。 */
+  restart?: boolean;
 }
-function drawStudentSheet(app: HTMLElement) {
-  const p = pub!,
-    v = p.view;
+let pub: PubSheet | null = null;
+const pubPath = (p: { id: string; seat: string; token: string }, rest = '') => `/hw/${p.id}/${p.seat}${rest}?t=${p.token}`;
+/** 這個實例還是目前畫面上的作業頁（沒有離開、沒有換人、沒有換作業）。 */
+const alive = (p: PubSheet) => pub === p && location.hash.split('?')[0] === `#/hw/${p.id}/${p.seat}/${p.token}`;
+/** 這個作業頁實例的請求：實例已經失效時，回覆（成功或失敗）一律丟掉，回傳 null。 */
+async function pubApi(p: PubSheet, rest = '', method = 'GET', body?: unknown): Promise<HomeworkSheetView | null> {
+  try {
+    const r = await api<{ sheet: HomeworkSheetView }>(pubPath(p, rest), method, body, p.abort.signal);
+    return alive(p) ? r.sheet : null;
+  } catch (e) {
+    if (alive(p)) throw e;
+    return null;
+  }
+}
+/**
+ * 離開作業頁（換路由、登入、登出、登入到期時呼叫）：停計時器、中止在途請求、清掉作業狀態，
+ * 並清掉已經畫出來的作業畫面（照片網址含 QR 憑證）。
+ */
+export function leaveStudentSheet() {
+  const p = pub;
+  pub = null;
+  if (p) {
+    clearTimeout(p.timer);
+    p.abort.abort();
+  }
+  const app = document.querySelector<HTMLElement>('#app');
+  if (app?.classList.contains('hw-student')) {
+    app.querySelectorAll('img').forEach((img) => img.removeAttribute('src'));
+    app.replaceChildren();
+    app.className = '';
+  }
+}
+export async function renderStudentSheet(app: HTMLElement, route: string) {
+  leaveStudentSheet();
+  const [, , id, seat, token] = route.split('/');
+  const p: PubSheet = { id, seat, token, abort: new AbortController() };
+  pub = p;
+  const view = await pubApi(p);
+  if (!view) return;
+  p.view = view;
+  drawStudentSheet(app, p);
+}
+function drawStudentSheet(app: HTMLElement, p: PubSheet) {
+  if (!alive(p)) return;
+  const v = p.view!;
+  clearTimeout(p.timer);
   app.className = 'hw-student';
   let main = '';
   if (v.status === 'queued' || v.status === 'grading') {
     main = `<section class="panel hw-wait" data-testid="hw-wait"><div class="spinner" aria-hidden="true"></div><h2>${STATUS_LABEL[v.status]}…</h2><p>大約 1 分鐘，畫面會自動更新；可以先關掉，等一下再掃一次 QR code。</p></section>`;
-    p.timer = window.setTimeout(() => void refreshStudent(app), 4000);
+    p.timer = window.setTimeout(() => void refreshStudent(app, p), 4000);
   } else if (v.status === 'graded' && v.result) {
     main = `${resultHtml(v, false)}${btn('訂正後重新上傳', 'hw-restart', 'secondary', 'camera')}`;
   } else {
@@ -251,15 +299,16 @@ function drawStudentSheet(app: HTMLElement) {
   app.innerHTML = `<header class="hw-top"><span class="brand-mark small">${icon('sigma')}</span><div><strong>${esc(v.title)}</strong><small>${esc(v.className)}・${v.seat} 號</small></div>${tag(STATUS_LABEL[v.status], STATUS_CLASS[v.status])}</header><main class="hw-main" data-testid="hw-student">${main}${qs}</main>`;
   if (v.status === 'graded') mountPhotos(app, v, (pid) => `/api${pubPath(p, `/photos/${pid}`)}`);
 }
-async function refreshStudent(app: HTMLElement) {
-  if (!pub || !location.hash.startsWith('#/hw/')) return;
-  const r = await api<{ sheet: HomeworkSheetView }>(pubPath(pub)).catch(() => null);
-  if (!r || !pub) {
-    if (pub) pub.timer = window.setTimeout(() => void refreshStudent(app), 6000);
+async function refreshStudent(app: HTMLElement, p: PubSheet) {
+  if (!alive(p)) return;
+  const view = await pubApi(p).catch(() => null);
+  if (!alive(p)) return;
+  if (!view) {
+    p.timer = window.setTimeout(() => void refreshStudent(app, p), 6000);
     return;
   }
-  pub.view = r.sheet;
-  drawStudentSheet(app);
+  p.view = view;
+  drawStudentSheet(app, p);
 }
 /** 作業紙照片：長邊 2000 像素的 JPEG（看得清楚手寫，又不會太大）。 */
 async function compressSheetPhoto(file: File): Promise<string> {
@@ -282,19 +331,25 @@ async function compressSheetPhoto(file: File): Promise<string> {
 }
 document.addEventListener('change', async (e) => {
   const input = e.target as HTMLInputElement;
-  if (!pub || !input.matches?.('[data-hw-upload]') || !input.files?.length) return;
+  const p = pub;
+  if (!p || !alive(p) || !input.matches?.('[data-hw-upload]') || !input.files?.length) return;
   const app = document.querySelector<HTMLElement>('#app')!;
   try {
     for (const file of [...input.files]) {
       H.toast('正在上傳照片…');
-      const r = await uploadBody(await compressSheetPhoto(file));
-      pub.view = r.sheet;
+      const dataUrl = await compressSheetPhoto(file);
+      if (!alive(p)) return;
+      const view = await uploadBody(p, dataUrl);
+      // 上傳期間離開了這一頁（換人、登出）：剩下的照片不傳、畫面不畫
+      if (!view) return;
+      p.view = view;
     }
-    drawStudentSheet(app);
+    drawStudentSheet(app, p);
     H.toast('照片已上傳');
   } catch (err) {
+    if (!alive(p)) return;
     H.toast((err as Error).message, true);
-    drawStudentSheet(app);
+    drawStudentSheet(app, p);
   }
 });
 
@@ -499,42 +554,45 @@ export async function homeworkAction(el: HTMLElement): Promise<boolean> {
       learningCsv();
       return true;
     // 學生頁
-    case 'hw-submit': {
-      const r = await api<{ sheet: HomeworkSheetView }>(pubPath(pub!, '/submit'), 'POST', {});
-      pub!.view = r.sheet;
-      drawStudentSheet(document.querySelector('#app')!);
-      return true;
-    }
+    case 'hw-submit':
     case 'hw-del-photo': {
-      const r = await api<{ sheet: HomeworkSheetView }>(pubPath(pub!, `/photos/${el.dataset.photo}`), 'DELETE', {});
-      pub!.view = r.sheet;
-      drawStudentSheet(document.querySelector('#app')!);
+      const p = pub;
+      if (!p || !alive(p)) return true;
+      const view = act === 'hw-submit' ? await pubApi(p, '/submit', 'POST', {}) : await pubApi(p, `/photos/${el.dataset.photo}`, 'DELETE', {});
+      if (!view) return true;
+      p.view = view;
+      drawStudentSheet(document.querySelector('#app')!, p);
       return true;
     }
-    case 'hw-restart':
-      pub!.view = { ...pub!.view, status: 'assigned', photos: [], result: undefined };
-      restartPending = true;
-      drawStudentSheet(document.querySelector('#app')!);
+    case 'hw-restart': {
+      const p = pub;
+      if (!p?.view || !alive(p)) return true;
+      p.view = { ...p.view, status: 'assigned', photos: [], result: undefined };
+      p.restart = true;
+      drawStudentSheet(document.querySelector('#app')!, p);
       return true;
+    }
     case 'hw-own-pdf': {
-      const blob = await sheetPdf(pub!.view);
+      const p = pub;
+      if (!p?.view || !alive(p)) return true;
+      const v = p.view;
+      const blob = await sheetPdf(v);
+      if (!alive(p)) return true;
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = `${safeName(pub!.view.title)}_${pub!.view.seat}號.pdf`;
+      a.download = `${safeName(v.title)}_${v.seat}號.pdf`;
       a.click();
       return true;
     }
   }
   return false;
 }
-/** 學生按了「訂正後重新上傳」：下一張照片帶 restart，伺服器才清掉上一次的照片與結果。 */
-let restartPending = false;
-async function uploadBody(dataUrl: string) {
-  const body = { dataUrl, ...(restartPending ? { restart: true } : {}) };
-  const r = await api<{ sheet: HomeworkSheetView }>(pubPath(pub!, '/photos'), 'POST', body);
+/** 上傳一張照片；實例失效（離開、換人）時回傳 null。 */
+async function uploadBody(p: PubSheet, dataUrl: string) {
+  const view = await pubApi(p, '/photos', 'POST', { dataUrl, ...(p.restart ? { restart: true } : {}) });
   // 上傳成功、伺服器換掉舊照片後才清旗標；失敗時下一張照片仍帶 restart
-  restartPending = false;
-  return r;
+  if (view) p.restart = false;
+  return view;
 }
 /** 學生登入後的作業清單（等待室與課堂上都看得到）。 */
 export async function studentHomeworkHtml(): Promise<string> {

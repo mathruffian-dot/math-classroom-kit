@@ -29,5 +29,10 @@ export default defineConfig({
     screenshot: 'only-on-failure',
   },
   // 本機可設 PW_CHANNEL=msedge 直接使用已安裝的 Edge，不必下載瀏覽器。
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'], channel: process.env.PW_CHANNEL || undefined } }],
+  // PW_BROWSER=webkit：改用 WebKit（先 npx playwright install webkit），例如魔王戰版面檢查 raid-layout.spec.ts。
+  projects: [
+    process.env.PW_BROWSER === 'webkit'
+      ? { name: 'webkit', use: { ...devices['Desktop Safari'] } }
+      : { name: 'chromium', use: { ...devices['Desktop Chrome'], channel: process.env.PW_CHANNEL || undefined } },
+  ],
 });

@@ -336,9 +336,9 @@ C-1～C-10、C-12 的補充探針分別成功重現本文所列現象；其中 S
 | C-9 重要 | 已修 | 派發時每位同學的題目（題幹、附圖、答案、詳解、space）凍結存到 vault `hwq:<作業>/<座號>`，並標記 `sheet.frozen`。<br>重新下載、學生畫面、AI 批改都讀凍結版（`questionsOf`）；沒凍結的舊作業才讀題庫。<br>沒有放進 `hw:<id>` 一筆，原因：實測每題 JSON 平均 2.5 KB、最大 8.6 KB，40 人一份作業可能超過 DO 單筆 2 MB。刪除作業會一起刪。 | `worker/homework.ts`（`bankQuestions`／`questionsOf`／`frozenKey`）、`worker/app.ts`、`shared/types.ts` | 後端〈C-9: each assigned sheet keeps a frozen copy…〉：<br>• 派發後有 10 題凍結稿。<br>• 改凍結稿的答案後，老師端讀到的是凍結稿。<br>• 函式層改題庫 variant 的答案，凍結的作業卷不變；學生版不含答案；未凍結的舊作業才跟著題庫。<br>• 刪除作業後沒有 `hwq:` 殘留。 |
 | C-10 重要 | 已修 | 回覆裡只要有任何一題帶 `n`，就嚴格照題號對：缺題、重複題號、超出範圍都當 null，不用位置補。整份都沒有題號時才照順序。 | `worker/homework.ts` | 後端〈C-10…〉：<br>• Codex 的重現 `[{n:2}]` → `[null,true,null]`。<br>• 另測亂序、重複（null）、超界（忽略）、混用無題號（不以位置補）、全無題號（照順序）、分數。 |
 | C-11 重要 | 已修 | ① 「由周長比求面積」兩題改成可實現的數據：(12,18,面積 6)→13.5；(30,20,面積 36)→16。選項與詳解由產生器重算。<br>② `perim_to_area` 加上「周長 P 的三角形面積 < P²/(12√3)」斷言，兩邊三角形都檢查。<br>③ 順便依 Codex 的建議，把金字塔題的「影子比底邊多出」改成「影子的尖端超出靠影子那一側的底邊」。 | `scripts/quiz-src/g9-1-4-raid.py`、`content/raids/g9-1-4c.json`（重製） | 產生器 228 題 `check_item` 全過；和舊檔比只有這 4 題不同。<br>後端〈C-11…〉從 JSON 解析這兩題的周長與面積，檢查兩個三角形都可能存在。 |
-| C-12 重要 | **只做揭露，範圍待老師決定** | 備份範圍是老師要決定的設計取捨，這次沒有實作作業備份與還原。先做到不誤導：<br>• 備份 JSON 加 `excludes: ['homework','photos','credentials']`。<br>• 課堂紀錄頁的備份說明與下載 toast 寫明「不含回家作業」。<br>• `docs/HOMEWORK.md` 新增「備份」一節。 | `worker/app.ts`、`src/main.ts`、`docs/HOMEWORK.md` | 後端〈C-12: the backup says what it does not contain…〉。<br>既有的「備份不含秘密」測試仍通過：`excludes` 原本寫 `secrets`，會撞到秘密字樣檢查，已改名為 `credentials`。 |
-| C-13 建議 | **不修，待老師決定** | 屬課綱標記取捨，使用者指定交老師決定。我沒有自行核對國教院 PDF 原文，S-9-4 的敘述維持原樣。 | — | — |
-| C-14 建議 | **不修，待老師決定** | q9 題型名稱、1-4c objective 0 的對應，屬題型命名與設計，使用者指定交老師決定。 | — | — |
+| C-12 重要 | **只做揭露（2026-10-30 老師授權決定：目前維持揭露，作業備份日後再議）** | 備份範圍是老師要決定的設計取捨，這次沒有實作作業備份與還原。先做到不誤導：<br>• 備份 JSON 加 `excludes: ['homework','photos','credentials']`。<br>• 課堂紀錄頁的備份說明與下載 toast 寫明「不含回家作業」。<br>• `docs/HOMEWORK.md` 新增「備份」一節。 | `worker/app.ts`、`src/main.ts`、`docs/HOMEWORK.md` | 後端〈C-12: the backup says what it does not contain…〉。<br>既有的「備份不含秘密」測試仍通過：`excludes` 原本寫 `secrets`，會撞到秘密字樣檢查，已改名為 `credentials`。 |
+| C-13 建議 | **延後**（不阻擋部署；老師授權決定延後處理） | 屬課綱標記取捨，使用者指定交老師決定。我沒有自行核對國教院 PDF 原文，S-9-4 的敘述維持原樣。 | — | — |
+| C-14 建議 | **延後**（不阻擋部署；老師授權決定延後處理） | q9 題型名稱、1-4c objective 0 的對應，屬題型命名與設計，使用者指定交老師決定。 | — | — |
 | C-15 建議 | 已修 | 「比多頂端下滑的 x 公尺」改成「比頂端下滑的 x 公尺多（少）」。 | `scripts/homework-src/g8-2-3.py`、`content/homework/g8-2-3b.json`（重製） | 重製 g8-2-3：151 題全部一致；比對只有 q7 五題詳解改變。 |
 | C-16 建議 | 已修 | `restartPending` 等上傳成功才清掉；失敗時下一張照片仍帶 `restart`。伺服器端見 C-6。 | `src/homework.ts` | e2e 同上：訂正後重傳，第一張用 `route.abort` 模擬斷網；再選一次照片，出現「送出批改（1 張）」（不是 409）。後端 C-6 測試涵蓋伺服器重試。 |
 | C-17 建議 | 已修（文件） | 題數改成 730：本檔 §2、`CHANGELOG.md`、`../CONTENT_INDEX.md`。驗證證據與未驗證項目分開寫在下面兩節。<br>e2e 沒有加「解碼 PDF 裡的 QR」與逐頁印刷檢查：需要新增 QR 解碼套件，而且這次優先補 C-1～C-12 的失敗情境；列為未驗證。 | 本檔、`CHANGELOG.md`、`../CONTENT_INDEX.md` | — |
@@ -374,6 +374,8 @@ e2e 全套會照常重寫 `artifacts/screenshots/` 的截圖（Codex A-1 提過�
 
 #### 待老師決定
 
+> 2026-10-30 更新（老師授權決定）：C-12 目前採 (c) 只做揭露，作業備份日後再議；C-13、C-14 延後處理，不阻擋部署。正式站已於 2026-10-30 部署 cc5eff3。
+
 1. **C-12 作業備份範圍**：要不要把回家作業放進備份？選項：
    - (a) 只備份派發紀錄＋每人題目（凍結稿）＋批改結果，不含照片。還原時重新發 QR 憑證，舊 QR 失效。
    - (b) 連照片一起備份（備份檔會很大）。
@@ -394,3 +396,93 @@ e2e 全套會照常重寫 `artifacts/screenshots/` 的截圖（Codex A-1 提過�
    - 1-4 魔王的「鏡子測高」「金字塔」「影子落在牆上」都對到 1-4(1) q2（影子測高）。
    - 「竹竿測高」對到 q6（大三角形套小三角形）。
    - 「放大縮小後比值不變」對到 1-4(3) q3。
+
+
+### 2026-10-30｜Codex 複審
+
+複審版本：本機 HEAD cc5eff3162c044bcfe3518f8048fe21d73fe8fd0。已讀 AGENTS.md、HOMEWORK.md、原 C-1～C-17、A-1／A-2 與 Claude Code 第二輪回覆，交叉查閱型別、架構及安全文件。正式站已部署此版是老師提供的背景；本輪未連正式站、讀寫正式資料或部署。
+
+**結論：未通過。** C-1 等待室清單已修，但公開作業頁另有未防護的晚到回覆，能在換人後畫回前一位的作業與照片憑證；C-5 原始結果寫回失敗案例已修，但首次入列仍能遺失工作，另有批改摘要不同步。詳見 R-1～R-3。C-7／C-8 不適用、C-12／C-13／C-14 延後，均不重新當成阻擋。
+
+#### 方法與驗證界線
+
+主專案只執行指定 npm test、npm run typecheck，沒有跑 e2e。補充探針將實際 HEAD TypeScript 轉譯／打包在記憶體，替換 API／DOM 以控制晚到回覆，並使用 structuredClone 隔離的記憶體 Store／Vault。DO 探針使用真正 ClassroomDurableObject 類別及有交易、setAlarm／getAlarm 的記憶體 storage。這些探針沒有修改實體程式或題庫、沒有使用真 AI／金鑰／Supabase；**不等同本輪 Edge 師生 e2e 或正式 Cloudflare alarm 通過**。指定指令的環境失敗另列，不沿用 Claude 的 65／65 當成本輪結果。
+
+#### 逐項複審
+
+| 編號 | 複審結果 | 依據 |
+|---|---|---|
+| C-1 | 未通過 | src/main.ts:2551～2567 依學生 ID／班級／座號分鍵並拒絕不同身分的晚到清單；登入 3622～3623、登出 2831～2832、課堂登入逾期 2401～2402 清快取。清單探針 A 請求未回就換 B，插入數為 0。但 src/homework.ts:227～234、254～262 的公開作業初載與輪詢未在 await 後驗證路由／請求世代，登出不清 pub；兩個探針在 hash 已為 #/student 後都畫回 A 並在 DOM 留下 A token，見 R-1。 |
+| C-2 | 通過 | worker/homework.ts:82～86、112～138、201～215；src/homework.ts:348～363、383；shared/types.ts 的 links.items／dup；scripts/check-homework.mjs:57～70。真題庫重跑原 b-ex5 三小題 [true,true,false]，實得三筆 q3=true／q4=true／q5=false，沒有原本九筆交叉乘積；補救輪次使用 items[round]，總數排除 dup。回歸測試位置 tests/backend.test.mjs:1522。 |
+| C-3 | 通過 | worker/homework.ts:89～99、159～179；scripts/check-homework.mjs:72～106。對真題庫全量呼叫 sessionRecords：1-4 魔王 228 題只有 12 題明訂 raidSkip 無題型，2-2 魔王 235 題只有 8 題 raidSkip，非預期漏配均 0；格鬥 b／c／d 分別 56／70／91 題，漏配均 0。回歸測試位置 tests/backend.test.mjs:1543。 |
+| C-4 | 通過 | src/homework.ts:337～341 每次進頁預設重新讀 API，只有同頁換課程才 reuse（411～417）；CSV／點座號讀同一 learning（387～409）。原模組記憶體探針同班 renderLearning 兩次，API 兩次、畫面由 0 筆更新至 10 筆。本輪瀏覽器斷言未執行。 |
+| C-5 | 未通過 | 原缺陷修補已驗證：worker/app.ts:2919～3007 保留工作、六分鐘租約與 jobAt／lease ID 比對；worker/index.ts:139～149 重排。結果 vault.put 失敗後 queue=1／grading，立即再 drain 回傳租約期限，到期後 graded／queue=0；真 DO 類別探針得到 30 秒重試、租約期限重排、到期完成；kick 拒絕時同步完成。但 app.ts:3013～3028 首次入列主檔失敗仍卡 queued，2995～3007 結果主檔失敗會留下 grading 摘要，見 R-2／R-3。 |
+| C-6 | 通過 | DO 路徑 worker/app.ts:3047～3085 先驗證、存新照片、寫清單及主檔，成功後刪舊照片。實測 graded 作業四個失敗點：無效 data URL→400；照片 put、清單 put、主檔 write 各單次失敗→503。四次舊 hw 完全不變、舊照片存在、照片數均 1；成功重試→200／assigned，存取記錄為新 hwphoto put→hw put→主檔 write 成功→舊 hwphoto delete，這時舊照片才消失。刪單張 3087～3096、清舊照片 1150～1169 先改清單，整份刪除 2843～2852 連凍結題目清除。回歸測試位置 tests/backend.test.mjs:1608、1629、1654；不宣稱本輪執行了這些 npm 案例。 |
+| C-7 | 不適用 | 老師決定目前不用 Supabase；worker/photos.ts:3、docs/HOMEWORK.md:120～132 明寫參考路徑與啟用前要處理的問題。本輪只驗 DO，不要求修參考路徑。 |
+| C-8 | 不適用 | 同 C-7；未把保留的 Supabase 刪除缺陷重新當成目前部署的阻擋。 |
+| C-9 | 通過 | 派發 worker/app.ts:3173～3176 凍結每人題目；worker/homework.ts:293～312 的 questionsOf 供 viewOf（app.ts:2834）與批改（2959～2960）共用，刪除時 app.ts:2848 清 hwq。實測每人存 10 題、教師讀回與凍結稿相同，學生批改前無 answer／solution；記憶體改題庫答案後，凍結版維持舊答案。回歸測試位置 tests/backend.test.mjs:1680。 |
+| C-10 | 通過 | worker/homework.ts:354～377 有 n 就嚴格按唯一合法題號。原重現 [{n:2,correct:true}] 現為 [null,true,null]；重複題號 1、超界題號 9 的探針亦為 [null,true,null]。回歸測試位置 tests/backend.test.mjs:1707。 |
+| C-11 | 通過 | scripts/quiz-src/g9-1-4-raid.py:626～638、827 改成 (12,18,6) 與 (30,20,36)，加兩邊三角形面積上限斷言。讀目前 content/raids/g9-1-4c.json 重算為 13.5、16，兩邊均可實現，選項及詳解相符。產生器 620 的金字塔文字已改清楚；未執行會重寫 JSON 的產生器。 |
+| C-12 | 延後 | 依授權只做揭露。已實際讀備份 API：worker/app.ts:2318 為 excludes=[homework,photos,credentials]；src/main.ts:229、2943 與 docs/HOMEWORK.md:142～144 明寫整份作業不含在備份。揭露已做到，未要求實作作業備份。 |
+| C-13 | 延後 | 依老師決定延後，不阻擋部署；本輪未修改課綱或重新要求核對官方 PDF。 |
+| C-14 | 延後 | 依老師決定延後，不阻擋部署；未把題型命名／objective 取捨再列缺陷。 |
+| C-15 | 通過 | scripts/homework-src/g8-2-3.py:564 與 content/homework/g8-2-3b.json:332、339、346、353、360，五題都改為「比頂端下滑的……公尺多」，舊語病消失。 |
+| C-16 | 通過 | src/homework.ts:532～537 上傳成功後才清 restartPending。原模組探針先 hw-restart、第一次 API 拋網路錯誤、再次呼叫上傳函式，兩次 body 均帶 restart:true；伺服器成功重試見 C-6。瀏覽器 208 行斷言本輪未執行。 |
+| C-17 | 通過 | 就文件更正及證據界線通過：本檔 §2、CHANGELOG.md:9 均為 730；本輪實體 JSON 計 13 課／730 題，生成稿與各課 JSON 相同。Claude「仍未驗證」已列 PDF／QR、真 AI、正式 alarm 及舊版負向測試，本節補記本輪限制。依禁止碰專案外的規則，未讀寫 ../CONTENT_INDEX.md，不能替該外部檔案背書。 |
+| A-1 | 不適用 | 原審核操作事故，非本輪產品修正項；舊 29 張無法還原的歷史事實仍保留。本輪未在主專案跑 e2e，content 與 artifacts/screenshots 共 622 個檔案 SHA-256 前後相同，0 差異，未重寫既有截圖。 |
+| A-2 | 不適用 | 原執行環境／清理紀錄；依老師指示完全不讀、不改、不刪 .review-codex-tmp/。本輪暫存另放指定 worktree 並清理，沒有宣稱舊暫存已清理。 |
+
+#### 修正前 e2e：未取得有效的負向證據
+
+1. 指定 worktree C:/Users/User/AppData/Local/Temp/mck-prefix-9a67a65 的 detached HEAD 確為 9a67a6589b0be85d6876e50fb0e27a6ec674b39c，初始 git status 為空。只用單次 git -c safe.directory=<該 worktree> 讀取，未改全域設定。
+2. **9a67a65 尚未加入回家作業功能，不是「有作業但尚未修 C-1／C-4／C-16」的快照。** 原本沒有 tests/e2e/homework.spec.ts、worker/homework.ts、worker/photos.ts；worker/app.ts／src/main.ts 搜尋 homework 無命中。cc5eff3 的 git show --stat 證明功能與修正一起加入。未讀 .review-codex-tmp/ 找舊碼，也未自行拼湊假舊版。
+3. HEAD 的 homework.spec.ts 原樣複製進 worktree；此檔不依賴 tests/fixtures，未複製 fixture。確認 18897 未占用，PowerShell 設 MCK_PORT=18897、PW_CHANNEL=msedge、CI=1、MCK_PERSIST_DIR 指向 worktree 內本輪暫存，執行 npx.cmd playwright test tests/e2e/homework.spec.ts，未使用主專案伺服器。
+4. exit 1：webServer 在 build-lessons／esbuild 階段失敗，訊息為 Cannot read directory "../../../..": Access is denied.、無法 resolve worktree 的 worker/validation.ts，接著 Process from config.webServer was not able to start。**0 pass／0 測試斷言 fail，是環境啟動失敗。**
+5. 補做同檔 --list，exit 1：Cannot find package 'jszip' imported from .../tests/e2e/homework.spec.ts，Total: 0 tests in 0 files。9a67a65 相依套件尚未加入作業所需 jszip；未安裝套件或改 package，也未挪用新版程式掩蓋差異。
+6. 所以 C-1 的 171 行（舊 token 連結應為 0）、C-4 的 187 行（筆數增加 10）、C-16 的 208 行（可重傳）**全部未執行，沒有任何斷言可歸因於這三個舊缺陷而失敗**。未在不相容基準上跑新版後端測試。工作中已詢問允許目錄內是否另有真正修正前快照，本輪未取得；此項仍未驗證，不能以 exit 1 冒充負向測試成功。
+
+#### 主專案指定測試
+
+| 指令 | 本輪 pass／fail | 指令結果及界線 |
+|---|---|---|
+| npm test（Windows 使用 npm.cmd test） | 0／0 個案例，測試未開始 | exit 1；前置 npm run lessons 的 esbuild 報 Cannot read directory "../../..": Access is denied.，無法 resolve 主專案 worker/validation.ts。未到 node --test，不是 65 案例中的產品斷言失敗。 |
+| npm run typecheck（npm.cmd run typecheck） | 0 次完成／1 次指令失敗；tsc 未開始 | 同樣在前置 lessons／esbuild 被環境存取限制中止，exit 1。沒有 tsc pass，也沒有可報的 TypeScript 診斷數。 |
+
+一般 exec 工具本身另報 helper_unknown_error: setup refresh had errors，故改由可用的 Node 程序介面啟動 PowerShell。最初 npm／npx 的 .ps1 遭執行原則阻擋後，使用官方 Windows .cmd 入口；未改執行原則、ACL 或系統設定。表中是 .cmd 的實際結果。**本輪無法確認 Claude 的 65 pass／0 fail 與 typecheck 通過，需在可正常讀取專案的環境重跑。** 補充記憶體探針已逐項記錄，不灌入 npm test 的 pass 數。
+
+#### 新發現／未完整修復的問題
+
+**R-1｜阻擋｜公開作業晚到回覆仍能跨換座號畫回前一位作業（C-1 未完整修復）**
+
+- 位置：src/homework.ts:227～234、254～262、283～298；src/main.ts:2603～2609、2826～2836。公開作業 pub、輪詢、上傳共用全域狀態；登入／登出只清 homeworkHtml，不使這些在途公開請求失效。
+- 重現：A 從等待室點作業，延遲 GET /api/hw/<A作業>/1?t=<A憑證> 的回覆；原等待畫面仍有登出鈕時登出，換 B 登入，再放行 A 回覆。另一條路徑：A 批改中的四秒輪詢發出後返回 #/student、換 B，再放行回覆。refreshStudent 只有請求前 hash 檢查，回覆後沒有。
+- 實測：直接轉譯原模組、只替換 API／DOM 的兩個記憶體探針，在 hash=#/student、DOM 已設為 B 等待室後，均變成 class=hw-student，出現「1 號」及 A token 的照片 src。等待室清單同樣延遲換人則插入 0，明確區分已修及漏修分支。這是控制流程實測，未宣稱本輪跑過真實 Edge 換座號。
+- 儲存盤點：未發現 homework 把憑證寫進 localStorage／sessionStorage，也未發現 Service Worker／Cache API 作業快取；localStorage 使用點為偏好及課堂待送答案。app.ts:465 的 JSON 與 Worker index.ts:364～369 的作業／照片 API 均 no-store。仍有 pub 記憶體、在途請求與含 bearer token URL 的生命週期，清 homeworkHtml 不足以涵蓋。
+- 建議：公開作業也納入路由／登入世代；離開、登入、登出時停止 timer 並使 pub／在途初載、輪詢、上傳結果失效；每個 await 後驗證原作業實例與世代才寫 DOM／pub。為共用裝置明訂含憑證 URL 的歷史／離開流程，補兩條晚到回覆測試。
+
+**R-2｜重要｜首次入列主檔失敗會留下永遠 queued 的作業**
+
+- 位置：worker/app.ts:3014～3024、3047、3098～3105；drainHomework 的 2915 只從已保存 hwQueue 找工作。
+- 重現：建立作業及照片，在 POST submit 時只讓保存主檔／hwQueue 的 store.write 失敗一次。saveHw 已把 queued 及 submissions+1 寫入 vault，但 queue 尚未持久化，alarm 也尚未排入。
+- 實測：真 handleApi＋記憶體 Store 得 submit=503、vault sheet=queued、state.hwQueue 缺省；手動 drain 無工作、重送=409。用真 ClassroomDurableObject＋SessionSplitStore 的主檔 transaction 失敗重做，也得到 503→手動 alarm 後仍 queued→重送 409，alarm=null。不是只在簡化 Store 上出現。
+- 影響／建議：學生不能自行重送；老師可從詳細頁重新批改救回，但 alarm 不會自動找回。入列與狀態轉移需可恢復提交，或失敗回滾／補建 queue，並避免白耗送出次數。既有 tests/backend.test.mjs:1559、1582 只測結果 vault.put 失敗，沒有此故障點。
+
+**R-3｜重要｜結果已寫 vault、主檔寫失敗時，重試清工作卻不修摘要**
+
+- 位置：worker/app.ts:2996～3007、2923～2926；3185～3190 的作業清單直接讀主檔摘要。
+- 重現：排入作業，允許租約及 graded 結果 vault.put 成功，只讓結果階段的 store.write 失敗一次，再 drain。因 sheet 已 graded，重試走「不用批改」分支移除 queue，沒有重算 hwMeta。
+- 實測：真實後端記憶體故障探針最終 vault sheet.status=graded、主檔摘要 status=grading、hwQueue=[]，無工作可再自動校正。
+- 影響／建議：學生／詳細頁能讀結果，但教師總表、完成數與分數摘要持續不正確。辨識已完成工作時也應修摘要，或採可原子提交／重建的摘要策略，補 main write 故障測試。
+
+**R-4｜建議｜三個 e2e 合在同一 test，前段失敗會遮住後兩項**
+
+- 位置：tests/e2e/homework.spec.ts:137～208。
+- 重現／依據：C-1／C-4／C-16 依序執行；真正舊版若在 171 行 C-1 失敗，187／208 行即不執行。本輪另因無作業的基準與環境中止，未取得三項各自的負向證據。
+- 建議：在真正有作業的修正前快照上分成獨立場景或可單獨執行的探針，逐項記錄與缺陷吻合的斷言；不能以一次合併測試 exit 1 認定三項均有效。
+
+#### 檔案保全、清理與處置結論
+
+- 主專案 content 與 artifacts/screenshots 共 622 個檔案 SHA-256 均未變；git status 除本來已修改的審核文件與原 .review-codex-tmp/ 外，沒有其他主專案變更。本節只追加，原文件完整位元組前綴保留。
+- 本輪 worktree 暫存 .codex-review-recheck/（含 Node／Playwright 快取）、新複製的 tests/e2e/homework.spec.ts，以及本輪建立的 playwright-report/、test-results/ 均已清理。worktree 本身保留，沒有 worktree remove；完全未碰舊 .review-codex-tmp/。持久資料明確指定 worktree 內，未另建系統 mck-e2e-* 資料夾。
+- **正式站有需要立即處理的 C-1 隔離風險。** 不建議不同學生繼續在同一分頁／共用 iPad 沿用目前作業流程。部署者應立即修補或暫停這條共用裝置入口；若不能及時止血，應評估回滾至不含此功能的安全版本及既有作業資料相容性。本輪沒有證據顯示正式站已實際外洩，未執行回滾或接觸正式資料。
+- C-5 的 R-2／R-3 應一併修補，不能宣稱所有背景寫入失敗均可復原。其他通過項目不抵銷阻擋；npm／typecheck 與真正修正前 e2e 仍需補有效執行證據後再複審。

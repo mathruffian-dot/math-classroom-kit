@@ -2921,7 +2921,9 @@ export async function drainHomework(
         const hw = await loadHw(vault, id);
         const sheet = hw?.sheets[seat];
         if (!hw || !sheet || !['queued', 'grading'].includes(sheet.status)) {
-          // 作業刪了、老師改判完、已經寫回：不用批改
+          // 作業刪了、老師改判完、已經寫回：不用批改。
+          // 結果已寫進作業內容、主檔摘要沒寫進去（或送出時只寫了主檔）：摘要依作業內容重算，再移出佇列
+          if (hw && state.homework?.[id]) state.homework[id] = hwMeta(hw);
           state.hwQueue = state.hwQueue!.filter((k) => k !== key);
           dirty = true;
           continue;
@@ -3009,16 +3011,44 @@ export async function drainHomework(
   }
   return undefined;
 }
-/** 排進批改佇列；有 alarm 就背景批改（排不進去時改成當場批改），沒有就當場批改。 */
-async function queueGrading(ctx: AppContext, vault: Vault, state: State, hw: Homework, sheet: HomeworkSheet) {
+/**
+ * 排進批改佇列；有 alarm 就背景批改（排不進去時改成當場批改），沒有就當場批改。
+ * 先寫主檔（佇列＋摘要），再寫作業內容：
+ * - 主檔寫不進去：什麼都沒改，學生可以再送（送出次數不算）。
+ * - 主檔寫了、作業內容寫不進去：把主檔改回來；改不回來就請 alarm 來清（佇列裡的工作指到「還沒送出」的作業卷，
+ *   drainHomework 會移掉它並重算摘要）。兩種情況作業卷都不會卡在「等待批改」卻沒有工作。
+ * before：送出前的作業卷（送出時已先加了送出次數），失敗時整份還原。
+ */
+async function queueGrading(ctx: AppContext, vault: Vault, state: State, hw: Homework, sheet: HomeworkSheet, before: HomeworkSheet = structuredClone(sheet)) {
+  const key = `${hw.id}:${sheet.seat}`;
+  const queue = state.hwQueue,
+    meta = state.homework?.[hw.id];
+  const rollback = () => {
+    for (const k of Object.keys(sheet)) delete (sheet as unknown as Record<string, unknown>)[k];
+    Object.assign(sheet, structuredClone(before));
+    state.hwQueue = queue;
+    if (meta) state.homework![hw.id] = meta;
+  };
   sheet.status = 'queued';
   sheet.jobAt = now();
   delete sheet.lease;
   delete sheet.error;
-  await saveHw(vault, state, hw);
-  const key = `${hw.id}:${sheet.seat}`;
-  state.hwQueue = [...(state.hwQueue || []).filter((k) => k !== key), key];
-  await ctx.store.write(state);
+  state.hwQueue = [...(queue || []).filter((k) => k !== key), key];
+  (state.homework ||= {})[hw.id] = hwMeta(hw);
+  try {
+    await ctx.store.write(state);
+  } catch (e) {
+    rollback();
+    throw e;
+  }
+  try {
+    await vault.put(`hw:${hw.id}`, hw);
+  } catch (e) {
+    rollback();
+    const undone = await ctx.store.write(state).then(() => true, () => false);
+    if (!undone) await ctx.kickHomework?.().catch(() => undefined);
+    throw e;
+  }
   if (ctx.kickHomework)
     try {
       return await ctx.kickHomework();
@@ -3099,9 +3129,10 @@ async function homeworkPublic(request: Request, ctx: AppContext, state: State, v
     assert(sheet.status !== 'graded', '已經批改完了', 409);
     assert(sheet.photos.length, '請先拍照上傳作答紙', 400);
     assert((sheet.submissions || 0) < HW_MAX_SUBMISSIONS, `每份作業最多送出 ${HW_MAX_SUBMISSIONS} 次`, 429);
+    const before = structuredClone(sheet);
     sheet.submissions = (sheet.submissions || 0) + 1;
     sheet.submittedAt = now();
-    await queueGrading(ctx, vault, state, hw, sheet);
+    await queueGrading(ctx, vault, state, hw, sheet, before);
     return view();
   }
   throw new HttpError(404, '找不到 API');

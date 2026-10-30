@@ -42,7 +42,19 @@ export function initRaidUi(h: RaidHelpers) {
 /* ───────── 美術：public/raid/ 的圖（Codex ImageGen 生成）；圖還沒放進去時用圖示代替 ───────── */
 const HERO_ICON: Record<RaidRole, string> = { knight: '🛡️', mage: '🔮', archer: '🏹' };
 const BOSS_ICON = { easy: '🐲', normal: '👹', hard: '💀' } as const;
-const BOSS_NAME = { easy: '根號史萊姆王', normal: '無理數魔像', hard: '混沌根式龍' } as const;
+type BossSet = { dir: string; name: Record<keyof typeof BOSS_ICON, string> };
+/**
+ * 魔王的圖與名字依魔王戰所屬年級（課程 id 的前綴，例如 g9-）切換；沒有自己一套的年級用原本的根號魔王。
+ * 九年級的圖放在 public/raid/g9/（生成指示見 scripts/raid-art/PROMPT-g9.md）；圖還沒放進去時一樣顯示圖示。
+ */
+const BOSSES: Record<'default' | 'g9', BossSet> = {
+  default: { dir: '/raid', name: { easy: '根號史萊姆王', normal: '無理數魔像', hard: '混沌根式龍' } },
+  g9: { dir: '/raid/g9', name: { easy: '縮放史萊姆', normal: '影長巨像', hard: '相似三角龍' } },
+};
+export function bossOf(lessonId: string | undefined, d: keyof typeof BOSS_ICON) {
+  const set = lessonId?.startsWith('g9-') ? BOSSES.g9 : BOSSES.default;
+  return { name: set.name[d], src: `${set.dir}/boss-${d}.webp` };
+}
 const ROLE_SKILL: Record<RaidRole, string> = { knight: '揮劍斬擊', mage: '火球魔法', archer: '連射箭雨' };
 /** 英雄大招：5 種畫面效果。依大招發生的時間與參與的座號決定，每台裝置看到的是同一招。 */
 const ULT_SKILLS = [
@@ -91,7 +103,7 @@ export function wireArt(root: ParentNode) {
   });
 }
 const heroArt = (r: RaidRole, cls = '') => art(`/raid/hero-${r}.webp`, HERO_ICON[r], `hero ${cls}`);
-const bossArt = (d: keyof typeof BOSS_ICON) => art(`/raid/boss-${d}.webp`, BOSS_ICON[d], 'boss');
+const bossArt = (lessonId: string | undefined, d: keyof typeof BOSS_ICON) => art(bossOf(lessonId, d).src, BOSS_ICON[d], 'boss');
 
 /* ───────── 戰況 ───────── */
 export function elapsed(v: RaidView, now: number) {
@@ -132,13 +144,13 @@ function resultTitle(s: RaidState, v: RaidView) {
 }
 
 /* ───────── 老師：冒險地圖（魔王戰頁、還沒開戰時） ───────── */
-export function raidMapHtml(map: NonNullable<import('../shared/types').SessionView['raidMap']>): string {
+export function raidMapHtml(map: NonNullable<import('../shared/types').SessionView['raidMap']>, lessonId?: string): string {
   const order = ['easy', 'normal', 'hard'] as const;
   const nodes = order
     .map((d, i) => {
       const w = map.wins[d];
       const time = w ? `${Math.floor(w.ms / 60000)} 分 ${Math.round((w.ms % 60000) / 1000)} 秒` : '';
-      return `<div class="raid-map-node ${w ? 'won' : ''}" data-testid="raid-map-${d}">${bossArt(d)}<b>${BOSS_NAME[d]}</b><small>${DIFFICULTY_NAME[d]}</small><span>${w ? `✓ 已擊敗・最快 ${time}` : i > 0 && !map.wins[order[i - 1]] ? '先打倒前一隻吧' : '等待挑戰'}</span></div>`;
+      return `<div class="raid-map-node ${w ? 'won' : ''}" data-testid="raid-map-${d}">${bossArt(lessonId, d)}<b>${bossOf(lessonId, d).name}</b><small>${DIFFICULTY_NAME[d]}</small><span>${w ? `✓ 已擊敗・最快 ${time}` : i > 0 && !map.wins[order[i - 1]] ? '先打倒前一隻吧' : '等待挑戰'}</span></div>`;
     })
     .join('<i class="raid-map-path"></i>');
   const done = order.filter((d) => map.wins[d]).length;
@@ -146,13 +158,13 @@ export function raidMapHtml(map: NonNullable<import('../shared/types').SessionVi
 }
 
 /* ───────── 老師：大螢幕戰場 ───────── */
-export function raidBoardHtml(v: RaidView): string {
+export function raidBoardHtml(v: RaidView, lessonId?: string): string {
   const d = v.run.difficulty;
   const roles = Object.values(v.roles || {});
   const heroes = RAID_ROLES.map((r) => `<div class="raid-hero" data-role="${r}">${heroArt(r)}<small>${ROLE_NAME[r]} ×<b id="rb-n-${r}">${roles.filter((x) => x === r).length}</b></small></div>`).join('');
   return `<div class="raid-board" data-testid="raid-board" data-difficulty="${d}">
-<div class="raid-top"><strong class="raid-boss-name">${BOSS_NAME[d]}<small>${DIFFICULTY_NAME[d]}</small></strong><div class="raid-bar boss" title="魔王血量"><i class="hp" id="rb-boss-hp"></i><i class="sh" id="rb-boss-sh"></i><span id="rb-boss-text"></span></div><div class="raid-bar charge" title="魔王蓄力（滿了會預告大招）"><i id="rb-charge"></i><span>魔王蓄力</span></div><span class="raid-clock" id="rb-clock"></span></div>
-<div class="raid-arena" id="rb-arena"><div class="raid-ambient" aria-hidden="true">${AMBIENT}</div><div class="raid-heroes" id="rb-heroes">${heroes}<div class="raid-shield" id="rb-shield"></div></div><div class="raid-boss" id="rb-boss"><i class="raid-aura"></i>${bossArt(d)}</div><div class="raid-fx" id="rb-fx"></div><div class="raid-warn" id="rb-warn" hidden></div><div class="raid-resist" id="rb-resist" hidden></div></div>
+<div class="raid-top"><strong class="raid-boss-name">${bossOf(lessonId, d).name}<small>${DIFFICULTY_NAME[d]}</small></strong><div class="raid-bar boss" title="魔王血量"><i class="hp" id="rb-boss-hp"></i><i class="sh" id="rb-boss-sh"></i><span id="rb-boss-text"></span></div><div class="raid-bar charge" title="魔王蓄力（滿了會預告大招）"><i id="rb-charge"></i><span>魔王蓄力</span></div><span class="raid-clock" id="rb-clock"></span></div>
+<div class="raid-arena" id="rb-arena"><div class="raid-ambient" aria-hidden="true">${AMBIENT}</div><div class="raid-heroes" id="rb-heroes">${heroes}<div class="raid-shield" id="rb-shield"></div></div><div class="raid-boss" id="rb-boss"><i class="raid-aura"></i>${bossArt(lessonId, d)}</div><div class="raid-fx" id="rb-fx"></div><div class="raid-warn" id="rb-warn" hidden></div><div class="raid-resist" id="rb-resist" hidden></div></div>
 <div class="raid-bottom"><div class="raid-bar team" title="英雄血量（全班共用）"><i id="rb-team"></i><span id="rb-team-text"></span></div><div class="raid-info" id="rb-shield-info"></div><div class="raid-bar ult" title="大招計量"><i id="rb-ult"></i><span id="rb-ult-text"></span></div><ol class="raid-feed" id="rb-feed"></ol></div>
 <div class="raid-overlay" id="rb-overlay"></div></div>`;
 }

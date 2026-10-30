@@ -46,7 +46,7 @@ import type { RaidKind } from '../shared/raid';
 import { duelBlanks, duelBoardHtml, duelCardHtml, duelCardKey, duelLocal, duelPanelHtml, duelPhase, duelPutTile, initDuelUi, updateDuelBoard } from './duel-ui';
 import { DUEL_TEAM_NAME, type DuelTok } from '../shared/duel';
 import QRCode from 'qrcode';
-import { homeworkAction, initHomeworkUi, openPlan, renderHomeworkDetail, renderHomeworkList, renderLearning, renderStudentSheet, studentHomeworkHtml } from './homework';
+import { homeworkAction, initHomeworkUi, leaveStudentSheet, openPlan, renderHomeworkDetail, renderHomeworkList, renderLearning, renderStudentSheet, studentHomeworkHtml } from './homework';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 const BRAND = '數感課堂';
@@ -1055,7 +1055,7 @@ function renderSession() {
     : null;
   // 同一頁、同一題重畫：記下捲動位置與正在輸入的格子，畫完放回去
   const keep = teacher ? null : keepStudentUi(`${s.id}:${index}:${a?.id ?? ''}:${studentTab}:${editing}`);
-  app.innerHTML = `<header class="room-bar"><div class="room-identity">${teacher ? btn('返回', 'dashboard', 'icon-btn', 'back', 'aria-label="返回課程"') : `<span class="brand-mark small">${icon('sigma')}</span>`}<div><strong>${esc(teacher ? s.title : `${s.className}・${user.seat} 號`)}</strong><small>${teacher ? esc(s.className) : esc(view.lesson.title)}</small></div></div><div class="room-progress" aria-label="第 ${index + 1} 頁，共 ${total} 頁"><span>${index + 1}</span>/<span>${total}</span></div><div class="room-actions"><span id="sync-status" class="sync-status"><i></i>已連線</span>${teacher ? `${btn(screen ? '一般' : '大屏', 'screen', 'quiet', 'screen', 'title="切換大屏授課"')}` : ''}${btn('', 'fullscreen', 'icon-btn', 'expand', 'aria-label="全螢幕" title="全螢幕"')}${!teacher && s.danmakuOpen && !s.ended ? btn('彈幕', 'danmaku-bar', `quiet danmaku-btn ${danmakuBar ? 'selected' : ''}`, 'spark', 'data-testid="danmaku-open"') : ''}${teacher ? '' : btn('', 'logout', 'icon-btn', 'logout', 'aria-label="登出" title="登出"')}</div></header><div class="room-main"><main class="stage-col"><article class="slide-stage" data-testid="session-slide" id="slide-stage">${slideMarkup(slide, index, total)}<div id="quiz-board-host">${teacher ? quizBoardHtml() : ''}</div><div id="raid-board-host">${showRaidBoard() ? raidBoardHtml(view.raid!) : showRaidMap() ? raidMapHtml(view.raidMap!) : ''}</div><div id="class-goal-host">${teacher ? classGoalHtml(view) : ''}</div><div id="duel-board-host">${showDuelBoard() ? duelBoardHtml(view.duel!) : ''}</div></article><nav class="slide-nav" aria-label="翻頁與白板工具">${btn('', 'prev-slide', 'icon-btn nav-btn', 'prev', `aria-label="上一頁" ${index === 0 || (!teacher && s.followTeacher) ? 'disabled' : ''}`)}${teacher ? toolbar() : ''}<div class="slide-dots">${view.lesson.slides.map((sl, i) => `<button class="${i === index ? 'active' : ''} ${sl.activity ? 'has-q' : ''} ${i === s.slideIndex && !teacher ? 'live' : ''}" data-action="go-slide" data-index="${i}" aria-label="第 ${i + 1} 頁${sl.phase ? `・${esc(sl.phase)}` : ''}" title="${esc(sl.phase || sl.title)}" ${!teacher && s.followTeacher ? 'disabled' : ''}><span></span></button>`).join('')}</div>${btn('', 'next-slide', 'icon-btn nav-btn primary', 'next', `aria-label="下一頁" data-testid="next-slide" ${index === total - 1 || (!teacher && s.followTeacher) ? 'disabled' : ''}`)}</nav></main><aside class="panel-col" aria-label="${teacher ? '課堂互動' : '作答區'}">${panel}</aside></div>${teacher ? '' : `<nav class="phone-tabs" aria-label="切換"><button class="${studentTab === 'slide' ? 'selected' : ''}" data-action="student-tab" data-tab="slide">${icon('book')}教材</button><button class="${studentTab === 'answer' ? 'selected' : ''}" data-action="student-tab" data-tab="answer">${icon('pen')}作答${a && s.activityOpen && (!own || editing) ? '<i class="badge-dot"></i>' : ''}</button></nav>`}<div id="buzz-root"></div><div id="danmaku-root">${teacher ? '' : danmakuStudentHtml()}</div>${teacher ? '' : keypadHtml()}`;
+  app.innerHTML = `<header class="room-bar"><div class="room-identity">${teacher ? btn('返回', 'dashboard', 'icon-btn', 'back', 'aria-label="返回課程"') : `<span class="brand-mark small">${icon('sigma')}</span>`}<div><strong>${esc(teacher ? s.title : `${s.className}・${user.seat} 號`)}</strong><small>${teacher ? esc(s.className) : esc(view.lesson.title)}</small></div></div><div class="room-progress" aria-label="第 ${index + 1} 頁，共 ${total} 頁"><span>${index + 1}</span>/<span>${total}</span></div><div class="room-actions"><span id="sync-status" class="sync-status"><i></i>已連線</span>${teacher ? `${btn(screen ? '一般' : '大屏', 'screen', 'quiet', 'screen', 'title="切換大屏授課"')}` : ''}${btn('', 'fullscreen', 'icon-btn', 'expand', 'aria-label="全螢幕" title="全螢幕"')}${!teacher && s.danmakuOpen && !s.ended ? btn('彈幕', 'danmaku-bar', `quiet danmaku-btn ${danmakuBar ? 'selected' : ''}`, 'spark', 'data-testid="danmaku-open"') : ''}${teacher ? '' : btn('', 'logout', 'icon-btn', 'logout', 'aria-label="登出" title="登出"')}</div></header><div class="room-main"><main class="stage-col"><article class="slide-stage" data-testid="session-slide" id="slide-stage">${slideMarkup(slide, index, total)}<div id="quiz-board-host">${teacher ? quizBoardHtml() : ''}</div><div id="raid-board-host">${showRaidBoard() ? raidBoardHtml(view.raid!, s.lessonId) : showRaidMap() ? raidMapHtml(view.raidMap!, s.lessonId) : ''}</div><div id="class-goal-host">${teacher ? classGoalHtml(view) : ''}</div><div id="duel-board-host">${showDuelBoard() ? duelBoardHtml(view.duel!) : ''}</div></article><nav class="slide-nav" aria-label="翻頁與白板工具">${btn('', 'prev-slide', 'icon-btn nav-btn', 'prev', `aria-label="上一頁" ${index === 0 || (!teacher && s.followTeacher) ? 'disabled' : ''}`)}${teacher ? toolbar() : ''}<div class="slide-dots">${view.lesson.slides.map((sl, i) => `<button class="${i === index ? 'active' : ''} ${sl.activity ? 'has-q' : ''} ${i === s.slideIndex && !teacher ? 'live' : ''}" data-action="go-slide" data-index="${i}" aria-label="第 ${i + 1} 頁${sl.phase ? `・${esc(sl.phase)}` : ''}" title="${esc(sl.phase || sl.title)}" ${!teacher && s.followTeacher ? 'disabled' : ''}><span></span></button>`).join('')}</div>${btn('', 'next-slide', 'icon-btn nav-btn primary', 'next', `aria-label="下一頁" data-testid="next-slide" ${index === total - 1 || (!teacher && s.followTeacher) ? 'disabled' : ''}`)}</nav></main><aside class="panel-col" aria-label="${teacher ? '課堂互動' : '作答區'}">${panel}</aside></div>${teacher ? '' : `<nav class="phone-tabs" aria-label="切換"><button class="${studentTab === 'slide' ? 'selected' : ''}" data-action="student-tab" data-tab="slide">${icon('book')}教材</button><button class="${studentTab === 'answer' ? 'selected' : ''}" data-action="student-tab" data-tab="answer">${icon('pen')}作答${a && s.activityOpen && (!own || editing) ? '<i class="badge-dot"></i>' : ''}</button></nav>`}<div id="buzz-root"></div><div id="danmaku-root">${teacher ? '' : danmakuStudentHtml()}</div>${teacher ? '' : keypadHtml()}`;
   const stage = document.querySelector<HTMLElement>('#slide-stage')!;
   renderBuzzLayer();
   if (!teacher) mountHandPad();
@@ -1128,7 +1128,7 @@ function studentPanel(a: Activity | undefined, index: number) {
   if (s.ended) return `<div class="quiet-moment"><h2>課堂已結束</h2><p>你的作答已保存。</p></div>`;
   if (myPractice()) return `<div class="panel-scroll"><div id="student-answer">${practiceCard()}</div><div id="class-events">${eventsHtml()}</div></div>`;
   if (view!.duel && s.duel) return `<div class="panel-scroll"><div id="student-answer" data-duel-key="${esc(duelCardKey(view!.duel, serverTime()))}">${duelCardHtml(view!.duel, serverTime())}</div></div>`;
-  if (view!.raid && s.raid) return `<div class="panel-scroll"><div id="student-answer" data-raid-key="${esc(raidCardKey(view!.raid, serverTime()))}">${raidCardHtml(view!.raid, serverTime())}</div></div>`;
+  if (view!.raid && s.raid) return `<div class="panel-scroll raid-scroll"><div id="student-answer" data-raid-key="${esc(raidCardKey(view!.raid, serverTime()))}">${raidCardHtml(view!.raid, serverTime())}</div></div>`;
   if (view!.quiz && s.quiz) return `<div class="panel-scroll"><div id="student-answer">${quizCard()}</div><div id="class-events">${eventsHtml()}</div></div>`;
   if (s.pkLobby?.buzz && !pkTakenSeats(s.pkLobby).has(user!.seat!)) return `<div class="panel-scroll"><div id="student-answer">${pkBuzzCard()}</div></div>`;
   if (index !== s.slideIndex)
@@ -1620,7 +1620,7 @@ function refreshRaid() {
     if (host) {
       if (showRaidBoard()) {
         if (!host.querySelector('[data-testid="raid-board"]')) {
-          host.innerHTML = raidBoardHtml(v.raid!);
+          host.innerHTML = raidBoardHtml(v.raid!, v.session.lessonId);
           wireArt(host);
         }
         if (!host.dataset.wired) {
@@ -1630,7 +1630,7 @@ function refreshRaid() {
         updateRaidBoard(host, v.raid!, now);
       } else if (showRaidMap()) {
         if (!host.querySelector('[data-testid="raid-map"]')) {
-          host.innerHTML = raidMapHtml(v.raidMap!);
+          host.innerHTML = raidMapHtml(v.raidMap!, v.session.lessonId);
           wireArt(host);
         }
       } else if (host.innerHTML) host.innerHTML = '';
@@ -2552,6 +2552,8 @@ let homeworkHtml = { who: '', at: 0, html: '' };
 const homeworkOwner = () => (user?.role === 'student' ? `${user.id}:${user.classId}:${user.seat}` : '');
 function clearStudentHomework() {
   homeworkHtml = { who: '', at: 0, html: '' };
+  // 打開中的作業頁（QR code 連結）也一起作廢：計時器、在途請求、畫面上的照片網址
+  leaveStudentSheet();
 }
 /** 等待室下方的回家作業清單（同一位同學一分鐘內不重抓）。 */
 async function showStudentHomework() {
@@ -2589,6 +2591,8 @@ async function renderRoute() {
   const version = ++routeVersion;
   currentRoute = location.hash.slice(1) || '/dashboard';
   clearTimeout(poll);
+  // 離開作業頁（QR code 連結）：停掉輪詢、中止在途請求，晚到的回覆不會畫回來
+  if (!currentRoute.startsWith('/hw/')) leaveStudentSheet();
   // 離開課堂畫面就關閉即時連線；同一堂課切換一般／大屏則沿用。
   const sessionId = /^\/(?:session|screen)\/([\w-]+)/.exec(currentRoute)?.[1];
   if (!(user?.role === 'student' || (sessionId && sessionId === liveKey))) disconnectLive();
@@ -2824,6 +2828,8 @@ async function action(el: HTMLElement) {
     case 'login-tab':
       return landing(el.dataset.role);
     case 'logout':
+      // 先作廢作業頁與作業清單：登出請求還在等回覆時，晚到的作業回覆也不會畫出來
+      clearStudentHomework();
       disconnectLive();
       await board?.flush();
       await api('/logout', 'POST', {});

@@ -39,9 +39,9 @@ function memoryStorage(values=new Map(),failKey=()=>false) {
 
 function fixture(env={APP_MODE:'demo'},assets,opts={}) {
   let data;const vaultMap=new Map();
-  // opts.failPut(key, value)：回傳 true 時這次寫入失敗（故障注入）；opts.kick：模擬 Durable Object 的 alarm
+  // opts.failPut(key, value)／opts.failWrite(state)：回傳 true 時這次 vault／主檔寫入失敗（故障注入）；opts.kick：模擬 Durable Object 的 alarm
   const vault={async get(k){const v=vaultMap.get(k);return v===undefined?undefined:structuredClone(v);},async put(k,v){if(opts.failPut?.(k,v))throw new Error('Injected vault failure');vaultMap.set(k,structuredClone(v));},async delete(k){return vaultMap.delete(k);}};
-  const store={async read(){return data&&structuredClone(data);},async write(next){data=structuredClone(next);}};
+  const store={async read(){return data&&structuredClone(data);},async write(next){if(opts.failWrite?.(next))throw new Error('Injected store failure');data=structuredClone(next);}};
   const cookies=new Map();
   return {
     get data(){return data;},vaultMap,env,store,vault,cookie(user){return cookies.get(user);},
@@ -1603,6 +1603,96 @@ test('C-5: the Durable Object alarm reschedules itself when a write-back fails, 
   assert.equal(values.get(`hw:${id}`).sheets['1'].status,'graded');
   assert.deepEqual((await splitStore(storage).read()).hwQueue,[]);
   assert.equal(alarmAt,null,'nothing left to schedule');
+});
+
+/* ───── 2026-10-30 Codex 複審 R-2、R-3 的回歸測試 ───── */
+test('R-2: a failed main-state write while submitting leaves nothing queued, does not use up a submission, and the student can submit again',async()=>{
+  let kicks=0,failMain=false;
+  const {f,cl}=await homeworkSetup({APP_MODE:'demo'},{kick:async()=>{kicks++;},failWrite:(next)=>failMain&&next.hwQueue?.length>0});
+  const {id,token}=await hwWithPhoto(f,cl);
+  failMain=true;
+  const bad=await f.call(`/api/hw/${id}/1/submit?t=${token}`,'POST',{},'nobody');
+  assert.notEqual(bad.status,200);
+  const kept=storedHw(f,id).sheets['1'];
+  assert.equal(kept.status,'assigned','sheet not stuck in queued');assert.equal(kept.submissions||0,0,'submission not used up');
+  assert.equal(f.data.homework[id].sheets['1'].status,'assigned');assert.deepEqual(f.data.hwQueue||[],[]);
+  assert.equal(kicks,0);
+  failMain=false;
+  const ok=await f.call(`/api/hw/${id}/1/submit?t=${token}`,'POST',{},'nobody');
+  assert.equal(ok.status,200);assert.equal(ok.body.sheet.status,'queued');
+  assert.deepEqual(f.data.hwQueue,[`${id}:1`]);assert.equal(kicks,1);
+  assert.equal(storedHw(f,id).sheets['1'].submissions,1);
+  assert.equal(await drainHomework({env:f.env,store:f.store,vault:f.vault}),undefined);
+  assert.equal(storedHw(f,id).sheets['1'].status,'graded');assert.equal(f.data.homework[id].sheets['1'].status,'graded');
+});
+
+test('R-2: a failed sheet write while submitting is rolled back (or cleaned up by the alarm); the student can submit again',async()=>{
+  let kicks=0,failSheet=false,failUndo=false;
+  const {f,cl}=await homeworkSetup({APP_MODE:'demo'},{kick:async()=>{kicks++;},failPut:(k,v)=>failSheet&&k.startsWith('hw:')&&v.sheets?.['1']?.status==='queued',failWrite:(next)=>failUndo&&!next.hwQueue?.length});
+  const {id,token}=await hwWithPhoto(f,cl);
+  failSheet=true;
+  assert.notEqual((await f.call(`/api/hw/${id}/1/submit?t=${token}`,'POST',{},'nobody')).status,200);
+  assert.equal(storedHw(f,id).sheets['1'].status,'assigned');assert.equal(storedHw(f,id).sheets['1'].submissions||0,0);
+  assert.deepEqual(f.data.hwQueue||[],[],'main state rolled back');assert.equal(f.data.homework[id].sheets['1'].status,'assigned');
+  // 主檔也改不回來：佇列留著一個指到「還沒送出」作業卷的工作，請 alarm 來清；清的時候摘要一起改回來
+  failUndo=true;
+  assert.notEqual((await f.call(`/api/hw/${id}/1/submit?t=${token}`,'POST',{},'nobody')).status,200);
+  assert.deepEqual(f.data.hwQueue,[`${id}:1`]);assert.equal(f.data.homework[id].sheets['1'].status,'queued');
+  assert.equal(kicks,1,'alarm requested to clean up');
+  failUndo=false;
+  assert.equal(await drainHomework({env:f.env,store:f.store,vault:f.vault}),undefined);
+  assert.deepEqual(f.data.hwQueue,[]);assert.equal(f.data.homework[id].sheets['1'].status,'assigned','summary rebuilt from the sheet');
+  failSheet=false;
+  const ok=await f.call(`/api/hw/${id}/1/submit?t=${token}`,'POST',{},'nobody');
+  assert.equal(ok.status,200);assert.equal(ok.body.sheet.status,'queued');assert.equal(storedHw(f,id).sheets['1'].submissions,1);
+  await drainHomework({env:f.env,store:f.store,vault:f.vault});
+  assert.equal(storedHw(f,id).sheets['1'].status,'graded');
+});
+
+test('R-2 (Durable Object): a failed main-state transaction or sheet write while submitting does not leave the sheet queued without a job',async()=>{
+  const values=new Map();let failMain=false,failSheet=false,alarmAt=null;
+  // failMain：下一次主檔 transaction 失敗一次（Codex 複審的重現路徑）；failSheet：作業內容寫入失敗
+  const storage=memoryStorage(values,(k)=>(failMain&&k.startsWith('main')&&!(failMain=false))||(failSheet&&k.startsWith('hw:')));
+  storage.setAlarm=async(t)=>{alarmAt=t;};storage.getAlarm=async()=>alarmAt;
+  const object=new ClassroomDurableObject({storage},{APP_MODE:'demo'});
+  const request=(path,method='GET',body,cookie)=>new Request(`http://localhost${path}`,{method,headers:{Origin:'http://localhost','Content-Type':'application/json',...(cookie?{Cookie:cookie}:{})},body:method==='GET'?undefined:JSON.stringify(body??{})});
+  const cookie=(await object.fetch(request('/api/login','POST',TEACHER))).headers.get('Set-Cookie').split(';')[0];
+  const cl=(await (await object.fetch(request('/api/dashboard','GET',null,cookie))).json()).classes[0];
+  const created=await (await object.fetch(request('/api/homework','POST',{classId:cl.id,lessonId:'g8-2-2a',seats:[1]},cookie))).json();
+  const id=created.homework.id,token=new URL(created.sheets[0].url).hash.split('/')[4];
+  assert.equal((await object.fetch(request(`/api/hw/${id}/1/photos?t=${token}`,'POST',{dataUrl:JPEG}))).status,200);
+  for(const fail of ['main','sheet']){
+    if(fail==='main')failMain=true;else failSheet=true;
+    assert.notEqual((await object.fetch(request(`/api/hw/${id}/1/submit?t=${token}`,'POST',{}))).status,200,fail);
+    assert.equal(values.get(`hw:${id}`).sheets['1'].status,'assigned',fail);assert.equal(values.get(`hw:${id}`).sheets['1'].submissions||0,0,fail);
+    assert.deepEqual((await splitStore(storage).read()).hwQueue||[],[],fail);
+    failSheet=false;
+  }
+  assert.equal(alarmAt,null);
+  failSheet=false;
+  const ok=await object.fetch(request(`/api/hw/${id}/1/submit?t=${token}`,'POST',{}));
+  assert.equal(ok.status,200,'not 409: the student can submit again');
+  assert.equal((await ok.json()).sheet.status,'queued');assert(alarmAt,'alarm scheduled');
+  await object.alarm();
+  assert.equal(values.get(`hw:${id}`).sheets['1'].status,'graded');assert.equal(values.get(`hw:${id}`).sheets['1'].submissions,1);
+});
+
+test('R-3: result saved to the sheet but the main-state write failed — the retry fixes the summary before dropping the job',async()=>{
+  let failMain=false;
+  const {f,cl}=await homeworkSetup({APP_MODE:'demo'},{kick:async()=>{},failWrite:(next)=>failMain&&Object.values(next.homework||{}).some(h=>h.sheets['1']?.status==='graded')});
+  const {id,token}=await hwWithPhoto(f,cl);
+  assert.equal((await f.call(`/api/hw/${id}/1/submit?t=${token}`,'POST',{},'nobody')).body.sheet.status,'queued');
+  failMain=true;
+  await assert.rejects(drainHomework({env:f.env,store:f.store,vault:f.vault}),/Injected store failure/);
+  assert.equal(storedHw(f,id).sheets['1'].status,'graded','result is in the sheet');
+  assert.equal(f.data.homework[id].sheets['1'].status,'grading','summary is stale');
+  assert.deepEqual(f.data.hwQueue,[`${id}:1`]);
+  failMain=false;
+  assert.equal(await drainHomework({env:f.env,store:f.store,vault:f.vault}),undefined);
+  assert.deepEqual(f.data.hwQueue,[]);
+  const meta=f.data.homework[id].sheets['1'],r=storedHw(f,id).sheets['1'].result;
+  assert.equal(meta.status,'graded');assert.equal(meta.score,r.score);assert.equal(meta.max,r.max);
+  assert.equal((await f.call('/api/homework')).body.homework.find(h=>h.id===id).sheets['1'].status,'graded','teacher list shows graded');
 });
 
 test('C-6 / C-16: a failed re-upload (bad image or storage failure) keeps the previous photos and result',async()=>{

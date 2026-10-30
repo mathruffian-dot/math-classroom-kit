@@ -1,0 +1,9 @@
+Use your image generation tool to create 3 images for a classroom math boss-battle game (Taiwan junior high, grade 9, students age 14–15). These are the grade-9 bosses; the unit is similar figures (scaling, similar triangles, measuring heights with shadows and mirrors). Save each one as a PNG file in the current folder with exactly the file name given.
+
+Shared style for all images (same as the existing grade-8 bosses, so they fit the same arena and heroes): bright, friendly 2D cartoon game art, thick clean outlines, soft cel shading, saturated colors, cute and heroic (not scary or gory), no text, no letters, no numbers, no logos, no watermarks. Characters face the viewer at a slight 3/4 angle, full body, centered, with generous empty margin. Use a fully transparent background.
+
+1. boss-easy.png — 縮放史萊姆 (Scaling Slime): a round, bouncy jelly slime in warm orange and amber, with two smaller copies of itself beside it (same shape, exactly half and a quarter of its size), like a scaled family; a small magnifying-glass monocle over one eye; mischievous but cute, facing left.
+2. boss-normal.png — 影長巨像 (Shadow-Length Colossus): a tall stone colossus made of sandstone blocks shaped like an obelisk or pyramid, with a glowing sun disc on its back; it casts a long, dark-violet shadow on the ground that has the same silhouette as its body (the sunlight, the colossus and its shadow form a clear right triangle); chunky and heavy, stern eyebrows, facing left.
+3. boss-hard.png — 相似三角龍 (Similar-Triangle Dragon): a dragon whose body, head and wings are built from many glowing triangles of different sizes that all have the same shape (nested, scaled copies), in deep teal and magenta energy; one wing reflects the other like a mirror; abstract triangle patterns only, no readable symbols; wings spread, facing left.
+
+After generating, list the saved file names and their sizes. Do not create any other files.
