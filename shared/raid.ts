@@ -102,6 +102,10 @@ export interface RaidPhaseConfig {
   dmg: number;
   /** 題庫的分析題題數。每一題每一輪（每開一層護盾換一輪）全班只算一次；這一輪解完就要等下一層。 */
   pool: number;
+  /** 護盾開啟期間魔王攻擊減弱：普通攻擊傷害只剩 atkPct%（2026-11-01 起；舊紀錄沒有＝不減弱）。 */
+  atkPct?: number;
+  /** 護盾開啟期間魔王蓄力速度只剩 chargePct%（0＝暫停；沒有＝照常）。 */
+  chargePct?: number;
 }
 /** 開啟中的護盾。 */
 export interface RaidPhase {
@@ -130,14 +134,18 @@ export function inBreak(s: Pick<RaidState, 'breakUntil'>, t: number) {
 // atk、ult 是英雄血量 2000（25 人、8 分鐘）時的傷害；普通攻擊 25 人以上每 3 秒一次
 // chargeS：蓄力秒數。2026-10-31 預告從 30 秒縮成 12 秒時，蓄力各加 18 秒（原本 90／80／75），
 // 「蓄力＋預告」一輪的長度不變，一場的大招次數和以前一樣
-// hpPhase：有護盾（困難＋題庫有分析題）時的魔王血量（每人）。護盾讓普通傷害只剩 20%，血量另外調（scripts/raid-sim.ts，28 人勝率約五成）
-const TABLE: Record<RaidDifficulty, { hpPer: number; atk: number; ult: number; chargeS: number; shield10: number; hpPhase?: number }> = {
+const TABLE: Record<RaidDifficulty, { hpPer: number; atk: number; ult: number; chargeS: number; shield10: number }> = {
   easy: { hpPer: 80, atk: 5, ult: 300, chargeS: 108, shield10: 7 },
   normal: { hpPer: 88, atk: 20, ult: 450, chargeS: 98, shield10: 10 },
-  hard: { hpPer: 106, atk: 25, ult: 550, chargeS: 93, shield10: 12, hpPhase: 10 },
+  hard: { hpPer: 106, atk: 25, ult: 550, chargeS: 93, shield10: 12 },
 };
 /** 護盾的固定規則（門檻依人數另外算）。 */
-export const RAID_PHASE = { at: [70, 35], needPct: [20, 25], needMin: 3, dmgPct: 20, breakMs: 15_000, breakPct: 200, support: 10, hintMs: 180_000, cap: 2, dmg: 40 } as const;
+// atkPct、chargePct：護盾期間魔王攻擊減弱（普通攻擊減半、暫停蓄力；2026-11-01，scripts/raid-sim.ts 比較過三種候選）
+// hpOffS／hpDivS：有護盾時魔王血量的時間長度＝（秒數 − hpOffS）／hpDivS（原本是 秒數／480）。28 人 5、8 分鐘勝率各約五成的校準值
+// （修正「答錯蓄力」後重新校準，固定亂數種子各 600 場）。
+// 兩層護盾平均要撐 4～5 分鐘（每層約 130 秒破盾，加上門檻），這段時間其他傷害只剩 20%，照原公式（28 人 8 分鐘 2970 血）
+// 就算護盾期間魔王完全不攻擊也打不贏（模擬勝率 0%，魔王剩約四成血）
+export const RAID_PHASE = { at: [70, 35], needPct: [20, 25], needMin: 3, dmgPct: 20, breakMs: 15_000, breakPct: 200, support: 10, hintMs: 180_000, cap: 2, dmg: 40, atkPct: 50, chargePct: 0, hpOffS: 264, hpDivS: 390 } as const;
 
 /**
  * 依難度、上線人數（1–60）與時間長度（秒）決定數值：大班小班、5 分鐘或 10 分鐘，打起來的節奏差不多。
@@ -146,8 +154,7 @@ export const RAID_PHASE = { at: [70, 35], needPct: [20, 25], needMin: 3, dmgPct:
 export function raidConfig(difficulty: RaidDifficulty, players: number, seconds = 480, analysis = 0): RaidConfig {
   const n = Math.max(1, Math.min(60, Math.round(players)));
   const d = TABLE[difficulty];
-  const phased = difficulty === 'hard' && analysis > 0 && !!d.hpPhase;
-  const hpPer = phased ? d.hpPhase! : d.hpPer;
+  const phased = difficulty === 'hard' && analysis > 0;
   // 人數比例（以 25 人為 1）：輸出、防護罩、答錯都和人數成正比，所以英雄血量、魔王血量、
   // 魔王攻擊頻率、魔王大招傷害也都跟著人數，大班小班需要的分工比例一樣。
   const size = Math.max(0.3, Math.min(2.4, n / 25));
@@ -155,10 +162,12 @@ export function raidConfig(difficulty: RaidDifficulty, players: number, seconds 
   const len = Math.max(0.5, Math.min(1.5, seconds / 480));
   // 普通攻擊：25 人以上每 3 秒一次，人少時間隔拉長但最慢 5 秒一次；拉不長的部分改成每下傷害少一點（總傷害和人數成正比）
   const atkEvery = Math.min(5000, Math.round(3000 / size));
+  // 魔王血量的時間長度：有護盾時扣掉護盾的時間（見 RAID_PHASE.hpOffS），其他和原本一樣
+  const hpLen = phased ? Math.max(0.05, (seconds - RAID_PHASE.hpOffS) / RAID_PHASE.hpDivS) : len;
   return {
     players: n,
     // 人少時合擊加成小：魔王血量打折（8 人約 7 折、15 人約 8 折、25 人以上不打折）
-    bossHp: Math.max(150, Math.round((n * hpPer * len * Math.min(1, 0.55 + 0.45 * size)) / 10) * 10),
+    bossHp: Math.max(150, Math.round((n * d.hpPer * hpLen * Math.min(1, 0.55 + 0.45 * size)) / 10) * 10),
     // 魔王護甲每 20 秒補一次（每人 0.7～1.2 點），大約吸掉三成的普通攻擊
     bossShieldGain: Math.max(2, Math.round((n * d.shield10) / 10)),
     bossShieldMax: Math.max(4, Math.round((n * d.shield10) / 5)),
@@ -192,6 +201,8 @@ export function raidConfig(difficulty: RaidDifficulty, players: number, seconds 
             cap: RAID_PHASE.cap,
             dmg: RAID_PHASE.dmg,
             pool: analysis,
+            atkPct: RAID_PHASE.atkPct,
+            chargePct: RAID_PHASE.chargePct,
           },
         }
       : {}),
@@ -391,8 +402,56 @@ function finish(s: RaidState, t: number, result: 'win' | 'lose' | 'timeout') {
 }
 /** 魔王的下一個動作在第幾毫秒（沒有就 Infinity）。 */
 function nextBossTime(c: RaidConfig, s: RaidState): number {
-  const charge = s.bossUltAt === null ? s.chargeFrom + c.bossChargeMs - s.chargeBonus : Infinity;
-  return Math.min(s.nextAtk, s.nextShield, Math.max(s.t, charge), s.bossUltAt ?? Infinity, hintTime(c, s), deferredOpen(c, s));
+  return Math.min(s.nextAtk, s.nextShield, Math.max(s.t, chargeDue(c, s)), s.bossUltAt ?? Infinity, hintTime(c, s), deferredOpen(c, s));
+}
+/** 魔王蓄滿（開始預告大招）在第幾毫秒（已經在預告就 Infinity）。護盾期間蓄力變慢（chargePct）時照比例延後。 */
+function chargeDue(c: RaidConfig, s: RaidState): number {
+  if (s.bossUltAt !== null) return Infinity;
+  const due = s.chargeFrom + c.bossChargeMs - s.chargeBonus;
+  const f = c.phase?.chargePct;
+  if (f === undefined || f >= 100 || !s.phase) return due;
+  // 暫停（0%）：護盾存在期間一定不會蓄滿（答錯也不加蓄力，見 chargeRate），已經宣告的大招不受影響（上面先回傳）
+  if (f <= 0) return Infinity;
+  const from = Math.max(s.phase.at, s.chargeFrom);
+  if (due <= from) return from;
+  return from + ((due - from) * 100) / f;
+}
+/** 蓄力速度倍率：護盾期間 chargePct%（答錯加的蓄力也照這個比例；暫停時不加），其他時候 1。 */
+function chargeRate(c: RaidConfig, s: RaidState): number {
+  const f = c.phase?.chargePct;
+  return f !== undefined && f < 100 && s.phase ? Math.max(0, f) / 100 : 1;
+}
+/** 魔王蓄力的進度 0～1（大螢幕的蓄力條；護盾期間暫停蓄力時停住不動）。 */
+export function chargeLevel(c: RaidConfig, s: RaidState): number {
+  if (s.bossUltAt !== null) return 1;
+  const f = c.phase?.chargePct;
+  let elapsed = Math.max(0, s.t - s.chargeFrom);
+  if (f !== undefined && f < 100 && s.phase) {
+    const from = Math.max(s.phase.at, s.chargeFrom);
+    if (s.t > from) elapsed -= ((s.t - from) * (100 - f)) / 100;
+  }
+  return Math.min(1, Math.max(0, elapsed + s.chargeBonus) / c.bossChargeMs);
+}
+/**
+ * 護盾期間魔王攻擊減弱的簡短說明（大螢幕「普攻減半、暫停蓄力」；short＝學生戰況區「普攻減半・蓄力暫停」，窄面板放得下）。
+ * 舊紀錄沒有這一項就是空字串。
+ */
+export function phaseWeakText(ph: RaidPhaseConfig | undefined, short = false): string {
+  if (!ph) return '';
+  const a = ph.atkPct,
+    f = ph.chargePct;
+  const parts = [
+    a === undefined || a >= 100 ? '' : a === 50 ? '普攻減半' : a === 0 ? '不普攻' : `普攻剩 ${a}%`,
+    f === undefined || f >= 100 ? '' : f === 0 ? (short ? '蓄力暫停' : '暫停蓄力') : '蓄力變慢',
+  ].filter(Boolean);
+  return parts.join(short ? '・' : '、');
+}
+/** 護盾被破：護盾期間少蓄的部分補進 chargeFrom（之後照常速度）。 */
+function chargeResume(c: RaidConfig, s: RaidState, t: number) {
+  const f = c.phase?.chargePct;
+  if (f === undefined || f >= 100 || !s.phase || s.bossUltAt !== null) return;
+  const from = Math.max(s.phase.at, s.chargeFrom);
+  if (t > from) s.chargeFrom += Math.round(((t - from) * (100 - f)) / 100);
 }
 /** 下一層護盾的門檻血量（已經開完就 -1）。 */
 function nextGate(c: RaidConfig, s: RaidState) {
@@ -415,6 +474,7 @@ function checkBreak(c: RaidConfig, s: RaidState, t: number) {
   if (!c.phase || !p || p.cracks < phaseNeed(c, p)) return;
   const seats = Object.keys(p.by).map(Number);
   for (const seat of seats) stat(s, seat).score += RAID_BREAK_SCORE;
+  chargeResume(c, s, t);
   s.phase = null;
   s.breakUntil = t + c.phase.breakMs;
   // 魔王護甲在破防結束後才重新回補
@@ -523,9 +583,12 @@ function bossAttack(c: RaidConfig, s: RaidState, at: number) {
   // 攻擊比較頻繁時，每下扣的防護罩與擋下的貢獻分也照比例少（每分鐘的總量不變）
   const pct = c.atkShieldPct ?? 100;
   const cost = Math.round((m.cost * pct) / 100);
+  // 護盾開啟期間魔王攻擊減弱（atkPct；舊紀錄沒有這一項＝照原本）。明確設成 0＝護盾期間不普通攻擊（不扣血、不耗防護罩）
+  const weak = s.phase && c.phase?.atkPct !== undefined ? c.phase.atkPct / 100 : 1;
+  if (weak <= 0) return;
   for (let h = 0; h < m.hits && !s.result; h++) {
     const { used, seats } = useShield(s, cost, pct < 100 ? 1 : 2);
-    const full = Math.max(1, Math.round(c.bossAtk * m.mult));
+    const full = Math.max(1, Math.round(c.bossAtk * m.mult * weak));
     const dmg = Math.round(full * (1 - used / cost));
     if (dmg <= 0) push(s, { t: at, k: 'bossBlock', move: m.id, seats });
     else {
@@ -596,7 +659,7 @@ export function advance(c: RaidConfig, s: RaidState, to: number, seconds: number
       s.chargeBonus = 0;
       bossUltimate(c, s, at);
       s.bossUltMove = null;
-    } else if (s.bossUltAt === null && at >= s.chargeFrom + c.bossChargeMs - s.chargeBonus) {
+    } else if (at >= chargeDue(c, s)) {
       s.bossUltAt = at + c.bossWarnMs;
       s.bossUltMove = bossUltFor(at).id;
       push(s, { t: at, k: 'bossWarn', n: c.bossWarnMs, move: s.bossUltMove });
@@ -629,7 +692,8 @@ export function act(c: RaidConfig, s: RaidState, a: RaidAction, seconds: number)
     else x.streak = 0;
     x.redeemKind = a.kind;
     // 應用題比較難：答錯時魔王蓄力只加一半
-    s.chargeBonus += a.kind === 'ultimate' ? Math.round(c.wrongChargeMs / 2) : c.wrongChargeMs;
+    // 護盾期間暫停蓄力（chargePct）：答錯也不加蓄力（舊紀錄沒有這一項＝照原本）
+    s.chargeBonus += Math.round((a.kind === 'ultimate' ? Math.round(c.wrongChargeMs / 2) : c.wrongChargeMs) * chargeRate(c, s));
     push(s, { t: a.t, k: 'wrong', seat: a.seat });
     return s;
   }

@@ -22,6 +22,9 @@ const baseURL = process.env.E2E_BASE_URL || `http://127.0.0.1:${process.env.MCK_
 const MS = Number(process.env.MCK_RAID_IPAD_MS || 5000);
 const headers = { Origin: baseURL };
 const STRICT = process.env.MCK_RAID_IPAD_STRICT !== '0';
+/** #raid-mini 的固定高度（src/raid.css；2026-11 量測值），容差 0.5px。 */
+const MINI_H = 142.8;
+const miniOff = (hs: number[]) => hs.filter((h) => Math.abs(h - MINI_H) > 0.5);
 
 type BankQ = { id: string; topic: string; stem: string; figure?: string; options: string[]; answer: number };
 type Bank = { pools: Record<string, BankQ[]> };
@@ -490,6 +493,7 @@ test('raid iPad sweep: the stem stays put on representative iPad widths while th
   expect(out.filter((r) => !r.ended).length, 'enough samples').toBeGreaterThan(out.length / 2);
   expect(out.filter((r) => !r.ended && r.mode !== 'fling' && r.jumps > 0).map((r) => `${r.combo} ${r.q} ${r.mode} 跳 ${r.jumps} 次 ${r.maxJump}px`), 'stem moved').toEqual([]);
   expect(out.filter((r) => !r.ended && r.miniH.length > 1).map((r) => `${r.combo} ${r.q} ${r.mode} mini ${r.miniH.join('/')}`), 'mini height changed').toEqual([]);
+  expect(out.filter((r) => miniOff(r.miniH).length).map((r) => `${r.combo} ${r.q} ${r.mode} mini ${r.miniH.join('/')}`), `#raid-mini is ${MINI_H}px`).toEqual([]);
   expect(out.filter((r) => r.appScrollWrites > 0 || r.flingStalls > 0).map((r) => `${r.combo} ${r.mode} writes ${r.appScrollWrites} stalls ${r.flingStalls}`), 'app wrote scrollTop').toEqual([]);
   expect(out.filter((r) => r.pageY[1] > 0).map((r) => `${r.combo} pageY ${r.pageY.join('~')}`), 'page scrolled').toEqual([]);
 });
@@ -497,7 +501,7 @@ test('raid iPad sweep: the stem stays put on representative iPad widths while th
 // ───────────── 困難魔王的護盾（2026-11）：護盾開啟、破盾、破防時，學生端題幹不跳、#raid-mini 高度不變 ─────────────
 // 真的開一場 g8-2-2d 困難魔王（人少時魔王 150 血、門檻 3）：背景同學用 API 打記憶題到 70% → 護盾開啟，
 // 再由 3 位同學各答對 1 題分析題 → 破盾、破防 15 秒。學生（iPad）停在一題長的應用題上，整段時間每 50ms 量題幹位置與戰況區高度。
-const SHIELD_COMBOS = ['gen7 橫 1080×810', 'gen11 橫 944×656'];
+const SHIELD_COMBOS = ['gen7 橫 1080×810', 'gen11 橫 944×656', 'Split View 678×810'];
 test('raid iPad shield: the stem and #raid-mini stay put while the shield opens and breaks', async ({ browser, playwright, browserName }) => {
   const raidId = 'g8-2-2d';
   const bank = JSON.parse(await readFile(`content/raids/${raidId}.json`, 'utf8')) as Bank & { pools: Record<string, (BankQ & { reason?: { options: string[]; answer: number } })[]> };
@@ -509,7 +513,7 @@ test('raid iPad shield: the stem and #raid-mini stay put while the shield opens 
   await t.patch(`/api/classes/${cl.id}`, { headers, data: { requireCode: false } });
   const sessionId = (await (await t.post('/api/sessions', { headers, data: { lessonId: raidId, classId: cl.id } })).json()).session.id;
   const mates = await Promise.all([34, 35, 36].map((seat) => login(playwright, { role: 'student', classCode: 'DEMO801', seat })));
-  const rows: { combo: string; mode: string; r: Sample; sawShield: boolean; sawBreak: boolean }[] = [];
+  const rows: { combo: string; mode: string; r: Sample; sawShield: boolean; sawBreak: boolean; weakH: number }[] = [];
   try {
     for (const [ci, name] of SHIELD_COMBOS.entries()) {
       const combo = COMBOS_ALL.find((c) => c.name === name)!;
@@ -529,7 +533,9 @@ test('raid iPad shield: the stem and #raid-mini stay put while the shield opens 
         await expect(page.getByTestId('session-slide')).toBeAttached();
         expect((await t.post(`/api/sessions/${sessionId}/control`, { headers, data: { action: 'raid-start', difficulty: 'hard', seconds: 600 } })).status()).toBe(200);
         await page.reload();
+        // 手機分頁版面（寬度 ≤ 760，例如 Split View）：重新載入後先等版面出來，再切到「作答」
         const tab = page.locator('.phone-tabs [data-tab="answer"]');
+        await expect(page.locator('.phone-tabs [data-tab="answer"]:visible, [data-testid="raid-card"]:visible').first()).toBeVisible();
         if (await tab.isVisible().catch(() => false)) await tab.click();
         await expect(page.getByTestId('raid-card')).toBeVisible();
         const role = page.getByTestId('raid-role-knight');
@@ -550,7 +556,8 @@ test('raid iPad shield: the stem and #raid-mini stay put while the shield opens 
         const mode = ci === 0 ? 'top' : 'half';
         const sampling = sample(page, mode, 20_000);
         let sawShield = false,
-          sawBreak = false;
+          sawBreak = false,
+          weakH = 0;
         // 1. 記憶題打到 70%
         for (let i = 0; i < 40; i++) {
           const st = (await (await t.get(`/api/sessions/${sessionId}`)).json()).raid.state;
@@ -561,11 +568,24 @@ test('raid iPad shield: the stem and #raid-mini stay put while the shield opens 
           await post(mates[0], { op: 'answer', choice: q.options.indexOf(it.options[it.answer]) });
         }
         // 護盾的文字（存量那一行中間一格、提示格）沒有被省略號切掉
-        const cut = () => page.$$eval('[data-testid="raid-mini-phase"], [data-testid="raid-mini-alert"] .raid-alert-line', (els) => els.filter((e) => /護盾|破防|破盾/.test(e.textContent || '') && e.scrollWidth > e.clientWidth + 1).map((e) => e.textContent));
+        const cut = () => page.$$eval('.raid-mini-info > span, [data-testid="raid-mini-alert"] .raid-alert-line', (els) => els.filter((e) => (e.closest('.raid-mini-info') || /護盾|破防|破盾|普攻/.test(e.textContent || '')) && e.scrollWidth > e.clientWidth + 1).map((e) => e.textContent));
         await expect(page.getByTestId('raid-mini-phase')).toContainText('破盾', { timeout: 5000 });
         expect(await cut(), `${name} shield text cut`).toEqual([]);
         sawShield = true;
-        await page.waitForTimeout(2500);
+        // 護盾期間魔王攻擊減弱的提示：同學答對理解題，記憶題的比例降到六成以下（抗性提示消失、護盾期間不會有新的大招預告），
+        // 提示格第 1 行換成「🛡 普攻減半・蓄力暫停」，不能被省略號切掉，戰況區高度不變
+        const first = page.locator('[data-testid="raid-mini-alert"] .raid-alert-line').first();
+        for (let i = 0; i < 40 && !((await first.textContent()) || '').includes('普攻減半'); i++) {
+          const m = mates[1 + (i % 2)];
+          const q = (await (await post(m, { op: 'draw', kind: 'shield' })).json()).question;
+          const it = byId.get(q.id)!;
+          await post(m, { op: 'answer', choice: q.options.indexOf(it.options[it.answer]) });
+          await page.waitForTimeout(300);
+        }
+        await expect(first).toHaveText('🛡 普攻減半・蓄力暫停', { timeout: 15_000 });
+        expect(await first.evaluate((e) => e.scrollWidth > e.clientWidth + 1), `${name} weak text cut`).toBe(false);
+        weakH = await page.locator('#raid-mini').evaluate((e) => Math.round(e.getBoundingClientRect().height * 10) / 10);
+        await page.waitForTimeout(1000);
         // 2. 三位同學各答對 1 題分析題 → 破盾
         for (const m of mates) {
           const q = (await (await post(m, { op: 'draw', kind: 'analysis' })).json()).question;
@@ -577,7 +597,7 @@ test('raid iPad shield: the stem and #raid-mini stay put while the shield opens 
         expect(await cut(), `${name} break text cut`).toEqual([]);
         sawBreak = true;
         const r = await sampling;
-        rows.push({ combo: name, mode, r, sawShield, sawBreak });
+        rows.push({ combo: name, mode, r, sawShield, sawBreak, weakH });
         await t.post(`/api/sessions/${sessionId}/control`, { headers, data: { action: 'raid-end' } });
       } finally {
         await ctx.close();
@@ -588,7 +608,7 @@ test('raid iPad shield: the stem and #raid-mini stay put while the shield opens 
     await t.dispose();
     for (const m of mates) await m.dispose();
   }
-  for (const x of rows) console.log(`${browserName} shield ${x.combo} ${x.mode}: 跳 ${x.r.jumps} 次 最大 ${x.r.maxJump}px | stemTop ${x.r.stemTop.join('~')} | mini ${x.r.miniH.join('/')} | 護盾 ${x.sawShield} 破防 ${x.sawBreak} | ${x.r.ended ? '戰鬥結束' : ''}`);
+  for (const x of rows) console.log(`${browserName} shield ${x.combo} ${x.mode}: 跳 ${x.r.jumps} 次 最大 ${x.r.maxJump}px | stemTop ${x.r.stemTop.join('~')} | mini ${x.r.miniH.join('/')} | 護盾 ${x.sawShield} 破防 ${x.sawBreak} | 減弱提示時 mini ${x.weakH} | ${x.r.ended ? '戰鬥結束' : ''}`);
   if (!STRICT) return;
   expect(rows.length).toBe(SHIELD_COMBOS.length);
   for (const x of rows) {
@@ -596,5 +616,6 @@ test('raid iPad shield: the stem and #raid-mini stay put while the shield opens 
     expect(x.r.ended, `${x.combo} battle still on`).toBe(false);
     expect(x.r.jumps, `${x.combo} stem moved ${x.r.maxJump}px`).toBe(0);
     expect(x.r.miniH, `${x.combo} #raid-mini height`).toHaveLength(1);
+    expect(miniOff([...x.r.miniH, x.weakH]), `${x.combo} #raid-mini is ${MINI_H}px (also with the weak tip)`).toEqual([]);
   }
 });

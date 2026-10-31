@@ -186,7 +186,8 @@ test('raid shield: while layer 1 is up the boss never drops below the 35% gate; 
 });
 
 test('raid shield: break and the next layer never stack (×2 during the break, ×0.2 under the shield, never ×0.4)', () => {
-  const c = quiet(28);
+  // 血量固定 280：打到 35% 的那幾下不要多到觸發記憶題抗性（這裡只測倍率）
+  const c = quiet(28, { bossHp: 280 });
   const gate2 = Math.ceil(c.bossHp * 0.35);
   const s = toShield({ ...c, heroAtk: 200 }, 1000);
   for (let i = 0; i < 6; i++) raid.act(c, s, ana(2000 + i, 50 + i, `z${i}`), S);
@@ -315,4 +316,153 @@ test('raid shield: old records (no config.phase), easy and normal replay exactly
   delete c.atkShieldPct;
   const acts = randomActions(99);
   assert.deepEqual(raid.raidReplay(c, acts, 480, 480_000), legacy.raidReplay(c, acts, 480, 480_000));
+});
+
+/* ───────── 護盾期間魔王攻擊減弱（2026-11-01）：普通攻擊減半、暫停蓄力；血量回到原本的每人每秒血量 ───────── */
+test('raid shield: hard boss HP uses the original per-student rate over the time without shields; easy/normal and the old hard boss unchanged', () => {
+  const hard = (n, secs) => raid.raidConfig('hard', n, secs, 18);
+  // n × 106 ×（秒數 − 264）/ 390（25 人以上不打折）
+  assert.equal(hard(28, 480).bossHp, 1640);
+  assert.equal(hard(28, 300).bossHp, 270);
+  assert.equal(hard(25, 480).bossHp, 1470);
+  assert.equal(hard(30, 300).bossHp, 290);
+  assert.equal(hard(28, 600).bossHp, 2560);
+  assert.equal(raid.raidConfig('hard', 28, 480, 0).bossHp, 2970, 'no analysis questions: original 2970');
+  for (const d of ['easy', 'normal']) assert.deepEqual(raid.raidConfig(d, 28, 480, 18), legacy.raidConfig(d, 28, 480), d);
+  const ph = hard(28, 480).phase;
+  assert.equal(ph.atkPct, 50);
+  assert.equal(ph.chargePct, 0);
+  assert.equal(raid.phaseWeakText(ph), '普攻減半、暫停蓄力');
+  assert.equal(raid.phaseWeakText(ph, true), '普攻減半・蓄力暫停');
+  assert.equal(raid.phaseWeakText({ ...ph, atkPct: undefined, chargePct: undefined }), '', 'older shield runs: no text');
+  // 其他項目和血量以外的設定與舊的困難魔王一樣
+  const { phase: _p, bossHp: _h, ...rest } = hard(28, 480);
+  const { bossHp: _h2, ...old } = legacy.raidConfig('hard', 28, 480);
+  assert.deepEqual(rest, old);
+});
+
+/** 打開第一層護盾，之後只留魔王的普通攻擊（不蓄力）。 */
+function underShield(patch = {}) {
+  const c = quiet(28, { bossAtkEvery: 3000, ...patch });
+  const s = toShield({ ...c, heroAtk: 400 });
+  return { c, s };
+}
+const teamLoss = (s, from) => s.log.filter((e) => e.k === 'bossAtk' && e.t > from).reduce((p, e) => p + e.n, 0);
+test('raid shield: boss normal attacks are halved only while the shield is up (no hero shield to absorb)', () => {
+  const weak = underShield();
+  const full = underShield();
+  delete full.c.phase.atkPct;
+  const t0 = weak.s.t;
+  raid.advance(weak.c, weak.s, t0 + 60_000, S);
+  raid.advance(full.c, full.s, t0 + 60_000, S);
+  const a = teamLoss(weak.s, t0),
+    b = teamLoss(full.s, t0);
+  assert(b > 0);
+  assert(Math.abs(a - b / 2) <= weak.s.log.filter((e) => e.k === 'bossAtk' && e.t > t0).length, `halved: ${a} vs ${b}`);
+  // 每一下都是原本的一半（四捨五入，至少 1）
+  for (const e of weak.s.log.filter((x) => x.k === 'bossAtk' && x.t > t0)) assert.equal(e.n, Math.max(1, Math.round(weak.c.bossAtk * raid.bossAttackAt(e.t).mult * 0.5)));
+  // 破盾後（破防、沒有護盾）恢復原本的傷害
+  const { c, s } = weak;
+  for (let i = 0; i < 6; i++) raid.act(c, s, ana(s.t + 10 + i, 50 + i, `z${i}`), S);
+  assert.equal(s.phase, null);
+  const t1 = s.t;
+  const hp = s.teamHp;
+  raid.advance(c, s, t1 + 30_000, S);
+  const after = s.log.filter((e) => e.k === 'bossAtk' && e.t > t1);
+  assert(after.length > 0);
+  for (const e of after) assert.equal(e.n, Math.max(1, Math.round(c.bossAtk * raid.bossAttackAt(e.t).mult)), 'full damage after the break');
+  assert.equal(hp - s.teamHp, after.reduce((p, e) => p + e.n, 0));
+});
+
+test('raid shield: boss charge pauses while the shield is up and resumes where it was after the break; a warned ultimate still lands', () => {
+  const c = quiet(28, { bossChargeMs: 90_000 });
+  const s = toShield({ ...c, heroAtk: 400 }, 30_000);
+  const openAt = s.phase.at;
+  const level = raid.chargeLevel(c, s);
+  assert(Math.abs(level - openAt / 90_000) < 1e-9);
+  raid.advance(c, s, openAt + 150_000, S); // 不到 3 分鐘提示
+  assert.equal(s.bossUltAt, null, 'no warning while the shield is up');
+  assert(Math.abs(raid.chargeLevel(c, s) - level) < 1e-9, 'the charge bar stays still');
+  const brk = s.t + 10;
+  for (let i = 0; i < 6; i++) raid.act(c, s, ana(brk + i, 50 + i, `z${i}`), S);
+  assert.equal(s.phase, null);
+  const left = 90_000 - openAt; // 護盾開啟時還差的蓄力
+  raid.advance(c, s, brk + 5 + left - 1000, S);
+  assert.equal(s.bossUltAt, null);
+  raid.advance(c, s, brk + 5 + left + 1000, S);
+  assert.notEqual(s.bossUltAt, null, 'charge resumes after the break');
+  // 已經預告的大招：護盾開了還是會落下
+  const c2 = quiet(28, { bossChargeMs: 2000 });
+  const s2 = raid.raidStart(c2);
+  raid.advance(c2, s2, 2500, S);
+  assert.notEqual(s2.bossUltAt, null);
+  while (!s2.phase) raid.act({ ...c2, heroAtk: 400 }, s2, atk(s2.t + 10, 99), S);
+  raid.advance(c2, s2, s2.t + 20_000, S);
+  assert(s2.log.some((e) => e.k === 'bossUlt' || e.k === 'bossUltBlock'), 'warned ultimate lands');
+  assert.equal(s2.bossUltAt, null, 'no new charge under the shield');
+});
+
+test('raid shield: shield runs stored before the weakening (no atkPct/chargePct) replay unchanged', () => {
+  // 2ad505f 的護盾場次：config.phase 沒有 atkPct／chargePct（血量 280）＝護盾期間照常攻擊、照常蓄力
+  const c = raid.raidConfig('hard', 28, 480, 18);
+  c.bossHp = 280;
+  delete c.phase.atkPct;
+  delete c.phase.chargePct;
+  const s = toShield({ ...c, heroAtk: 400 });
+  const t0 = s.t;
+  raid.advance(c, s, t0 + 120_000, S);
+  for (const e of s.log.filter((x) => x.k === 'bossAtk' && x.t > t0 && !x.blocked)) assert.equal(e.n, Math.max(1, Math.round(c.bossAtk * raid.bossAttackAt(e.t).mult)));
+  assert.equal(s.tally.bossWarn > 0 || s.tally.bossUlt > 0 || s.tally.bossUltBlock > 0 || s.bossUltAt !== null, true, 'still charging under the shield');
+  // 隨機作答重算：有沒有寫 atkPct=100、chargePct=100 結果一樣（不減弱＝舊規則）
+  const acts = randomActions(7).map((a) => ({ ...a }));
+  const c100 = { ...c, phase: { ...c.phase, atkPct: 100, chargePct: 100 } };
+  assert.deepEqual(raid.raidReplay(c, acts, 480, 480_000), raid.raidReplay(c100, acts, 480, 480_000));
+});
+
+test('raid shield: wrong answers under the shield add no charge and never announce a new ultimate (Codex P1); older shield runs still charge', () => {
+  const c = quiet(28, { bossChargeMs: 90_000 });
+  const s = toShield({ ...c, heroAtk: 400 }, 30_000);
+  const level = raid.chargeLevel(c, s);
+  assert(level > 0.3 && level < 0.4, `about 32% charged when the shield opens (${level})`);
+  const bonus = s.chargeBonus;
+  // 18 次普通題答錯（記憶、理解、應用都有），以前會把蓄力加到 100% 並宣告大招
+  for (let i = 0; i < 18; i++) raid.act(c, s, { t: s.t + 2000, seat: 10 + (i % 5), kind: ['attack', 'shield', 'ultimate'][i % 3], ok: false }, S);
+  assert.equal(s.chargeBonus, bonus, 'no charge from wrong answers under the shield');
+  assert(Math.abs(raid.chargeLevel(c, s) - level) < 1e-9);
+  raid.advance(c, s, s.phase.at + 170_000, S);
+  assert.equal(s.bossUltAt, null);
+  assert.equal(s.log.filter((e) => e.k === 'bossWarn').length, 0, 'no new ultimate announced');
+  // 破盾後答錯照常加蓄力
+  for (let i = 0; i < 6; i++) raid.act(c, s, ana(s.t + 10 + i, 50 + i, `z${i}`), S);
+  assert.equal(s.phase, null);
+  raid.act(c, s, { t: s.t + 100, seat: 3, kind: 'attack', ok: false }, S);
+  assert.equal(s.chargeBonus, bonus + c.wrongChargeMs);
+  // 2026-10-31 的護盾場次（沒有 chargePct）：護盾中答錯照舊加蓄力、會宣告大招
+  const old = quiet(28, { bossChargeMs: 90_000 });
+  delete old.phase.atkPct;
+  delete old.phase.chargePct;
+  const s2 = toShield({ ...old, heroAtk: 400 }, 30_000);
+  raid.act(old, s2, { t: s2.t + 2000, seat: 10, kind: 'attack', ok: false }, S);
+  assert.equal(s2.chargeBonus, old.wrongChargeMs, 'old rule: a wrong answer under the shield adds charge');
+  for (let i = 1; i < 18; i++) raid.act(old, s2, { t: s2.t + 2000, seat: 10 + (i % 5), kind: 'attack', ok: false }, S);
+  assert(s2.log.some((e) => e.k === 'bossWarn'), 'old rule: the boss still announces');
+});
+
+test('raid shield: atkPct explicitly 0 means no normal attacks under the shield (no damage, no hero shield used); undefined keeps the old floor of 1', () => {
+  const zero = underShield();
+  zero.c.phase.atkPct = 0;
+  zero.s.shieldBank.push({ seat: 3, ms: 5000 });
+  const t0 = zero.s.t;
+  const hp = zero.s.teamHp;
+  raid.advance(zero.c, zero.s, t0 + 60_000, S);
+  assert.equal(zero.s.teamHp, hp);
+  assert.equal(raid.shieldMs(zero.s), 5000, 'hero shield not used');
+  assert.equal(zero.s.log.filter((e) => (e.k === 'bossAtk' || e.k === 'bossBlock') && e.t > t0).length, 0);
+  // 小額傷害打 1%：仍然至少 1 點（只有明確 0 才完全不攻擊）
+  const tiny = underShield();
+  tiny.c.phase.atkPct = 1;
+  const t1 = tiny.s.t;
+  raid.advance(tiny.c, tiny.s, t1 + 30_000, S);
+  const hits = tiny.s.log.filter((e) => e.k === 'bossAtk' && e.t > t1);
+  assert(hits.length > 0 && hits.every((e) => e.n === 1));
 });

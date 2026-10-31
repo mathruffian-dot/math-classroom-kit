@@ -21,6 +21,8 @@ import {
   advance,
   inBreak,
   phaseNeed,
+  phaseWeakText,
+  chargeLevel,
   raidEffect,
   shieldMs,
   type RaidEvent,
@@ -204,6 +206,7 @@ function updatePhase(root: HTMLElement, v: RaidView, s: RaidState) {
   const board = root.querySelector<HTMLElement>('.raid-board');
   if (!info || !el || !bar) return;
   const { p, need, brk, cfg } = info;
+  const weak = phaseWeakText(cfg);
   board?.classList.toggle('shielded', !!p && !s.result);
   board?.classList.toggle('guard-broken', brk && !s.result);
   bar.hidden = !p;
@@ -216,7 +219,7 @@ function updatePhase(root: HTMLElement, v: RaidView, s: RaidState) {
   if (s.result) html = '';
   else if (p) {
     const sup = p.support % cfg.support;
-    html = `<b>🛡 魔王護盾・第 ${p.layer + 1} 層</b><span class="raid-phase-count" data-testid="raid-phase-count">破盾 <em>${p.cracks}</em>/${need}</span><small>答對分析題打出裂痕（每人最多 ${cfg.cap} 道）・其他傷害只剩 ${cfg.dmgPct}%</small><small>🤝 應用題支援 ${sup}/${cfg.support}（滿了門檻 −1）・${p.hinted ? '💡 已給提示、門檻 −1' : `💡 ${mmss(info.hintLeft)} 後給提示`}</small>`;
+    html = `<b>🛡 魔王護盾・第 ${p.layer + 1} 層</b><span class="raid-phase-count" data-testid="raid-phase-count">破盾 <em>${p.cracks}</em>/${need}</span><small>答對分析題打出裂痕（每人最多 ${cfg.cap} 道）・其他傷害只剩 ${cfg.dmgPct}%</small>${weak ? `<small data-testid="raid-phase-weak">😮‍💨 護盾期間魔王攻擊減弱：${weak}</small>` : ''}<small>🤝 應用題支援 ${sup}/${cfg.support}（滿了門檻 −1）・${p.hinted ? '💡 已給提示、門檻 −1' : `💡 ${mmss(info.hintLeft)} 後給提示`}</small>`;
   } else if (brk) html = `<b>💥 破防！</b><span class="raid-phase-count">所有傷害 ×${cfg.breakPct / 100}</span><small>剩 ${info.breakLeft} 秒，全力攻擊！</small>`;
   el.hidden = !html;
   if (el.innerHTML !== html) el.innerHTML = html;
@@ -257,7 +260,7 @@ export function updateRaidBoard(root: HTMLElement, v: RaidView, now: number) {
   board?.classList.toggle('boss-low', s.bossHp > 0 && s.bossHp / c.bossHp < 0.25);
   board?.classList.toggle('team-low', s.teamHp > 0 && s.teamHp / c.teamHp < 0.3);
   board?.classList.toggle('warning', s.bossUltAt !== null && !s.result);
-  const charge = s.bossUltAt === null ? Math.min(1, (Math.max(0, s.t - s.chargeFrom) + s.chargeBonus) / c.bossChargeMs) : 1;
+  const charge = chargeLevel(c, s);
   $('rb-charge')!.style.width = `${(charge * 100).toFixed(1)}%`;
   $('rb-team')!.style.width = pct(s.teamHp, c.teamHp);
   $('rb-team-text')!.textContent = `英雄血量 ${s.teamHp} / ${c.teamHp}`;
@@ -447,7 +450,7 @@ function fx(root: HTMLElement, e: RaidEvent, v: RaidView) {
     pulse(boss, 'boss-guard');
   } else if (e.k === 'phaseOn') {
     pulse(boss, 'boss-guard');
-    add('raid-phase-banner', `<b>🛡 魔王張開護盾！</b><span>答對分析題打出 ${e.n} 道裂痕才能破盾・其他攻擊只剩 20%</span>`, 3200);
+    add('raid-phase-banner', `<b>🛡 魔王張開護盾！</b><span>答對分析題打出 ${e.n} 道裂痕才能破盾・其他攻擊只剩 ${v.run.config.phase?.dmgPct ?? 20}%${phaseWeakText(v.run.config.phase) ? '・魔王攻擊減弱' : ''}</span>`, 3200);
   } else if (e.k === 'crack' && !e.dup) {
     const bar = root.querySelector<HTMLElement>('#rb-barrier');
     if (bar) pulse(bar, 'hit');
@@ -495,7 +498,7 @@ export function raidPanelHtml(v: RaidView | undefined, prefs: { difficulty: stri
   const now = H.serverTime();
   const setup = `<div class="tool-row"><label class="time-limit">難度 <select id="raid-difficulty">${(['easy', 'normal', 'hard'] as const).map((d) => `<option value="${d}" ${prefs.difficulty === d ? 'selected' : ''}>${DIFFICULTY_NAME[d]}</option>`).join('')}</select></label><label class="time-limit">${H.icon('clock')}<select id="raid-seconds">${[300, 360, 420, 480, 540, 600].map((x) => `<option value="${x}" ${prefs.seconds === x ? 'selected' : ''}>${x / 60} 分鐘</option>`).join('')}</select></label></div>`;
   if (!v) {
-    return `${head}<p class="muted small-text">全班合作打魔王。學生每一題自己選：記憶題＝普通攻擊、理解題＝防護罩（答對 1 題存 1 秒，魔王攻擊時自動擋下；沒人存很容易輸）、應用題＝大招計量（無視魔王護甲，越多人一起做合擊加成越高，最多 2 倍；不會做可以換一題、答錯只鎖 3 秒）。全班一直只做記憶題，魔王會適應、普通攻擊效果變差。答錯鎖 5 秒，魔王蓄力加快。魔王有 3 種普通攻擊、4 種大招，大招落下前 ${RAID_WARN_MS / 1000} 秒預告。<b>時間到還沒打倒魔王，就算魔王獲勝。</b>魔王的血量依上線人數、難度和時間調整。<b>困難魔王（題庫有分析題時）</b>：血量 70%、35% 張開護盾，護盾中其他題只剩 20% 傷害；學生答對分析題打出裂痕（每人每層最多 2 道），裂痕到門檻（線上人數 20%／25%，至少 3）就破盾、破防 15 秒傷害 ×2。全班每答對 10 題應用題門檻 −1；撐 3 分鐘給提示、門檻 −1。</p>${setup}<div class="tool-row">${H.btn('開戰', 'raid-start', 'primary', 'bolt', 'data-testid="raid-start"')}</div>`;
+    return `${head}<p class="muted small-text">全班合作打魔王。學生每一題自己選：記憶題＝普通攻擊、理解題＝防護罩（答對 1 題存 1 秒，魔王攻擊時自動擋下；沒人存很容易輸）、應用題＝大招計量（無視魔王護甲，越多人一起做合擊加成越高，最多 2 倍；不會做可以換一題、答錯只鎖 3 秒）。全班一直只做記憶題，魔王會適應、普通攻擊效果變差。答錯鎖 5 秒，魔王蓄力加快。魔王有 3 種普通攻擊、4 種大招，大招落下前 ${RAID_WARN_MS / 1000} 秒預告。<b>時間到還沒打倒魔王，就算魔王獲勝。</b>魔王的血量依上線人數、難度和時間調整。<b>困難魔王（題庫有分析題時）</b>：血量 70%、35% 張開護盾，護盾中其他題只剩 20% 傷害，魔王攻擊減弱（普攻減半、暫停蓄力；已經預告的大招照樣落下）；學生答對分析題打出裂痕（每人每層最多 2 道），裂痕到門檻（線上人數 20%／25%，至少 3）就破盾、破防 15 秒傷害 ×2。全班每答對 10 題應用題門檻 −1；撐 3 分鐘給提示、門檻 −1。</p>${setup}<div class="tool-row">${H.btn('開戰', 'raid-start', 'primary', 'bolt', 'data-testid="raid-start"')}</div>`;
   }
   const s = liveState(v, now),
     phase = raidPhase(v, s, now);
@@ -543,16 +546,19 @@ export function raidMiniHtml(v: RaidView, now: number) {
   const line = (cls: string, text: string) => `<span class="raid-alert-line ${cls}" data-testid="raid-alert-${cls}">${text}</span>`;
   // 護盾（困難魔王）：狀態放進既有的固定列（存量那一行中間一格、提示格第 2 行），血條加疊加樣式，不新增任何一行
   const ph = phaseInfo(v, s);
+  // 護盾期間魔王攻擊減弱（新場次才有）：護盾開啟、沒有大招預告與抗性時放在提示格第 1 行（同一格換文字，高度不變）
+  const weak = ph ? phaseWeakText(ph.cfg, true) : '';
   const phTip = !ph ? '' : ph.p ? `🛡 護盾：其他只剩 ${ph.cfg.dmgPct}%，做分析題` : ph.brk ? `💥 破防：所有傷害 ×${ph.cfg.breakPct / 100}！` : `血量 ${ph.cfg.at.join('%／')}% 時張開護盾`;
   const lines = warning
     ? [line('warn', warn), resist ? line('resist', resist) : line('tip', `「${bossMove(s.bossUltMove || undefined)?.name || ''}」：做理解題存防護罩擋下！`)]
     : resist
       ? [line('resist', resist), line('tip', ph && (ph.p || ph.brk) ? phTip : '理解題、應用題不受影響')]
-      : [line('tip', '記憶題攻擊・理解題存防護罩・應用題累積大招'), line('tip', phTip)];
+      : [line('tip', ph?.p && weak ? `🛡 ${weak}` : '記憶題攻擊・理解題存防護罩・應用題累積大招'), line('tip', phTip)];
   const phSpan = !ph ? '' : `<span class="raid-info-ph ${ph.p ? 'on' : ph.brk ? 'brk' : ''}" data-testid="raid-mini-phase">${ph.p ? `🔰 破盾 ${ph.p.cracks}/${ph.need}` : ph.brk ? `💥 破防 ${ph.breakLeft} 秒` : ''}</span>`;
   const bossCls = ph?.p ? ' shielded' : ph?.brk ? ' guard-broken' : '';
   return `<div class="raid-mini-bars"><div class="raid-bar boss small${bossCls}"><i class="hp" style="width:${pct(s.bossHp, c.bossHp)}"></i><span>魔王 ${s.bossHp}</span></div><div class="raid-bar team small"><i style="width:${pct(s.teamHp, c.teamHp)}"></i><span>英雄 ${s.teamHp}</span></div></div><div class="raid-mini-info">${
-    bank > 0 ? `<span class="on">🛡 存量 ${bank / 1000} 秒</span>` : '<span>🛡 存量 0</span>'
+    // 護盾／破防那一格出現時，存量省略「存量」兩字（944px 的 iPad 面板放不下「🛡 存量 1.5 秒」＋「💥 破防 15 秒」＋大招）
+    bank > 0 ? `<span class="on">🛡 ${ph?.p || ph?.brk ? '' : '存量 '}${bank / 1000} 秒</span>` : `<span>🛡 ${ph?.p || ph?.brk ? '0 秒' : '存量 0'}</span>`
   }${phSpan}<span>💥 大招 ${Math.round((s.ult / RAID_ULT_NEED) * 100)}%</span></div>${myLine(v, s)}<div class="raid-mini-alert ${warning ? 'warn' : resist ? 'resist' : 'idle'}" data-testid="raid-mini-alert">${lines.join('')}</div>`;
 }
 /**

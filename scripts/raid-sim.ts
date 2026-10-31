@@ -3,13 +3,48 @@
 // 困難魔王有分析題時（ANALYSIS＝題庫的分析題題數，預設 18＝2-2）會有護盾，假設見下方 ANA_*。
 // 用法：node scripts/raid-sim.ts [人數] [秒數]
 //   RUNS=400（每種難度幾場）、ONLY=hard（只跑某個難度）、HPX=1（困難魔王血量倍率，調血量用）、ANALYSIS=0（沒有分析題＝舊的困難魔王）
+//   ATKPCT=50、CHARGEPCT=0（護盾期間的攻擊修正，比較候選規則用；空字串＝不修正）
+//   2026-11-01 調整時的比較：for n in 25 28 30; do for s in 300 480; do ONLY=hard RUNS=600 node scripts/raid-sim.ts $n $s; done; done
 import { RAID_ANALYSIS_LOCK_MS, act, advance, raidConfig, raidStart, type RaidDifficulty, type RaidKind, type RaidState } from '../shared/raid.ts';
 
+// SEED（預設 1）：固定亂數種子，同樣的設定每次跑出一樣的結果（SEED=0＝真的隨機）
+const SEED = Number(process.env.SEED ?? 1);
+if (SEED) {
+  let a = SEED >>> 0;
+  Math.random = () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
 const N = Number(process.argv[2] || 28);
 const SECONDS = Number(process.argv[3] || 480);
 const RUNS = Number(process.env.RUNS || 400);
 const ANALYSIS = Number(process.env.ANALYSIS ?? 18);
 const HPX = Number(process.env.HPX || 1);
+// 護盾期間攻擊修正（比較候選規則用；沒設就用 raidConfig 的值）：ATKPCT＝普通攻擊剩幾 %、CHARGEPCT＝蓄力速度剩幾 %（0＝暫停）
+const ATKPCT = process.env.ATKPCT;
+const CHARGEPCT = process.env.CHARGEPCT;
+// HPORIG=1：困難魔王用原本的血量公式（沒有分析題時的血量，28 人 8 分鐘 2970）；
+// DMGPCT＝護盾期間普通傷害剩幾 %、NEED=4,5＝破盾門檻（替代方案掃描用，不是正式規則）
+function tune(difficulty: RaidDifficulty, c: ReturnType<typeof raidConfig>) {
+  if (difficulty !== 'hard') return c;
+  if (process.env.HPORIG) c.bossHp = raidConfig('hard', N, SECONDS, 0).bossHp;
+  c.bossHp = Math.round((c.bossHp * HPX) / 10) * 10;
+  if (c.phase && process.env.DMGPCT) c.phase.dmgPct = Number(process.env.DMGPCT);
+  if (c.phase && process.env.NEED) c.phase.need = process.env.NEED.split(',').map(Number);
+  if (c.phase && ATKPCT !== undefined) {
+    if (ATKPCT === '') delete c.phase.atkPct;
+    else c.phase.atkPct = Number(ATKPCT);
+  }
+  if (c.phase && CHARGEPCT !== undefined) {
+    if (CHARGEPCT === '') delete c.phase.chargePct;
+    else c.phase.chargePct = Number(CHARGEPCT);
+  }
+  return c;
+}
 type Level = 'weak' | 'mid' | 'strong';
 type Base = Exclude<RaidKind, 'analysis'>;
 const choose: Record<Level, [Base, number][]> = {
@@ -40,7 +75,7 @@ function pick<T>(list: [T, number][]): T {
 }
 function game(difficulty: RaidDifficulty): RaidState {
   const c = raidConfig(difficulty, N, SECONDS, ANALYSIS);
-  if (difficulty === 'hard') c.bossHp = Math.round((c.bossHp * HPX) / 10) * 10;
+  tune(difficulty, c);
   const s = raidStart(c);
   const limit = SECONDS * 1000;
   const ids = Array.from({ length: ANALYSIS }, (_, i) => `a${i}`);
@@ -131,20 +166,21 @@ const levels = (process.env.ONLY ? [process.env.ONLY] : ['easy', 'normal', 'hard
 for (const d of levels) {
   const runs = Array.from({ length: RUNS }, () => game(d));
   const wins = runs.filter((s) => s.result === 'win');
-  const c = raidConfig(d, N, SECONDS, ANALYSIS);
-  const hp = d === 'hard' ? Math.round((c.bossHp * HPX) / 10) * 10 : c.bossHp;
+  const c = tune(d, raidConfig(d, N, SECONDS, ANALYSIS));
+  const hp = c.bossHp;
   const pct = (k: number) => `${Math.round((k / runs.length) * 100)}%`;
   console.log(
     `${d.padEnd(6)} 魔王 ${hp} 血／英雄 ${c.teamHp} 血｜勝 ${pct(wins.length)}｜打倒平均 ${(avg(wins.map((s) => s.endAt!)) / 60000).toFixed(1)} 分｜` +
-      `輸 ${pct(runs.filter((s) => s.result === 'lose').length)}、時間到 ${pct(runs.filter((s) => s.result === 'timeout').length)}｜平均時間 ${(avg(runs.map((s) => s.endAt ?? SECONDS * 1000)) / 60000).toFixed(1)} 分｜贏時英雄剩 ${Math.round(avg(wins.map((s) => s.teamHp)))} 血｜沒贏時魔王剩 ${Math.round(avg(runs.filter((s) => s.result !== 'win').map((s) => (s.bossHp / c.bossHp) * 100)))}%`,
+      `英雄被打光 ${pct(runs.filter((s) => s.result === 'lose').length)}、時間到 ${pct(runs.filter((s) => s.result === 'timeout').length)}｜平均時間 ${(avg(runs.map((s) => s.endAt ?? SECONDS * 1000)) / 60000).toFixed(1)} 分｜贏時英雄剩 ${Math.round(avg(wins.map((s) => s.teamHp)))} 血｜沒贏時魔王剩 ${Math.round(avg(runs.filter((s) => s.result !== 'win').map((s) => (s.bossHp / c.bossHp) * 100)))}%`,
   );
   if (c.phase) {
     const ph = runs.map(phases);
     const on = ph.reduce((p, x) => p + x.on, 0),
       broke = ph.reduce((p, x) => p + x.broke, 0);
     const bt = runs.flatMap((s) => s.breakMs);
+    const mod = [c.phase.atkPct !== undefined ? `普攻 ${c.phase.atkPct}%` : '', c.phase.chargePct !== undefined ? `蓄力 ${c.phase.chargePct}%` : ''].filter(Boolean).join('、') || '無';
     console.log(
-      `        護盾：門檻 ${c.phase.need.join('／')}｜每場開 ${(on / runs.length).toFixed(2)} 層、破 ${(broke / runs.length).toFixed(2)} 層｜破盾成功率 ${Math.round((broke / Math.max(1, on)) * 100)}%｜平均破盾時間 ${(avg(bt) / 1000).toFixed(0)} 秒｜` +
+      `        護盾：期間修正 ${mod}｜門檻 ${c.phase.need.join('／')}｜第二層開啟率 ${pct(ph.filter((x) => x.on >= 2).length)}｜每場開 ${(on / runs.length).toFixed(2)} 層、破 ${(broke / runs.length).toFixed(2)} 層｜破盾成功率 ${Math.round((broke / Math.max(1, on)) * 100)}%｜平均破盾時間 ${(avg(bt) / 1000).toFixed(0)} 秒｜` +
         `分析題 答對 ${Math.round(avg(runs.map((s) => Object.values(s.stats).reduce((p, x) => p + (x.ok.analysis || 0), 0))))}／作答 ${Math.round(avg(runs.map((s) => Object.values(s.stats).reduce((p, x) => p + (x.n.analysis || 0), 0))))}、提示 ${(avg(runs.map((s) => s.tally.phaseHint || 0))).toFixed(2)}、支援 ${(avg(runs.map((s) => s.tally.phaseSupport || 0))).toFixed(2)}`,
     );
   }

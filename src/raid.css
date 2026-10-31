@@ -1253,7 +1253,10 @@
     opacity: 0;
   }
 }
-/* 學生戰況區：存量那一行中間的護盾格（不換行、和其他格一樣高） */
+/* 學生戰況區：存量那一行中間的護盾格（不換行、和其他格一樣高；不讓它被壓縮成省略號） */
+.raid-mini-info > .raid-info-ph {
+  flex-shrink: 0;
+}
 .raid-info-ph.on {
   color: #9fd8ff;
   font-weight: 800;

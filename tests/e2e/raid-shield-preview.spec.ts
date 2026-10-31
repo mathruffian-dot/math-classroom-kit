@@ -72,6 +72,8 @@ test('raid shield preview screenshots', async ({ browser, playwright }) => {
       await answer(mates[i % 4], 'attack');
     }
     await expect(tp.getByTestId('raid-phase')).toBeVisible();
+    // 護盾期間魔王攻擊減弱的說明（2026-11-01）
+    await expect(tp.getByTestId('raid-phase-weak')).toContainText('普攻減半、暫停蓄力');
     // 1. 一道裂痕之後（等提示條消失）
     await answer(mates[0], 'analysis');
     await tp.waitForTimeout(3800);

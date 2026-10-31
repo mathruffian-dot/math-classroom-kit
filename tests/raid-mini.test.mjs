@@ -103,3 +103,26 @@ test('raid mini: shield states (none, open, broken, open + boss warning) keep th
   // 簡單／中等、沒有分析題：戰況區的 HTML 和以前一樣（沒有護盾那一格）
   assert.doesNotMatch(ui.raidMiniHtml(view({}), NOW), /raid-mini-phase/);
 });
+
+test('raid mini: "boss attacks weaken" sits in the first tip line while the shield is up (same rows); older shield runs keep the old text', () => {
+  const config = raid.raidConfig('hard', 28, 600, 18);
+  const base = { ...raid.raidStart(config), t: T, nextAtk: T + 60_000, nextShield: T + 60_000, chargeFrom: T };
+  const v = (patch, cfg = config) => ({ run: { id: 'r3', difficulty: 'hard', startedAt: NOW - T, seconds: 600, config: cfg }, title: '魔王戰', state: { ...base, ...patch }, roles: {}, charging: [], pools: { attack: 1, shield: 1, ultimate: 1, analysis: 18 }, mine: {} });
+  const open = { phase: { layer: 0, at: T - 5000, base: 6, cracks: 1, by: { 5: 1 }, support: 0, hinted: false } };
+  const lines = (h) => [...h.matchAll(/class="raid-alert-line [a-z]+" data-testid="raid-alert-[a-z]+">([^<]*)</g)].map((m) => m[1]);
+  const on = ui.raidMiniHtml(v(open), NOW);
+  assert.deepEqual(lines(on), ['🛡 普攻減半・蓄力暫停', '🛡 護盾：其他只剩 20%，做分析題']);
+  // 沒有護盾、破防：第 1 行是原本的說明
+  assert.equal(lines(ui.raidMiniHtml(v({}), NOW))[0], '記憶題攻擊・理解題存防護罩・應用題累積大招');
+  assert.equal(lines(ui.raidMiniHtml(v({ phase: null, breakUntil: T + 12_000 }), NOW))[0], '記憶題攻擊・理解題存防護罩・應用題累積大招');
+  // 大招預告、抗性優先（行數不變）
+  assert.match(lines(ui.raidMiniHtml(v({ ...open, bossUltAt: T + 12_000 }), NOW))[0], /^⚠ 魔王大招/);
+  assert.match(lines(ui.raidMiniHtml(v({ ...open, recent: attacks }), NOW))[0], /^🧬/);
+  // 2ad505f 的護盾場次（沒有 atkPct／chargePct）：沒有這一句
+  const old = { ...config, phase: { ...config.phase } };
+  delete old.phase.atkPct;
+  delete old.phase.chargePct;
+  const h = ui.raidMiniHtml(v(open, old), NOW);
+  assert.equal(lines(h)[0], '記憶題攻擊・理解題存防護罩・應用題累積大招');
+  assert.equal(shape(h), shape(on));
+});

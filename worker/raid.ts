@@ -325,6 +325,9 @@ export function restoreRaid(runsInput: unknown, playInput: unknown, seats: numbe
         cap: integer(ph.cap, 0, 100),
         dmg: integer(ph.dmg, 0, 1e6),
         pool: integer(ph.pool, 1, 1000),
+        // 護盾期間魔王攻擊減弱（2026-11-01 起才有；舊紀錄沒有＝不減弱）
+        ...(ph.atkPct !== undefined ? { atkPct: integer(ph.atkPct, 0, 100) } : {}),
+        ...(ph.chargePct !== undefined ? { chargePct: integer(ph.chargePct, 0, 100) } : {}),
       };
     }
     assert(['easy', 'normal', 'hard'].includes(String(r.difficulty)), '魔王戰難度不正確');
