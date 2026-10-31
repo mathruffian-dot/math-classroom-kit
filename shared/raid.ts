@@ -79,16 +79,16 @@ export interface RaidConfig {
   phase?: RaidPhaseConfig;
 }
 /**
- * 魔王護盾：血量降到 at[i]%（70、35）時開啟第 i 層，答對分析題打出裂痕，裂痕數到門檻就破盾。
+ * 魔王護盾：血量降到 at[i]%（8 分鐘以上 70、35；未滿 8 分鐘只有 50；2026-11-01 以前的紀錄一律 70、35）時開啟第 i 層，答對分析題打出裂痕，裂痕數到門檻就破盾。
  * 護盾和「魔王護甲」（bossShield）是同一套魔王防禦的兩種狀態：護盾開啟時護甲併進護盾（歸零、不再回補），
  * 破盾後「破防」breakMs 毫秒，結束後護甲才重新回補。所以同一時間只會有一種魔王防禦。
  */
 export interface RaidPhaseConfig {
   /** 開啟護盾的血量百分比（由高到低）。 */
   at: number[];
-  /** 每一層的破盾門檻（開戰時依上線人數算好：20%、25%，至少 3）。 */
+  /** 每一層的破盾門檻（開戰時依上線人數算好：15%，至少 3；2026-11-01 以前的紀錄是 20%、25%）。 */
   need: number[];
-  /** 護盾存在時，非分析題的傷害只剩幾 %。 */
+  /** 護盾存在時，非分析題的傷害只剩幾 %（50；2026-11-01 以前的紀錄是 20）。 */
   dmgPct: number;
   /** 破防：多久（毫秒）、所有傷害變成幾 %。 */
   breakMs: number;
@@ -140,12 +140,36 @@ const TABLE: Record<RaidDifficulty, { hpPer: number; atk: number; ult: number; c
   hard: { hpPer: 106, atk: 25, ult: 550, chargeS: 93, shield10: 12 },
 };
 /** 護盾的固定規則（門檻依人數另外算）。 */
-// atkPct、chargePct：護盾期間魔王攻擊減弱（普通攻擊減半、暫停蓄力；2026-11-01，scripts/raid-sim.ts 比較過三種候選）
-// hpOffS／hpDivS：有護盾時魔王血量的時間長度＝（秒數 − hpOffS）／hpDivS（原本是 秒數／480）。28 人 5、8 分鐘勝率各約五成的校準值
-// （修正「答錯蓄力」後重新校準，固定亂數種子各 600 場）。
-// 兩層護盾平均要撐 4～5 分鐘（每層約 130 秒破盾，加上門檻），這段時間其他傷害只剩 20%，照原公式（28 人 8 分鐘 2970 血）
-// 就算護盾期間魔王完全不攻擊也打不贏（模擬勝率 0%，魔王剩約四成血）
-export const RAID_PHASE = { at: [70, 35], needPct: [20, 25], needMin: 3, dmgPct: 20, breakMs: 15_000, breakPct: 200, support: 10, hintMs: 180_000, cap: 2, dmg: 40, atkPct: 50, chargePct: 0, hpOffS: 264, hpDivS: 390 } as const;
+// 2026-11-02 老師決定「護盾變輕、血量接近原本、勝率約五成」：
+// - 層數依時間長度：未滿 8 分鐘（含預設 5 分鐘）只有一層（50%）；8 分鐘以上兩層（70%、35%）
+// - 護盾期間其他題目傷害 50%（原本 20%）；門檻＝線上人數 15%（第二層 needPct[1]），至少 3
+// - atkPct、chargePct：護盾期間魔王攻擊減弱（普通攻擊剩 25%、暫停蓄力）。2026-11-02 模擬器改成和伺服器一樣處理過期的分析題後，
+//   普攻減半時 28 人 8 分鐘輸的主因變成英雄被打光（38%，時間到 21%）；剩 25% 時 21%／27%（scripts/raid-sim.ts 比較）
+// - 血量：原本的困難公式（28 人 5 分鐘 1860、8 分鐘 2970）×（1 − hpOffS／秒數），最少 hpMin%。
+//   hpOffS＝護盾拖住的時間（秒；一層 70、兩層 112）：破盾平均約 2 分鐘、這段時間傷害只剩一半。
+//   scripts/raid-sim.ts 6 個亂數種子各 200 場校準：25～30 人 5／8 分鐘勝率約五成（28 人 5 分鐘 1430、8 分鐘 2280）
+export const RAID_PHASE = {
+  atShort: [50],
+  atLong: [70, 35],
+  longS: 480,
+  needPct: [15, 15],
+  needMin: 3,
+  dmgPct: 50,
+  breakMs: 15_000,
+  breakPct: 200,
+  support: 10,
+  hintMs: 180_000,
+  cap: 2,
+  dmg: 40,
+  atkPct: 25,
+  chargePct: 0,
+  hpOffS: [70, 112],
+  hpMin: 75,
+} as const;
+/** 這個長度的護盾開在哪幾個血量百分比（未滿 8 分鐘一層、8 分鐘以上兩層）。 */
+export function phaseLayers(seconds: number): number[] {
+  return [...(seconds >= RAID_PHASE.longS ? RAID_PHASE.atLong : RAID_PHASE.atShort)];
+}
 
 /**
  * 依難度、上線人數（1–60）與時間長度（秒）決定數值：大班小班、5 分鐘或 10 分鐘，打起來的節奏差不多。
@@ -162,8 +186,9 @@ export function raidConfig(difficulty: RaidDifficulty, players: number, seconds 
   const len = Math.max(0.5, Math.min(1.5, seconds / 480));
   // 普通攻擊：25 人以上每 3 秒一次，人少時間隔拉長但最慢 5 秒一次；拉不長的部分改成每下傷害少一點（總傷害和人數成正比）
   const atkEvery = Math.min(5000, Math.round(3000 / size));
-  // 魔王血量的時間長度：有護盾時扣掉護盾的時間（見 RAID_PHASE.hpOffS），其他和原本一樣
-  const hpLen = phased ? Math.max(0.05, (seconds - RAID_PHASE.hpOffS) / RAID_PHASE.hpDivS) : len;
+  // 有護盾時：原本的血量扣掉護盾拖住的時間（見 RAID_PHASE.hpOffS），最少原本的 hpMin%
+  const at = phaseLayers(seconds);
+  const hpLen = phased ? len * Math.max(RAID_PHASE.hpMin / 100, 1 - RAID_PHASE.hpOffS[at.length - 1] / Math.max(1, seconds)) : len;
   return {
     players: n,
     // 人少時合擊加成小：魔王血量打折（8 人約 7 折、15 人約 8 折、25 人以上不打折）
@@ -191,8 +216,8 @@ export function raidConfig(difficulty: RaidDifficulty, players: number, seconds 
     ...(phased
       ? {
           phase: {
-            at: [...RAID_PHASE.at],
-            need: RAID_PHASE.needPct.map((p) => Math.max(RAID_PHASE.needMin, Math.ceil((n * p) / 100))),
+            at,
+            need: at.map((_, i) => Math.max(RAID_PHASE.needMin, Math.ceil((n * RAID_PHASE.needPct[i]) / 100))),
             dmgPct: RAID_PHASE.dmgPct,
             breakMs: RAID_PHASE.breakMs,
             breakPct: RAID_PHASE.breakPct,
@@ -261,12 +286,12 @@ export interface RaidEvent {
   move?: string;
   /** 被防護罩擋掉的毫秒數。 */
   blocked?: number;
-  /** 護盾：門檻、第幾層；傷害倍率（0.2＝被護盾擋、2＝破防）；同一題已經被同學解出（不算）。 */
+  /** 護盾：門檻、第幾層；傷害倍率（0.5＝被護盾擋（舊紀錄 0.2）、2＝破防）；同一題已經被同學解出（不算）。 */
   need?: number;
   layer?: number;
   x?: number;
   dup?: boolean;
-  /** 傷害被下一層護盾的門檻擋住（血量停在 70%／35%，要先破這一層）。 */
+  /** 傷害被下一層護盾的門檻擋住（血量停在 config.phase.at 的門檻，要先破這一層）。 */
   held?: boolean;
 }
 /** 各類題目的題數（分析題做過才有這一格，舊紀錄的成績格式不變）。 */
@@ -483,7 +508,7 @@ function checkBreak(c: RaidConfig, s: RaidState, t: number) {
 }
 /**
  * 扣魔王血（所有英雄傷害都走這裡）：護盾存在時非分析題只剩 dmgPct%，破防時全部 breakPct%。
- * 還沒開過的護盾擋在門口：這一下會讓血量跨過 70%／35% 時停在門檻上、開啟護盾（多的傷害被護盾吸走）。
+ * 還沒開過的護盾擋在門口：這一下會讓血量跨過門檻（at[i]%）時停在門檻上、開啟護盾（多的傷害被護盾吸走）。
  * 沒有 config.phase（舊紀錄、簡單／中等）時就是原本的 min(血量, 傷害)。
  */
 function hitBoss(c: RaidConfig, s: RaidState, t: number, power: number, kind: RaidKind): { dmg: number; x?: number; open?: boolean; held?: boolean } {
@@ -494,7 +519,7 @@ function hitBoss(c: RaidConfig, s: RaidState, t: number, power: number, kind: Ra
     if (inBreak(s, t)) x = ph.breakPct / 100;
     else if (s.phase && kind !== 'analysis') x = ph.dmgPct / 100;
   }
-  // 打折後至少 1 點（小額傷害的 20% 四捨五入會偏高一點，例如 12×20%＝2.4→2、3×20%＝0.6→1）
+  // 打折後至少 1 點（四捨五入，例如 12×50%＝6、3×20%＝0.6→1）
   let dmg = Math.min(s.bossHp, x === 1 ? power : Math.max(power > 0 ? 1 : 0, Math.round(power * x)));
   let open = false,
     held = false;
@@ -760,7 +785,7 @@ export function act(c: RaidConfig, s: RaidState, a: RaidAction, seconds: number)
 /**
  * 分析題（只有 config.phase 才會有）。答錯：不扣英雄血、不加魔王蓄力、不中斷連對（鎖 20 秒是伺服器管的）。
  * 答對：每一題全班只算一次（solved；全部解完才重新開放）。護盾開啟中、這一層自己算進的還不到 cap 題＝打出裂痕；
- * 超過 cap 題、或沒有護盾時＝直接扣魔王 dmg 血（不受護盾的 20% 影響，破防時一樣 2 倍）。
+ * 超過 cap 題、或沒有護盾時＝直接扣魔王 dmg 血（不受護盾的 dmgPct% 影響，破防時一樣 2 倍）。
  */
 function analysisAct(c: RaidConfig, s: RaidState, a: RaidAction, x: RaidSeatStats): RaidState {
   const ph = c.phase;

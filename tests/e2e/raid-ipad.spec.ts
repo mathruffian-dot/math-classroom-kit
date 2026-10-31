@@ -499,23 +499,36 @@ test('raid iPad sweep: the stem stays put on representative iPad widths while th
 });
 
 // ───────────── 困難魔王的護盾（2026-11）：護盾開啟、破盾、破防時，學生端題幹不跳、#raid-mini 高度不變 ─────────────
-// 真的開一場 g8-2-2d 困難魔王（人少時魔王 150 血、門檻 3）：背景同學用 API 打記憶題到 70% → 護盾開啟，
-// 再由 3 位同學各答對 1 題分析題 → 破盾、破防 15 秒。學生（iPad）停在一題長的應用題上，整段時間每 50ms 量題幹位置與戰況區高度。
-const SHIELD_COMBOS = ['gen7 橫 1080×810', 'gen11 橫 944×656', 'Split View 678×810'];
+// 真的開一場 g8-2-2d 困難魔王（10 分鐘＝兩層；人少時門檻 3）：背景同學用 API 打記憶題到 70% → 護盾開啟，
+// 再由 3 位同學各答對 1 題分析題 → 破盾、破防 15 秒 → 破防結束。學生（iPad）停在一題長的應用題上，整段時間每 50ms 量題幹位置與戰況區高度。
+// 2026-11-02（Codex 建議）：除了連續採樣，每個階段（護盾開啟、提示替換、破盾／破防、破防結束）各量一次 #raid-mini 高度與截斷；
+// 每個階段也把戰況那一行換成最寬的字（存量滿 30 秒、大招 100%、破盾 9/9、破防 15 秒）量一次，確認放得下、高度不變。
+/** 每一階段的量測：#raid-mini 高度、被省略號切掉的護盾文字、換成最寬的字之後的高度與截斷。 */
+type PhaseSnap = { label: string; h: number; cut: (string | null)[]; worstH: number; worstCut: string[] };
+// 2026-11-02（Codex）：10 分鐘（兩層）三種寬度都量到第二層的轉場（打到 35% 開第二層 → 破第二層）；
+// 另外 5 分鐘（一層，血量 50% 開）在最窄的橫式 944 量一次。
+const SHIELD_COMBOS: { name: string; secs: number }[] = [
+  { name: 'gen7 橫 1080×810', secs: 600 },
+  { name: 'gen11 橫 944×656', secs: 600 },
+  { name: 'Split View 678×810', secs: 600 },
+  { name: 'gen11 橫 944×656', secs: 300 },
+];
+const PHASES_ONE = ['護盾開啟', '提示替換（減弱提示）', '破盾／破防', '破防結束'];
+const PHASES_TWO = [...PHASES_ONE, '第二層開啟', '第二層破盾／破防'];
 test('raid iPad shield: the stem and #raid-mini stay put while the shield opens and breaks', async ({ browser, playwright, browserName }) => {
   const raidId = 'g8-2-2d';
   const bank = JSON.parse(await readFile(`content/raids/${raidId}.json`, 'utf8')) as Bank & { pools: Record<string, (BankQ & { reason?: { options: string[]; answer: number } })[]> };
   const byId = new Map(Object.values(bank.pools).flat().map((q) => [q.id, q]));
   const longQ = [...bank.pools.ultimate].sort((a, b) => b.stem.length - a.stem.length).find((q) => !q.figure)!;
-  test.setTimeout(240_000);
+  test.setTimeout(900_000);
   const t = await login(playwright, { role: 'teacher', account: 'teacher', password: '11235813' });
   const cl = (await (await t.get('/api/dashboard')).json()).classes.find((c: { code: string }) => c.code === 'DEMO801');
   await t.patch(`/api/classes/${cl.id}`, { headers, data: { requireCode: false } });
   const sessionId = (await (await t.post('/api/sessions', { headers, data: { lessonId: raidId, classId: cl.id } })).json()).session.id;
   const mates = await Promise.all([34, 35, 36].map((seat) => login(playwright, { role: 'student', classCode: 'DEMO801', seat })));
-  const rows: { combo: string; mode: string; r: Sample; sawShield: boolean; sawBreak: boolean; weakH: number }[] = [];
+  const rows: { combo: string; secs: number; mode: string; r: Sample; sawShield: boolean; sawBreak: boolean; weakH: number; snaps: PhaseSnap[] }[] = [];
   try {
-    for (const [ci, name] of SHIELD_COMBOS.entries()) {
+    for (const [ci, { name, secs }] of SHIELD_COMBOS.entries()) {
       const combo = COMBOS_ALL.find((c) => c.name === name)!;
       const { defaultBrowserType: _d, ...dev } = devices[combo.device];
       const size = combo.width ? { width: combo.width, height: combo.height! } : null;
@@ -531,7 +544,7 @@ test('raid iPad shield: the stem and #raid-mini stay put while the shield opens 
         await page.getByLabel('座號').fill(String(20 + ci));
         await page.locator('#login-form').getByRole('button', { name: '登入' }).click();
         await expect(page.getByTestId('session-slide')).toBeAttached();
-        expect((await t.post(`/api/sessions/${sessionId}/control`, { headers, data: { action: 'raid-start', difficulty: 'hard', seconds: 600 } })).status()).toBe(200);
+        expect((await t.post(`/api/sessions/${sessionId}/control`, { headers, data: { action: 'raid-start', difficulty: 'hard', seconds: secs } })).status()).toBe(200);
         await page.reload();
         // 手機分頁版面（寬度 ≤ 760，例如 Split View）：重新載入後先等版面出來，再切到「作答」
         const tab = page.locator('.phone-tabs [data-tab="answer"]');
@@ -551,53 +564,95 @@ test('raid iPad shield: the stem and #raid-mini stay put while the shield opens 
         const view = await (await t.get(`/api/sessions/${sessionId}`)).json();
         const runId = view.raid.run.id;
         expect(view.raid.run.config.phase, 'hard boss with analysis has shields').toBeTruthy();
+        expect(view.raid.run.config.phase.at, `${secs} s: layers`).toEqual(secs >= 480 ? [70, 35] : [50]);
         const post = (c: APIRequestContext, data: Record<string, unknown>) => c.post(`/api/sessions/${sessionId}/raid`, { headers, data: { runId, ...data } });
         for (const m of mates) await post(m, { op: 'role', role: 'mage' });
         const mode = ci === 0 ? 'top' : 'half';
-        const sampling = sample(page, mode, 20_000);
+        const sampling = sample(page, mode, secs >= 480 ? 110_000 : 50_000);
         let sawShield = false,
           sawBreak = false,
           weakH = 0;
-        // 1. 記憶題打到 70%
-        for (let i = 0; i < 40; i++) {
-          const st = (await (await t.get(`/api/sessions/${sessionId}`)).json()).raid.state;
-          if (st.phase) break;
-          const d = await post(mates[0], { op: 'draw', kind: 'attack' });
-          const q = (await d.json()).question;
-          const it = byId.get(q.id)!;
-          await post(mates[0], { op: 'answer', choice: q.options.indexOf(it.options[it.answer]) });
-        }
+        const snaps: PhaseSnap[] = [];
+        // 這一刻的高度與截斷；再把戰況那一行（存量、護盾格、大招）換成最寬的字量一次，量完馬上換回來（同一個 evaluate，畫面不會重畫）
+        const snap = async (label: string, worst: [string, string, string]) => {
+          const h = await page.locator('#raid-mini').evaluate((e) => Math.round(e.getBoundingClientRect().height * 10) / 10);
+          const c = await cut();
+          const w = await page.locator('#raid-mini').evaluate((m, texts) => {
+            const spans = Array.from(m.querySelectorAll<HTMLElement>('.raid-mini-info > span'));
+            const old = spans.map((x) => x.textContent);
+            spans.forEach((x, i) => {
+              if (texts[i] !== undefined) x.textContent = texts[i];
+            });
+            const worstCut = spans.filter((x) => x.scrollWidth > x.clientWidth + 1).map((x) => x.textContent || '');
+            const worstH = Math.round(m.getBoundingClientRect().height * 10) / 10;
+            spans.forEach((x, i) => (x.textContent = old[i]));
+            return { worstH, worstCut };
+          }, worst);
+          snaps.push({ label, h, cut: c, ...w });
+        };
+        // 1. 記憶題打到門檻（10 分鐘 70%、5 分鐘 50%）
+        const toGate = async () => {
+          for (let i = 0; i < 80; i++) {
+            const st = (await (await t.get(`/api/sessions/${sessionId}`)).json()).raid.state;
+            if (st.phase) break;
+            const m = mates[i % 3];
+            const d = await post(m, { op: 'draw', kind: 'attack' });
+            const q = (await d.json()).question;
+            const it = byId.get(q.id)!;
+            await post(m, { op: 'answer', choice: q.options.indexOf(it.options[it.answer]) });
+          }
+        };
+        const crack3 = async () => {
+          for (const m of mates) {
+            const q = (await (await post(m, { op: 'draw', kind: 'analysis' })).json()).question;
+            const it = byId.get(q.id)!;
+            await post(m, { op: 'answer', choice: q.options.indexOf(it.options[it.answer]), ...(it.reason ? { reason: q.reason.indexOf(it.reason.options[it.reason.answer]) } : {}) });
+            await page.waitForTimeout(800);
+          }
+        };
+        await toGate();
         // 護盾的文字（存量那一行中間一格、提示格）沒有被省略號切掉
         const cut = () => page.$$eval('.raid-mini-info > span, [data-testid="raid-mini-alert"] .raid-alert-line', (els) => els.filter((e) => (e.closest('.raid-mini-info') || /護盾|破防|破盾|普攻/.test(e.textContent || '')) && e.scrollWidth > e.clientWidth + 1).map((e) => e.textContent));
         await expect(page.getByTestId('raid-mini-phase')).toContainText('破盾', { timeout: 5000 });
         expect(await cut(), `${name} shield text cut`).toEqual([]);
         sawShield = true;
+        await snap('護盾開啟', ['🛡 30 秒', '🔰 破盾 9/9', '💥 大招 100%']);
         // 護盾期間魔王攻擊減弱的提示：同學答對理解題，記憶題的比例降到六成以下（抗性提示消失、護盾期間不會有新的大招預告），
-        // 提示格第 1 行換成「🛡 普攻減半・蓄力暫停」，不能被省略號切掉，戰況區高度不變
+        // 提示格第 1 行換成「🛡 普攻剩 25%・蓄力暫停」，不能被省略號切掉，戰況區高度不變
         const first = page.locator('[data-testid="raid-mini-alert"] .raid-alert-line').first();
-        for (let i = 0; i < 40 && !((await first.textContent()) || '').includes('普攻減半'); i++) {
+        for (let i = 0; i < 40 && !((await first.textContent()) || '').includes('普攻剩'); i++) {
           const m = mates[1 + (i % 2)];
           const q = (await (await post(m, { op: 'draw', kind: 'shield' })).json()).question;
           const it = byId.get(q.id)!;
           await post(m, { op: 'answer', choice: q.options.indexOf(it.options[it.answer]) });
           await page.waitForTimeout(300);
         }
-        await expect(first).toHaveText('🛡 普攻減半・蓄力暫停', { timeout: 15_000 });
+        await expect(first).toHaveText('🛡 普攻剩 25%・蓄力暫停', { timeout: 15_000 });
         expect(await first.evaluate((e) => e.scrollWidth > e.clientWidth + 1), `${name} weak text cut`).toBe(false);
         weakH = await page.locator('#raid-mini').evaluate((e) => Math.round(e.getBoundingClientRect().height * 10) / 10);
+        await snap('提示替換（減弱提示）', ['🛡 30 秒', '🔰 破盾 9/9', '💥 大招 100%']);
         await page.waitForTimeout(1000);
         // 2. 三位同學各答對 1 題分析題 → 破盾
-        for (const m of mates) {
-          const q = (await (await post(m, { op: 'draw', kind: 'analysis' })).json()).question;
-          const it = byId.get(q.id)!;
-          await post(m, { op: 'answer', choice: q.options.indexOf(it.options[it.answer]), ...(it.reason ? { reason: q.reason.indexOf(it.reason.options[it.reason.answer]) } : {}) });
-          await page.waitForTimeout(800);
-        }
+        await crack3();
         await expect(page.getByTestId('raid-mini-phase')).toContainText('破防', { timeout: 5000 });
         expect(await cut(), `${name} break text cut`).toEqual([]);
         sawBreak = true;
+        await snap('破盾／破防', ['🛡 30 秒', '💥 破防 15 秒', '💥 大招 100%']);
+        // 3. 破防 15 秒結束：護盾那一格變空，存量恢復「存量」兩字
+        await expect(page.getByTestId('raid-mini-phase')).toHaveText('', { timeout: 20_000 });
+        await snap('破防結束', ['🛡 存量 30 秒', '', '💥 大招 100%']);
+        if (secs >= 480) {
+          // 4. 第二層轉場：打到 35% 開第二層 → 三道裂痕破第二層
+          await toGate();
+          await expect(page.getByTestId('raid-mini-phase')).toContainText('破盾', { timeout: 5000 });
+          expect((await (await t.get(`/api/sessions/${sessionId}`)).json()).raid.state.phase.layer, 'second layer').toBe(1);
+          await snap('第二層開啟', ['🛡 30 秒', '🔰 破盾 9/9', '💥 大招 100%']);
+          await crack3();
+          await expect(page.getByTestId('raid-mini-phase')).toContainText('破防', { timeout: 5000 });
+          await snap('第二層破盾／破防', ['🛡 30 秒', '💥 破防 15 秒', '💥 大招 100%']);
+        }
         const r = await sampling;
-        rows.push({ combo: name, mode, r, sawShield, sawBreak, weakH });
+        rows.push({ combo: name, secs, mode, r, sawShield, sawBreak, weakH, snaps });
         await t.post(`/api/sessions/${sessionId}/control`, { headers, data: { action: 'raid-end' } });
       } finally {
         await ctx.close();
@@ -608,7 +663,10 @@ test('raid iPad shield: the stem and #raid-mini stay put while the shield opens 
     await t.dispose();
     for (const m of mates) await m.dispose();
   }
-  for (const x of rows) console.log(`${browserName} shield ${x.combo} ${x.mode}: 跳 ${x.r.jumps} 次 最大 ${x.r.maxJump}px | stemTop ${x.r.stemTop.join('~')} | mini ${x.r.miniH.join('/')} | 護盾 ${x.sawShield} 破防 ${x.sawBreak} | 減弱提示時 mini ${x.weakH} | ${x.r.ended ? '戰鬥結束' : ''}`);
+  for (const x of rows) {
+    console.log(`${browserName} shield ${x.combo} ${x.secs / 60} 分 ${x.mode}: 跳 ${x.r.jumps} 次 最大 ${x.r.maxJump}px | stemTop ${x.r.stemTop.join('~')} | mini ${x.r.miniH.join('/')} | 護盾 ${x.sawShield} 破防 ${x.sawBreak} | 減弱提示時 mini ${x.weakH} | ${x.r.ended ? '戰鬥結束' : ''}`);
+    for (const p of x.snaps) console.log(`  ${p.label}: mini ${p.h} 截斷 ${JSON.stringify(p.cut)} | 最寬 mini ${p.worstH} 截斷 ${JSON.stringify(p.worstCut)}`);
+  }
   if (!STRICT) return;
   expect(rows.length).toBe(SHIELD_COMBOS.length);
   for (const x of rows) {
@@ -617,5 +675,11 @@ test('raid iPad shield: the stem and #raid-mini stay put while the shield opens 
     expect(x.r.jumps, `${x.combo} stem moved ${x.r.maxJump}px`).toBe(0);
     expect(x.r.miniH, `${x.combo} #raid-mini height`).toHaveLength(1);
     expect(miniOff([...x.r.miniH, x.weakH]), `${x.combo} #raid-mini is ${MINI_H}px (also with the weak tip)`).toEqual([]);
+    expect(x.snaps.map((p) => p.label), `${x.combo} ${x.secs} s: every phase sampled`).toEqual(x.secs >= 480 ? PHASES_TWO : PHASES_ONE);
+    for (const p of x.snaps) {
+      expect(miniOff([p.h, p.worstH]), `${x.combo} ${p.label}: #raid-mini is ${MINI_H}px (also with the widest text)`).toEqual([]);
+      expect(p.cut, `${x.combo} ${p.label}: shield text cut`).toEqual([]);
+      expect(p.worstCut, `${x.combo} ${p.label}: widest text (存量 30 秒、大招 100%) cut`).toEqual([]);
+    }
   }
 });

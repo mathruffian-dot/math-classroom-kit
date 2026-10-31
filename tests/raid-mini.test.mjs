@@ -111,7 +111,7 @@ test('raid mini: "boss attacks weaken" sits in the first tip line while the shie
   const open = { phase: { layer: 0, at: T - 5000, base: 6, cracks: 1, by: { 5: 1 }, support: 0, hinted: false } };
   const lines = (h) => [...h.matchAll(/class="raid-alert-line [a-z]+" data-testid="raid-alert-[a-z]+">([^<]*)</g)].map((m) => m[1]);
   const on = ui.raidMiniHtml(v(open), NOW);
-  assert.deepEqual(lines(on), ['🛡 普攻減半・蓄力暫停', '🛡 護盾：其他只剩 20%，做分析題']);
+  assert.deepEqual(lines(on), ['🛡 普攻剩 25%・蓄力暫停', '🛡 護盾：其他只剩 50%，做分析題']);
   // 沒有護盾、破防：第 1 行是原本的說明
   assert.equal(lines(ui.raidMiniHtml(v({}), NOW))[0], '記憶題攻擊・理解題存防護罩・應用題累積大招');
   assert.equal(lines(ui.raidMiniHtml(v({ phase: null, breakUntil: T + 12_000 }), NOW))[0], '記憶題攻擊・理解題存防護罩・應用題累積大招');

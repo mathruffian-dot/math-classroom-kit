@@ -4,13 +4,19 @@
 // 用法：node scripts/raid-sim.ts [人數] [秒數]
 //   RUNS=400（每種難度幾場）、ONLY=hard（只跑某個難度）、HPX=1（困難魔王血量倍率，調血量用）、ANALYSIS=0（沒有分析題＝舊的困難魔王）
 //   ATKPCT=50、CHARGEPCT=0（護盾期間的攻擊修正，比較候選規則用；空字串＝不修正）
-//   2026-11-01 調整時的比較：for n in 25 28 30; do for s in 300 480; do ONLY=hard RUNS=600 node scripts/raid-sim.ts $n $s; done; done
+//   2026-11-02 校準（護盾變輕）：SEEDS=1,2,3 RUNS=200 GRID=28x300,28x480,25x300,30x480,8x300,15x480 node scripts/raid-sim.ts
 import { RAID_ANALYSIS_LOCK_MS, act, advance, raidConfig, raidStart, type RaidDifficulty, type RaidKind, type RaidState } from '../shared/raid.ts';
 
 // SEED（預設 1）：固定亂數種子，同樣的設定每次跑出一樣的結果（SEED=0＝真的隨機）
-const SEED = Number(process.env.SEED ?? 1);
-if (SEED) {
-  let a = SEED >>> 0;
+// SEEDS=1,2,3：每個種子各跑 RUNS 場、合併統計（多個種子比較不會剛好碰到一組偏運氣的亂數）
+const SEEDS = (process.env.SEEDS || process.env.SEED || '1').split(',').map(Number);
+const realRandom = Math.random;
+function seed(k: number) {
+  if (!k) {
+    Math.random = realRandom;
+    return;
+  }
+  let a = k >>> 0;
   Math.random = () => {
     a = (a + 0x6d2b79f5) >>> 0;
     let t = a;
@@ -19,8 +25,10 @@ if (SEED) {
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 }
-const N = Number(process.argv[2] || 28);
-const SECONDS = Number(process.argv[3] || 480);
+seed(SEEDS[0]);
+// GRID=28x300,28x480,…：一次跑很多格（人數×秒數），每格一行（表格模式，只跑困難）
+let N = Number(process.argv[2] || 28);
+let SECONDS = Number(process.argv[3] || 480);
 const RUNS = Number(process.env.RUNS || 400);
 const ANALYSIS = Number(process.env.ANALYSIS ?? 18);
 const HPX = Number(process.env.HPX || 1);
@@ -28,13 +36,17 @@ const HPX = Number(process.env.HPX || 1);
 const ATKPCT = process.env.ATKPCT;
 const CHARGEPCT = process.env.CHARGEPCT;
 // HPORIG=1：困難魔王用原本的血量公式（沒有分析題時的血量，28 人 8 分鐘 2970）；
-// DMGPCT＝護盾期間普通傷害剩幾 %、NEED=4,5＝破盾門檻（替代方案掃描用，不是正式規則）
+// DMGPCT＝護盾期間普通傷害剩幾 %、NEED=4,5＝破盾門檻（固定題數）、NEEDPCT=15,18＝門檻佔線上人數的 %（替代方案掃描用，不是正式規則）
 function tune(difficulty: RaidDifficulty, c: ReturnType<typeof raidConfig>) {
   if (difficulty !== 'hard') return c;
   if (process.env.HPORIG) c.bossHp = raidConfig('hard', N, SECONDS, 0).bossHp;
   c.bossHp = Math.round((c.bossHp * HPX) / 10) * 10;
   if (c.phase && process.env.DMGPCT) c.phase.dmgPct = Number(process.env.DMGPCT);
   if (c.phase && process.env.NEED) c.phase.need = process.env.NEED.split(',').map(Number);
+  if (c.phase && process.env.NEEDPCT) {
+    const pc = process.env.NEEDPCT.split(',').map(Number);
+    c.phase.need = c.phase.at.map((_, i) => Math.max(3, Math.ceil((N * (pc[i] ?? pc[pc.length - 1])) / 100)));
+  }
   if (c.phase && ATKPCT !== undefined) {
     if (ATKPCT === '') delete c.phase.atkPct;
     else c.phase.atkPct = Number(ATKPCT);
@@ -73,7 +85,7 @@ function pick<T>(list: [T, number][]): T {
   for (const [x, p] of list) if ((r -= p) <= 0) return x;
   return list[list.length - 1][0];
 }
-function game(difficulty: RaidDifficulty): RaidState {
+function game(difficulty: RaidDifficulty): RaidState & { breakMs: number[]; stale: number } {
   const c = raidConfig(difficulty, N, SECONDS, ANALYSIS);
   tune(difficulty, c);
   const s = raidStart(c);
@@ -94,10 +106,12 @@ function game(difficulty: RaidDifficulty): RaidState {
   // STRAT=attack／shield／ultimate：全班都只做這一類（測試極端策略）
   // 用 + 連起來＝在這幾類裡平均選（例如 attack+ultimate：都不撐防護罩）
   const only = process.env.STRAT ? (process.env.STRAT.split('+') as Base[]) : undefined;
-  const plan = (p: (typeof people)[number], from: number) => {
+  // force＝'analysis'：送出時題目已經不能計入，伺服器直接續發一題分析題（不重新選類型）
+  const plan = (p: (typeof people)[number], from: number, force?: 'analysis') => {
     let kind: RaidKind = only ? only[Math.floor(Math.random() * only.length)] : pick(choose[p.level]);
     // 魔王預告大招：中等以上的同學一半、程度弱的三成改做防護罩（策略裡沒有防護罩就不改）
-    if ((!only || only.includes('shield')) && s.bossUltAt !== null && Math.random() < (p.level === 'weak' ? 0.3 : 0.5)) kind = 'shield';
+    if (force) kind = force;
+    else if ((!only || only.includes('shield')) && s.bossUltAt !== null && Math.random() < (p.level === 'weak' ? 0.3 : 0.5)) kind = 'shield';
     else if (c.phase && !only && from >= p.lockA) {
       const capped = s.phase && (s.phase.by[String(p.seat)] || 0) >= c.phase.cap;
       if (Math.random() < (s.phase && !capped ? ANA_ON : ANA_OFF)[p.level]) kind = 'analysis';
@@ -125,15 +139,21 @@ function game(difficulty: RaidDifficulty): RaidState {
   for (const p of people) plan(p, 1000 + Math.random() * 4000);
   // 破盾時間：護盾開啟到破盾（phaseBreak 事件）的毫秒數
   const breakMs: number[] = [];
+  let stale = 0;
   let openAt = -1,
     seenBreaks = 0;
+  // 先用「上一次記下的開啟時間」算破盾耗時，再更新開啟時間（同一次 act 裡破盾後又開下一層時，不會拿到下一層的開啟時間）
   const track = () => {
-    if (s.phase) openAt = s.phase.at;
     if ((s.tally.phaseBreak || 0) > seenBreaks) {
       seenBreaks = s.tally.phaseBreak;
       const e = [...s.log].reverse().find((x) => x.k === 'phaseBreak');
-      if (e && openAt >= 0) breakMs.push(e.t - openAt);
+      if (e && openAt >= 0) {
+        if (e.t < openAt) throw new Error(`negative break time ${e.t - openAt}`);
+        breakMs.push(e.t - openAt);
+      }
+      openAt = -1;
     }
+    if (s.phase && s.phase.at !== openAt) openAt = s.phase.at;
   };
   while (!s.result) {
     const p = people.reduce((x, y) => (y.at < x.at ? y : x));
@@ -147,6 +167,13 @@ function game(difficulty: RaidDifficulty): RaidState {
     const role = p.level === 'weak' ? 'archer' : p.level === 'mid' ? 'knight' : 'mage';
     advance(c, s, p.at, SECONDS);
     track();
+    // 伺服器的規則（worker/raid.ts analysisTaken）：送出時這一題這一輪已被同學解開、或是開新護盾前抽到的，
+    // 不判對錯、不記錄、不鎖定，直接續發一題分析題（這一輪解完就沒有，改做別的）
+    if (p.kind === 'analysis' && ((s.solved || []).includes(p.q) || p.r !== (s.round || 0))) {
+      stale++;
+      plan(p, p.at + 1500, 'analysis');
+      continue;
+    }
     act(c, s, { t: p.at, seat: p.seat, kind: p.kind, ok, role, ...(p.kind === 'analysis' ? { q: p.q, r: p.r } : {}) }, SECONDS);
     track();
     // 答錯鎖住：應用題 3 秒、分析題只鎖分析題 20 秒（馬上做別的）、其他 5 秒
@@ -155,16 +182,57 @@ function game(difficulty: RaidDifficulty): RaidState {
   }
   advance(c, s, limit, SECONDS);
   track();
-  return Object.assign(s, { breakMs });
+  return Object.assign(s, { breakMs, stale });
 }
 /** 一場的護盾紀錄：開了幾層、破了幾層、每一層多久破（只看整場的計數，戰況 log 只留最近 40 筆）。 */
 function phases(s: RaidState) {
   return { on: s.tally.phaseOn || 0, broke: s.tally.phaseBreak || 0 };
 }
 const avg = (xs: number[]) => (xs.length ? xs.reduce((p, q) => p + q, 0) / xs.length : NaN);
+/** 每個種子各跑 RUNS 場、合併。 */
+function many(d: RaidDifficulty) {
+  const out: ReturnType<typeof game>[] = [];
+  for (const k of SEEDS) {
+    seed(k);
+    for (let i = 0; i < RUNS; i++) out.push(game(d));
+  }
+  return out;
+}
+if (process.env.GRID) {
+  // 表格模式：每格一行（困難）
+  console.log('人數×秒數 | 魔王血 | 門檻 | 場數 | 勝 | 被打光 | 時間到 | 平均時間 | 打倒平均 | 破盾成功率 | 平均破盾 | 第二層開啟率 | 沒贏時魔王剩');
+  for (const cell of process.env.GRID.split(',')) {
+    [N, SECONDS] = cell.split('x').map(Number);
+    const runs = many('hard');
+    const c = tune('hard', raidConfig('hard', N, SECONDS, ANALYSIS));
+    const pct = (k: number) => `${Math.round((k / runs.length) * 100)}%`;
+    const wins = runs.filter((s) => s.result === 'win');
+    const ph = runs.map(phases);
+    const on = ph.reduce((p, x) => p + x.on, 0),
+      broke = ph.reduce((p, x) => p + x.broke, 0);
+    console.log(
+      [
+        `${N}×${SECONDS / 60}分`,
+        c.bossHp,
+        c.phase ? c.phase.need.join('/') : '-',
+        runs.length,
+        pct(wins.length),
+        pct(runs.filter((s) => s.result === 'lose').length),
+        pct(runs.filter((s) => s.result === 'timeout').length),
+        `${(avg(runs.map((s) => s.endAt ?? SECONDS * 1000)) / 60000).toFixed(1)}分`,
+        `${(avg(wins.map((s) => s.endAt!)) / 60000).toFixed(1)}分`,
+        `${Math.round((broke / Math.max(1, on)) * 100)}%`,
+        `${(avg(runs.flatMap((s) => s.breakMs)) / 1000).toFixed(0)}秒`,
+        c.phase && c.phase.at.length > 1 ? pct(ph.filter((x) => x.on >= 2).length) : '-',
+        `${Math.round(avg(runs.filter((s) => s.result !== 'win').map((s) => (s.bossHp / c.bossHp) * 100)))}%`,
+      ].join(' | '),
+    );
+  }
+  process.exit(0);
+}
 const levels = (process.env.ONLY ? [process.env.ONLY] : ['easy', 'normal', 'hard']) as RaidDifficulty[];
 for (const d of levels) {
-  const runs = Array.from({ length: RUNS }, () => game(d));
+  const runs = many(d);
   const wins = runs.filter((s) => s.result === 'win');
   const c = tune(d, raidConfig(d, N, SECONDS, ANALYSIS));
   const hp = c.bossHp;

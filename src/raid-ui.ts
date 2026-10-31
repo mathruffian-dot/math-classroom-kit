@@ -18,6 +18,7 @@ import {
   RAID_SKIP_COOLDOWN_MS,
   RAID_ULT_BLOCK_MS,
   RAID_WARN_MS,
+  RAID_PHASE,
   advance,
   inBreak,
   phaseNeed,
@@ -186,7 +187,7 @@ const CRACKS = [
   'M50 50 L58 44 L66 50 L72 42',
 ];
 const BARRIER = `<div class="raid-barrier" id="rb-barrier" data-testid="raid-barrier" hidden><svg viewBox="0 0 100 100" aria-hidden="true">${CRACKS.map((d) => `<path d="${d}" />`).join('')}</svg></div>`;
-/** 魔王血條上 70%、35% 的刻度。 */
+/** 魔王血條上張開護盾的刻度（8 分鐘以上 70%、35%；未滿 8 分鐘只有 50%，舊紀錄照當時的設定）。 */
 function phaseMarks(v: RaidView) {
   return (v.run.config?.phase?.at || []).map((p) => `<b class="raid-mark" style="left:${p}%" title="血量 ${p}% 張開護盾"></b>`).join('');
 }
@@ -219,7 +220,7 @@ function updatePhase(root: HTMLElement, v: RaidView, s: RaidState) {
   if (s.result) html = '';
   else if (p) {
     const sup = p.support % cfg.support;
-    html = `<b>🛡 魔王護盾・第 ${p.layer + 1} 層</b><span class="raid-phase-count" data-testid="raid-phase-count">破盾 <em>${p.cracks}</em>/${need}</span><small>答對分析題打出裂痕（每人最多 ${cfg.cap} 道）・其他傷害只剩 ${cfg.dmgPct}%</small>${weak ? `<small data-testid="raid-phase-weak">😮‍💨 護盾期間魔王攻擊減弱：${weak}</small>` : ''}<small>🤝 應用題支援 ${sup}/${cfg.support}（滿了門檻 −1）・${p.hinted ? '💡 已給提示、門檻 −1' : `💡 ${mmss(info.hintLeft)} 後給提示`}</small>`;
+    html = `<b>🛡 魔王護盾${cfg.at.length > 1 ? `・第 ${p.layer + 1}/${cfg.at.length} 層` : ''}</b><span class="raid-phase-count" data-testid="raid-phase-count">破盾 <em>${p.cracks}</em>/${need}</span><small>答對分析題打出裂痕（每人最多 ${cfg.cap} 道）・其他傷害只剩 ${cfg.dmgPct}%</small>${weak ? `<small data-testid="raid-phase-weak">😮‍💨 護盾期間魔王攻擊減弱：${weak}</small>` : ''}<small>🤝 應用題支援 ${sup}/${cfg.support}（滿了門檻 −1）・${p.hinted ? '💡 已給提示、門檻 −1' : `💡 ${mmss(info.hintLeft)} 後給提示`}</small>`;
   } else if (brk) html = `<b>💥 破防！</b><span class="raid-phase-count">所有傷害 ×${cfg.breakPct / 100}</span><small>剩 ${info.breakLeft} 秒，全力攻擊！</small>`;
   el.hidden = !html;
   if (el.innerHTML !== html) el.innerHTML = html;
@@ -326,7 +327,7 @@ function resistText(s: RaidState, players: number) {
     .map(([k, e]) => `${KIND_NAME[k]}效果只剩 ${Math.round(e * 100)}%`);
   return parts.length ? `🧬 魔王適應了！${parts.join('、')}，換別的招！` : '';
 }
-/** 護盾擋掉（×0.2）、破防（×2）的標記。 */
+/** 護盾擋掉（×0.5，舊紀錄 ×0.2）、破防（×2）的標記。 */
 const mult = (e: RaidEvent) => (!e.x ? '' : e.x < 1 ? '（護盾擋下，只剩 ' + Math.round(e.x * 100) + '%）' : `（破防 ×${e.x}）`) + (e.held ? '（魔王血量停在護盾門檻，先破盾）' : '');
 function feedText(e: RaidEvent, v: RaidView) {
   const who = e.seat ? `${e.seat} 號${v.roles?.[String(e.seat)] ? ROLE_NAME[v.roles[String(e.seat)]] : ''}` : '';
@@ -356,7 +357,7 @@ function feedText(e: RaidEvent, v: RaidView) {
     case 'bossSeal':
       return `🌫 封印之霧：英雄的大招計量歸零`;
     case 'phaseOn':
-      return `🛡 魔王張開第 ${(e.layer || 0) + 1} 層護盾！破盾需要 ${e.n} 道裂痕（分析題）`;
+      return `🛡 魔王張開${(v.run.config.phase?.at.length ?? 2) > 1 ? `第 ${(e.layer || 0) + 1} 層` : ''}護盾！破盾需要 ${e.n} 道裂痕（分析題）`;
     case 'crack':
       return e.dup ? `✓ ${who} 也解出同一題（已經算過）` : `⚡ ${who} 打出裂痕！破盾 ${e.n}/${e.need}`;
     case 'analysis':
@@ -498,7 +499,7 @@ export function raidPanelHtml(v: RaidView | undefined, prefs: { difficulty: stri
   const now = H.serverTime();
   const setup = `<div class="tool-row"><label class="time-limit">難度 <select id="raid-difficulty">${(['easy', 'normal', 'hard'] as const).map((d) => `<option value="${d}" ${prefs.difficulty === d ? 'selected' : ''}>${DIFFICULTY_NAME[d]}</option>`).join('')}</select></label><label class="time-limit">${H.icon('clock')}<select id="raid-seconds">${[300, 360, 420, 480, 540, 600].map((x) => `<option value="${x}" ${prefs.seconds === x ? 'selected' : ''}>${x / 60} 分鐘</option>`).join('')}</select></label></div>`;
   if (!v) {
-    return `${head}<p class="muted small-text">全班合作打魔王。學生每一題自己選：記憶題＝普通攻擊、理解題＝防護罩（答對 1 題存 1 秒，魔王攻擊時自動擋下；沒人存很容易輸）、應用題＝大招計量（無視魔王護甲，越多人一起做合擊加成越高，最多 2 倍；不會做可以換一題、答錯只鎖 3 秒）。全班一直只做記憶題，魔王會適應、普通攻擊效果變差。答錯鎖 5 秒，魔王蓄力加快。魔王有 3 種普通攻擊、4 種大招，大招落下前 ${RAID_WARN_MS / 1000} 秒預告。<b>時間到還沒打倒魔王，就算魔王獲勝。</b>魔王的血量依上線人數、難度和時間調整。<b>困難魔王（題庫有分析題時）</b>：血量 70%、35% 張開護盾，護盾中其他題只剩 20% 傷害，魔王攻擊減弱（普攻減半、暫停蓄力；已經預告的大招照樣落下）；學生答對分析題打出裂痕（每人每層最多 2 道），裂痕到門檻（線上人數 20%／25%，至少 3）就破盾、破防 15 秒傷害 ×2。全班每答對 10 題應用題門檻 −1；撐 3 分鐘給提示、門檻 −1。</p>${setup}<div class="tool-row">${H.btn('開戰', 'raid-start', 'primary', 'bolt', 'data-testid="raid-start"')}</div>`;
+    return `${head}<p class="muted small-text">全班合作打魔王。學生每一題自己選：記憶題＝普通攻擊、理解題＝防護罩（答對 1 題存 1 秒，魔王攻擊時自動擋下；沒人存很容易輸）、應用題＝大招計量（無視魔王護甲，越多人一起做合擊加成越高，最多 2 倍；不會做可以換一題、答錯只鎖 3 秒）。全班一直只做記憶題，魔王會適應、普通攻擊效果變差。答錯鎖 5 秒，魔王蓄力加快。魔王有 3 種普通攻擊、4 種大招，大招落下前 ${RAID_WARN_MS / 1000} 秒預告。<b>時間到還沒打倒魔王，就算魔王獲勝。</b>魔王的血量依上線人數、難度和時間調整。<b>困難魔王（題庫有分析題時）</b>：未滿 8 分鐘（含 5 分鐘）血量 50% 張開一層護盾；8 分鐘以上 70%、35% 各一層。護盾中其他題只剩 ${RAID_PHASE.dmgPct}% 傷害，魔王攻擊減弱（普攻只剩 ${RAID_PHASE.atkPct}%、暫停蓄力；已經預告的大招照樣落下）；學生答對分析題打出裂痕（每人每層最多 ${RAID_PHASE.cap} 道），裂痕到門檻（線上人數 ${RAID_PHASE.needPct[0]}%，至少 ${RAID_PHASE.needMin}；28 人＝5）就破盾、破防 15 秒傷害 ×2。全班每答對 10 題應用題門檻 −1；撐 3 分鐘給提示、門檻 −1。</p>${setup}<div class="tool-row">${H.btn('開戰', 'raid-start', 'primary', 'bolt', 'data-testid="raid-start"')}</div>`;
   }
   const s = liveState(v, now),
     phase = raidPhase(v, s, now);

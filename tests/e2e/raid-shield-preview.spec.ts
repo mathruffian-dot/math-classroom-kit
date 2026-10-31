@@ -1,7 +1,8 @@
 // 困難魔王護盾的預覽截圖（給老師看畫面用，不是回歸測試）：MCK_SHIELD_PREVIEW=1 才跑。
 // 截圖存到 os.tmpdir()/mck-shield-preview/（不寫 artifacts/screenshots）：
-// 1 老師大螢幕護盾開啟（裂痕＋破盾 x/y）、2 有人打出裂痕的提示、3 破防、4 學生 iPad 橫式選招（含分析題）、
-// 5 學生分析題作答（判斷＋理由）、6 分析題答錯鎖定。
+// 8 分鐘（兩層）：1 老師大螢幕護盾開啟（裂痕＋破盾 x/y）、2 有人打出裂痕的提示、3 破防、4 學生 iPad 橫式選招（含分析題）、
+// 5 學生分析題作答（判斷＋理由）、6 分析題答錯鎖定、7 學生破防中、8 學生戰況區「普攻剩 25%・蓄力暫停」（沒有抗性提示時）。
+// 5 分鐘（一層，2026-11-02）：9 老師大螢幕單層護盾、10 學生戰況區。
 import { test, expect, type APIRequestContext, type Page } from '@playwright/test';
 import { mkdir, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -14,7 +15,7 @@ type Q = { id: string; options: string[]; answer: number; reason?: { options: st
 
 test('raid shield preview screenshots', async ({ browser, playwright }) => {
   test.skip(!process.env.MCK_SHIELD_PREVIEW, 'MCK_SHIELD_PREVIEW=1 才跑');
-  test.setTimeout(240_000);
+  test.setTimeout(360_000);
   await mkdir(out, { recursive: true });
   const bank = JSON.parse(await readFile('content/raids/g8-2-2d.json', 'utf8')) as { pools: Record<string, Q[]> };
   const byId = new Map(Object.values(bank.pools).flat().map((q) => [q.id, q]));
@@ -50,7 +51,7 @@ test('raid shield preview screenshots', async ({ browser, playwright }) => {
   try {
     await tp.locator('.slide-dots button').last().click();
     await tp.locator('#raid-difficulty').selectOption('hard');
-    await tp.locator('#raid-seconds').selectOption('600');
+    await tp.locator('#raid-seconds').selectOption('480');
     await tp.getByTestId('raid-start').click();
     await expect(tp.getByTestId('raid-board')).toBeVisible();
     const view = await (await tp.request.get(`/api/sessions/${sessionId}`)).json();
@@ -65,15 +66,29 @@ test('raid shield preview screenshots', async ({ browser, playwright }) => {
       const it = byId.get(q.id)!;
       return (await post(m, { op: 'answer', choice: q.options.indexOf(it.options[it.answer]), ...(it.reason ? { reason: q.reason!.indexOf(it.reason.options[it.reason.answer]) } : {}) })).json();
     };
-    // 記憶題打到 70%：護盾開啟
-    for (let i = 0; i < 60; i++) {
-      const st = (await (await tp.request.get(`/api/sessions/${sessionId}`)).json()).raid.state;
-      if (st.phase) break;
-      await answer(mates[i % 4], 'attack');
-    }
-    await expect(tp.getByTestId('raid-phase')).toBeVisible();
+    // 記憶題打到門檻：護盾開啟
+    const toShield = async () => {
+      for (let i = 0; i < 80; i++) {
+        const st = (await (await tp.request.get(`/api/sessions/${sessionId}`)).json()).raid.state;
+        if (st.phase) break;
+        await answer(mates[i % 4], 'attack');
+      }
+      await expect(tp.getByTestId('raid-phase')).toBeVisible();
+    };
+    // 同學答對理解題，記憶題比例降到六成以下（沒有抗性提示）：學生戰況區提示格第 1 行換成「普攻剩 25%・蓄力暫停」
+    const weakTip = async () => {
+      const first = sp.locator('[data-testid="raid-mini-alert"] .raid-alert-line').first();
+      for (let i = 0; i < 40 && !((await first.textContent()) || '').includes('普攻剩'); i++) {
+        await answer(mates[i % 4], 'shield');
+        await sp.waitForTimeout(250);
+      }
+      await expect(first).toHaveText('🛡 普攻剩 25%・蓄力暫停', { timeout: 15_000 });
+    };
+    await toShield();
+    expect((await (await tp.request.get(`/api/sessions/${sessionId}`)).json()).raid.run.config.phase.at).toEqual([70, 35]);
+    await expect(tp.getByTestId('raid-phase')).toContainText('第 1/2 層');
     // 護盾期間魔王攻擊減弱的說明（2026-11-01）
-    await expect(tp.getByTestId('raid-phase-weak')).toContainText('普攻減半、暫停蓄力');
+    await expect(tp.getByTestId('raid-phase-weak')).toContainText('普攻剩 25%、暫停蓄力');
     // 1. 一道裂痕之後（等提示條消失）
     await answer(mates[0], 'analysis');
     await tp.waitForTimeout(3800);
@@ -115,6 +130,12 @@ test('raid shield preview screenshots', async ({ browser, playwright }) => {
     await expect(sp.getByTestId('raid-kind-analysis')).toBeDisabled();
     await sp.waitForTimeout(1200);
     await sp.screenshot({ path: join(out, '6-student-analysis-locked.png') });
+    // 8. 學生作答中（記憶題）、護盾開啟：戰況區「🛡 普攻剩 25%・蓄力暫停」
+    await sp.locator('#student-answer [data-kind="attack"]').first().click();
+    await expect(sp.locator('#student-answer .raid-kind.k-attack')).toBeVisible();
+    await weakTip();
+    await sp.waitForTimeout(400);
+    await sp.screenshot({ path: join(out, '8-student-ipad-weak.png') });
     // 3. 第三道裂痕：破盾、破防
     const need = (await (await tp.request.get(`/api/sessions/${sessionId}`)).json()).raid.run.config.phase.need[0];
     for (let i = 2; i < need; i++) await answer(mates[i % 4], 'analysis');
@@ -123,6 +144,46 @@ test('raid shield preview screenshots', async ({ browser, playwright }) => {
     await tp.screenshot({ path: join(out, '3-teacher-guard-broken.png') });
     // 學生端的戰況區（破防中）
     await sp.screenshot({ path: join(out, '7-student-ipad-break.png') });
+    // 5 分鐘：另開一場（一層護盾、血量 50% 開啟）
+    await tp.request.post(`/api/sessions/${sessionId}/control`, { headers, data: { action: 'raid-end' } });
+    expect((await tp.request.post(`/api/sessions/${sessionId}/control`, { headers, data: { action: 'raid-start', difficulty: 'hard', seconds: 300 } })).status()).toBe(200);
+    await expect(tp.getByTestId('raid-board')).toBeVisible();
+    const v2 = await (await tp.request.get(`/api/sessions/${sessionId}`)).json();
+    expect(v2.raid.run.config.phase.at, '5 minutes: one layer').toEqual([50]);
+    const run2 = v2.raid.run.id;
+    for (const m of mates) await m.post(`/api/sessions/${sessionId}/raid`, { headers, data: { runId: run2, op: 'role', role: 'mage' } });
+    const role = sp.getByTestId('raid-role-mage');
+    await expect(role.or(sp.getByTestId('raid-goal-skip')).or(sp.getByTestId('raid-kind-attack'))).toBeVisible({ timeout: 10_000 });
+    if (await role.isVisible().catch(() => false)) await role.click();
+    const skip = sp.getByTestId('raid-goal-skip');
+    await expect(skip.or(sp.getByTestId('raid-kind-attack'))).toBeVisible();
+    if (await skip.isVisible().catch(() => false)) await skip.click();
+    await expect(sp.getByTestId('raid-kind-attack')).toBeEnabled({ timeout: 10_000 });
+    // post／answer 用的是第一場的 runId：改用第二場的
+    const post2 = (c: APIRequestContext, data: Record<string, unknown>) => c.post(`/api/sessions/${sessionId}/raid`, { headers, data: { runId: run2, ...data } });
+    const answer2 = async (m: APIRequestContext, kind: string) => {
+      const q = (await (await post2(m, { op: 'draw', kind })).json()).question as { id: string; options: string[] };
+      const it = byId.get(q.id)!;
+      return (await post2(m, { op: 'answer', choice: q.options.indexOf(it.options[it.answer]) })).json();
+    };
+    for (let i = 0; i < 80; i++) {
+      const st = (await (await tp.request.get(`/api/sessions/${sessionId}`)).json()).raid.state;
+      if (st.phase) break;
+      await answer2(mates[i % 4], 'attack');
+    }
+    await expect(tp.getByTestId('raid-phase')).toBeVisible();
+    await expect(tp.getByTestId('raid-phase')).not.toContainText('層');
+    await sp.getByTestId('raid-kind-attack').click();
+    await expect(sp.locator('#student-answer .raid-kind.k-attack')).toBeVisible();
+    const first = sp.locator('[data-testid="raid-mini-alert"] .raid-alert-line').first();
+    for (let i = 0; i < 40 && !((await first.textContent()) || '').includes('普攻剩'); i++) {
+      await answer2(mates[i % 4], 'shield');
+      await sp.waitForTimeout(250);
+    }
+    await expect(first).toHaveText('🛡 普攻剩 25%・蓄力暫停', { timeout: 15_000 });
+    await tp.waitForTimeout(3800); // 等「魔王張開護盾」橫幅消失
+    await tp.screenshot({ path: join(out, '9-teacher-5min-single-shield.png') });
+    await sp.screenshot({ path: join(out, '10-student-5min-single-shield.png') });
   } finally {
     await tp.request.delete(`/api/sessions/${sessionId}`, { headers, data: {} }).catch(() => undefined);
     for (const m of mates) await m.dispose();
