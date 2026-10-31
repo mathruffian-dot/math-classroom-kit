@@ -20,7 +20,7 @@ const hwReal=await import(pathToFileURL(join(dir,'real','homework.mjs')).href);
 const {SupabaseStore,DurableStore,SessionSplitStore,MAX_SNAPSHOT_BYTES}=await import(pathToFileURL(join(dir,'worker','storage.mjs')).href);
 const {ClassroomDurableObject}=await import(pathToFileURL(join(dir,'worker','index.mjs')).href);
 const {aggregateVotes,normalizeGrade,extractJson,isReasoning,numberedWork,parseMarks,chat}=await import(pathToFileURL(join(dir,'worker','ai.mjs')).href);
-const {judgePhotoFinals,validateAnswer,validateActivity,validateLesson}=await import(pathToFileURL(join(dir,'worker','validation.mjs')).href);
+const {judgePhotoFinals,validateAnswer,validateActivity,validateLesson,validateRaidBank}=await import(pathToFileURL(join(dir,'worker','validation.mjs')).href);
 const expr=await import(pathToFileURL(join(dir,'shared','expr.mjs')).href);
 const {practiceStatus}=await import(pathToFileURL(join(dir,'shared','practice.mjs')).href);
 const quizLib=await import(pathToFileURL(join(dir,'shared','quiz.mjs')).href);
@@ -1059,7 +1059,9 @@ test('raid flow: start on the last lesson of 2-2, roles, free choice each questi
   assert.equal(again.mine.prevBest,1,'personal best carried into the next battle');
   assert.equal(f.data.classes['demo-class'].raidBest['2'],1);
   // 打倒魔王：記進冒險地圖（難度＋最快時間）
+  // （困難魔王有護盾；這裡只測冒險地圖的紀錄，把護盾拿掉）
   f.data.sessions[s.id].session.raid.config.bossHp=5;f.data.sessions[s.id].raidRuns.at(-1).config.bossHp=5;
+  delete f.data.sessions[s.id].session.raid.config.phase;delete f.data.sessions[s.id].raidRuns.at(-1).config.phase;
   f.data.sessions[s.id].session.raid.startedAt-=4000;
   const q9=(await raid2('seat2',{op:'draw',kind:'attack'})).body.question;
   await raid2('seat2',{op:'answer',choice:right(q9)});
@@ -1076,6 +1078,120 @@ test('raid flow: start on the last lesson of 2-2, roles, free choice each questi
   // 開全班測驗會收起魔王戰
   await ctl({action:'quiz-class'});
   assert.equal(f.data.sessions[s.id].session.raid,null);
+});
+
+test('raid analysis: only the hard boss offers analysis; 20-second analysis-only lock, judgement + reason, each question counts once, hints, backup keeps the shield settings',async()=>{
+  const {f}=await setup();
+  const s=(await f.call('/api/sessions','POST',{lessonId:'g8-2-2d',classId:'demo-class'})).body.session;
+  await goOnline(f,[1,2,3,4,5]);
+  const ctl=(body)=>f.call(`/api/sessions/${s.id}/control`,'POST',body);
+  const {readFile}=await import('node:fs/promises');
+  const bank=JSON.parse(await readFile('content/raids/g8-2-2d.json','utf8'));
+  const item=(q)=>bank.pools[q.kind].find(x=>x.id===q.id);
+  const right=(q)=>q.options.indexOf(item(q).options[item(q).answer]);
+  const why=(q)=>q.reason.indexOf(item(q).reason.options[item(q).reason.answer]);
+  // 中等：沒有分析題、沒有護盾
+  await ctl({action:'raid-start',difficulty:'normal',seconds:300});
+  let v=(await f.call(`/api/sessions/${s.id}`)).body.raid;
+  assert.equal(v.run.config.phase,undefined);assert.equal(v.pools.analysis,0);
+  f.data.sessions[s.id].session.raid.startedAt-=4000;
+  const raidN=(who,body)=>f.call(`/api/sessions/${s.id}/raid`,'POST',{runId:v.run.id,...body},who);
+  await raidN('seat1',{op:'role',role:'mage'});
+  assert.equal((await raidN('seat1',{op:'draw',kind:'analysis'})).status,409,'no analysis on the normal boss');
+  // 困難：護盾設定存在這一場的紀錄裡（門檻依開戰時的上線人數）
+  await ctl({action:'raid-start',difficulty:'hard',seconds:600});
+  v=(await f.call(`/api/sessions/${s.id}`)).body.raid;
+  const ph=v.run.config.phase;
+  assert.deepEqual(ph.at,[70,35]);assert.deepEqual(ph.need,[3,3],'5 online → at least 3');assert.equal(ph.pool,18);
+  assert.equal(v.pools.analysis,18);
+  // 5 人班魔王只有 150 血，兩題分析題就會打到 70%；先把血量調高，護盾放到後面再測
+  f.data.sessions[s.id].session.raid.config.bossHp=5000;f.data.sessions[s.id].raidRuns.at(-1).config.bossHp=5000;
+  f.data.sessions[s.id].session.raid.startedAt-=4000;
+  const raid=(who,body)=>f.call(`/api/sessions/${s.id}/raid`,'POST',{runId:v.run.id,...body},who);
+  for(const n of [1,2,3,4,5]) await raid(`seat${n}`,{op:'role',role:'knight'});
+  const a1=(await raid('seat1',{op:'draw',kind:'analysis'})).body.question;
+  // 分析題不能「換一題」（換題不帶輪次、已解題，送出會被判過期）：伺服器明確拒絕，題目不變
+  const sk=await raid('seat1',{op:'skip'});
+  assert.equal(sk.status,409,'no skip on analysis');assert.equal(f.data.sessions[s.id].raidPlay[v.run.id].seats['1'].cur.id,a1.id);
+  assert.equal(a1.kind,'analysis');assert(a1.options.length>=3);assert.equal(a1.hint,undefined,'no hint before 3 minutes');
+  const st=JSON.stringify((await f.call(`/api/sessions/${s.id}`,'GET',null,'seat1')).body.raid.mine);
+  assert.equal(st.includes('"answer"'),false,'no answers in the student view');
+  // 答錯：只鎖分析題 20 秒；其他題馬上可以做
+  const wrong=(await raid('seat1',{op:'answer',choice:(right(a1)+1)%a1.options.length,...(a1.reason?{reason:why(a1)}:{})})).body;
+  assert.equal(wrong.correct,false);assert.equal(wrong.lockUntil,undefined);
+  assert(wrong.analysisLockUntil-Date.now()>19_000&&wrong.analysisLockUntil-Date.now()<=20_100,'20-second lock');
+  assert.equal((await raid('seat1',{op:'draw',kind:'analysis'})).status,409,'analysis locked');
+  assert.equal((await raid('seat1',{op:'draw',kind:'attack'})).status,200,'other kinds still open');
+  const sv=(await f.call(`/api/sessions/${s.id}`,'GET',null,'seat1')).body.raid;
+  assert.equal(sv.mine.analysisLockUntil,wrong.analysisLockUntil);
+  assert.equal(sv.state.teamHp,v.run.config.teamHp,'no hero HP lost');assert.equal(sv.state.chargeBonus,0,'no boss charge');
+  // 判斷＋理由：兩段都要對；只對一段算錯
+  let jr;
+  for(let i=0;i<40&&!jr;i++){const q=(await raid('seat2',{op:'draw',kind:'analysis'})).body.question;if(q.reason)jr=q;else{await raid('seat2',{op:'draw',kind:'attack'});}}
+  assert(jr,'drew a judgement + reason question');
+  assert.equal(jr.reason.length,4);
+  assert.equal((await raid('seat2',{op:'answer',choice:right(jr)})).status,400,'reason required');
+  const half=(await raid('seat2',{op:'answer',choice:right(jr),reason:(why(jr)+1)%4})).body;
+  assert.equal(half.correct,false,'right judgement, wrong reason');assert.equal(typeof half.reasonAnswer,'number');
+  // 沒有護盾時答對＝直接傷害；被解出的題目不再出給別人
+  const a3=(await raid('seat3',{op:'draw',kind:'analysis'})).body.question;
+  const ok3=(await raid('seat3',{op:'answer',choice:right(a3),...(a3.reason?{reason:why(a3)}:{})})).body;
+  assert.equal(ok3.correct,true);assert.equal(ok3.dmg,ph.dmg);
+  for(let i=0;i<25;i++){
+    const q=(await raid('seat4',{op:'draw',kind:'analysis'})).body.question;
+    assert.notEqual(q.id,a3.id,'solved question is not drawn again');
+    await raid('seat4',{op:'draw',kind:'attack'});
+  }
+  // 兩個人同時拿到同一題：後答對的不算（dup）
+  const a5=(await raid('seat5',{op:'draw',kind:'analysis'})).body.question;
+  const play=f.data.sessions[s.id].raidPlay[v.run.id];
+  play.seats['4'].cur={...play.seats['5'].cur};
+  await raid('seat5',{op:'answer',choice:right(a5),...(a5.reason?{reason:why(a5)}:{})});
+  const view4=(await f.call(`/api/sessions/${s.id}`,'GET',null,'seat4')).body.raid;
+  assert.equal(view4.mine.question.taken,true,'the student sees the question was just solved');
+  const q4=view4.mine.question;
+  const P=()=>f.data.sessions[s.id].raidPlay[v.run.id];
+  const nActs=P().actions.length;
+  const dup=(await raid('seat4',{op:'answer',choice:(right(q4)+1)%q4.options.length,...(q4.reason?{reason:why(q4)}:{})})).body;
+  assert.equal(dup.taken,true,'already solved: not judged');assert.equal(dup.correct,undefined);assert.equal(dup.analysisLockUntil,undefined,'no lock');
+  assert.equal(P().actions.length,nActs,'not recorded as wrong');
+  assert(dup.question&&dup.question.id!==q4.id,'a new question right away');
+  // 開新護盾前抽到的題目（輪次過期）：一樣不計入、不鎖
+  P().seats['4'].cur.round=99;
+  const stale=(await raid('seat4',{op:'answer',choice:0,...(dup.question.reason?{reason:0}:{})})).body;
+  assert.equal(stale.taken,true);assert.equal(P().actions.length,nActs);
+  // 作答入口也檢查分析題鎖定
+  P().seats['4'].cur={...P().seats['5'].cur||P().seats['4'].cur,kind:'analysis',id:bank.pools.analysis[0].id,order:[0,1,2,3].slice(0,bank.pools.analysis[0].options.length),round:0};
+  P().seats['4'].analysisLockUntil=Date.now()+10_000;
+  assert.equal((await raid('seat4',{op:'answer',choice:0,reason:0})).status,409,'locked at the answer entry too');
+  delete P().seats['4'].analysisLockUntil;delete P().seats['4'].cur;
+  // 護盾開啟、3 分鐘後：學生的分析題有提示
+  f.data.sessions[s.id].session.raid.config.bossHp=60;f.data.sessions[s.id].raidRuns.at(-1).config.bossHp=60;
+  f.data.sessions[s.id].session.raid.startedAt-=200_000;
+  P().actions=[{t:1000,seat:1,kind:'attack',ok:true,role:'knight'},{t:1100,seat:2,kind:'attack',ok:true,role:'knight'}];
+  const hv=(await f.call(`/api/sessions/${s.id}`,'GET',null,'seat1')).body.raid;
+  assert(hv.state.phase&&hv.state.phase.hinted,'shield open for 3 minutes → hinted');
+  const qh=(await raid('seat3',{op:'draw',kind:'analysis'})).body.question;
+  assert.ok(qh.hint,'hint shown after 3 minutes');
+  // 備份還原：護盾設定原樣保留；舊備份（沒有 phase）還原後也沒有
+  const backup=(await f.call('/api/backup')).body;
+  assert.equal((await f.call('/api/restore','POST',{backup})).status,200);
+  const runs=f.data.sessions[s.id].raidRuns;
+  assert.deepEqual(runs.at(-1).config.phase,ph);
+  assert.equal(runs.at(-2).config.phase,undefined);
+  assert(f.data.sessions[s.id].raidPlay[v.run.id].actions.length>=2);
+  assert.deepEqual(runs.at(-1).config.phase,{...ph},'stored per run');
+});
+
+test('raid bank validation: analysis may be missing or an empty array; 1–3 analysis questions are rejected',async()=>{
+  const {readFile}=await import('node:fs/promises');
+  const bank=JSON.parse(await readFile('content/raids/g8-2-2d.json','utf8'));
+  const base={...bank,pools:{attack:bank.pools.attack,shield:bank.pools.shield,ultimate:bank.pools.ultimate}};
+  assert.deepEqual(validateRaidBank(base).pools.analysis,[]);
+  assert.deepEqual(validateRaidBank({...base,pools:{...base.pools,analysis:[]}}).pools.analysis,[]);
+  assert.throws(()=>validateRaidBank({...base,pools:{...base.pools,analysis:bank.pools.analysis.slice(0,2)}}),/4–1000/);
+  const full=validateRaidBank(bank);
+  assert.equal(full.pools.analysis.length,18);assert(full.pools.analysis.some(q=>q.reason&&q.hint));
 });
 
 test('quiz figures: a plain SVG reaches the student paper; SVG with script or event handlers is rejected',async()=>{

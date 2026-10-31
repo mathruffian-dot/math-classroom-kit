@@ -41,7 +41,7 @@ import type {
 } from '../shared/types';
 import { parseNumberAnswer, type Vars } from '../shared/expr';
 import { md, plain, answerHtml } from './math';
-import { initRaidUi, liveState, raidMapHtml, raidBoardHtml, raidCardHtml, raidCardKey, raidFlashHtml, raidLocal, raidMiniHtml, raidPanelHtml, raidPhase, patchHtml, updateRaidBoard, wireArt } from './raid-ui';
+import { initRaidUi, liveState, raidMapHtml, raidBoardHtml, raidCardHtml, raidCardKey, raidFlashHtml, raidLocal, raidMiniHtml, raidPanelHtml, raidPhase, patchHtml, updateRaidBoard, wireArt, raidTakenHtml, type RaidAnswerResult } from './raid-ui';
 import type { RaidKind } from '../shared/raid';
 import { RAID_SKIP_COOLDOWN_MS } from '../shared/raid';
 import { duelBlanks, duelBoardHtml, duelCardHtml, duelCardKey, duelLocal, duelPanelHtml, duelPhase, duelPutTile, initDuelUi, updateDuelBoard } from './duel-ui';
@@ -1031,7 +1031,7 @@ function restoreStudentUi(k: NonNullable<ReturnType<typeof keepStudentUi>>) {
 }
 /** 重畫後這段時間內點到的選項不算（畫面剛跳動，可能點錯）。 */
 const SETTLE_MS = 450;
-const SETTLE_ACTIONS = new Set(['choose', 'scale', 'quiz-choose', 'quiz-conf', 'make-key', 'raid-answer', 'duel-rule', 'duel-tile']);
+const SETTLE_ACTIONS = new Set(['choose', 'scale', 'quiz-choose', 'quiz-conf', 'make-key', 'raid-answer', 'raid-pick', 'duel-rule', 'duel-tile']);
 function renderSession() {
   if (!view || !user) return;
   board?.destroy();
@@ -1672,6 +1672,11 @@ function refreshRaid() {
       const t = String(Math.max(0, Math.ceil((Number(el.dataset.lockUntil) - now) / 1000)));
       if (el.textContent !== t) el.textContent = t;
     });
+    // 分析題答錯的 20 秒鎖定倒數（選招按鈕與結果卡）
+    card.querySelectorAll<HTMLElement>('[data-analysis-until]').forEach((el) => {
+      const t = String(Math.max(0, Math.ceil((Number(el.dataset.analysisUntil) - now) / 1000)));
+      if (el.textContent !== t) el.textContent = t;
+    });
     // 換一題的冷卻：按鈕節點被沿用時，點擊後的 finally 會把 disabled 拿掉，這裡每次依冷卻時間補回（Codex 複審）
     const sk = card.querySelector<HTMLButtonElement>('[data-action="raid-skip"]');
     if (sk) {
@@ -1714,16 +1719,31 @@ async function raidAct(act: string, el: HTMLElement) {
       const r = await api<{ question: NonNullable<NonNullable<typeof v.mine>['question']>; revision: number }>(path, 'POST', { runId: v.run.id, op: 'draw', kind: el.dataset.kind as RaidKind });
       raidRevision = Math.max(raidRevision, r.revision);
       mineNow().question = r.question;
+      if (raidLocal.pick.q !== r.question.id) raidLocal.pick = { q: r.question.id };
       raidLocal.flash = '';
     } else {
       const q = v.mine?.question;
       if (!q) return;
-      const r = await api<{ correct: boolean; answer: number; explanation?: string; kind: RaidKind; lockUntil?: number; streak?: number; saved?: boolean; redeemed?: boolean; revision: number }>(path, 'POST', { runId: v.run.id, op: 'answer', choice: Number(el.dataset.choice) });
+      // 分析題「判斷＋理由」：兩段的選擇在 raidLocal.pick（raid-pick 選的）
+      const two = !!q.reason;
+      const pick = raidLocal.pick.q === q.id ? raidLocal.pick : { q: q.id };
+      if (two && (pick.a === undefined || pick.r === undefined)) return;
+      const r = await api<RaidAnswerResult & { lockUntil?: number; revision: number; taken?: boolean; question?: NonNullable<NonNullable<typeof v.mine>['question']> }>(path, 'POST', { runId: v.run.id, op: 'answer', choice: two ? pick.a : Number(el.dataset.choice), ...(two ? { reason: pick.r } : {}) });
       raidRevision = Math.max(raidRevision, r.revision);
-      raidLocal.flash = raidFlashHtml(r, q.options);
+      if (r.taken) {
+        // 分析題已經不能計入（同學先解開、或開新護盾前抽到的）：不算錯、不鎖，直接換一題
+        raidLocal.flash = raidTakenHtml(!!r.question);
+        raidLocal.pick = { q: '' };
+        if (r.question) mineNow().question = r.question;
+        else delete mineNow().question;
+        return;
+      }
+      raidLocal.flash = raidFlashHtml(r, q.options, q.reason);
+      raidLocal.pick = { q: '' };
       if (r.correct) playCorrect();
       delete mineNow().question;
       if (r.lockUntil) mineNow().lockUntil = r.lockUntil;
+      if (r.analysisLockUntil) mineNow().analysisLockUntil = r.analysisLockUntil;
     }
   } catch (e) {
     toast(e instanceof Error ? e.message : '送出失敗，請再試一次');
@@ -3157,6 +3177,14 @@ async function action(el: HTMLElement) {
     case 'raid-skip':
     case 'raid-answer':
       return raidAct(act, el);
+    case 'raid-pick': {
+      // 分析題「判斷＋理由」：先選兩段，再按送出（只改本機的選擇，不送伺服器）
+      const q = view?.raid?.mine?.question;
+      if (!q) return;
+      if (raidLocal.pick.q !== q.id) raidLocal.pick = { q: q.id };
+      raidLocal.pick[el.dataset.part === 'r' ? 'r' : 'a'] = Number(el.dataset.choice);
+      return refreshRaid();
+    }
     case 'quiz-class':
       quizBoardOpen = true;
       return control('quiz-class', { seconds: quizClassSeconds() });

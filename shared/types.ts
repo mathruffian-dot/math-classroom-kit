@@ -278,6 +278,10 @@ export interface QuizItem {
 export interface RaidItem extends QuizItem {
   id: string;
   topic: string;
+  /** 分析題：3 分鐘提示（關鍵概念，不含答案；護盾撐 3 分鐘後學生看得到）。 */
+  hint?: string;
+  /** 分析題「判斷＋理由」：第二段選理由，兩段都對才算對（answer 是原始順序）。 */
+  reason?: { options: string[]; answer: number };
 }
 /** 魔王戰題庫：一節（例如 2-2）合起來的三類題目；只在伺服器，不進課程、不送到學生端。 */
 export interface RaidBank {
@@ -285,6 +289,7 @@ export interface RaidBank {
   title: string;
   section?: string;
   source?: string;
+  /** analysis（分析題）可以是空的：只有困難魔王會出，有分析題才有護盾。 */
   pools: Record<RaidKind, RaidItem[]>;
 }
 /** 一場魔王戰。 */
@@ -302,8 +307,12 @@ export interface RaidRun {
 /** 一位同學在這一場：角色、目前的題目、答錯鎖住到什麼時候、做過的題目。 */
 export interface RaidSeat {
   role?: RaidRole;
-  cur?: { kind: RaidKind; id: string; order: number[]; at: number };
+  /** rorder：分析題「理由」的選項顯示順序。 */
+  /** round：分析題抽到時的輪次（RaidState.round），開新護盾後就過期。 */
+  cur?: { kind: RaidKind; id: string; order: number[]; at: number; rorder?: number[]; round?: number };
   lockUntil?: number;
+  /** 分析題答錯：到這個時間前不能再抽分析題（其他題照常）。 */
+  analysisLockUntil?: number;
   /** 這一場的個人目標（答對幾題）。 */
   goal?: number;
   /** 上一次「換一題」的時間與總共換了幾次。 */
@@ -334,8 +343,10 @@ export interface RaidView {
   pools: Record<RaidKind, number>;
   mine?: {
     role?: RaidRole;
-    question?: { kind: RaidKind; id: string; topic: string; stem: string; figure?: string; options: string[] };
+    /** 分析題：reason＝理由選項（判斷＋理由）、hint＝3 分鐘提示、taken＝這題剛被同學解出（換一題）。 */
+    question?: { kind: RaidKind; id: string; topic: string; stem: string; figure?: string; options: string[]; reason?: string[]; hint?: string; taken?: boolean };
     lockUntil?: number;
+    analysisLockUntil?: number;
     skipAt?: number;
     goal?: number;
     prevBest?: number;

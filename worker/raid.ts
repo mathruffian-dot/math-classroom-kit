@@ -2,6 +2,8 @@
 import raidCatalog from '../content/raids.generated.json';
 import type { RaidBank, RaidItem, RaidResult, RaidRun, RaidSeat, RaidView, User } from '../shared/types';
 import {
+  RAID_ALL_KINDS,
+  RAID_ANALYSIS_LOCK_MS,
   RAID_KINDS,
   RAID_LOCK_MS,
   RAID_LOCK_ULT_MS,
@@ -53,8 +55,19 @@ export function raidOver(run: RaidRun, state: RaidState): boolean {
   return !!run.endedAt || !!state.result;
 }
 
-/** 抽一題：這一類裡這個人還沒做過的（都做過就重新來），盡量和上一題不同題型。 */
-export function drawRaidItem(bank: RaidBank, seat: RaidSeat, kind: RaidKind, lastTopic?: string): RaidItem {
+/**
+ * 抽一題：這一類裡這個人還沒做過的（都做過就重新來），盡量和上一題不同題型。
+ * 分析題另外：已經被全班解出的（solved）不出；盡量不和別人手上的同一題（held），每一題全班只算一次。
+ */
+export function drawRaidItem(bank: RaidBank, seat: RaidSeat, kind: RaidKind, lastTopic?: string, solved: string[] = [], held: string[] = []): RaidItem {
+  if (kind === 'analysis') {
+    // 每一題每一輪全班只算一次：這一輪解完了就要等下一層護盾（不重新開放，免得同一題再計入）
+    const open = (bank.pools.analysis || []).filter((x) => !solved.includes(x.id));
+    assert(open.length, '這一輪的分析題都被解開了，等下一層護盾再挑戰', 409);
+    const free = open.filter((x) => !held.includes(x.id) && x.id !== seat.cur?.id);
+    const list = free.length ? free : open;
+    return list[randomInt(list.length)];
+  }
   const pool = bank.pools[kind];
   const used = new Set(seat.used[kind] || []);
   let fresh = pool.filter((x) => !used.has(x.id));
@@ -66,19 +79,34 @@ export function drawRaidItem(bank: RaidBank, seat: RaidSeat, kind: RaidKind, las
   const list = other.length ? other : fresh;
   return list[randomInt(list.length)];
 }
-export function newQuestion(bank: RaidBank, seat: RaidSeat, kind: RaidKind, now: number) {
+/** analysis：分析題用，現在已經解出的題目與別人手上的題目。 */
+export function newQuestion(bank: RaidBank, seat: RaidSeat, kind: RaidKind, now: number, analysis?: { solved: string[]; held: string[]; round?: number }) {
   const last = seat.cur ? findItem(bank, seat.cur.kind, seat.cur.id)?.topic : undefined;
-  const item = drawRaidItem(bank, seat, kind, last);
+  const item = drawRaidItem(bank, seat, kind, last, analysis?.solved, analysis?.held);
   (seat.used[kind] ||= []).push(item.id);
-  seat.cur = { kind, id: item.id, order: shuffle(item.options.map((_, i) => i)), at: now };
+  seat.cur = { kind, id: item.id, order: shuffle(item.options.map((_, i) => i)), at: now, ...(item.reason ? { rorder: shuffle(item.reason.options.map((_, i) => i)) } : {}), ...(analysis ? { round: analysis.round ?? 0 } : {}) };
   return item;
 }
 export function findItem(bank: RaidBank, kind: RaidKind, id: string): RaidItem | undefined {
-  return bank.pools[kind].find((x) => x.id === id);
+  return (bank.pools[kind] || []).find((x) => x.id === id);
 }
-export function questionFor(bank: RaidBank, cur: NonNullable<RaidSeat['cur']>) {
+/** 分析題抽題用：這一輪已經被解出的題目、其他同學手上的分析題。 */
+export function analysisContext(run: RaidRun, store: RaidStore, seatNo: number, now: number) {
+  const state = raidState(run, store, now);
+  const held = Object.entries(store.raidPlay?.[run.id]?.seats || {})
+    .filter(([seat, x]) => seat !== String(seatNo) && x.cur?.kind === 'analysis')
+    .map(([, x]) => x.cur!.id);
+  return { state, solved: state.solved || [], held, round: state.round || 0 };
+}
+/** 手上的分析題已經不能計入：這一輪被同學解開了，或是上一輪（開新護盾之前）抽到的。 */
+export function analysisTaken(cur: RaidSeat['cur'], state: RaidState) {
+  return cur?.kind === 'analysis' && (!!state.solved?.includes(cur.id) || (cur.round ?? 0) !== (state.round || 0));
+}
+/** 學生看到的題目（不含答案）。state：分析題用（3 分鐘提示、這題是不是剛被同學解出）。 */
+export function questionFor(bank: RaidBank, cur: NonNullable<RaidSeat['cur']>, state?: RaidState) {
   const item = findItem(bank, cur.kind, cur.id);
   if (!item) return undefined;
+  const reason = item.reason && cur.rorder ? cur.rorder.map((i) => item.reason!.options[i]) : undefined;
   return {
     kind: cur.kind,
     id: item.id,
@@ -86,31 +114,64 @@ export function questionFor(bank: RaidBank, cur: NonNullable<RaidSeat['cur']>) {
     stem: item.stem,
     ...(item.figure ? { figure: item.figure } : {}),
     options: cur.order.map((i) => item.options[i]),
+    ...(reason ? { reason } : {}),
+    ...(item.hint && state?.phase?.hinted ? { hint: item.hint } : {}),
+    ...(state && analysisTaken(cur, state) ? { taken: true } : {}),
   };
 }
-/** 作答：回傳對錯與正解位置；答錯鎖住 5 秒。 */
-export function answerRaid(bank: RaidBank, run: RaidRun, store: RaidStore, seatNo: number, choice: number, now: number) {
+/** 作答：回傳對錯與正解位置；答錯鎖住 5 秒（分析題：只鎖分析題 20 秒）。reason：分析題第二段（理由）的選擇。 */
+export function answerRaid(bank: RaidBank, run: RaidRun, store: RaidStore, seatNo: number, choice: number, now: number, reason?: number) {
   const play = ((store.raidPlay ||= {})[run.id] ||= { actions: [], seats: {} });
   const seat = (play.seats[String(seatNo)] ||= { used: {} });
   const cur = seat.cur;
   assert(cur, '請先選一類題目', 409);
   const item = findItem(bank, cur.kind, cur.id);
   assert(item, '這一題已經不在題庫裡，請重新選題', 409);
+  if (cur.kind === 'analysis') {
+    // 作答入口也檢查分析題鎖定（不只抽題）
+    assert(!seat.analysisLockUntil || seat.analysisLockUntil <= now, '分析題答錯了，等一下才能再挑戰', 409);
+    // 題目已經不能計入（被同學解開、或開新護盾前抽到的）：不判對錯、不鎖、不記錄，直接換一題（這一輪解完就不換）
+    const ctx = analysisContext(run, store, seatNo, now);
+    if (analysisTaken(cur, ctx.state)) {
+      delete seat.cur;
+      let question: ReturnType<typeof questionFor>;
+      try {
+        newQuestion(bank, seat, 'analysis', now, ctx);
+        question = questionFor(bank, seat.cur!, ctx.state);
+      } catch {
+        question = undefined;
+      }
+      return { taken: true as const, kind: cur.kind, ...(question ? { question } : {}) };
+    }
+  }
   const original = cur.order[integer(choice, 0, cur.order.length - 1)];
-  const ok = original === item.answer;
+  // 判斷＋理由：兩段都對才算對
+  const rorder = item.reason ? cur.rorder || item.reason.options.map((_, i) => i) : undefined;
+  if (rorder) assert(reason !== undefined, '請也選一個理由', 400);
+  const reasonOk = !rorder || rorder[integer(reason, 0, rorder.length - 1)] === item.reason!.answer;
+  const ok = original === item.answer && reasonOk;
   const t = Math.max(0, raidElapsed(run, now));
   // 前後各推算一次：告訴學生這一題有沒有用到連對保護、有沒有贖回成功
   const before = raidState(run, store, now).stats[String(seatNo)];
-  play.actions.push({ t, seat: seatNo, kind: cur.kind, ok, q: cur.id, ...(seat.role ? { role: seat.role } : {}) });
-  const after = raidState(run, store, now).stats[String(seatNo)];
+  play.actions.push({ t, seat: seatNo, kind: cur.kind, ok, q: cur.id, ...(seat.role ? { role: seat.role } : {}), ...(cur.kind === 'analysis' ? { r: cur.round ?? 0 } : {}) });
+  const afterState = raidState(run, store, now);
+  const after = afterState.stats[String(seatNo)];
   delete seat.cur;
-  if (!ok) seat.lockUntil = now + (cur.kind === 'ultimate' ? RAID_LOCK_ULT_MS : RAID_LOCK_MS);
+  // 分析題答錯：只鎖分析題（20 秒），其他題馬上可以做
+  if (!ok && cur.kind === 'analysis') seat.analysisLockUntil = now + RAID_ANALYSIS_LOCK_MS;
+  else if (!ok) seat.lockUntil = now + (cur.kind === 'ultimate' ? RAID_LOCK_ULT_MS : RAID_LOCK_MS);
+  // 分析題答對的結果：打出裂痕（第幾道／門檻）、直接傷害、或這題剛被同學解出
+  const ev = ok && cur.kind === 'analysis' ? [...afterState.log].reverse().find((e) => e.seat === seatNo && e.t === t && (e.k === 'crack' || e.k === 'analysis')) : undefined;
+  const broke = ok && cur.kind === 'analysis' && afterState.log.some((e) => e.k === 'phaseBreak' && e.t === t);
   return {
     correct: ok,
     answer: cur.order.indexOf(item.answer),
+    ...(rorder ? { reasonAnswer: rorder.indexOf(item.reason!.answer) } : {}),
     ...(item.explanation ? { explanation: item.explanation } : {}),
     kind: cur.kind,
-    ...(ok ? {} : { lockUntil: seat.lockUntil }),
+    ...(ok ? {} : cur.kind === 'analysis' ? { analysisLockUntil: seat.analysisLockUntil } : { lockUntil: seat.lockUntil }),
+    ...(ev?.k === 'crack' ? (ev.dup ? { dup: true } : { crack: { n: ev.n || 0, need: ev.need || 0 } }) : ev?.k === 'analysis' ? { dmg: ev.n || 0 } : {}),
+    ...(broke ? { broke: true } : {}),
     streak: after?.streak ?? 0,
     ...(after?.saved && !before?.saved ? { saved: true } : {}),
     ...((after?.redeemed || 0) > (before?.redeemed || 0) ? { redeemed: true } : {}),
@@ -121,11 +182,17 @@ export function answerRaid(bank: RaidBank, run: RaidRun, store: RaidStore, seatN
 export function skipRaid(bank: RaidBank, seat: RaidSeat, now: number) {
   const cur = seat.cur;
   assert(cur, '目前沒有題目', 409);
+  // 分析題不能「換一題」（前端只在應用題顯示）：分析題要記輪次、避開已解的題，只能從抽題入口重新抽（「換成…」）
+  assert(cur.kind !== 'analysis', '分析題不能換一題，請改選其他類型再回來抽', 409);
   assert(!seat.skipAt || now - seat.skipAt >= RAID_SKIP_COOLDOWN_MS, '換題太快了，等一下再換', 429);
   seat.skipAt = now;
   seat.skips = (seat.skips || 0) + 1;
   newQuestion(bank, seat, cur.kind, now);
   return questionFor(bank, seat.cur!);
+}
+/** 這一場有沒有分析題（困難魔王、題庫有分析題）。 */
+export function raidHasAnalysis(run: RaidRun, bank: RaidBank) {
+  return !!run.config.phase && (bank.pools.analysis || []).length > 0;
 }
 /** 正在算應用題的座號（大螢幕顯示「正在算大招」）。 */
 export function chargingSeats(store: RaidStore, run: RaidRun): number[] {
@@ -137,7 +204,7 @@ export function chargingSeats(store: RaidStore, run: RaidRun): number[] {
 
 /** 結算：每個人的貢獻分數、9 級稱號與特別稱號。 */
 /** 這位同學這一場答對幾題。 */
-export const raidCorrect = (x: RaidState['stats'][string] | undefined) => (x ? x.ok.attack + x.ok.shield + x.ok.ultimate : 0);
+export const raidCorrect = (x: RaidState['stats'][string] | undefined) => (x ? x.ok.attack + x.ok.shield + x.ok.ultimate + (x.ok.analysis ?? 0) : 0);
 export function raidResults(run: RaidRun, state: RaidState, seats: Record<string, RaidSeat> = {}): RaidResult[] {
   const minutes = (state.endAt ?? Math.min(state.t, run.seconds * 1000)) / 60000;
   const badges = raidBadges(state.stats);
@@ -170,7 +237,8 @@ export function raidView(bank: RaidBank, run: RaidRun, store: RaidStore, user: U
   const state = raidState(run, store, now);
   const play = store.raidPlay?.[run.id];
   const teacher = user.role === 'teacher';
-  const pools = Object.fromEntries(RAID_KINDS.map((k) => [k, bank.pools[k].length])) as RaidView['pools'];
+  // 分析題只算有護盾的場次（困難魔王）；其他場次 0 題，學生端不會出現「分析題」
+  const pools = { ...(Object.fromEntries(RAID_KINDS.map((k) => [k, bank.pools[k].length])) as Omit<RaidView['pools'], 'analysis'>), analysis: raidHasAnalysis(run, bank) ? bank.pools.analysis.length : 0 };
   const over = raidOver(run, state);
   const all = over ? raidResults(run, state, play?.seats) : undefined;
   // 角色給所有人（學生平板也顯示戰場，出招動畫依角色不同）
@@ -186,10 +254,11 @@ export function raidView(bank: RaidBank, run: RaidRun, store: RaidStore, user: U
   const mine: NonNullable<RaidView['mine']> = {};
   if (seat?.role) mine.role = seat.role;
   if (seat?.cur && !over) {
-    const q = questionFor(bank, seat.cur);
+    const q = questionFor(bank, seat.cur, state);
     if (q) mine.question = q;
   }
   if (seat?.lockUntil && seat.lockUntil > now && !over) mine.lockUntil = seat.lockUntil;
+  if (seat?.analysisLockUntil && seat.analysisLockUntil > now && !over) mine.analysisLockUntil = seat.analysisLockUntil;
   if (seat?.skipAt) mine.skipAt = seat.skipAt;
   if (seat?.goal) mine.goal = seat.goal;
   if (run.prevBest?.[me] !== undefined) mine.prevBest = run.prevBest[me];
@@ -209,7 +278,7 @@ export function raidView(bank: RaidBank, run: RaidRun, store: RaidStore, user: U
 /** CSV：每一題作答。 */
 export function raidCsvRows(store: RaidStore, bankFor: (run: RaidRun) => RaidBank | undefined): (string | number)[][] {
   const rows: (string | number)[][] = [];
-  const NAME: Record<RaidKind, string> = { attack: '記憶（普通攻擊）', shield: '理解（防護罩）', ultimate: '應用（大招）' };
+  const NAME: Record<RaidKind, string> = { attack: '記憶（普通攻擊）', shield: '理解（防護罩）', ultimate: '應用（大招）', analysis: '分析（破盾）' };
   for (const run of store.raidRuns || []) {
     const play = store.raidPlay?.[run.id];
     if (!play || !bankFor(run)) continue;
@@ -228,7 +297,7 @@ export function restoreRaid(runsInput: unknown, playInput: unknown, seats: numbe
   if (runsInput === undefined) return {};
   assert(Array.isArray(runsInput) && runsInput.length <= 200, '魔王戰紀錄格式不正確');
   const ms = (v: unknown) => integer(v, 0, 8.64e15);
-  const kinds = new Set<string>(RAID_KINDS);
+  const kinds = new Set<string>(RAID_ALL_KINDS);
   const raidRuns: RaidRun[] = runsInput.map((x) => {
     const r = record(x);
     const c = record(r.config);
@@ -238,6 +307,26 @@ export function restoreRaid(runsInput: unknown, playInput: unknown, seats: numbe
     // 新規則才有的兩項（舊紀錄沒有，照舊規則重算）
     if (c.hpScale !== undefined) config.hpScale = integer(c.hpScale, 1, 100);
     if (c.atkShieldPct !== undefined) config.atkShieldPct = integer(c.atkShieldPct, 10, 100);
+    // 困難魔王的護盾（2026-11 起才有）
+    if (c.phase !== undefined) {
+      const ph = record(c.phase);
+      const list = (v: unknown, lo: number, hi: number) => {
+        assert(Array.isArray(v) && v.length >= 1 && v.length <= 5, '護盾設定格式不正確');
+        return v.map((x) => integer(x, lo, hi));
+      };
+      config.phase = {
+        at: list(ph.at, 1, 99),
+        need: list(ph.need, 1, 60),
+        dmgPct: integer(ph.dmgPct, 0, 100),
+        breakMs: integer(ph.breakMs, 0, 600_000),
+        breakPct: integer(ph.breakPct, 100, 1000),
+        support: integer(ph.support, 1, 1000),
+        hintMs: integer(ph.hintMs, 1000, 3_600_000),
+        cap: integer(ph.cap, 0, 100),
+        dmg: integer(ph.dmg, 0, 1e6),
+        pool: integer(ph.pool, 1, 1000),
+      };
+    }
     assert(['easy', 'normal', 'hard'].includes(String(r.difficulty)), '魔王戰難度不正確');
     return {
       id: identifier(r.id),
@@ -257,13 +346,13 @@ export function restoreRaid(runsInput: unknown, playInput: unknown, seats: numbe
     const actions = p.actions.map((x) => {
       const a = record(x);
       assert(kinds.has(String(a.kind)), '魔王戰題目類型不正確');
-      return { t: ms(a.t), seat: integer(a.seat, 1, seats), kind: a.kind as RaidKind, ok: a.ok === true, ...(typeof a.q === 'string' && /^[\w-]{1,80}$/.test(a.q) ? { q: a.q } : {}), ...(['knight', 'mage', 'archer'].includes(String(a.role)) ? { role: a.role as RaidSeat['role'] } : {}) };
+      return { t: ms(a.t), seat: integer(a.seat, 1, seats), kind: a.kind as RaidKind, ok: a.ok === true, ...(typeof a.q === 'string' && /^[\w-]{1,80}$/.test(a.q) ? { q: a.q } : {}), ...(a.r !== undefined ? { r: integer(a.r, 0, 100) } : {}), ...(['knight', 'mage', 'archer'].includes(String(a.role)) ? { role: a.role as RaidSeat['role'] } : {}) };
     });
     const seatsOut: Record<string, RaidSeat> = {};
     for (const [seat, s] of Object.entries(record(p.seats ?? {}))) {
       const v = record(s);
       const used: RaidSeat['used'] = {};
-      for (const k of RAID_KINDS) {
+      for (const k of RAID_ALL_KINDS) {
         const list = record(v.used ?? {})[k];
         if (Array.isArray(list)) used[k] = list.slice(0, 1000).map((id) => String(id).slice(0, 120));
       }

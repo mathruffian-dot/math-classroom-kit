@@ -10,7 +10,7 @@ const raid = arg.startsWith('raid:');
 const id = raid ? arg.slice(5) : arg;
 const out = resolve(process.argv[3] || 'tmp/quiz-preview');
 mkdirSync(out, { recursive: true });
-const LEVEL = { attack: '記憶・普通攻擊', shield: '理解・防護罩', ultimate: '應用・大招' };
+const LEVEL = { attack: '記憶・普通攻擊', shield: '理解・防護罩', ultimate: '應用・大招', analysis: '分析・破盾' };
 const bank = raid
   ? (() => {
       // 魔王戰：每一題當成一個「題位」，標題寫類型與題型

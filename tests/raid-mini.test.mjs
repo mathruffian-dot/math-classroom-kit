@@ -29,7 +29,7 @@ const attacks = Array.from({ length: 10 }, () => ({ t: T - 1000, kind: 'attack',
 test('raid mini: boss-ultimate warning and resistance are both shown when both apply', () => {
   const html = ui.raidMiniHtml(view({ bossUltAt: T + raid.RAID_WARN_MS, recent: attacks, shieldBank: [{ seat: 5, ms: 1500 }] }), NOW);
   assert.equal(line(html, 'warn'), '⚠ 魔王大招 12 秒後・防護罩 1.5／3 秒');
-  assert.match(line(html, 'resist'), /^🧬 普通攻擊效果只剩 \d+%，換別的招！$/);
+  assert.match(line(html, 'resist'), /^🧬 普通攻擊只剩 \d+%，換別招！$/);
   assert.match(html, /class="raid-mini-alert warn"/);
   // 倒數到個位數：只是字變少，結構不變
   const late = ui.raidMiniHtml(view({ bossUltAt: T + 4_000, recent: attacks }), NOW);
@@ -83,4 +83,23 @@ test('raid mini: "已答對" shows my own count even when a lower seat\'s shield
   // 還沒答過題（伺服器沒有給自己的成績）：一直顯示 0 題，不會忽有忽無
   const fresh = ui.raidMiniHtml(view({ nextAtk: T + 200, shieldBank: [{ seat: 3, ms: 5000 }] }), NOW + 500);
   assert.match(fresh, /已答對 <b>0<\/b> 題/);
+});
+
+test('raid mini: shield states (none, open, broken, open + boss warning) keep the same rows; the status sits inside the fixed rows', () => {
+  const config = raid.raidConfig('hard', 28, 600, 18);
+  const base = { ...raid.raidStart(config), t: T, nextAtk: T + 60_000, nextShield: T + 60_000, chargeFrom: T };
+  const v = (patch) => ({ run: { id: 'r2', difficulty: 'hard', startedAt: NOW - T, seconds: 600, config }, title: '魔王戰', state: { ...base, ...patch }, roles: {}, charging: [], pools: { attack: 1, shield: 1, ultimate: 1, analysis: 18 }, mine: {} });
+  const open = { phase: { layer: 0, at: T - 5000, base: 6, cracks: 3, by: { 5: 1 }, support: 10, hinted: false } };
+  const states = [v({}), v(open), v({ phase: null, breakUntil: T + 12_000 }), v({ ...open, bossUltAt: T + 12_000 }), v({ ...open, recent: attacks })];
+  const html = states.map((x) => ui.raidMiniHtml(x, NOW));
+  for (const h of html) assert.equal(shape(h), 'raid-mini-bars,raid-mini-info,raid-mini-me,raid-mini-alert,raid-alert-line,raid-alert-line');
+  const ph = (h) => h.match(/data-testid="raid-mini-phase">([^<]*)</)?.[1];
+  assert.equal(ph(html[0]), '');
+  assert.equal(ph(html[1]), '🔰 破盾 3/5', 'support lowered the threshold 6 → 5');
+  assert.equal(ph(html[2]), '💥 破防 12 秒');
+  assert.match(html[1], /raid-bar boss small shielded/);
+  assert.match(html[2], /raid-bar boss small guard-broken/);
+  assert.equal(line(html[3], 'warn'), '⚠ 魔王大招 12 秒後・防護罩 0／3 秒', 'the boss warning keeps its line');
+  // 簡單／中等、沒有分析題：戰況區的 HTML 和以前一樣（沒有護盾那一格）
+  assert.doesNotMatch(ui.raidMiniHtml(view({}), NOW), /raid-mini-phase/);
 });

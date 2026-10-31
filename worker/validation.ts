@@ -566,28 +566,39 @@ function quizItem(v: unknown): QuizItem {
     ...(it.explanation !== undefined ? { explanation: str(it.explanation, '解析', 2000) } : {}),
   };
 }
-/** 驗證魔王戰題庫（content/raids/<課程 id>.json）：三類題目各至少 10 題，題目 ID 不重複。 */
+/** 驗證魔王戰題庫（content/raids/<課程 id>.json）：三類題目各至少 10 題、分析題可有可無（有的話至少 4 題），題目 ID 不重複。 */
 export function validateRaidBank(input: unknown): RaidBank {
   const b = record(input);
   const p = record(b.pools);
   const seen = new Set<string>();
-  const pool = (k: RaidKind) => {
+  const pool = (k: RaidKind, min = 10) => {
     const list = p[k];
-    assert(Array.isArray(list) && list.length >= 10 && list.length <= 1000, `魔王戰「${k}」需要 10–1000 題`);
+    assert(Array.isArray(list) && list.length >= min && list.length <= 1000, `魔王戰「${k}」需要 ${min}–1000 題`);
     return list.map((x) => {
       const it = record(x);
       const id = str(it.id, '題目 ID', 120, 1);
       assert(!seen.has(id), `魔王戰題目 ID「${id}」重複`);
       seen.add(id);
-      return { id, topic: str(it.topic, '題型', 100, 1), ...quizItem(it) };
+      const base = { id, topic: str(it.topic, '題型', 100, 1), ...quizItem(it) };
+      if (k !== 'analysis') return base;
+      // 分析題：可以有 3 分鐘提示、第二段「理由」
+      const reason = it.reason === undefined ? undefined : record(it.reason);
+      if (reason) assert(Array.isArray(reason.options) && reason.options.length >= 2 && reason.options.length <= 6, '分析題的理由需要 2–6 個選項');
+      return {
+        ...base,
+        ...(it.hint !== undefined ? { hint: str(it.hint, '提示', 300, 1) } : {}),
+        ...(reason ? { reason: { options: (reason.options as unknown[]).map((o) => str(o, '理由', 300, 1)), answer: integer(reason.answer, 0, (reason.options as unknown[]).length - 1) } } : {}),
+      };
     });
   };
+  // 分析題（困難魔王的破盾題）可以沒有（不寫或空陣列）；有的話至少 4 題
+  const analysis = p.analysis === undefined || (Array.isArray(p.analysis) && p.analysis.length === 0) ? [] : pool('analysis', 4);
   return {
     hostLesson: identifier(b.hostLesson),
     title: str(b.title, '魔王戰名稱', 100, 1),
     ...(b.section !== undefined ? { section: str(b.section, '單元', 20) } : {}),
     ...(b.source !== undefined ? { source: str(b.source, '題庫來源', 300) } : {}),
-    pools: { attack: pool('attack'), shield: pool('shield'), ultimate: pool('ultimate') },
+    pools: { attack: pool('attack'), shield: pool('shield'), ultimate: pool('ultimate'), analysis },
   };
 }
 

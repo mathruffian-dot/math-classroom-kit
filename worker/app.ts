@@ -25,8 +25,8 @@ import { normalizeChars, parseNumberAnswer } from '../shared/expr';
 import { PRACTICE_GRACE_MS, practiceStatus, practiceTotal } from '../shared/practice';
 import { PK_COUNTDOWN_MS, QUIZ_GRACE_MS, decide, quizOver } from '../shared/quiz';
 import { drawPaper, drawReview, instantFeedback, isCorrect, levelPairs, makeBot, newMatch, paperFor, quizRecord, quizView, restoreQuiz, runBank, score, sheetResult, type QuizStore } from './quiz';
-import { answerRaid, newQuestion, questionFor, raidBank, raidCorrect, skipRaid, raidCsvRows, raidOver, raidState, raidView, restoreRaid, type RaidStore } from './raid';
-import { RAID_COUNTDOWN_MS, RAID_KINDS, RAID_ROLES, raidConfig, type RaidDifficulty, type RaidKind, type RaidRole } from '../shared/raid';
+import { analysisContext, analysisTaken, answerRaid, newQuestion, questionFor, raidBank, raidCorrect, raidHasAnalysis, skipRaid, raidCsvRows, raidOver, raidState, raidView, restoreRaid, type RaidStore } from './raid';
+import { RAID_ALL_KINDS, RAID_COUNTDOWN_MS, RAID_ROLES, raidConfig, type RaidDifficulty, type RaidKind, type RaidRole } from '../shared/raid';
 import { answerDuel, duelBank, duelCsvRows, duelJoin, duelOver, duelState, duelTeams, duelView, problemView, restoreDuel, startProblem, type DuelStore } from './duel';
 import { DUEL_COUNTDOWN_MS } from '../shared/duel';
 import {
@@ -1539,7 +1539,9 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
             closeDuel(s);
             // 開戰時記下每個人之前的個人最佳（結算時比較有沒有突破）
             const prevBest = { ...(state.classes[session.classId]?.raidBest || {}) };
-            const run = { id: uuid(), difficulty, startedAt: Date.now() + RAID_COUNTDOWN_MS, seconds, config: raidConfig(difficulty, players, seconds), prevBest };
+            // 困難魔王＋題庫有分析題：有護盾（設定存在這一場的紀錄裡，之後改規則也不影響已開戰的場次）
+            const analysisN = raidBank(session.lessonId)!.pools.analysis?.length || 0;
+            const run = { id: uuid(), difficulty, startedAt: Date.now() + RAID_COUNTDOWN_MS, seconds, config: raidConfig(difficulty, players, seconds, analysisN), prevBest };
             session.raid = run;
             (s.raidRuns ||= []).push(clone(run));
             // 上一場選過的角色留著，不用再選一次
@@ -2149,8 +2151,17 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
         assert(!raidOver(run, raidState(run, s, t)), '戰鬥已經結束', 409);
         if (body.op === 'draw') {
           const kind = body.kind as RaidKind;
-          assert(RAID_KINDS.includes(kind), '題目類型不正確');
+          assert(RAID_ALL_KINDS.includes(kind), '題目類型不正確');
+          assert(kind !== 'analysis' || raidHasAnalysis(run, bank), '這一場沒有分析題', 409);
           assert(!seat.lockUntil || seat.lockUntil <= t, '答錯了，等一下才能再作答', 409);
+          if (kind === 'analysis') {
+            // 分析題答錯鎖 20 秒（只鎖分析題）；手上的分析題被同學解出了就換新的一題
+            assert(!seat.analysisLockUntil || seat.analysisLockUntil <= t, `分析題答錯了，${Math.ceil(((seat.analysisLockUntil || t) - t) / 1000)} 秒後才能再挑戰`, 409);
+            const ctx2 = analysisContext(run, s, user.seat!, t);
+            if (seat.cur?.kind !== 'analysis' || analysisTaken(seat.cur, ctx2.state)) newQuestion(bank, seat, kind, t, ctx2);
+            session.revision++;
+            return save({ question: questionFor(bank, seat.cur!, ctx2.state), revision: session.revision });
+          }
           // 同一類又按一次：給同一題（不能一直換題找簡單的）
           if (seat.cur?.kind !== kind) newQuestion(bank, seat, kind, t);
           session.revision++;
@@ -2163,7 +2174,7 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
           return save({ question, skipAt: seat.skipAt, revision: session.revision });
         }
         assert(body.op === 'answer', '未知的操作');
-        const result = answerRaid(bank, run, s, user.seat!, integer(body.choice, 0, 5), t);
+        const result = answerRaid(bank, run, s, user.seat!, integer(body.choice, 0, 5), t, body.reason === undefined ? undefined : integer(body.reason, 0, 5));
         session.revision++;
         return save({ ...result, revision: session.revision });
       }

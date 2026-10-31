@@ -7,6 +7,8 @@ r"""2-2 根式的運算：魔王戰題庫（三類題目，四選一，全部用
 - attack（記憶）：普通攻擊。一步就能算完的基本運算。
 - shield（理解）：防護罩。判斷相等、比大小、同類方根、估算、找出正確的算法。
 - ultimate（應用）：大招。多步驟、綜合運算、生活應用（長方形、正方形的面積與周長）。
+- analysis（分析）：破盾，只有困難魔王會出。找錯（指出錯誤步驟並選正確改法）、多步推理（串兩個概念）、
+  判斷比較（答案＋理由兩段選擇，都對才算對）、反推缺少的條件。6 種題型 × 3 組數字，每個選項都用 SymPy 判斷真假。
 題庫＝前 4 堂的課後檢核題（依類型分配）＋這裡新增的換數字題與較難的應用題。
 """
 import importlib.util
@@ -19,7 +21,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 from sympy import Rational, nsimplify, sqrt  # noqa: E402
 
 from geom import BLUE, PEACH, Fig  # noqa: E402
-from quizlib import ROOT, check_item, item_json, rad, raw, statement, value  # noqa: E402
+from quizlib import ROOT, _eq, check_item, item_json, rad, raw, statement, value  # noqa: E402
 
 R = Rational
 S = sqrt
@@ -339,8 +341,186 @@ NEW = {
 }
 
 
+
+# ───────── 新增：分析（破盾，只有困難魔王） ─────────
+# 四種題型：找錯（指出錯誤步驟並選正確改法）、多步推理（串兩個概念）、判斷比較（答案＋理由兩段都要對）、反推缺少的條件。
+# 每一題的每個選項都用 SymPy 判斷真假（truth），核算規則見 check_analysis：選項不重複、正確的剛好一個而且排第一；
+# 有「理由」的，理由也剛好一個正確。題幹的步驟用換行分開（學生端以 pre-line 顯示）。hint 是 3 分鐘提示（關鍵概念，不給答案）。
+CIRCLED = '①②③④⑤'
+
+
+def analysis(stem, options, explanation, hint, reason=None):
+    """options／reason：[(文字, 真假)…]，第一個是正確的（核算時檢查）。"""
+    return dict(kind='analysis', stem=stem, options=options, reason=reason, explanation=explanation, hint=hint)
+
+
+def first_wrong(steps):
+    """steps：[(左式, 右式)…]，回傳第一個不成立的步驟編號（1 起算）。"""
+    for i, (l, r_) in enumerate(steps, 1):
+        if not _eq(l, r_):
+            return i
+    return 0
+
+
+def rad_tex(c, n):
+    return ('' if c == 1 else str(c)) + rf'\sqrt{{{n}}}'
+
+
+def find_conj(m, n, c):
+    """找錯：c／(√m＋√n) 分母有理化，學生把分母算成 m＋n（第②步錯）。"""
+    orig = c / (S(m) + S(n))
+    wrong = c * (S(m) - S(n)) / (m + n)
+    k = R(c, m - n)
+    right = k * (S(m) - S(n))
+    steps = [(orig, c * (S(m) - S(n)) / ((S(m) + S(n)) * (S(m) - S(n)))), (orig, wrong), (wrong, R(c, m + n) * (S(m) - S(n)))]
+    bad = first_wrong(steps)
+    assert bad == 2
+    den = (S(m) + S(n)) * (S(m) - S(n))
+    kt = '' if k == 1 else str(k)
+    g = R(c, m + n)
+    gt = rf'\dfrac{{\sqrt{{{m}}}-\sqrt{{{n}}}}}{{{g.q}}}' if g.p == 1 else rf'\dfrac{{{g.p}(\sqrt{{{m}}}-\sqrt{{{n}}})}}{{{g.q}}}'
+    stem = (rf'小安把 $\dfrac{{{c}}}{{\sqrt{{{m}}}+\sqrt{{{n}}}}}$ 的分母有理化，寫了下面三步：' + '\n'
+            + rf'① $=\dfrac{{{c}(\sqrt{{{m}}}-\sqrt{{{n}}})}}{{(\sqrt{{{m}}}+\sqrt{{{n}}})(\sqrt{{{m}}}-\sqrt{{{n}}})}}$' + '\n'
+            + rf'② $=\dfrac{{{c}(\sqrt{{{m}}}-\sqrt{{{n}}})}}{{{m + n}}}$' + '\n'
+            + rf'③ $={gt}$' + '\n'
+            + '哪一步開始錯了？應該怎麼改？')
+    opts = [
+        (rf'第②步錯：分母應該是 ${m}-{n}={m - n}$，答案是 ${kt}(\sqrt{{{m}}}-\sqrt{{{n}}})$', bad == 2 and _eq(den, m - n) and _eq(right, orig)),
+        (rf'第①步錯：分子分母應該同乘 $(\sqrt{{{m}}}+\sqrt{{{n}}})$', bad == 1),
+        (rf'第②步錯：分母應該是 $(\sqrt{{{m}}}-\sqrt{{{n}}})^2$', bad == 2 and _eq(den, (S(m) - S(n)) ** 2)),
+        (rf'第③步錯：約分時分子的根號也要除以 ${g.q}$', bad == 3),
+    ]
+    return analysis(stem, opts,
+                    rf'平方差：$(\sqrt{{{m}}}+\sqrt{{{n}}})(\sqrt{{{m}}}-\sqrt{{{n}}})=(\sqrt{{{m}}})^2-(\sqrt{{{n}}})^2={m}-{n}={m - n}$，不是 ${m}+{n}$。'
+                    rf'正確：$\dfrac{{{c}(\sqrt{{{m}}}-\sqrt{{{n}}})}}{{{m - n}}}={kt}(\sqrt{{{m}}}-\sqrt{{{n}}})$。第①步乘共軛是對的。',
+                    r'分母用平方差公式 $(a+b)(a-b)=a^2-b^2$ 重算一次，根號平方後會不見。')
+
+
+def find_simplify(m, k1, k2, k3):
+    """找錯：√(k1²m)＋√(k2²m)－√(k3²m)，學生把 √(k2²m) 開成 k2²√m（第②步錯）。"""
+    a, b, c = k1 * k1 * m, k2 * k2 * m, k3 * k3 * m
+    orig = S(a) + S(b) - S(c)
+    right = (k1 + k2 - k3) * S(m)
+    wrong_total = (k1 + k2 * k2 - k3) * S(m)
+    steps = [(S(a), k1 * S(m)), (S(b), k2 * k2 * S(m)), (S(c), k3 * S(m)), (orig, wrong_total)]
+    bad = first_wrong(steps)
+    assert bad == 2
+    stem = (rf'小凱計算 $\sqrt{{{a}}}+\sqrt{{{b}}}-\sqrt{{{c}}}$：' + '\n'
+            + rf'① $\sqrt{{{a}}}={rad_tex(k1, m)}$' + '\n'
+            + rf'② $\sqrt{{{b}}}={rad_tex(k2 * k2, m)}$' + '\n'
+            + rf'③ $\sqrt{{{c}}}={rad_tex(k3, m)}$' + '\n'
+            + rf'④ 原式 $={rad_tex(k1, m)}+{rad_tex(k2 * k2, m)}-{rad_tex(k3, m)}={rad_tex(k1 + k2 * k2 - k3, m)}$' + '\n'
+            + '哪一步開始錯了？應該怎麼改？')
+    alt = k1 + k2 + k3
+    opts = [
+        (rf'第②步錯：$\sqrt{{{b}}}={rad_tex(k2, m)}$，答案是 ${rad_tex(k1 + k2 - k3, m)}$', bad == 2 and _eq(S(b), k2 * S(m)) and _eq(orig, right)),
+        (rf'第②步錯：$\sqrt{{{b}}}={rad_tex(k2, m)}$，答案是 ${rad_tex(alt, m)}$', bad == 2 and _eq(S(b), k2 * S(m)) and _eq(orig, alt * S(m))),
+        (rf'第①步錯：$\sqrt{{{a}}}={rad_tex(k1 * k1, m)}$', bad == 1 and _eq(S(a), k1 * k1 * S(m))),
+        (rf'第④步錯：${rad_tex(k3, m)}$ 前面要變加號，答案是 ${rad_tex(k1 + k2 * k2 + k3, m)}$', bad == 4 and _eq(orig, (k1 + k2 * k2 + k3) * S(m))),
+    ]
+    return analysis(stem, opts,
+                    rf'$\sqrt{{{b}}}=\sqrt{{{k2 * k2}\times{m}}}={rad_tex(k2, m)}$：平方因數 ${k2 * k2}$ 開出來是 ${k2}$，不是 ${k2 * k2}$。'
+                    rf'正確：${rad_tex(k1, m)}+{rad_tex(k2, m)}-{rad_tex(k3, m)}=({k1}+{k2}-{k3})\sqrt{{{m}}}={rad_tex(k1 + k2 - k3, m)}$。',
+                    rf'把根號裡拆成「平方數 × ${m}$」，根號外面放的是平方數的平方根。')
+
+
+def chain_conj(m, k, add):
+    """多步：x＝1／(√m－k)（m－k²＝1），先有理化得 x＝√m＋k，再用 (x－k)²＝m 求 x²－2kx＋add。"""
+    assert m - k * k == 1
+    x = 1 / (S(m) - k)
+    want = x ** 2 - 2 * k * x + add
+    assert _eq(x, S(m) + k)
+    opts = [
+        (f'${m - k * k + add}$', _eq(want, m - k * k + add)),
+        (f'${m + add}$', _eq(want, m + add)),
+        (f'${add}$', _eq(want, add)),
+        (rf'$2\sqrt{{{m}}}+{add}$', _eq(want, 2 * S(m) + add)),
+    ]
+    return analysis(rf'已知 $x=\dfrac{{1}}{{\sqrt{{{m}}}-{k}}}$，求 $x^2-{2 * k}x+{add}$ 的值。', opts,
+                    rf'先有理化：$x=\dfrac{{\sqrt{{{m}}}+{k}}}{{(\sqrt{{{m}}})^2-{k}^2}}=\dfrac{{\sqrt{{{m}}}+{k}}}{{{m}-{k * k}}}=\sqrt{{{m}}}+{k}$。'
+                    rf'所以 $x-{k}=\sqrt{{{m}}}$，兩邊平方：$x^2-{2 * k}x+{k * k}={m}$，$x^2-{2 * k}x={m - k * k}$，再加 ${add}$ 得 ${m - k * k + add}$。',
+                    rf'先把 $x$ 的分母乘共軛 $(\sqrt{{{m}}}+{k})$ 化簡，再把 $x-{k}$ 平方。')
+
+
+def chain_ratio(a, b):
+    """多步：x＝√a＋√b、y＝√a－√b，x／y＋y／x＝(x²＋y²)／(xy)＝2(a＋b)／(a－b)。"""
+    x, y = S(a) + S(b), S(a) - S(b)
+    want = x / y + y / x
+    opts = [num_opt(R(2 * (a + b), a - b)), num_opt(R(a + b, a - b)), num_opt(2 * (a + b)), num_opt(2)]
+    opts = [(t, _eq(want, v)) for t, v, _ in opts]
+    return analysis(rf'已知 $x=\sqrt{{{a}}}+\sqrt{{{b}}}$、$y=\sqrt{{{a}}}-\sqrt{{{b}}}$，求 $\dfrac{{x}}{{y}}+\dfrac{{y}}{{x}}$ 的值。', opts,
+                    rf'通分：$\dfrac{{x}}{{y}}+\dfrac{{y}}{{x}}=\dfrac{{x^2+y^2}}{{xy}}$。完全平方：$x^2+y^2=2({a}+{b})={2 * (a + b)}$（中間項抵消）；'
+                    rf'平方差：$xy={a}-{b}={a - b}$。所以答案是 $\dfrac{{{2 * (a + b)}}}{{{a - b}}}={num_opt(R(2 * (a + b), a - b))[0].strip("$")}$。',
+                    r'先通分成 $\dfrac{x^2+y^2}{xy}$：分子用完全平方公式、分母用平方差公式。')
+
+
+def judge_diff(n):
+    """判斷＋理由：甲＝√n－√(n－1)、乙＝√(n－1)－√(n－2)，哪個大？（有理化後分子都是 1，比分母）"""
+    def sq(v):
+        return str(isqrt(v)) if isqrt(v) ** 2 == v else rf'\sqrt{{{v}}}'
+    A, B = S(n) - S(n - 1), S(n - 1) - S(n - 2)
+    a, b, c = sq(n), sq(n - 1), sq(n - 2)
+    gt = float(A) > float(B)
+    lt = float(A) < float(B)
+    opts = [('乙比較大', lt), ('甲比較大', gt), ('一樣大', _eq(A, B))]
+    reason = [
+        (rf'有理化：甲 $=\dfrac{{1}}{{{a}+{b}}}$、乙 $=\dfrac{{1}}{{{b}+{c}}}$，分子一樣，乙的分母比較小',
+         _eq(A, 1 / (S(n) + S(n - 1))) and _eq(B, 1 / (S(n - 1) + S(n - 2))) and float(S(n - 1) + S(n - 2)) < float(S(n) + S(n - 1))),
+        (rf'${a}-{b}=\sqrt{{{n}-{n - 1}}}=1$，兩個都等於 $1$', _eq(A, 1) and _eq(B, 1)),
+        (rf'甲的 ${a}$ 是三個數裡最大的，所以甲比較大', gt),
+        (rf'有理化：甲 $=\dfrac{{1}}{{{a}-{b}}}$，分母比較小，所以甲比較大', _eq(A, 1 / (S(n) - S(n - 1)))),
+    ]
+    return analysis(rf'甲 $={a}-{b}$，乙 $={b}-{c}$。哪一個比較大？再選出正確的理由（兩個都對才算對）。', opts,
+                    rf'把甲、乙都看成分母是 1 的分數，乘共軛：甲 $=\dfrac{{({a}-{b})({a}+{b})}}{{{a}+{b}}}=\dfrac{{{n}-{n - 1}}}{{{a}+{b}}}=\dfrac{{1}}{{{a}+{b}}}$，'
+                    rf'同理乙 $=\dfrac{{1}}{{{b}+{c}}}$。分子都是 1，乙的分母比較小，所以乙比較大。根號不能相減成 $\sqrt{{{n}-{n - 1}}}$。',
+                    rf'把甲寫成 $\dfrac{{{a}-{b}}}{{1}}$，分子分母同乘 $({a}+{b})$，看看分子變成多少。', reason)
+
+
+def missing(a, m, C):
+    """反推：√a＋√□＝C√m，□＝？（先化簡 √a＝p√m，差 (C－p)√m，再寫回一個根號）"""
+    p, mm = simp(a)
+    assert mm == m and C > p
+    x = (C - p) ** 2 * m
+    cands = [x, C * C * m - a, (C - p) * m, C * m - a]
+    assert len(set(cands)) == 4 and all(v > 0 for v in cands)
+    opts = [(f'${v}$', _eq(S(a) + S(v), C * S(m))) for v in cands]
+    return analysis(rf'若 $\sqrt{{{a}}}+\sqrt{{\square}}={rad_tex(C, m)}$，$\square$ 裡應該填哪一個正整數？', opts,
+                    rf'先化簡：$\sqrt{{{a}}}={rad_tex(p, m)}$，還差 ${rad_tex(C, m)}-{rad_tex(p, m)}={rad_tex(C - p, m)}$；'
+                    rf'寫回一個根號：${rad_tex(C - p, m)}=\sqrt{{{(C - p) ** 2}\times{m}}}=\sqrt{{{x}}}$，所以填 ${x}$。'
+                    rf'不能兩邊直接平方相減（$({rad_tex(C, m)})^2-{a}={C * C * m - a}$ 漏了中間項）。',
+                    rf'先把 $\sqrt{{{a}}}$ 化成最簡根式，看看還差幾個 $\sqrt{{{m}}}$，再把它寫回一個根號。')
+
+
+def check_analysis(v, where):
+    """核算分析題：選項 3–4 個、不重複，正確的剛好一個而且排第一；有理由的，理由也一樣。"""
+    for part, opts in (('選項', v['options']), ('理由', v['reason'])):
+        if opts is None:
+            continue
+        texts = [o[0] for o in opts]
+        assert 3 <= len(texts) <= 4 and len(set(texts)) == len(texts), f'{where}：{part}要有 3–4 個不同的 {texts}'
+        truth = [bool(o[1]) for o in opts]
+        assert truth == [True] + [False] * (len(opts) - 1), f'{where}：{part}的正確答案必須剛好一個而且排第一（{truth}）'
+    assert v['hint'] and v['explanation']
+
+
+def analysis_json(v):
+    out = dict(stem=v['stem'], options=[o[0] for o in v['options']], answer=0, explanation=v['explanation'], hint=v['hint'])
+    if v['reason']:
+        out['reason'] = dict(options=[o[0] for o in v['reason']], answer=0)
+    return out
+
+
+ANALYSIS = [
+    ('找錯：用共軛有理化', [find_conj(5, 3, 4), find_conj(7, 3, 8), find_conj(7, 5, 4)]),
+    ('找錯：化簡後合併', [find_simplify(3, 2, 3, 4), find_simplify(2, 2, 5, 3), find_simplify(5, 3, 2, 4)]),
+    ('多步：先有理化再代入', [chain_conj(5, 2, 3), chain_conj(10, 3, 4), chain_conj(17, 4, 2)]),
+    ('多步：x/y＋y/x', [chain_ratio(5, 3), chain_ratio(7, 5), chain_ratio(7, 3)]),
+    ('判斷＋理由：誰比較大', [judge_diff(7), judge_diff(11), judge_diff(15)]),
+    ('反推：缺少的數', [missing(12, 3, 5), missing(8, 2, 5), missing(20, 5, 7)]),
+]
+
 def main():
-    pools = {'attack': [], 'shield': [], 'ultimate': []}
+    pools = {'attack': [], 'shield': [], 'ultimate': [], 'analysis': []}
     for lesson, kinds in FROM_LESSONS.items():
         mod = load(lesson)
         slots = {s['id']: s for s in mod.SLOTS}
@@ -357,10 +537,15 @@ def main():
                 where = f'new-{kind}-{topic}-{k}'
                 check_item(v, where)
                 pools[kind].append(dict(id=where, topic=topic, **item_json(v)))
+    for topic, items in ANALYSIS:
+        for k, v in enumerate(items, 1):
+            where = f'new-analysis-{topic}-{k}'
+            check_analysis(v, where)
+            pools['analysis'].append(dict(id=where, topic=topic, **analysis_json(v)))
     ids = [x['id'] for p in pools.values() for x in p]
     assert len(ids) == len(set(ids)), '題目 ID 重複'
     out = dict(hostLesson='g8-2-2d', title='2-2 根式的運算：魔王戰', section='2-2',
-               source='八年級 2-2(1)～(4) 課後檢核題（依類型分配）＋新增換數字題與綜合應用題；範圍含 2-1、第 1 章乘法公式；答案已用 SymPy 核算',
+               source='八年級 2-2(1)～(4) 課後檢核題（依類型分配）＋新增換數字題、綜合應用題與分析題（自編）；範圍含 2-1、第 1 章乘法公式；答案已用 SymPy 核算',
                pools=pools)
     path = ROOT / 'content/raids' / 'g8-2-2d.json'
     path.parent.mkdir(parents=True, exist_ok=True)

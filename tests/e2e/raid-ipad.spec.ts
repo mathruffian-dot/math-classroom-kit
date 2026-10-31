@@ -493,3 +493,108 @@ test('raid iPad sweep: the stem stays put on representative iPad widths while th
   expect(out.filter((r) => r.appScrollWrites > 0 || r.flingStalls > 0).map((r) => `${r.combo} ${r.mode} writes ${r.appScrollWrites} stalls ${r.flingStalls}`), 'app wrote scrollTop').toEqual([]);
   expect(out.filter((r) => r.pageY[1] > 0).map((r) => `${r.combo} pageY ${r.pageY.join('~')}`), 'page scrolled').toEqual([]);
 });
+
+// ───────────── 困難魔王的護盾（2026-11）：護盾開啟、破盾、破防時，學生端題幹不跳、#raid-mini 高度不變 ─────────────
+// 真的開一場 g8-2-2d 困難魔王（人少時魔王 150 血、門檻 3）：背景同學用 API 打記憶題到 70% → 護盾開啟，
+// 再由 3 位同學各答對 1 題分析題 → 破盾、破防 15 秒。學生（iPad）停在一題長的應用題上，整段時間每 50ms 量題幹位置與戰況區高度。
+const SHIELD_COMBOS = ['gen7 橫 1080×810', 'gen11 橫 944×656'];
+test('raid iPad shield: the stem and #raid-mini stay put while the shield opens and breaks', async ({ browser, playwright, browserName }) => {
+  const raidId = 'g8-2-2d';
+  const bank = JSON.parse(await readFile(`content/raids/${raidId}.json`, 'utf8')) as Bank & { pools: Record<string, (BankQ & { reason?: { options: string[]; answer: number } })[]> };
+  const byId = new Map(Object.values(bank.pools).flat().map((q) => [q.id, q]));
+  const longQ = [...bank.pools.ultimate].sort((a, b) => b.stem.length - a.stem.length).find((q) => !q.figure)!;
+  test.setTimeout(240_000);
+  const t = await login(playwright, { role: 'teacher', account: 'teacher', password: '11235813' });
+  const cl = (await (await t.get('/api/dashboard')).json()).classes.find((c: { code: string }) => c.code === 'DEMO801');
+  await t.patch(`/api/classes/${cl.id}`, { headers, data: { requireCode: false } });
+  const sessionId = (await (await t.post('/api/sessions', { headers, data: { lessonId: raidId, classId: cl.id } })).json()).session.id;
+  const mates = await Promise.all([34, 35, 36].map((seat) => login(playwright, { role: 'student', classCode: 'DEMO801', seat })));
+  const rows: { combo: string; mode: string; r: Sample; sawShield: boolean; sawBreak: boolean }[] = [];
+  try {
+    for (const [ci, name] of SHIELD_COMBOS.entries()) {
+      const combo = COMBOS_ALL.find((c) => c.name === name)!;
+      const { defaultBrowserType: _d, ...dev } = devices[combo.device];
+      const size = combo.width ? { width: combo.width, height: combo.height! } : null;
+      const ctx = await browser.newContext({ ...dev, baseURL, ...(size ? { viewport: size, screen: size } : {}) });
+      await ctx.addInitScript(() => {
+        (window as unknown as { __mckScroll: { app: number; mine: boolean } }).__mckScroll = { app: 0, mine: false };
+      });
+      const page = await ctx.newPage();
+      try {
+        inject = null;
+        await hook(page);
+        await page.goto('/#/student');
+        await page.getByLabel('座號').fill(String(20 + ci));
+        await page.locator('#login-form').getByRole('button', { name: '登入' }).click();
+        await expect(page.getByTestId('session-slide')).toBeAttached();
+        expect((await t.post(`/api/sessions/${sessionId}/control`, { headers, data: { action: 'raid-start', difficulty: 'hard', seconds: 600 } })).status()).toBe(200);
+        await page.reload();
+        const tab = page.locator('.phone-tabs [data-tab="answer"]');
+        if (await tab.isVisible().catch(() => false)) await tab.click();
+        await expect(page.getByTestId('raid-card')).toBeVisible();
+        const role = page.getByTestId('raid-role-knight');
+        if (await role.isVisible().catch(() => false)) await role.click();
+        const skip = page.getByTestId('raid-goal-skip');
+        await expect(skip.or(page.getByTestId('raid-kind-ultimate'))).toBeVisible();
+        if (await skip.isVisible().catch(() => false)) await skip.click();
+        // 困難魔王：選招畫面有「分析題」
+        await expect(page.getByTestId('raid-kind-analysis')).toBeVisible();
+        inject = { ...longQ, kind: 'ultimate' };
+        await page.getByTestId('raid-kind-ultimate').click();
+        await expect.poll(() => page.locator('#student-answer').getAttribute('data-raid-key')).toContain(`|${longQ.id}|`);
+        const view = await (await t.get(`/api/sessions/${sessionId}`)).json();
+        const runId = view.raid.run.id;
+        expect(view.raid.run.config.phase, 'hard boss with analysis has shields').toBeTruthy();
+        const post = (c: APIRequestContext, data: Record<string, unknown>) => c.post(`/api/sessions/${sessionId}/raid`, { headers, data: { runId, ...data } });
+        for (const m of mates) await post(m, { op: 'role', role: 'mage' });
+        const mode = ci === 0 ? 'top' : 'half';
+        const sampling = sample(page, mode, 20_000);
+        let sawShield = false,
+          sawBreak = false;
+        // 1. 記憶題打到 70%
+        for (let i = 0; i < 40; i++) {
+          const st = (await (await t.get(`/api/sessions/${sessionId}`)).json()).raid.state;
+          if (st.phase) break;
+          const d = await post(mates[0], { op: 'draw', kind: 'attack' });
+          const q = (await d.json()).question;
+          const it = byId.get(q.id)!;
+          await post(mates[0], { op: 'answer', choice: q.options.indexOf(it.options[it.answer]) });
+        }
+        // 護盾的文字（存量那一行中間一格、提示格）沒有被省略號切掉
+        const cut = () => page.$$eval('[data-testid="raid-mini-phase"], [data-testid="raid-mini-alert"] .raid-alert-line', (els) => els.filter((e) => /護盾|破防|破盾/.test(e.textContent || '') && e.scrollWidth > e.clientWidth + 1).map((e) => e.textContent));
+        await expect(page.getByTestId('raid-mini-phase')).toContainText('破盾', { timeout: 5000 });
+        expect(await cut(), `${name} shield text cut`).toEqual([]);
+        sawShield = true;
+        await page.waitForTimeout(2500);
+        // 2. 三位同學各答對 1 題分析題 → 破盾
+        for (const m of mates) {
+          const q = (await (await post(m, { op: 'draw', kind: 'analysis' })).json()).question;
+          const it = byId.get(q.id)!;
+          await post(m, { op: 'answer', choice: q.options.indexOf(it.options[it.answer]), ...(it.reason ? { reason: q.reason.indexOf(it.reason.options[it.reason.answer]) } : {}) });
+          await page.waitForTimeout(800);
+        }
+        await expect(page.getByTestId('raid-mini-phase')).toContainText('破防', { timeout: 5000 });
+        expect(await cut(), `${name} break text cut`).toEqual([]);
+        sawBreak = true;
+        const r = await sampling;
+        rows.push({ combo: name, mode, r, sawShield, sawBreak });
+        await t.post(`/api/sessions/${sessionId}/control`, { headers, data: { action: 'raid-end' } });
+      } finally {
+        await ctx.close();
+      }
+    }
+  } finally {
+    await t.delete(`/api/sessions/${sessionId}`, { headers, data: {} }).catch(() => undefined);
+    await t.dispose();
+    for (const m of mates) await m.dispose();
+  }
+  for (const x of rows) console.log(`${browserName} shield ${x.combo} ${x.mode}: 跳 ${x.r.jumps} 次 最大 ${x.r.maxJump}px | stemTop ${x.r.stemTop.join('~')} | mini ${x.r.miniH.join('/')} | 護盾 ${x.sawShield} 破防 ${x.sawBreak} | ${x.r.ended ? '戰鬥結束' : ''}`);
+  if (!STRICT) return;
+  expect(rows.length).toBe(SHIELD_COMBOS.length);
+  for (const x of rows) {
+    expect(x.sawShield && x.sawBreak, `${x.combo} shield opened and broke`).toBe(true);
+    expect(x.r.ended, `${x.combo} battle still on`).toBe(false);
+    expect(x.r.jumps, `${x.combo} stem moved ${x.r.maxJump}px`).toBe(0);
+    expect(x.r.miniH, `${x.combo} #raid-mini height`).toHaveLength(1);
+  }
+});

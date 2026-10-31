@@ -619,7 +619,14 @@
  * 以前大招預告、抗性提示、「已答對」有才出現，文字長度每秒在變，依面板寬度換成 1～4 行（iPad 橫向的側欄最窄），
  * 高度一變，下面的題目就被推上推下。現在：每一行都不換行（太長就省略），數字等寬，提示格固定兩行高、一直都在。
  */
+/*
+ * 2026-11（護盾）：戰況區不可以撐寬作答卡。提示格每一行都是 nowrap，以前它的最小寬度（約 313px）會把作答卡撐得比
+ * 300px 的面板還寬；提示文字一換成比較短的（例如抗性、護盾），卡片縮回面板寬，題目上方「換成…」那一列就多一行，題幹被推下 29px。
+ * contain: inline-size＝寬度只看外面，不看裡面的文字。
+ */
 .raid-mini {
+  contain: inline-size;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -1028,4 +1035,290 @@
   text-align: center;
   margin: 0;
   font-size: clamp(13px, 1.4vw, 20px);
+}
+
+/* ───────── 魔王護盾與分析題（困難魔王、題庫有分析題時；2026-11）─────────
+ * 大螢幕：魔王身上的護盾（裂痕一道一道亮起來）、上方的「破盾 x/y」、右上角的提示條，全部疊在戰場上，不佔版面。
+ * 學生戰況區（#raid-mini）：只在既有的固定列裡多一格文字、血條加疊加樣式，高度不變。 */
+.raid-boss .raid-art,
+.raid-barrier {
+  grid-area: 1 / 1;
+}
+.raid-barrier {
+  position: relative;
+  z-index: 2;
+  width: min(100%, clamp(180px, 34vw, 520px));
+  aspect-ratio: 1;
+  max-height: clamp(200px, 46vh, 520px);
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(120, 200, 255, 0.06) 45%, rgba(120, 200, 255, 0.32) 68%, rgba(190, 235, 255, 0.55) 72%, rgba(120, 200, 255, 0) 74%);
+  box-shadow: 0 0 32px rgba(120, 200, 255, 0.55), inset 0 0 40px rgba(150, 215, 255, 0.4);
+  animation: barrier-pulse 2.4s ease-in-out infinite;
+}
+.raid-barrier[hidden] {
+  display: none;
+}
+.raid-barrier svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.raid-barrier path {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 1.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0;
+  filter: drop-shadow(0 0 3px #9fd8ff);
+  transition: opacity 0.4s;
+}
+.raid-barrier path.on {
+  opacity: 0.95;
+}
+.raid-barrier.hit {
+  animation: barrier-hit 0.5s ease-out;
+}
+@keyframes barrier-pulse {
+  50% {
+    box-shadow: 0 0 44px rgba(120, 200, 255, 0.75), inset 0 0 52px rgba(150, 215, 255, 0.55);
+  }
+}
+@keyframes barrier-hit {
+  30% {
+    transform: scale(1.05);
+    filter: brightness(1.8);
+  }
+}
+.raid-mark {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  margin-left: -1px;
+  background: rgba(190, 235, 255, 0.9);
+  box-shadow: 0 0 4px #9fd8ff;
+  z-index: 1;
+}
+.raid-board.shielded .raid-top .raid-bar.boss,
+.raid-bar.boss.small.shielded {
+  box-shadow: inset 0 0 0 2px #9fd8ff, 0 0 10px rgba(120, 200, 255, 0.7);
+}
+.raid-board.shielded .raid-top .raid-bar.boss .hp,
+.raid-bar.boss.small.shielded .hp {
+  background: linear-gradient(90deg, #4f7fd6, #9fd8ff);
+}
+.raid-board.guard-broken .raid-top .raid-bar.boss,
+.raid-bar.boss.small.guard-broken {
+  box-shadow: inset 0 0 0 2px #ffd166, 0 0 12px rgba(255, 190, 60, 0.85);
+}
+.raid-phase {
+  position: absolute;
+  left: 50%;
+  top: 6px;
+  transform: translateX(-50%);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: baseline;
+  gap: 2px 12px;
+  max-width: 96%;
+  padding: 8px 16px;
+  border-radius: 14px;
+  background: rgba(20, 70, 140, 0.88);
+  box-shadow: 0 0 18px rgba(120, 200, 255, 0.6);
+  font-size: clamp(14px, 1.6vw, 24px);
+  font-weight: 800;
+  text-align: center;
+  z-index: 3;
+}
+.raid-phase[hidden] {
+  display: none;
+}
+.raid-phase small {
+  flex-basis: 100%;
+  font-size: 0.66em;
+  font-weight: 600;
+  opacity: 0.9;
+}
+.raid-phase-count {
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  font-variant-numeric: tabular-nums;
+}
+.raid-phase-count em {
+  font-style: normal;
+  color: #ffe066;
+  font-size: 1.25em;
+}
+.raid-phase.brk {
+  background: rgba(190, 90, 0, 0.92);
+  box-shadow: 0 0 24px rgba(255, 190, 60, 0.85);
+  animation: warn-blink 0.9s ease-in-out infinite;
+}
+/* 大招預告和護盾狀態同時：預告往下移一點，不互相蓋住 */
+.raid-board.shielded .raid-warn,
+.raid-board.guard-broken .raid-warn {
+  top: auto;
+  bottom: 56px;
+}
+.raid-toasts {
+  position: absolute;
+  right: 10px;
+  top: 30%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  pointer-events: none;
+  z-index: 4;
+}
+.raid-toast {
+  padding: 8px 14px;
+  border-radius: 12px;
+  background: rgba(15, 25, 60, 0.92);
+  border: 2px solid #9fd8ff;
+  font-size: clamp(15px, 1.7vw, 26px);
+  font-weight: 800;
+  animation: toast-in 3.2s ease forwards;
+}
+.raid-toast em {
+  margin-left: 8px;
+  font-style: normal;
+  color: #ffe066;
+}
+.raid-toast.support {
+  border-color: #c58bff;
+}
+.raid-toast.hint {
+  border-color: #ffd166;
+}
+@keyframes toast-in {
+  0% {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  10%,
+  80% {
+    opacity: 1;
+    transform: none;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+.raid-phase-banner {
+  position: absolute;
+  left: 50%;
+  top: 38%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 14px 28px;
+  border-radius: 18px;
+  background: rgba(20, 70, 140, 0.92);
+  box-shadow: 0 0 40px rgba(120, 200, 255, 0.8);
+  text-align: center;
+  white-space: nowrap;
+  animation: banner-pop 3.2s ease forwards;
+  z-index: 5;
+}
+.raid-phase-banner b {
+  font-size: clamp(26px, 3.6vw, 56px);
+}
+.raid-phase-banner span,
+.raid-phase-banner em {
+  font-size: clamp(14px, 1.6vw, 24px);
+  font-style: normal;
+}
+.raid-phase-banner.brk {
+  background: rgba(200, 100, 0, 0.94);
+  box-shadow: 0 0 50px rgba(255, 200, 60, 0.95);
+}
+@keyframes banner-pop {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.6);
+  }
+  12%,
+  85% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+  }
+}
+/* 學生戰況區：存量那一行中間的護盾格（不換行、和其他格一樣高） */
+.raid-info-ph.on {
+  color: #9fd8ff;
+  font-weight: 800;
+}
+.raid-info-ph.brk {
+  color: #ffd166;
+  font-weight: 800;
+}
+.raid-kind-btn.k-analysis {
+  background: linear-gradient(135deg, #0f6b6b, #22a39f);
+}
+.raid-kind-btn.k-analysis.hot {
+  background: linear-gradient(135deg, #1d4fa8, #2bb5e8);
+  box-shadow: 0 0 0 3px #9fd8ff, 0 0 18px rgba(120, 200, 255, 0.8);
+  animation: barrier-pulse 2.4s ease-in-out infinite;
+}
+.raid-kind-btn.k-analysis.locked,
+.raid-kind-btn.k-analysis:disabled {
+  filter: saturate(0.3) brightness(0.85);
+  cursor: not-allowed;
+  box-shadow: none;
+  animation: none;
+}
+.raid-eff.hot {
+  background: rgba(255, 255, 255, 0.25);
+  color: #fff;
+}
+.raid-kind.k-analysis {
+  background: #1d7f8f;
+}
+.raid-a-stem {
+  white-space: pre-line;
+  line-height: 1.9;
+}
+.raid-part {
+  margin: 6px 0 0;
+  font-weight: 800;
+  color: #1d7f8f;
+}
+.raid-hint {
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: #fff6d6;
+  border: 1px solid #ffd166;
+  font-weight: 700;
+}
+.raid-taken {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: #e5f7ec;
+  font-weight: 700;
+}
+.raid-a-note {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #6b6b7b;
+}
+.answer-option.selected {
+  outline: 3px solid #1d7f8f;
+  background: #e2f5f6;
+}
+.raid-flash.analysis > span {
+  display: block;
 }
