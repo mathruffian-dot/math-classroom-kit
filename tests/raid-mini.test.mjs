@@ -27,16 +27,38 @@ const shape = (html) => [...html.matchAll(/class="(raid-mini-[a-z]+|raid-alert-l
 const attacks = Array.from({ length: 10 }, () => ({ t: T - 1000, kind: 'attack', seat: 5 }));
 
 test('raid mini: boss-ultimate warning and resistance are both shown when both apply', () => {
-  const html = ui.raidMiniHtml(view({ bossUltAt: T + 20_000, recent: attacks, shieldBank: [{ seat: 5, ms: 1500 }] }), NOW);
-  assert.equal(line(html, 'warn'), '⚠ 魔王大招 20 秒後・防護罩 1.5／3 秒');
+  const html = ui.raidMiniHtml(view({ bossUltAt: T + raid.RAID_WARN_MS, recent: attacks, shieldBank: [{ seat: 5, ms: 1500 }] }), NOW);
+  assert.equal(line(html, 'warn'), '⚠ 魔王大招 12 秒後・防護罩 1.5／3 秒');
   assert.match(line(html, 'resist'), /^🧬 普通攻擊效果只剩 \d+%，換別的招！$/);
   assert.match(html, /class="raid-mini-alert warn"/);
+  // 倒數到個位數：只是字變少，結構不變
+  const late = ui.raidMiniHtml(view({ bossUltAt: T + 4_000, recent: attacks }), NOW);
+  assert.equal(line(late, 'warn'), '⚠ 魔王大招 4 秒後・防護罩 0／3 秒');
+  assert.equal(shape(late), shape(html));
+});
+
+test('raid config: the boss warns 12 seconds before its ultimate; charge + warning keeps the old 120/110/105-second cycle', () => {
+  assert.equal(raid.RAID_WARN_MS, 12_000);
+  const cycle = { easy: 120_000, normal: 110_000, hard: 105_000 };
+  for (const d of ['easy', 'normal', 'hard'])
+    for (const n of [8, 25, 30]) {
+      const c = raid.raidConfig(d, n, 480);
+      assert.equal(c.bossWarnMs, 12_000, `${d} ${n}`);
+      assert.equal(c.bossChargeMs + c.bossWarnMs, cycle[d], `${d} ${n}`);
+    }
+  // 開戰後沒人作答：蓄力滿了預告，12 秒後落下
+  const c = raid.raidConfig('normal', 25, 480);
+  const s = raid.raidReplay(c, [], 480, c.bossChargeMs + 1);
+  const warn = s.log.find((e) => e.k === 'bossWarn');
+  assert.equal(warn.t, c.bossChargeMs);
+  assert.equal(warn.n, 12_000);
+  assert.equal(s.bossUltAt, c.bossChargeMs + 12_000);
 });
 
 test('raid mini: the same rows in every state (warning only, resistance only, neither)', () => {
   const states = [
-    view({ bossUltAt: T + 20_000, recent: attacks }),
-    view({ bossUltAt: T + 20_000 }),
+    view({ bossUltAt: T + 12_000, recent: attacks }),
+    view({ bossUltAt: T + 12_000 }),
     view({ recent: attacks }),
     view({}),
     view({}, { goal: 5 }),

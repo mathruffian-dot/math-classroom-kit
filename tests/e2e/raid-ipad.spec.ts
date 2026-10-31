@@ -97,7 +97,7 @@ type Row = { raid: string; id: string; topic: string; stemLen: number; figure: b
 
 /** 要換成的題目：抽題回應、推送（WebSocket）與重新整理拿到的 view 裡學生自己的題目都換成它（伺服器端抽到的是別題）。 */
 let inject: (BankQ & { kind: string }) | null = null;
-/** 強迫「大招預告＋抗性」同時成立：推送與 GET 的戰況改成 25 秒後大招落下、最近 45 秒全是記憶題（sweep 用）。 */
+/** 強迫「大招預告＋抗性」同時成立：推送與 GET 的戰況改成 12 秒後大招落下（預告的最長倒數，兩位數）、最近 45 秒全是記憶題（sweep 用）。 */
 let forceAlert = false;
 function swap(q: Record<string, unknown> | undefined) {
   if (!q || !inject) return q;
@@ -110,7 +110,7 @@ function rewrite(text: string) {
     const raid = d.view?.raid || d.raid;
     if (raid?.mine?.question) raid.mine.question = swap(raid.mine.question);
     if (forceAlert && raid?.state && !raid.state.result) {
-      raid.state.bossUltAt = raid.state.t + 25_000;
+      raid.state.bossUltAt = raid.state.t + 12_000;
       raid.state.recent = Array.from({ length: 12 }, () => ({ t: raid.state.t - 1000, kind: 'attack', seat: 40 }));
     }
     return JSON.stringify(d);

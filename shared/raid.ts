@@ -23,6 +23,8 @@ export function raidCombo(people: number) {
 }
 /** 防護罩：答對一題理解題＝存 1 秒（魔王攻擊時自動扣來擋）。 */
 export const RAID_SHIELD_MS = 1000;
+/** 魔王大招落下前預告 12 秒（原本 30 秒）。 */
+export const RAID_WARN_MS = 12_000;
 /** 大招計量滿格。 */
 export const RAID_ULT_NEED = 100;
 
@@ -68,10 +70,12 @@ export interface RaidConfig {
 }
 
 // atk、ult 是英雄血量 2000（25 人、8 分鐘）時的傷害；普通攻擊 25 人以上每 3 秒一次
+// chargeS：蓄力秒數。2026-10-31 預告從 30 秒縮成 12 秒時，蓄力各加 18 秒（原本 90／80／75），
+// 「蓄力＋預告」一輪的長度不變，一場的大招次數和以前一樣
 const TABLE: Record<RaidDifficulty, { hpPer: number; atk: number; ult: number; chargeS: number; shield10: number }> = {
-  easy: { hpPer: 80, atk: 5, ult: 300, chargeS: 90, shield10: 7 },
-  normal: { hpPer: 88, atk: 20, ult: 450, chargeS: 80, shield10: 10 },
-  hard: { hpPer: 106, atk: 25, ult: 550, chargeS: 75, shield10: 12 },
+  easy: { hpPer: 80, atk: 5, ult: 300, chargeS: 108, shield10: 7 },
+  normal: { hpPer: 88, atk: 20, ult: 450, chargeS: 98, shield10: 10 },
+  hard: { hpPer: 106, atk: 25, ult: 550, chargeS: 93, shield10: 12 },
 };
 
 /** 依難度、上線人數（1–60）與時間長度（秒）決定數值：大班小班、5 分鐘或 10 分鐘，打起來的節奏差不多。 */
@@ -99,8 +103,9 @@ export function raidConfig(difficulty: RaidDifficulty, players: number, seconds 
     bossAtkEvery: atkEvery,
     bossUlt: Math.max(50, Math.round((d.ult * size) / 10) * 10),
     bossChargeMs: d.chargeS * 1000,
-    // 預告 30 秒：來得及改做防護罩題，存夠防護罩擋下大招
-    bossWarnMs: 30000,
+    // 預告 12 秒（原本 30 秒，老師覺得太長）：理解題一題要算 18 秒以上，預告後才開始做的來不及，
+    // 要靠平常存的防護罩；預告時正在做理解題的同學還來得及補上
+    bossWarnMs: RAID_WARN_MS,
     wrongChargeMs: Math.round(4000 / size),
     heroAtk: 12,
     ultGain: 25,
