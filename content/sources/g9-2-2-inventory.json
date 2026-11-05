@@ -1,0 +1,153 @@
+{
+  "source": {
+    "pdf": "九年級/01_115國中數學3上課本PDF/02_115國中數學3上課本PDF(學)/07_115國中數學3上課本_2-2 圓心角、圓周角與弧的關係(學).pdf",
+    "answers": "九年級/01_115國中數學3上課本PDF/01_115國中數學3上課本PDF(教)/07_115國中數學3上課本_2-2 圓心角、圓周角與弧的關係(教).pdf（教用版課本，例題解與隨堂紅字解答）",
+    "pages": { "pdfPages": "1-18", "printedPages": "110-127", "printedPage": "pdfPage + 109" },
+    "pageImages": "九年級/115上_視覺化互動教學/textbook-pages/2-2/page-01.png～page-18.png",
+    "crops": "math-classroom-kit/public/lesson-assets/g9-2-2/，學用版 pymupdf 2.5x 渲染；box 見 scripts/textbook-crops/g9-2-2-boxes.json",
+    "lessons": {
+      "g9-2-2a": "2-2（1）圓心角與弧：p.110–113（主題 1，例 1–3）",
+      "g9-2-2b": "2-2（2）圓周角與弧：p.114–117（主題 2 圓周角、問題探索、例 4–5）",
+      "g9-2-2c": "2-2（3）半圓與平行弦：p.118–120（例 6、半圓的圓周角、例 7）",
+      "g9-2-2d": "2-2（4）圓內接四邊形：p.121–123、p.125 挑錯題（例 8、作切線、重點整理、自我檢核）"
+    },
+    "notIncluded": "自我評量 p.124–125（只盤點核算，未收入，挑錯題除外）、扉選素養 p.126、一題多解 p.127、課本 p.122 的作圖影片 QR Code。p.121 對角互補的說明不截圖（內容已逐步呈現在 d-proof）。",
+    "differences": "自行計算與教用版全部一致，沒有不一致處。",
+    "generated": "2026-11-05"
+  },
+  "items": [
+    { "lesson": "g9-2-2a", "kind": "intro", "label": "主題1 情境", "topic": "海盜船：坐中間擺盪的角度會不會比較小", "pdfPage": 1, "printedPage": 110,
+      "problems": [{ "expr": "坐中間一點擺盪的角度會不會比較小？", "answer": "角度一樣（教用版 p.112 旁注：船首（尾）與船中間所夾的圓心角固定）" }], "crop": { "file": "ship.png" } },
+    { "lesson": "g9-2-2a", "kind": "keypoint", "label": "Key point 弧的度數", "topic": "圓上一弧的度數就是其所對圓心角的度數", "pdfPage": 1, "printedPage": 110, "problems": [], "crop": { "file": "degree.png" } },
+    { "lesson": "g9-2-2a", "kind": "keypoint", "label": "同圓或等圓：度數與弧長", "topic": "度數相同的兩弧弧長相等；度數較大的弧弧長較長", "pdfPage": 2, "printedPage": 111, "problems": [], "crop": { "file": "arc-rule.png" } },
+    { "lesson": "g9-2-2a", "kind": "example", "label": "例1", "topic": "已知圓心角求弧的度數與長度", "pdfPage": 2, "printedPage": 111,
+      "problems": [
+        { "expr": "兩同心圓半徑 10、8，∠AOB＝∠COD＝120°，求弧 AB、弧 CD 的度數", "answer": "120", "check": "120" },
+        { "expr": "弧 AB 的長度（π 的係數）", "answer": "16/3", "check": "2*8*120/360" },
+        { "expr": "弧 CD 的長度（π 的係數）", "answer": "20/3", "check": "2*10*120/360" }
+      ], "crop": { "file": "ex1.png" } },
+    { "lesson": "g9-2-2a", "kind": "practice", "label": "例1 隨堂", "topic": "扇形 POQ，∠POQ＝72°，OP＝10，M、N 為中點", "pdfPage": 2, "printedPage": 111,
+      "problems": [{ "expr": "弧 PQ 比弧 MN 長多少？（π 的係數）", "answer": "2", "check": "2*10*72/360-2*5*72/360" }], "crop": { "file": "ex1-practice.png" } },
+    { "lesson": "g9-2-2a", "kind": "example", "label": "例2", "topic": "等弧對等弦", "pdfPage": 3, "printedPage": 112,
+      "problems": [{ "expr": "弧 AB 的度數＝弧 CD 的度數，弦 AB 與弦 CD 是否等長？為什麼？", "answer": "等長；△AOB ≅ △COD（SAS）" }], "crop": { "file": "ex2.png" } },
+    { "lesson": "g9-2-2a", "kind": "practice", "label": "例2 隨堂", "topic": "弦相等推弧相等（說明題，canvas＋規準）", "pdfPage": 3, "printedPage": 112,
+      "problems": [
+        { "expr": "(1) AB＝CD，弧 AB 與弧 CD 的度數是否相等？為什麼？", "answer": "相等；△AOB ≅ △COD（SSS），∠AOB＝∠COD" },
+        { "expr": "(2) 長度是否相等？為什麼？", "answer": "相等；度數相等且在相同的圓中" }
+      ], "crop": { "file": "ex2-practice.png" } },
+    { "lesson": "g9-2-2a", "kind": "keypoint", "label": "等弧對等弦、等弦對等弧", "topic": "同圓或等圓中的結論", "pdfPage": 3, "printedPage": 112, "problems": [], "crop": { "file": "equal-arc-rule.png" } },
+    { "lesson": "g9-2-2a", "kind": "example", "label": "例3", "topic": "等弦對等弧的應用", "pdfPage": 4, "printedPage": 113,
+      "problems": [{ "expr": "正五邊形 ABCDE 的頂點皆在圓 O 上，∠AOC＝？", "answer": "144", "check": "360*2/5" }], "crop": { "file": "ex3.png" } },
+    { "lesson": "g9-2-2a", "kind": "practice", "label": "例3 隨堂", "topic": "兩弦相等，比較旁邊的弧（課程改為選擇結論與理由）", "pdfPage": 4, "printedPage": 113,
+      "problems": [{ "expr": "圓 O 中 AB＝CD，弧 AC 與弧 BD 是否相等？", "answer": "相等；弧 ACB＝弧 DBC，同減弧 BC" }], "crop": { "file": "ex3-practice.png" } },
+    { "lesson": "g9-2-2b", "kind": "definition", "label": "圓周角", "topic": "兩弦交點在圓周上形成的角", "pdfPage": 5, "printedPage": 114, "problems": [], "crop": { "file": "inscribed-def.png" } },
+    { "lesson": "g9-2-2b", "kind": "exploration", "label": "問題探索 1", "topic": "圓心在圓周角的一邊上", "pdfPage": 5, "printedPage": 114,
+      "problems": [
+        { "expr": "(1) 圓周角 ∠A 所對的弧", "answer": "弧 BC" },
+        { "expr": "(2) 連接 OB，∠A＝？", "answer": "∠ABO" },
+        { "expr": "(3) ∠BOC＝？＋？", "answer": "∠A＋∠ABO" },
+        { "expr": "(4) 圓周角 ∠A 與弧 BC 的關係", "answer": "∠A＝½∠BOC＝½ 弧 BC" }
+      ], "crop": { "file": "explore-1.png" } },
+    { "lesson": "g9-2-2b", "kind": "exploration", "label": "問題探索 2", "topic": "圓心在圓周角內", "pdfPage": 6, "printedPage": 115,
+      "problems": [
+        { "expr": "(1) ∠BAC 所對的弧", "answer": "弧 BC" },
+        { "expr": "(2) 過 A 作直徑 AD，∠BAD、∠CAD 與弧的關係", "answer": "∠BAD＝½ 弧 BD，∠CAD＝½ 弧 CD" },
+        { "expr": "(3) ∠BAC 與弧 BC 的關係", "answer": "∠BAC＝∠BAD＋∠CAD＝½ 弧 BC" }
+      ], "crop": { "file": "explore-2.png" } },
+    { "lesson": "g9-2-2b", "kind": "exploration", "label": "問題探索 3", "topic": "圓心在圓周角外", "pdfPage": 6, "printedPage": 115,
+      "problems": [
+        { "expr": "(1) ∠BAC 所對的弧", "answer": "弧 BC" },
+        { "expr": "(2) 過 A 作直徑 AD，∠BAD、∠CAD 與弧的關係", "answer": "∠BAD＝½ 弧 BD，∠CAD＝½ 弧 CD" },
+        { "expr": "(3) ∠BAC 與弧 BC 的關係", "answer": "∠BAC＝∠CAD－∠BAD＝½ 弧 BC" }
+      ], "crop": { "file": "explore-3.png" } },
+    { "lesson": "g9-2-2b", "kind": "keypoint", "label": "同弧所對的圓周角", "topic": "圖 11：同圓中同弧所對的圓周角度數相等", "pdfPage": 7, "printedPage": 116, "problems": [], "crop": { "file": "same-arc.png" } },
+    { "lesson": "g9-2-2b", "kind": "example", "label": "例4", "topic": "圓周角與弧的關係", "pdfPage": 7, "printedPage": 116,
+      "problems": [
+        { "expr": "AB 為直徑，∠ADC＝60°，弧 BD＝72°，(1) ∠ABC", "answer": "60", "check": "60" },
+        { "expr": "(2) ∠ACD", "answer": "54", "check": "(180-72)/2" }
+      ], "crop": { "file": "ex4.png" } },
+    { "lesson": "g9-2-2b", "kind": "practice", "label": "例4 隨堂", "topic": "O 在 AB 上，∠ADC＝44°，弧 BD＝100°", "pdfPage": 7, "printedPage": 116,
+      "problems": [
+        { "expr": "(1) ∠ABC", "answer": "44", "check": "44" },
+        { "expr": "(2) ∠ABD", "answer": "40", "check": "(180-100)/2" },
+        { "expr": "(3) ∠ACD", "answer": "40", "check": "(180-100)/2" }
+      ], "crop": { "file": "ex4-practice.png" } },
+    { "lesson": "g9-2-2b", "kind": "keypoint", "label": "圓周角與圓心角", "topic": "圖 12：圓周角是所對圓心角的一半", "pdfPage": 8, "printedPage": 117, "problems": [], "crop": { "file": "half-central.png" } },
+    { "lesson": "g9-2-2b", "kind": "example", "label": "例5", "topic": "圓周角、圓心角與弧的關係", "pdfPage": 8, "printedPage": 117,
+      "problems": [
+        { "expr": "∠AOC＝130°，(1) ∠ABC", "answer": "65", "check": "130/2" },
+        { "expr": "(2) ∠ADC", "answer": "115", "check": "(360-130)/2" }
+      ], "crop": { "file": "ex5.png" } },
+    { "lesson": "g9-2-2b", "kind": "practice", "label": "例5 隨堂", "topic": "求 ∠1、∠2、∠3", "pdfPage": 8, "printedPage": 117,
+      "problems": [
+        { "expr": "(1) 圓心角 100°，∠1", "answer": "50", "check": "100/2" },
+        { "expr": "(2) 圓周角 24°，∠2（圓心角）", "answer": "48", "check": "2*24" },
+        { "expr": "(3) 圓心角 140°，∠3", "answer": "110", "check": "(360-140)/2" }
+      ], "crop": { "file": "ex5-practice.png" } },
+    { "lesson": "g9-2-2b", "kind": "keypoint", "label": "Key point 圓周角的度數", "topic": "一弧所對圓周角等於此弧度數的一半、圓心角的一半；同弧圓周角相等", "pdfPage": 9, "printedPage": 118, "problems": [], "crop": { "file": "keybox-inscribed.png" } },
+    { "lesson": "g9-2-2c", "kind": "example", "label": "例6", "topic": "圓周角的應用", "pdfPage": 9, "printedPage": 118,
+      "problems": [
+        { "expr": "∠COD＝80°，弧 AD＝70°，∠DAB＝110°，(1) ∠ABC", "answer": "75", "check": "(70+80)/2" },
+        { "expr": "(2) 弧 BC", "answer": "140", "check": "2*(110-80/2)" }
+      ], "crop": { "file": "ex6.png" } },
+    { "lesson": "g9-2-2c", "kind": "practice", "label": "例6 隨堂", "topic": "圓上 8 個等分點", "pdfPage": 9, "printedPage": 118,
+      "problems": [
+        { "expr": "(1) ∠ACB", "answer": "45", "check": "(360*2/8)/2" },
+        { "expr": "(2) ∠ABC＋∠ADC", "answer": "180", "check": "360/2" }
+      ], "crop": { "file": "ex6-practice.png" } },
+    { "lesson": "g9-2-2c", "kind": "keypoint", "label": "Key point 半圓的圓周角", "topic": "直徑或半圓所對的圓周角是直角", "pdfPage": 10, "printedPage": 119, "problems": [], "crop": { "file": "semicircle.png" } },
+    { "lesson": "g9-2-2c", "kind": "practice", "label": "半圓 隨堂", "topic": "半圓，AB 為直徑，∠CAB＝36°", "pdfPage": 10, "printedPage": 119,
+      "problems": [{ "expr": "∠ABC", "answer": "54", "check": "180-90-36" }], "crop": { "file": "semi-practice.png" } },
+    { "lesson": "g9-2-2c", "kind": "example", "label": "例7", "topic": "平行弦的截弧（說明題）", "pdfPage": 11, "printedPage": 120,
+      "problems": [{ "expr": "AB // CD，試說明弧 AC＝弧 BD", "answer": "連接 BC，∠1＝∠2（內錯角），∠1＝½ 弧 AC，∠2＝½ 弧 BD，故兩弧相等" }], "crop": { "file": "ex7.png" } },
+    { "lesson": "g9-2-2c", "kind": "keypoint", "label": "平行弦結論", "topic": "一圓中的兩弦若平行，則此兩弦所截的弧度數相等", "pdfPage": 11, "printedPage": 120, "problems": [], "crop": { "file": "ex7-rule.png" } },
+    { "lesson": "g9-2-2c", "kind": "practice", "label": "例7 隨堂", "topic": "兩弧相等推兩弦平行（說明題，canvas＋規準）", "pdfPage": 11, "printedPage": 120,
+      "problems": [{ "expr": "弧 AC＝弧 BD，試說明 AB // CD", "answer": "連接 AD，∠1＝½ 弧 AC＝½ 弧 BD＝∠2，內錯角相等，AB // CD" }], "crop": { "file": "ex7-practice.png" } },
+    { "lesson": "g9-2-2d", "kind": "definition", "label": "圓內接四邊形", "topic": "四個頂點都在圓周上的四邊形", "pdfPage": 12, "printedPage": 121, "problems": [], "crop": { "file": "cyclic-def.png" } },
+    { "lesson": "g9-2-2d", "kind": "explanation", "label": "對角互補的說明", "topic": "∠A＋∠C＝½(弧 BCD＋弧 BAD)＝180°", "pdfPage": 12, "printedPage": 121, "problems": [] },
+    { "lesson": "g9-2-2d", "kind": "keypoint", "label": "Key point 圓內接四邊形的性質", "topic": "對角互補", "pdfPage": 12, "printedPage": 121, "problems": [], "crop": { "file": "keybox-cyclic.png" } },
+    { "lesson": "g9-2-2d", "kind": "example", "label": "例8", "topic": "圓內接四邊形性質的應用（說明題，canvas＋規準）", "pdfPage": 12, "printedPage": 121,
+      "problems": [{ "expr": "試說明 ∠1＝∠BAD", "answer": "∠BAD＋∠BCD＝180°，∠1＋∠BCD＝180°，故 ∠BAD＝∠1" }], "crop": { "file": "ex8.png" } },
+    { "lesson": "g9-2-2d", "kind": "practice", "label": "例8 隨堂", "topic": "∠ABC＝70°，∠BAD＝115°，B、C、E 共線", "pdfPage": 13, "printedPage": 122,
+      "problems": [
+        { "expr": "(1) ∠ADC", "answer": "110", "check": "180-70" },
+        { "expr": "(2) ∠DCE", "answer": "115", "check": "115" }
+      ], "crop": { "file": "ex8-practice.png" } },
+    { "lesson": "g9-2-2d", "kind": "construction", "label": "過圓外一點作切線", "topic": "以 OP 為直徑作圓 Q，交圓 O 於 M、N，作 PM、PN；半圓所對的圓周角是直角", "pdfPage": 13, "printedPage": 122, "problems": [], "crop": { "file": "tangent-construct.png" } },
+    { "lesson": "g9-2-2d", "kind": "summary", "label": "重點整理", "topic": "角與弧度的關係、平行弦的截弧、圓內接四邊形", "pdfPage": 14, "printedPage": 123, "problems": [], "crop": { "file": ["summary-1.png", "summary-2.png"] } },
+    { "lesson": "g9-2-2d", "kind": "selfcheck", "label": "自我檢核", "topic": "四個是非", "pdfPage": 14, "printedPage": 123,
+      "problems": [
+        { "expr": "1. 弧 AB＝60°，則 ∠AOB＝60°", "answer": "是" },
+        { "expr": "2. 弧 AC＝60°，則 ∠ABC＝60°", "answer": "否，∠ABC＝30°" },
+        { "expr": "3. ∠AOC＝80°，則 ∠ABC＝40°", "answer": "是" },
+        { "expr": "4. AB 為直徑，則 △ABC 為直角三角形", "answer": "是" }
+      ], "crop": { "file": ["selfcheck-1.png", "selfcheck-2.png"] } },
+    { "lesson": "g9-2-2d", "kind": "find-error", "label": "挑錯題", "topic": "小翊、小妍", "pdfPage": 16, "printedPage": 125,
+      "problems": [
+        { "expr": "小翊：∠CAB＝∠CDB", "answer": "正確" },
+        { "expr": "小妍：∠AEB＝∠CED，所以弧 AB＝弧 CD", "answer": "錯誤；弧 AB＝∠AOB＞∠AEB＝∠CED＞∠COD＝弧 CD，故弧 AB＞弧 CD" }
+      ], "crop": { "file": "find-error.png" } },
+    { "lesson": null, "kind": "not-included", "label": "自我評量 1–3", "topic": "未收入課程，只盤點並核算", "pdfPage": 15, "printedPage": 124,
+      "problems": [
+        { "expr": "1. 同心圓半徑 5、2，弧 AB＝10π/3，求弧 CD（π 的係數）", "answer": "4/3", "check": "10/3*2/5" },
+        { "expr": "2. (1) 弧 AD", "answer": "68", "check": "2*34" },
+        { "expr": "2. (2) ∠EDB", "answer": "32", "check": "32" },
+        { "expr": "2. (3) 弧 DE", "answer": "48", "check": "180-68-2*32" },
+        { "expr": "2. (4) ∠EDC", "answer": "66", "check": "(180-48)/2" },
+        { "expr": "3. (1) 弧 AC", "answer": "82", "check": "82" },
+        { "expr": "3. (2) ∠ABC", "answer": "41", "check": "82/2" }
+      ] },
+    { "lesson": null, "kind": "not-included", "label": "自我評量 4、5", "topic": "未收入課程，只盤點並核算", "pdfPage": 16, "printedPage": 125,
+      "problems": [
+        { "expr": "4. AB // OC，弧 AB＝70°，求弧 CDB", "answer": "235", "check": "180+(180-70)/2" },
+        { "expr": "5. ∠A＝50°，∠F＝35°，求 ∠E", "answer": "45", "check": "(180-50)-(50+35)" }
+      ] },
+    { "lesson": null, "kind": "not-included", "label": "扉選素養 Q1、Q2", "topic": "內輪差，未收入課程", "pdfPage": 17, "printedPage": 126,
+      "problems": [
+        { "expr": "Q1 內輪差（公尺）", "answer": "8－4√3" },
+        { "expr": "Q2 鋪色面積（平方公尺）", "answer": "8√3－4π" }
+      ] },
+    { "lesson": null, "kind": "not-included", "label": "一題多解", "topic": "∠ABC＝65°，求 ∠OCA，未收入課程", "pdfPage": 18, "printedPage": 127,
+      "problems": [{ "expr": "∠OCA", "answer": "25", "check": "(180-2*65)/2" }] }
+  ]
+}

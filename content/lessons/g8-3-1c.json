@@ -1,0 +1,1752 @@
+{
+  "schemaVersion": 1,
+  "id": "g8-3-1c",
+  "title": "3-1 提公因式與乘法公式作因式分解（3）一整塊的公因式與變號",
+  "description": "看見「隱形的 1」：(x＋3)C＋C＝(x＋3)C＋1·C；用變號找出藏起來的公因式：1−x＝−(x−1)、(5−2x)²＝(2x−5)²。例題與隨堂皆附課本截圖。",
+  "subject": "數學・八年級 3-1",
+  "duration": 45,
+  "objectives": [
+    "能把只剩一個括號的項補上係數 1 再提公因式",
+    "能用 b−a＝−(a−b) 變號後提公因式",
+    "能判斷平方後負號消失"
+  ],
+  "slides": [
+    {
+      "id": "c-warmup",
+      "phase": "提取練習",
+      "eyebrow": "01 / 先想起上一堂",
+      "title": "提公因式與去括號",
+      "body": "這一堂的題目比較長，但用的還是這兩件事。先做三個暖身題。",
+      "source": "自編提問，銜接 3-1(2) 提公因式法",
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 12,
+          "yMin": 0.2,
+          "yMax": 2.9,
+          "aspect": "fill"
+        },
+        "shapes": [
+          {
+            "type": "text",
+            "x": 6,
+            "y": 2,
+            "text": "$x(3x+1)+2(3x+1)$",
+            "size": 27,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              1
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6,
+            "y": 1,
+            "text": "$=\\textcolor{#2f80ed}{(3x+1)}(x+2)$",
+            "size": 25,
+            "color": "#5a3fd6",
+            "step": 1,
+            "focus": [
+              1
+            ]
+          }
+        ],
+        "steps": [
+          "兩項都有 (3x＋1)",
+          "提出來"
+        ]
+      },
+      "activity": {
+        "id": "c-warmup-q",
+        "type": "numeric",
+        "prompt": "暖身：直接寫出 □ 裡的數字",
+        "items": [
+          {
+            "prompt": "$x(5x+1)+4(5x+1)=(5x+1)(x+\\square)$",
+            "answer": "4"
+          },
+          {
+            "prompt": "$-(x-3)=-x+\\square$",
+            "answer": "3"
+          },
+          {
+            "prompt": "$(x+1)-(x-2)=\\square$",
+            "answer": "3"
+          }
+        ],
+        "explanation": "(1) 提出 $(5x+1)$。(2) 括號前負號：$-x+3$。(3) $x+1-x+2=3$。"
+      },
+      "notes": "提取練習約 2 分鐘。第 2、3 題的變號等一下一直會用到。"
+    },
+    {
+      "id": "c-predict",
+      "phase": "預測",
+      "eyebrow": "02 / 先猜再驗證",
+      "title": "第二項只剩一個括號，怎麼提？",
+      "body": "先憑直覺選一個，下一頁用面積驗證。",
+      "source": "自編提問，預告課本 3-1 p.119 例 4",
+      "visual": "cards",
+      "activity": {
+        "id": "c-predict-q",
+        "type": "single",
+        "prompt": "(x＋2)(3x−1)＋(3x−1) 提出 (3x−1) 後是？",
+        "options": [
+          "$(3x-1)(x+2)$",
+          "$(3x-1)(x+3)$",
+          "$(3x-1)(x+1)$",
+          "$(3x-1)^2(x+2)$"
+        ],
+        "correct": [
+          1
+        ],
+        "explanation": "第二項是 $1\\cdot(3x-1)$：$(3x-1)[(x+2)+1]=(3x-1)(x+3)$。提走之後剩下的是 $1$，不是 $0$。"
+      },
+      "notes": "先公布統計、不公布答案。選 (3x−1)(x＋2) 的同學以為提走就沒了。"
+    },
+    {
+      "id": "c-concrete",
+      "phase": "具體操作",
+      "eyebrow": "03 / 看見隱形的 1",
+      "title": "提走之後，右邊那塊還在",
+      "body": "高都是 (5x−2)。拖拉滑桿併起來：右邊那塊的寬是 1，不是 0。",
+      "source": "自編操作，式子同課本 3-1 p.119 例 4(1)；面積圖為示意，未按比例",
+      "interactive": {
+        "view": {
+          "xMin": -2.4,
+          "xMax": 10.600000000000001,
+          "yMin": -1.4,
+          "yMax": 5.8,
+          "aspect": "equal"
+        },
+        "params": [
+          {
+            "id": "t",
+            "label": "把兩塊靠在一起",
+            "min": 0,
+            "max": 1,
+            "step": 0.25,
+            "value": 0
+          }
+        ],
+        "shapes": [
+          {
+            "type": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 3.6,
+            "h": 3,
+            "fill": "rgba(123,97,255,.26)",
+            "color": "#7b61ff",
+            "width": 2
+          },
+          {
+            "type": "rect",
+            "x": "3.6+(1-t)*2.4",
+            "y": 0,
+            "w": 2.2,
+            "h": 3,
+            "fill": "rgba(47,128,237,.26)",
+            "color": "#2f80ed",
+            "width": 2
+          },
+          {
+            "type": "text",
+            "x": 1.8,
+            "y": 1.5,
+            "text": "$(x+3)(5x-2)$",
+            "size": 17,
+            "color": "#5a3fd6"
+          },
+          {
+            "type": "text",
+            "x": "3.6+(1-t)*2.4+1.1",
+            "y": 1.5,
+            "text": "$5x-2$",
+            "size": 17,
+            "color": "#1d4fa3"
+          },
+          {
+            "type": "brace",
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                3
+              ]
+            ]
+          },
+          {
+            "type": "text",
+            "x": -1.25,
+            "y": 1.5,
+            "text": "$5x-2$",
+            "size": 15,
+            "color": "#1f2a56"
+          },
+          {
+            "type": "brace",
+            "points": [
+              [
+                "3.6+(1-t)*2.4+2.2",
+                3
+              ],
+              [
+                "3.6+(1-t)*2.4+2.2",
+                0
+              ]
+            ],
+            "show": "t<1"
+          },
+          {
+            "type": "text",
+            "x": "3.6+(1-t)*2.4+2.2+1.25",
+            "y": 1.5,
+            "text": "$5x-2$",
+            "size": 15,
+            "color": "#1f2a56",
+            "show": "t<1"
+          },
+          {
+            "type": "brace",
+            "points": [
+              [
+                0,
+                3
+              ],
+              [
+                3.6,
+                3
+              ]
+            ],
+            "text": "$x+3$"
+          },
+          {
+            "type": "brace",
+            "points": [
+              [
+                "3.6+(1-t)*2.4",
+                3
+              ],
+              [
+                "3.6+(1-t)*2.4+2.2",
+                3
+              ]
+            ],
+            "text": "$1$"
+          },
+          {
+            "type": "text",
+            "x": 4.1000000000000005,
+            "y": 5.1,
+            "text": "$(x+3)(5x-2)+(5x-2)$",
+            "size": 20,
+            "color": "#1f2a56",
+            "show": "t<1"
+          },
+          {
+            "type": "text",
+            "x": 4.1000000000000005,
+            "y": 5.1,
+            "text": "$(5x-2)(x+3+1)$",
+            "size": 22,
+            "color": "#5a3fd6",
+            "show": "t==1"
+          },
+          {
+            "type": "text",
+            "x": 2.9000000000000004,
+            "y": -0.8,
+            "text": "兩塊的高一樣，高就是公因式",
+            "size": 15,
+            "color": "#12a39a",
+            "show": "t==1"
+          }
+        ],
+        "caption": "第二項是 $1\\times(5x-2)$：併起來的寬是 $(x+3)+1$（圖未按比例）"
+      },
+      "activity": {
+        "id": "c-concrete-q",
+        "type": "manipulate",
+        "prompt": "把兩塊完全靠在一起（滑桿拉到底），再按「送出我的操作」。",
+        "check": "t==1",
+        "record": [
+          "t"
+        ],
+        "explanation": "併起來的寬是 $(x+3)+1=x+4$，所以 $(x+3)(5x-2)+(5x-2)=(5x-2)(x+4)$。"
+      },
+      "notes": "具體操作（CRA）。圖的比例只是示意，因為 x 沒有固定的值。接著就請學生算例 4(1)。"
+    },
+    {
+      "id": "c-schema",
+      "phase": "圖式連結",
+      "eyebrow": "04 / 先看結構",
+      "title": "先找一樣的括號",
+      "body": "不要急著展開。先把一樣的括號圈起來（藍色），再把其他部分放進中括號。",
+      "source": "自編提問與示範，對應課本 3-1 p.119（IRS 的式子同例 4(2)）",
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 12,
+          "yMin": 0.2,
+          "yMax": 4.9,
+          "aspect": "fill"
+        },
+        "shapes": [
+          {
+            "type": "text",
+            "x": 6,
+            "y": 4,
+            "text": "$(2x+1)\\textcolor{#2f80ed}{(x-4)}-\\textcolor{#2f80ed}{(x-4)}(x+5)$",
+            "size": 25,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6,
+            "y": 3,
+            "text": "$=\\textcolor{#2f80ed}{(x-4)}[(2x+1)-(x+5)]$",
+            "size": 23,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6,
+            "y": 2,
+            "text": "$=\\textcolor{#2f80ed}{(x-4)}(2x+1-x-5)$",
+            "size": 23,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6,
+            "y": 1,
+            "text": "$=(x-4)(x-4)=(x-4)^2$",
+            "size": 23,
+            "color": "#5a3fd6",
+            "step": 3,
+            "focus": [
+              3
+            ]
+          }
+        ],
+        "steps": [
+          "示範（自編）：兩項都有 (x−4)，位置可以不同",
+          "提出來，另一個括號原封不動放進中括號",
+          "減號把 (x＋5) 的每一項都變號",
+          "合併後剛好相同，可以寫成平方"
+        ]
+      },
+      "activity": {
+        "id": "c-schema-q",
+        "type": "single",
+        "prompt": "(3x−2)(x−1)−(x−1)(x＋1) 的公因式是？",
+        "options": [
+          "$x-1$",
+          "$x+1$",
+          "$3x-2$",
+          "$(x-1)(x+1)$"
+        ],
+        "correct": [
+          0
+        ],
+        "explanation": "兩項都有 $(x-1)$，只是位置不同：第一項在後面、第二項在前面。"
+      },
+      "notes": "圖式連結：公因式不一定排在同一個位置。這一題是例 4(2) 的第一步，下一頁接著算。"
+    },
+    {
+      "id": "c-ex4",
+      "phase": "工作範例",
+      "eyebrow": "05 / 例 4 提公因式",
+      "title": "補上 1，再提出來",
+      "body": "先自己算，再按「下一步」對照。(1) 補上隱形的 1；(2) 減號要變號。",
+      "source": "課本原題：3-1 p.119（改為數值填空）",
+      "figures": [
+        {
+          "src": "g8-3-1/ex4.png",
+          "alt": "課本 p.119 例 4 題目"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 12,
+          "yMin": 0.2,
+          "yMax": 4.9,
+          "aspect": "fill"
+        },
+        "shapes": [
+          {
+            "type": "text",
+            "x": 3,
+            "y": 4,
+            "text": "$(x+3)(5x-2)+(5x-2)$",
+            "size": 16,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              7
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3,
+            "y": 3,
+            "text": "$=(x+3)\\cdot\\textcolor{#2f80ed}{(5x-2)}+1\\cdot\\textcolor{#2f80ed}{(5x-2)}$",
+            "size": 15,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              7
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3,
+            "y": 2,
+            "text": "$=\\textcolor{#2f80ed}{(5x-2)}(x+3+1)$",
+            "size": 15,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              7
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3,
+            "y": 1,
+            "text": "$=\\textcolor{#2f80ed}{(5x-2)}(x+4)$",
+            "size": 15,
+            "color": "#5a3fd6",
+            "step": 3,
+            "focus": [
+              3,
+              7
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6,
+                0.4
+              ],
+              [
+                6,
+                4.5
+              ]
+            ],
+            "color": "#c9d0ea",
+            "width": 1.2,
+            "dash": true,
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 4,
+            "text": "$(3x-2)(x-1)-(x-1)(x+1)$",
+            "size": 16,
+            "color": "#1f2a56",
+            "step": 4,
+            "focus": [
+              4,
+              7
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 3,
+            "text": "$=\\textcolor{#2f80ed}{(x-1)}[(3x-2)-(x+1)]$",
+            "size": 15,
+            "color": "#1f2a56",
+            "step": 5,
+            "focus": [
+              5,
+              7
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 2,
+            "text": "$=\\textcolor{#2f80ed}{(x-1)}(3x-2-x-1)$",
+            "size": 15,
+            "color": "#1f2a56",
+            "step": 6,
+            "focus": [
+              6,
+              7
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 1,
+            "text": "$=\\textcolor{#2f80ed}{(x-1)}(2x-3)$",
+            "size": 15,
+            "color": "#5a3fd6",
+            "step": 7,
+            "focus": [
+              7
+            ]
+          }
+        ],
+        "steps": [
+          "(1) 第二項看起來只有一個括號",
+          "補上係數 1",
+          "提出 (5x−2)，1 留在括號內",
+          "合併",
+          "(2) 公因式 (x−1)",
+          "提出來，剩下的放進中括號",
+          "減號：x、1 都變號",
+          "合併"
+        ]
+      },
+      "activity": {
+        "id": "c-ex4-q",
+        "type": "numeric",
+        "prompt": "先自己算例 4，再把 □ 裡的數字填進來",
+        "items": [
+          {
+            "prompt": "$(x+3)(5x-2)+(5x-2)=(5x-2)(x+\\square)$",
+            "answer": "4"
+          },
+          {
+            "prompt": "$(3x-2)(x-1)-(x-1)(x+1)=(x-1)(2x-\\square)$",
+            "answer": "3"
+          }
+        ],
+        "explanation": "(1) $(5x-2)(x+3+1)=(5x-2)(x+4)$。(2) $(x-1)(3x-2-x-1)=(x-1)(2x-3)$。"
+      },
+      "notes": "工作範例：對照上一頁的面積圖，「1」就是右邊那塊的寬。 鷹架安排：工作範例（按「下一步」看完整示範）→ IRS 的 □ 是只留關鍵步驟的填空鷹架 → 下一頁隨堂撤除提示，先紙筆獨立完成。"
+    },
+    {
+      "id": "c-ex4-practice",
+      "phase": "隨堂練習",
+      "eyebrow": "06 / 例 4 隨堂",
+      "title": "換你算：補 1 與變號",
+      "body": "課本隨堂原題。先寫完整過程，再填 □。左圖用另一組數字示範。",
+      "source": "課本原題：3-1 p.119（改為數值填空）；左圖示範的數字為自編",
+      "figures": [
+        {
+          "src": "g8-3-1/ex4-practice.png",
+          "alt": "課本 p.119 例 4 隨堂練習"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 12,
+          "yMin": 0.2,
+          "yMax": 3.9,
+          "aspect": "fill"
+        },
+        "shapes": [
+          {
+            "type": "text",
+            "x": 3,
+            "y": 3,
+            "text": "$(x+5)(2x-3)+(2x-3)$",
+            "size": 16,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3,
+            "y": 2,
+            "text": "$=\\textcolor{#2f80ed}{(2x-3)}(x+5+1)$",
+            "size": 15,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3,
+            "y": 1,
+            "text": "$=\\textcolor{#2f80ed}{(2x-3)}(x+6)$",
+            "size": 15,
+            "color": "#5a3fd6",
+            "step": 2,
+            "focus": [
+              2,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6,
+                0.4
+              ],
+              [
+                6,
+                3.5
+              ]
+            ],
+            "color": "#c9d0ea",
+            "width": 1.2,
+            "dash": true,
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 3,
+            "text": "$(x-4)(2x+1)-(2x+1)(3x-1)$",
+            "size": 16,
+            "color": "#1f2a56",
+            "step": 3,
+            "focus": [
+              3,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 2,
+            "text": "$=\\textcolor{#2f80ed}{(2x+1)}(x-4-3x+1)$",
+            "size": 15,
+            "color": "#1f2a56",
+            "step": 4,
+            "focus": [
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 1,
+            "text": "$=\\textcolor{#2f80ed}{(2x+1)}(-2x-3)$",
+            "size": 15,
+            "color": "#5a3fd6",
+            "step": 5,
+            "focus": [
+              5
+            ]
+          }
+        ],
+        "steps": [
+          "示範（另一組數字）",
+          "補 1 提出來",
+          "合併",
+          "示範：減號",
+          "提出來，第二個括號每一項都變號",
+          "合併；也可以寫成 −(2x＋1)(2x＋3)"
+        ]
+      },
+      "activity": {
+        "id": "c-ex4-practice-q",
+        "type": "numeric",
+        "prompt": "先在課本上寫完整過程，再把 □ 裡的數字填進來",
+        "items": [
+          {
+            "prompt": "$(x-9)(x+4)+(x+4)=(x+4)(x-\\square)$",
+            "answer": "8"
+          },
+          {
+            "prompt": "$(x-3)(3x+7)-(3x+7)(3x-4)=(3x+7)(-2x+\\square)$",
+            "answer": "1"
+          }
+        ],
+        "explanation": "(1) $(x+4)(x-9+1)=(x+4)(x-8)$。(2) $(3x+7)(x-3-3x+4)=(3x+7)(-2x+1)$，也可以寫成 $-(3x+7)(2x-1)$。"
+      },
+      "notes": "教用版：(2) 兩種寫法都對。答案是負的一次項時，提醒學生可以提出負號。 鷹架安排：翻到這一頁前，先請學生在課本上獨立寫完整過程（這一頁的填空會透露分解結構）；寫完再開放 IRS，□ 只用來核對。答對不等於能獨立分解，請巡視或抽查紙筆。"
+    },
+    {
+      "id": "c-sign",
+      "phase": "具體操作",
+      "eyebrow": "07 / 變號",
+      "title": "1−x 和 x−1 差一個負號",
+      "body": "有些式子乍看沒有公因式。拖拉 p、q：q−p 和 p−q 互為相反數，平方後卻一樣。",
+      "source": "自編提問，對應課本 3-1 p.120 例 5 旁的說明（兩個變號的式子同課本）；數線操作為自編",
+      "figures": [
+        {
+          "src": "g8-3-1/ex5-intro.png",
+          "alt": "課本 p.120 乍看沒有公因式"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": -7,
+          "xMax": 7,
+          "yMin": -1.4,
+          "yMax": 2.6,
+          "aspect": "equal"
+        },
+        "params": [
+          {
+            "id": "p",
+            "label": "$p$",
+            "min": 0,
+            "max": 6,
+            "step": 1,
+            "value": 5
+          },
+          {
+            "id": "q",
+            "label": "$q$",
+            "min": 0,
+            "max": 6,
+            "step": 1,
+            "value": 2
+          }
+        ],
+        "shapes": [
+          {
+            "type": "segment",
+            "points": [
+              [
+                -6.3,
+                0
+              ],
+              [
+                6.3,
+                0
+              ]
+            ],
+            "color": "#6b7394",
+            "width": 1.6
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                -6,
+                -0.12
+              ],
+              [
+                -6,
+                0.12
+              ]
+            ],
+            "color": "#6b7394",
+            "width": 1.4
+          },
+          {
+            "type": "text",
+            "x": -6,
+            "y": -0.5,
+            "text": "-6",
+            "size": 12,
+            "color": "#6b7394"
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                -5,
+                -0.12
+              ],
+              [
+                -5,
+                0.12
+              ]
+            ],
+            "color": "#6b7394",
+            "width": 1.4
+          },
+          {
+            "type": "text",
+            "x": -5,
+            "y": -0.5,
+            "text": "-5",
+            "size": 12,
+            "color": "#6b7394"
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                -4,
+                -0.12
+              ],
+              [
+                -4,
+                0.12
+              ]
+            ],
+            "color": "#6b7394",
+            "width": 1.4
+          },
+          {
+            "type": "text",
+            "x": -4,
+            "y": -0.5,
+            "text": "-4",
+            "size": 12,
+            "color": "#6b7394"
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                -3,
+                -0.12
+              ],
+              [
+                -3,
+                0.12
+              ]
+            ],
+            "color": "#6b7394",
+            "width": 1.4
+          },
+          {
+            "type": "text",
+            "x": -3,
+            "y": -0.5,
+            "text": "-3",
+            "size": 12,
+            "color": "#6b7394"
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                -2,
+                -0.12
+              ],
+              [
+                -2,
+                0.12
+              ]
+            ],
+            "color": "#6b7394",
+            "width": 1.4
+          },
+          {
+            "type": "text",
+            "x": -2,
+            "y": -0.5,
+            "text": "-2",
+            "size": 12,
+            "color": "#6b7394"
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                -1,
+                -0.12
+              ],
+              [
+                -1,
+                0.12
+              ]
+            ],
+            "color": "#6b7394",
+            "width": 1.4
+          },
+          {
+            "type": "text",
+            "x": -1,
+            "y": -0.5,
+            "text": "-1",
+            "size": 12,
+            "color": "#6b7394"
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0,
+                -0.12
+              ],
+              [
+                0,
+                0.12
+              ]
+            ],
+            "color": "#6b7394",
+            "width": 1.4
+          },
+          {
+            "type": "text",
+            "x": 0,
+            "y": -0.5,
+            "text": "0",
+            "size": 12,
+            "color": "#6b7394"
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                1,
+                -0.12
+              ],
+              [
+                1,
+                0.12
+              ]
+            ],
+            "color": "#6b7394",
+            "width": 1.4
+          },
+          {
+            "type": "text",
+            "x": 1,
+            "y": -0.5,
+            "text": "1",
+            "size": 12,
+            "color": "#6b7394"
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                2,
+                -0.12
+              ],
+              [
+                2,
+                0.12
+              ]
+            ],
+            "color": "#6b7394",
+            "width": 1.4
+          },
+          {
+            "type": "text",
+            "x": 2,
+            "y": -0.5,
+            "text": "2",
+            "size": 12,
+            "color": "#6b7394"
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                3,
+                -0.12
+              ],
+              [
+                3,
+                0.12
+              ]
+            ],
+            "color": "#6b7394",
+            "width": 1.4
+          },
+          {
+            "type": "text",
+            "x": 3,
+            "y": -0.5,
+            "text": "3",
+            "size": 12,
+            "color": "#6b7394"
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                4,
+                -0.12
+              ],
+              [
+                4,
+                0.12
+              ]
+            ],
+            "color": "#6b7394",
+            "width": 1.4
+          },
+          {
+            "type": "text",
+            "x": 4,
+            "y": -0.5,
+            "text": "4",
+            "size": 12,
+            "color": "#6b7394"
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                5,
+                -0.12
+              ],
+              [
+                5,
+                0.12
+              ]
+            ],
+            "color": "#6b7394",
+            "width": 1.4
+          },
+          {
+            "type": "text",
+            "x": 5,
+            "y": -0.5,
+            "text": "5",
+            "size": 12,
+            "color": "#6b7394"
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6,
+                -0.12
+              ],
+              [
+                6,
+                0.12
+              ]
+            ],
+            "color": "#6b7394",
+            "width": 1.4
+          },
+          {
+            "type": "text",
+            "x": 6,
+            "y": -0.5,
+            "text": "6",
+            "size": 12,
+            "color": "#6b7394"
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0,
+                0.25
+              ],
+              [
+                "p-q",
+                0.25
+              ]
+            ],
+            "color": "#7b61ff",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0,
+                -0.25
+              ],
+              [
+                "q-p",
+                -0.25
+              ]
+            ],
+            "color": "#ff8a3d",
+            "width": 4
+          },
+          {
+            "type": "point",
+            "x": "p-q",
+            "y": 0,
+            "color": "#7b61ff"
+          },
+          {
+            "type": "point",
+            "x": "q-p",
+            "y": 0,
+            "color": "#ff8a3d"
+          },
+          {
+            "type": "text",
+            "x": "p-q",
+            "y": 0.85,
+            "text": "$p-q$",
+            "size": 16,
+            "color": "#5a3fd6"
+          },
+          {
+            "type": "text",
+            "x": "q-p",
+            "y": 1.5,
+            "text": "$q-p$",
+            "size": 16,
+            "color": "#b4541a"
+          }
+        ],
+        "readouts": [
+          {
+            "label": "$p-q$",
+            "expr": "p-q"
+          },
+          {
+            "label": "$q-p$",
+            "expr": "q-p"
+          },
+          {
+            "label": "$(p-q)^2$",
+            "expr": "(p-q)^2"
+          },
+          {
+            "label": "$(q-p)^2$",
+            "expr": "(q-p)^2"
+          }
+        ],
+        "caption": "$q-p=-(p-q)$：長度一樣、方向相反；平方後負號不見，$(q-p)^2=(p-q)^2$"
+      },
+      "activity": {
+        "id": "c-sign-q",
+        "type": "numeric",
+        "prompt": "課本 p.120 的兩個變號：填出 □ 裡的數字",
+        "items": [
+          {
+            "prompt": "$3(1-x)=-3(x-\\square)$",
+            "answer": "1"
+          },
+          {
+            "prompt": "$(5-2x)^2=(2x-\\square)^2$",
+            "answer": "5"
+          }
+        ],
+        "explanation": "(1) $1-x=-(x-1)$，所以 $3(1-x)=-3(x-1)$。(2) $5-2x=-(2x-5)$，平方後負號消失：$(5-2x)^2=(2x-5)^2$。"
+      },
+      "notes": "關鍵差異：一次方變號要多一個負號，平方不用。可用 p＝5、q＝2 的讀數請學生說：為什麼平方相等？"
+    },
+    {
+      "id": "c-ex5",
+      "phase": "工作範例",
+      "eyebrow": "08 / 例 5 變號提公因式",
+      "title": "先變號，再提公因式",
+      "body": "先把括號變成一樣的樣子。先自己算，再按「下一步」對照。",
+      "source": "課本原題：3-1 p.120（改為數值填空）",
+      "figures": [
+        {
+          "src": "g8-3-1/ex5.png",
+          "alt": "課本 p.120 例 5 題目"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 12,
+          "yMin": 0.2,
+          "yMax": 5.9,
+          "aspect": "fill"
+        },
+        "shapes": [
+          {
+            "type": "text",
+            "x": 3,
+            "y": 5,
+            "text": "$2x(x-1)+3(1-x)$",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              7
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3,
+            "y": 4,
+            "text": "$=2x\\textcolor{#2f80ed}{(x-1)}-3\\textcolor{#2f80ed}{(x-1)}$",
+            "size": 18,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              7
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3,
+            "y": 3,
+            "text": "$=\\textcolor{#2f80ed}{(x-1)}(2x-3)$",
+            "size": 18,
+            "color": "#5a3fd6",
+            "step": 2,
+            "focus": [
+              2,
+              7
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6,
+                0.4
+              ],
+              [
+                6,
+                5.5
+              ]
+            ],
+            "color": "#c9d0ea",
+            "width": 1.2,
+            "dash": true,
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 5,
+            "text": "$(5-2x)^2-(2x-5)(x-5)$",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 3,
+            "focus": [
+              3,
+              7
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 4,
+            "text": "$=\\textcolor{#2f80ed}{(2x-5)}^2-\\textcolor{#2f80ed}{(2x-5)}(x-5)$",
+            "size": 18,
+            "color": "#1f2a56",
+            "step": 4,
+            "focus": [
+              4,
+              7
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 3,
+            "text": "$=\\textcolor{#2f80ed}{(2x-5)}[(2x-5)-(x-5)]$",
+            "size": 18,
+            "color": "#1f2a56",
+            "step": 5,
+            "focus": [
+              5,
+              7
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 2,
+            "text": "$=\\textcolor{#2f80ed}{(2x-5)}(2x-5-x+5)$",
+            "size": 18,
+            "color": "#1f2a56",
+            "step": 6,
+            "focus": [
+              6,
+              7
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 1,
+            "text": "$=x(2x-5)$",
+            "size": 18,
+            "color": "#5a3fd6",
+            "step": 7,
+            "focus": [
+              7
+            ]
+          }
+        ],
+        "steps": [
+          "(1) 兩個括號差一個負號",
+          "3(1−x)＝−3(x−1)：加號變減號",
+          "提出 (x−1)",
+          "(2) 平方項變號",
+          "(5−2x)²＝(2x−5)²，不用加負號",
+          "提出 (2x−5)",
+          "減號：x、−5 都變號",
+          "合併得 x，單項式放前面"
+        ]
+      },
+      "activity": {
+        "id": "c-ex5-q",
+        "type": "numeric",
+        "prompt": "先自己算例 5，再把 □ 裡的數字填進來",
+        "items": [
+          {
+            "prompt": "$2x(x-1)+3(1-x)=(x-1)(2x-\\square)$",
+            "answer": "3"
+          },
+          {
+            "prompt": "$(5-2x)^2-(2x-5)(x-5)=x(2x-\\square)$",
+            "answer": "5"
+          }
+        ],
+        "explanation": "(1) $2x(x-1)-3(x-1)=(x-1)(2x-3)$。(2) $(2x-5)^2-(2x-5)(x-5)=(2x-5)(2x-5-x+5)=x(2x-5)$。"
+      },
+      "notes": "教用版：先變號，再提公因式。因式分解要做到因式無法再降次。可接 113 會考第 10 題。 鷹架安排：工作範例（按「下一步」看完整示範）→ IRS 的 □ 是只留關鍵步驟的填空鷹架 → 下一頁隨堂撤除提示，先紙筆獨立完成。"
+    },
+    {
+      "id": "c-ex5-practice",
+      "phase": "隨堂練習",
+      "eyebrow": "09 / 例 5 隨堂",
+      "title": "換你算：先變號",
+      "body": "課本隨堂原題。先寫完整過程，再填 □。左圖用另一組數字示範。",
+      "source": "課本原題：3-1 p.120（改為數值填空）；左圖示範的數字為自編",
+      "figures": [
+        {
+          "src": "g8-3-1/ex5-practice.png",
+          "alt": "課本 p.120 例 5 隨堂練習"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 12,
+          "yMin": 0.2,
+          "yMax": 4.9,
+          "aspect": "fill"
+        },
+        "shapes": [
+          {
+            "type": "text",
+            "x": 3,
+            "y": 4,
+            "text": "$3x(x-2)+4(2-x)$",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              6
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3,
+            "y": 3,
+            "text": "$=3x\\textcolor{#2f80ed}{(x-2)}-4\\textcolor{#2f80ed}{(x-2)}$",
+            "size": 18,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              6
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3,
+            "y": 2,
+            "text": "$=\\textcolor{#2f80ed}{(x-2)}(3x-4)$",
+            "size": 18,
+            "color": "#5a3fd6",
+            "step": 2,
+            "focus": [
+              2,
+              6
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6,
+                0.4
+              ],
+              [
+                6,
+                4.5
+              ]
+            ],
+            "color": "#c9d0ea",
+            "width": 1.2,
+            "dash": true,
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 4,
+            "text": "$(4-3x)^2-(3x-4)(x-1)$",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 3,
+            "focus": [
+              3,
+              6
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 3,
+            "text": "$=\\textcolor{#2f80ed}{(3x-4)}^2-\\textcolor{#2f80ed}{(3x-4)}(x-1)$",
+            "size": 18,
+            "color": "#1f2a56",
+            "step": 4,
+            "focus": [
+              4,
+              6
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 2,
+            "text": "$=\\textcolor{#2f80ed}{(3x-4)}(3x-4-x+1)$",
+            "size": 18,
+            "color": "#1f2a56",
+            "step": 5,
+            "focus": [
+              5,
+              6
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 1,
+            "text": "$=\\textcolor{#2f80ed}{(3x-4)}(2x-3)$",
+            "size": 18,
+            "color": "#5a3fd6",
+            "step": 6,
+            "focus": [
+              6
+            ]
+          }
+        ],
+        "steps": [
+          "示範（另一組數字）",
+          "4(2−x)＝−4(x−2)",
+          "提出來",
+          "示範：平方項",
+          "(4−3x)²＝(3x−4)²",
+          "提出來，減號要變號",
+          "合併"
+        ]
+      },
+      "activity": {
+        "id": "c-ex5-practice-q",
+        "type": "numeric",
+        "prompt": "先在課本上寫完整過程，再把 □ 裡的數字填進來",
+        "items": [
+          {
+            "prompt": "$(2x-1)(x-3)-(3-x)(3x-1)=(x-3)(5x-\\square)$",
+            "answer": "2"
+          },
+          {
+            "prompt": "$(7-5x)^2+(2+x)(5x-7)=(5x-7)(6x-\\square)$",
+            "answer": "5"
+          }
+        ],
+        "explanation": "(1) $(2x-1)(x-3)+(x-3)(3x-1)=(x-3)(5x-2)$。(2) $(5x-7)^2+(2+x)(5x-7)=(5x-7)(5x-7+2+x)=(5x-7)(6x-5)$。"
+      },
+      "notes": "(1) 兩個負號相乘變成加號，是最常錯的地方：−(3−x)＝＋(x−3)。 鷹架安排：翻到這一頁前，先請學生在課本上獨立寫完整過程（這一頁的填空會透露分解結構）；寫完再開放 IRS，□ 只用來核對。答對不等於能獨立分解，請巡視或抽查紙筆。"
+    },
+    {
+      "id": "c-error",
+      "phase": "錯誤分析",
+      "eyebrow": "10 / 當小老師",
+      "title": "小美忘了什麼？",
+      "body": "小美分解 5x(x−2)＋3(2−x)，得到 (x−2)(5x＋3)。在畫布圈出錯誤、更正並說明，也可以拍照。",
+      "source": "自編錯誤分析，對應課本 3-1 p.120 例 5(1)",
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 12,
+          "yMin": 0.2,
+          "yMax": 5.9,
+          "aspect": "fill"
+        },
+        "shapes": [
+          {
+            "type": "text",
+            "x": 6,
+            "y": 5,
+            "text": "$5x(x-2)+3(2-x)$",
+            "size": 25,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6,
+            "y": 4,
+            "text": "小美：$=5x(x-2)+3(x-2)$",
+            "size": 23,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6,
+            "y": 3,
+            "text": "$=(x-2)(5x+3)$ ？",
+            "size": 23,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6,
+            "y": 2,
+            "text": "正確：$3(2-x)=$ ？",
+            "size": 23,
+            "color": "#1f2a56",
+            "step": 3,
+            "focus": [
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6,
+            "y": 1,
+            "text": "$=(x-2)($ ？ $)$",
+            "size": 23,
+            "color": "#5a3fd6",
+            "step": 4,
+            "focus": [
+              4
+            ]
+          }
+        ],
+        "steps": [
+          "題目",
+          "括號換了方向",
+          "展開檢查，對嗎？",
+          "2−x 和 x−2 差什麼？",
+          "自己算"
+        ]
+      },
+      "activity": {
+        "id": "c-error-q",
+        "type": "canvas",
+        "prompt": "小美：5x(x−2)＋3(2−x)＝5x(x−2)＋3(x−2)＝(x−2)(5x＋3)。① 圈出錯誤 ② 寫出正確的分解 ③ 說明錯在哪裡",
+        "canvas": "grid",
+        "allowPhoto": true,
+        "aiAllowed": true,
+        "rubric": {
+          "criteria": [
+            {
+              "id": "find",
+              "label": "找出錯誤",
+              "points": 2,
+              "levels": [
+                {
+                  "score": 0,
+                  "description": "未指出錯誤"
+                },
+                {
+                  "score": 1,
+                  "description": "只說算錯"
+                },
+                {
+                  "score": 2,
+                  "description": "圈出出錯的那一步"
+                }
+              ]
+            },
+            {
+              "id": "fix",
+              "label": "正確分解",
+              "points": 2,
+              "levels": [
+                {
+                  "score": 0,
+                  "description": "答案錯誤或未作答"
+                },
+                {
+                  "score": 1,
+                  "description": "改對出錯的步驟，但後面計算錯誤"
+                },
+                {
+                  "score": 2,
+                  "description": "正確完成分解"
+                }
+              ]
+            },
+            {
+              "id": "why",
+              "label": "說明理由",
+              "points": 2,
+              "levels": [
+                {
+                  "score": 0,
+                  "description": "沒有理由"
+                },
+                {
+                  "score": 1,
+                  "description": "只寫出做法，沒有說明原因"
+                },
+                {
+                  "score": 2,
+                  "description": "說明兩個括號的關係，以及它如何影響這一題的結果"
+                }
+              ]
+            }
+          ],
+          "reference": "3(2−x)＝−3(x−2)，所以原式＝5x(x−2)−3(x−2)＝(x−2)(5x−3)。2−x 和 x−2 互為相反數，小美把括號換方向卻沒有加負號。",
+          "graderNotes": "也接受代數字檢查（如 x＝0：原式＝6，小美的答案＝−6，正確答案＝6）。各向度對照：find 滿分要圈出 3(2−x)＝3(x−2) 這一步；fix 有變號但後面計算錯誤給 1 分，得到 (x−2)(5x−3) 給滿分；why 只說要變號給 1 分，說明 2−x＝−(x−2)、括號變號要多一個負號、所以加號變減號給滿分。"
+        }
+      },
+      "notes": "收件後按「AI 批改」，覆核後發回。對比 c-sign：一次方要加負號，平方不用。"
+    },
+    {
+      "id": "c-exit",
+      "phase": "出場券",
+      "eyebrow": "11 / 用自己的話說",
+      "title": "什麼時候要多一個負號？",
+      "body": "比較 (1−x) 和 (1−x)²，用一句話說明。",
+      "source": "自編出場券，對應課本 3-1 p.120",
+      "visual": "steps",
+      "bullets": [
+        "1−x 和 x−1 是什麼關係？",
+        "負號平方以後會怎樣？",
+        "代一個數字檢查，例如 x＝3"
+      ],
+      "activity": {
+        "id": "c-exit-q",
+        "type": "short",
+        "prompt": "把 1−x 改寫成 x−1 時，要不要多一個負號？如果是 (1−x)² 呢？說明理由。",
+        "aiAllowed": true,
+        "rubric": {
+          "criteria": [
+            {
+              "id": "rule",
+              "label": "判斷",
+              "points": 2,
+              "levels": [
+                {
+                  "score": 0,
+                  "description": "說錯或沒有說"
+                },
+                {
+                  "score": 1,
+                  "description": "只答對其中一種"
+                },
+                {
+                  "score": 2,
+                  "description": "兩種情況都判斷正確"
+                }
+              ]
+            },
+            {
+              "id": "reason",
+              "label": "理由",
+              "points": 2,
+              "levels": [
+                {
+                  "score": 0,
+                  "description": "沒有理由"
+                },
+                {
+                  "score": 1,
+                  "description": "只舉例，沒說明"
+                },
+                {
+                  "score": 2,
+                  "description": "用兩式的關係與平方的性質說明理由"
+                }
+              ]
+            }
+          ],
+          "reference": "1−x＝−(x−1)，要多一個負號；(1−x)²＝[−(x−1)]²＝(x−1)²，負號平方後變成 1，不用多負號。",
+          "graderNotes": "rule 滿分：一次方要多負號，平方不用。reason 滿分：說明 1−x＝−(x−1)，(−1)²＝1，所以平方後負號消失。"
+        }
+      }
+    },
+    {
+      "id": "c-reflect",
+      "phase": "後設認知",
+      "eyebrow": "最後 / 給自己打分數",
+      "title": "今天的內容，我掌握了多少？",
+      "body": "誠實評估，下一節課會從大家最沒把握的地方開始複習。",
+      "source": "自編自評，對應課本 3-1 p.119–120",
+      "visual": "cards",
+      "notes": "3 分以下的學生，下節課開頭用提取練習再做一次；可用抽籤「答錯」請同學上台說明。",
+      "activity": {
+        "id": "c-reflect",
+        "type": "scale",
+        "prompt": "我能補上隱形的 1、用變號找出公因式",
+        "min": 1,
+        "max": 5,
+        "minLabel": "還需要再看一次",
+        "maxLabel": "可以教別人"
+      }
+    }
+  ]
+}

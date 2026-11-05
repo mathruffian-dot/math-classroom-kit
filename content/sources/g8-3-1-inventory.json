@@ -1,0 +1,104 @@
+{
+  "source": {
+    "pdf": "八年級/115上_國中_數學_教材資源_課本_學用PDF_二年級/07-115國中數學2上-課本-3-1-學用(115f231563).pdf",
+    "pages": {
+      "pdfPages": "1-18",
+      "printedPages": "110-127",
+      "printedPage": "pdfPage + 109"
+    },
+    "answers": "八年級/115上_國中_數學_教材資源_備課用書_備課PDF_二年級/04-115國中數學2上-備課-L03(115f231512).pdf（備課 PDF 第 n＋4 頁 = 課本 PDF 第 n 頁，紅字解答；看過課本 p.111、p.115–124）。每一題的 lhs、rhs 都由 scripts/lessons-src/g8-3-1-check.py 用 SymPy 展開核對。",
+    "assessmentForms": "課堂作答形式與課本原題的差異：例題與隨堂的因式分解改為數值填空（分解結構由題目給定，完整過程由學生紙筆完成）；p.115 上方的是非判斷改填餘式，是／否結論寫在課本並由老師確認；p.115 下方維持勾選；p.117 公因式兩小題合併成單選，選項為自編。其餘提問、操作、錯誤分析、出場券、自評與暖身皆為自編，各頁 source 欄有標示。",
+    "answerCheck": "自行計算與教用版全部一致，沒有不一致的題目。p.118 例 2(3)、隨堂 (1)(2)，p.119 隨堂 (2)，p.122 例 7(2)、隨堂 (2) 教用版列出兩種等價寫法，都記在 answer。",
+    "pageImages": "八年級/115上_視覺化互動教學/textbook-pages/3-1/page-NN.png",
+    "crops": "math-classroom-kit/public/lesson-assets/g8-3-1/，pymupdf 2.5x 渲染；box 見 scripts/textbook-crops/g8-3-1-boxes.json（以 927×1157 頁面預覽圖為準）",
+    "lessons": {
+      "g8-3-1a": "因式與倍式：p.111–116（課前練習、章前介紹、除法判別因式、例 1、因式分解的意義）",
+      "g8-3-1b": "提公因式法（單項、多項）：p.117–119（公因式、提公因式法、例 2、例 3）",
+      "g8-3-1c": "提公因式法（把一整塊當公因式、變號）：p.119–120（例 4、例 5）",
+      "g8-3-1d": "利用乘法公式因式分解：p.121–124（平方差、和的平方、差的平方，例 6–例 9）"
+    },
+    "notIncluded": "章名頁 p.110；章前介紹 p.112–113 不截圖（x²＋3x＋2 的情境改寫成預測與代數磚操作頁，3x²＋9x＋6 三種拼法只放教師備註）；自我評量 p.126–127（3 大題，題號見 items）；重點回顧 p.125 只當第 d 堂自評頁的附圖；備課用書「會考觀測站」「溫故學習」未列入課堂頁面。",
+    "generated": "2026-11-05"
+  },
+  "items": [
+    { "kind": "pre", "label": "課前練習：多項式除法", "pdfPage": 2, "printedPage": 111, "crop": { "file": "pre-division.png" }, "problems": [
+      { "expr": "(x²+6x−7)÷(x+2)", "answer": "商式 x+4，餘式 −15", "lhs": "x**2+6*x-7", "rhs": "(x+2)*(x+4)-15", "official": "一致" } ] },
+    { "kind": "pre", "label": "課前練習：乘法公式", "pdfPage": 2, "printedPage": 111, "crop": { "file": "pre-formula.png" }, "problems": [
+      { "expr": "(1) (6x−1)²", "answer": "36x²−12x+1", "lhs": "(6*x-1)**2", "rhs": "36*x**2-12*x+1", "official": "一致" },
+      { "expr": "(2) (4x+3)(4x−3)", "answer": "16x²−9", "lhs": "(4*x+3)*(4*x-3)", "rhs": "16*x**2-9", "official": "一致" } ] },
+    { "kind": "intro", "label": "章前介紹", "topic": "x²＋3x＋2 拼成長方形，長與寬是多少", "pdfPage": 3, "printedPage": 112, "problems": [] },
+    { "kind": "intro", "label": "章前介紹：三種拼法", "topic": "3 張 x²、9 張 x、6 張 1 拼出三種長方形（可搭配附件 8）", "pdfPage": 4, "printedPage": 113, "problems": [] },
+    { "kind": "concept", "label": "除法判別因式與倍式", "topic": "餘式為 0 才是因式", "pdfPage": 5, "printedPage": 114, "crop": { "file": "divide-compare.png, divide-conclusion.png" }, "problems": [] },
+    { "kind": "practice", "label": "隨堂（p.115 上）", "pdfPage": 6, "printedPage": 115, "crop": { "file": "p115-practice1.png" }, "irsForm": "IRS 收餘式 0、2；是／否結論寫在課本，教師備註列出", "problems": [
+      { "expr": "(1) x−1 是否為 2x²+x−3 的因式？", "answer": "是（商 2x+3，餘式 0）", "lhs": "2*x**2+x-3", "rhs": "(x-1)*(2*x+3)", "official": "一致" },
+      { "expr": "(2) x²+1 是否為 x+1 的倍式？", "answer": "不是（商 x−1，餘式 2）", "lhs": "x**2+1", "rhs": "(x+1)*(x-1)+2", "official": "一致" } ] },
+    { "kind": "keybox", "label": "因式與倍式", "topic": "A＝B×C，則 B、C 是 A 的因式，A 是 B、C 的倍式", "pdfPage": 6, "printedPage": 115, "crop": { "file": "keybox-factor.png, p115-compare.png" }, "problems": [] },
+    { "kind": "practice", "label": "隨堂（p.115 下）", "pdfPage": 6, "printedPage": 115, "crop": { "file": "p115-practice2.png" }, "problems": [
+      { "expr": "已知 2x²+5x−3＝(x+3)(2x−1)，勾選正確敘述", "answer": "勾「2x²+5x−3 是 x+3 的倍式」「2x−1 是 2x²+5x−3 的因式」", "lhs": "2*x**2+5*x-3", "rhs": "(x+3)*(2*x-1)", "official": "一致" } ] },
+    { "kind": "concept", "label": "二次式的因式分解", "pdfPage": 7, "printedPage": 116, "crop": { "file": "define-factorization.png" }, "problems": [] },
+    { "kind": "example", "label": "例 1 利用多項式除法判別因式", "pdfPage": 7, "printedPage": 116, "crop": { "file": "ex1.png" }, "problems": [
+      { "expr": "判別 x+1 是否為 x²−5x−6 的因式，是就因式分解", "answer": "是，(x+1)(x−6)", "lhs": "x**2-5*x-6", "rhs": "(x+1)*(x-6)", "official": "一致" } ] },
+    { "kind": "practice", "label": "例 1 隨堂", "pdfPage": 7, "printedPage": 116, "crop": { "file": "ex1-practice.png" }, "problems": [
+      { "expr": "判別 4x+5 是否為 8x²+6x−5 的因式，是就因式分解", "answer": "是，(4x+5)(2x−1)", "lhs": "8*x**2+6*x-5", "rhs": "(4*x+5)*(2*x-1)", "official": "一致" } ] },
+    { "kind": "concept", "label": "公因式", "pdfPage": 8, "printedPage": 117, "crop": { "file": "gcf-define.png" }, "problems": [] },
+    { "kind": "practice", "label": "隨堂（p.117 公因式）", "pdfPage": 8, "printedPage": 117, "crop": { "file": "gcf-practice.png" }, "irsForm": "兩小題合併成單選，第 (1) 小題的干擾項只放確定不是公因式的式子（2x 依有理係數也整除，不列為錯誤選項）", "problems": [
+      { "expr": "(1) 2x² 與 7x 的公因式", "answer": "x", "official": "一致" },
+      { "expr": "(2) (x+1)(x+2) 與 (x+2)(x−1) 的公因式", "answer": "x+2", "official": "一致" } ] },
+    { "kind": "keybox", "label": "提公因式法", "topic": "A×C＋B×C＝C×(A＋B)；分解結果通常把單項式放前面", "pdfPage": 8, "printedPage": 117, "crop": { "file": "method.png" }, "problems": [] },
+    { "kind": "example", "label": "例 2 提單項公因式", "pdfPage": 9, "printedPage": 118, "crop": { "file": "ex2.png" }, "problems": [
+      { "expr": "(1) 11x²+9x", "answer": "x(11x+9)", "lhs": "11*x**2+9*x", "rhs": "x*(11*x+9)", "official": "一致" },
+      { "expr": "(2) 2x²+x(x+1)", "answer": "x(3x+1)", "lhs": "2*x**2+x*(x+1)", "rhs": "x*(3*x+1)", "official": "一致" },
+      { "expr": "(3) x(3x+1)−x(x+3)", "answer": "x(2x−2) 或 2x(x−1)（通常寫 2x(x−1)）", "lhs": "x*(3*x+1)-x*(x+3)", "rhs": "2*x*(x-1)", "official": "一致" } ] },
+    { "kind": "practice", "label": "例 2 隨堂", "pdfPage": 9, "printedPage": 118, "crop": { "file": "ex2-practice.png" }, "problems": [
+      { "expr": "(1) 14x²+4x", "answer": "x(14x+4) 或 2x(7x+2)", "lhs": "14*x**2+4*x", "rhs": "2*x*(7*x+2)", "official": "一致" },
+      { "expr": "(2) x²−2x(x+1)", "answer": "x(−x−2) 或 −x(x+2)", "lhs": "x**2-2*x*(x+1)", "rhs": "-x*(x+2)", "official": "一致" },
+      { "expr": "(3) x(5x+2)+x(x−1)", "answer": "x(6x+1)", "lhs": "x*(5*x+2)+x*(x-1)", "rhs": "x*(6*x+1)", "official": "一致" } ] },
+    { "kind": "example", "label": "例 3 提公因式", "pdfPage": 9, "printedPage": 118, "crop": { "file": "ex3.png" }, "problems": [
+      { "expr": "(1) x(2x+1)+3(2x+1)", "answer": "(2x+1)(x+3)", "lhs": "x*(2*x+1)+3*(2*x+1)", "rhs": "(2*x+1)*(x+3)", "official": "一致" },
+      { "expr": "(2) 3x(4x−5)−2(4x−5)", "answer": "(4x−5)(3x−2)", "lhs": "3*x*(4*x-5)-2*(4*x-5)", "rhs": "(4*x-5)*(3*x-2)", "official": "一致" } ] },
+    { "kind": "practice", "label": "例 3 隨堂", "pdfPage": 10, "printedPage": 119, "crop": { "file": "ex3-practice.png" }, "problems": [
+      { "expr": "(1) x(7x−6)+8(7x−6)", "answer": "(7x−6)(x+8)", "lhs": "x*(7*x-6)+8*(7*x-6)", "rhs": "(7*x-6)*(x+8)", "official": "一致" },
+      { "expr": "(2) 9x(3x+10)−4(3x+10)", "answer": "(3x+10)(9x−4)", "lhs": "9*x*(3*x+10)-4*(3*x+10)", "rhs": "(3*x+10)*(9*x-4)", "official": "一致" } ] },
+    { "kind": "example", "label": "例 4 提公因式", "pdfPage": 10, "printedPage": 119, "crop": { "file": "ex4.png" }, "problems": [
+      { "expr": "(1) (x+3)(5x−2)+(5x−2)", "answer": "(5x−2)(x+4)", "lhs": "(x+3)*(5*x-2)+(5*x-2)", "rhs": "(5*x-2)*(x+4)", "official": "一致" },
+      { "expr": "(2) (3x−2)(x−1)−(x−1)(x+1)", "answer": "(x−1)(2x−3)", "lhs": "(3*x-2)*(x-1)-(x-1)*(x+1)", "rhs": "(x-1)*(2*x-3)", "official": "一致" } ] },
+    { "kind": "practice", "label": "例 4 隨堂", "pdfPage": 10, "printedPage": 119, "crop": { "file": "ex4-practice.png" }, "problems": [
+      { "expr": "(1) (x−9)(x+4)+(x+4)", "answer": "(x+4)(x−8)", "lhs": "(x-9)*(x+4)+(x+4)", "rhs": "(x+4)*(x-8)", "official": "一致" },
+      { "expr": "(2) (x−3)(3x+7)−(3x+7)(3x−4)", "answer": "(3x+7)(−2x+1) 或 −(3x+7)(2x−1)", "lhs": "(x-3)*(3*x+7)-(3*x+7)*(3*x-4)", "rhs": "(3*x+7)*(-2*x+1)", "official": "一致" } ] },
+    { "kind": "example", "label": "例 5 變號提公因式", "pdfPage": 11, "printedPage": 120, "crop": { "file": "ex5.png, ex5-intro.png" }, "problems": [
+      { "expr": "(1) 2x(x−1)+3(1−x)", "answer": "(x−1)(2x−3)", "lhs": "2*x*(x-1)+3*(1-x)", "rhs": "(x-1)*(2*x-3)", "official": "一致" },
+      { "expr": "(2) (5−2x)²−(2x−5)(x−5)", "answer": "x(2x−5)", "lhs": "(5-2*x)**2-(2*x-5)*(x-5)", "rhs": "x*(2*x-5)", "official": "一致" } ] },
+    { "kind": "practice", "label": "例 5 隨堂", "pdfPage": 11, "printedPage": 120, "crop": { "file": "ex5-practice.png" }, "problems": [
+      { "expr": "(1) (2x−1)(x−3)−(3−x)(3x−1)", "answer": "(x−3)(5x−2)", "lhs": "(2*x-1)*(x-3)-(3-x)*(3*x-1)", "rhs": "(x-3)*(5*x-2)", "official": "一致" },
+      { "expr": "(2) (7−5x)²+(2+x)(5x−7)", "answer": "(5x−7)(6x−5)", "lhs": "(7-5*x)**2+(2+x)*(5*x-7)", "rhs": "(5*x-7)*(6*x-5)", "official": "一致" } ] },
+    { "kind": "keybox", "label": "乘法公式左右互換", "pdfPage": 12, "printedPage": 121, "crop": { "file": "formulas.png, diff-squares-intro.png" }, "problems": [] },
+    { "kind": "example", "label": "例 6 利用平方差公式因式分解", "pdfPage": 12, "printedPage": 121, "crop": { "file": "ex6.png" }, "problems": [
+      { "expr": "(1) x²−4", "answer": "(x+2)(x−2)", "lhs": "x**2-4", "rhs": "(x+2)*(x-2)", "official": "一致" },
+      { "expr": "(2) 36x²−1", "answer": "(6x+1)(6x−1)", "lhs": "36*x**2-1", "rhs": "(6*x+1)*(6*x-1)", "official": "一致" } ] },
+    { "kind": "practice", "label": "例 6 隨堂", "pdfPage": 12, "printedPage": 121, "crop": { "file": "ex6-practice.png" }, "problems": [
+      { "expr": "(1) x²−16", "answer": "(x+4)(x−4)", "lhs": "x**2-16", "rhs": "(x+4)*(x-4)", "official": "一致" },
+      { "expr": "(2) 4x²−25", "answer": "(2x+5)(2x−5)", "lhs": "4*x**2-25", "rhs": "(2*x+5)*(2*x-5)", "official": "一致" } ] },
+    { "kind": "example", "label": "例 7 利用平方差公式因式分解的應用", "pdfPage": 13, "printedPage": 122, "crop": { "file": "ex7.png" }, "problems": [
+      { "expr": "(1) (x+2)²−9", "answer": "(x+5)(x−1)", "lhs": "(x+2)**2-9", "rhs": "(x+5)*(x-1)", "official": "一致" },
+      { "expr": "(2) 4−(y−1)²", "answer": "(y+1)(−y+3) 或 −(y+1)(y−3)", "lhs": "4-(y-1)**2", "rhs": "(y+1)*(-y+3)", "official": "一致" } ] },
+    { "kind": "practice", "label": "例 7 隨堂", "pdfPage": 13, "printedPage": 122, "crop": { "file": "ex7-practice.png" }, "problems": [
+      { "expr": "(1) (x+2)²−36", "answer": "(x+8)(x−4)", "lhs": "(x+2)**2-36", "rhs": "(x+8)*(x-4)", "official": "一致" },
+      { "expr": "(2) 16−(2y+3)²", "answer": "(2y+7)(−2y+1) 或 −(2y+7)(2y−1)", "lhs": "16-(2*y+3)**2", "rhs": "(2*y+7)*(-2*y+1)", "official": "一致" } ] },
+    { "kind": "keybox", "label": "利用和的平方公式", "pdfPage": 14, "printedPage": 123, "crop": { "file": "sum-square-intro.png" }, "problems": [] },
+    { "kind": "example", "label": "例 8 利用和的平方公式因式分解", "pdfPage": 14, "printedPage": 123, "crop": { "file": "ex8.png" }, "problems": [
+      { "expr": "(1) x²+8x+16", "answer": "(x+4)²", "lhs": "x**2+8*x+16", "rhs": "(x+4)**2", "official": "一致" },
+      { "expr": "(2) 9x²+12x+4", "answer": "(3x+2)²", "lhs": "9*x**2+12*x+4", "rhs": "(3*x+2)**2", "official": "一致" } ] },
+    { "kind": "practice", "label": "例 8 隨堂", "pdfPage": 14, "printedPage": 123, "crop": { "file": "ex8-practice.png" }, "problems": [
+      { "expr": "(1) x²+14x+49", "answer": "(x+7)²", "lhs": "x**2+14*x+49", "rhs": "(x+7)**2", "official": "一致" },
+      { "expr": "(2) 16x²+8x+1", "answer": "(4x+1)²", "lhs": "16*x**2+8*x+1", "rhs": "(4*x+1)**2", "official": "一致" } ] },
+    { "kind": "keybox", "label": "利用差的平方公式", "pdfPage": 15, "printedPage": 124, "crop": { "file": "diff-square-intro.png" }, "problems": [] },
+    { "kind": "example", "label": "例 9 利用差的平方公式因式分解", "pdfPage": 15, "printedPage": 124, "crop": { "file": "ex9.png" }, "problems": [
+      { "expr": "(1) x²−10x+25", "answer": "(x−5)²", "lhs": "x**2-10*x+25", "rhs": "(x-5)**2", "official": "一致" },
+      { "expr": "(2) 4x²−12x+9", "answer": "(2x−3)²", "lhs": "4*x**2-12*x+9", "rhs": "(2*x-3)**2", "official": "一致" } ] },
+    { "kind": "practice", "label": "例 9 隨堂", "pdfPage": 15, "printedPage": 124, "crop": { "file": "ex9-practice.png" }, "problems": [
+      { "expr": "(1) x²−12x+36", "answer": "(x−6)²", "lhs": "x**2-12*x+36", "rhs": "(x-6)**2", "official": "一致" },
+      { "expr": "(2) 4x²−4x+1", "answer": "(2x−1)²", "lhs": "4*x**2-4*x+1", "rhs": "(2*x-1)**2", "official": "一致" } ] },
+    { "kind": "summary", "label": "重點回顧", "pdfPage": 16, "printedPage": 125, "crop": { "file": "summary-1.png, summary-2.png" }, "problems": [] },
+    { "kind": "notIncluded", "label": "自我評量（未收錄）", "topic": "第 1 題勾選因式；第 2 題判別 x+1 與 3x²−2x−5；第 3 題因式分解 8 小題（4x²−7x … 4x²−24x+36）。沒有對照教用版答案（備課 PDF 第 21–22 頁未檢視）", "pdfPage": 17, "printedPage": 126, "problems": [] }
+  ]
+}

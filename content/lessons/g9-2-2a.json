@@ -1,0 +1,7690 @@
+{
+  "schemaVersion": 1,
+  "id": "g9-2-2a",
+  "title": "2-2 圓心角、圓周角與弧的關係（1）圓心角與弧",
+  "description": "認識弧的度數，拖曳圓上的點看見「度數看圓心角，弧長還要看半徑」；用例 1～例 3 練習弧的度數與長度、等弧對等弦、等弦對等弧。例題與隨堂附課本截圖，解題過程逐步呈現，隨堂改為可即時批改的 IRS。",
+  "subject": "數學・九年級 2-2",
+  "duration": 45,
+  "objectives": [
+    "能說出弧的度數就是所對圓心角的度數，並區分弧的度數與弧的長度",
+    "能在同圓或等圓中判斷弧的度數、弧長與弦長的關係",
+    "能用等弧對等弦、等弦對等弧解題與說明理由"
+  ],
+  "slides": [
+    {
+      "id": "a-retrieve",
+      "phase": "提取練習",
+      "eyebrow": "01 / 先想起 2-1 的弧長",
+      "title": "弧長 ＝ 圓周長 × x/360",
+      "body": "上一節學過弧長公式。先做三題，答案含 π 時只填 π 前面的數。",
+      "source": "銜接課本 2-1 p.88 弧長公式（題目為自編）",
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 20,
+          "yMin": 0,
+          "yMax": 11,
+          "aspect": "equal"
+        },
+        "shapes": [
+          {
+            "type": "circle",
+            "x": 5,
+            "y": 5.5,
+            "r": 4.3,
+            "color": "#1f2a56",
+            "width": 2
+          },
+          {
+            "type": "polygon",
+            "points": [
+              [
+                5,
+                5.5
+              ],
+              [
+                8.724,
+                3.35
+              ],
+              [
+                8.843,
+                3.57
+              ],
+              [
+                8.948,
+                3.797
+              ],
+              [
+                9.041,
+                4.029
+              ],
+              [
+                9.119,
+                4.267
+              ],
+              [
+                9.184,
+                4.508
+              ],
+              [
+                9.235,
+                4.753
+              ],
+              [
+                9.271,
+                5.001
+              ],
+              [
+                9.293,
+                5.25
+              ],
+              [
+                9.3,
+                5.5
+              ],
+              [
+                9.293,
+                5.75
+              ],
+              [
+                9.271,
+                5.999
+              ],
+              [
+                9.235,
+                6.247
+              ],
+              [
+                9.184,
+                6.492
+              ],
+              [
+                9.119,
+                6.733
+              ],
+              [
+                9.041,
+                6.971
+              ],
+              [
+                8.948,
+                7.203
+              ],
+              [
+                8.843,
+                7.43
+              ],
+              [
+                8.724,
+                7.65
+              ],
+              [
+                8.593,
+                7.863
+              ],
+              [
+                8.449,
+                8.068
+              ],
+              [
+                8.294,
+                8.264
+              ],
+              [
+                8.128,
+                8.451
+              ],
+              [
+                7.951,
+                8.628
+              ],
+              [
+                7.764,
+                8.794
+              ]
+            ],
+            "fill": "rgba(255,138,61,.26)",
+            "color": "rgba(0,0,0,0)",
+            "width": 0.5
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.724,
+                3.35
+              ],
+              [
+                8.987,
+                3.889
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.987,
+                3.889
+              ],
+              [
+                9.172,
+                4.46
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                9.172,
+                4.46
+              ],
+              [
+                9.276,
+                5.051
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                9.276,
+                5.051
+              ],
+              [
+                9.297,
+                5.65
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                9.297,
+                5.65
+              ],
+              [
+                9.235,
+                6.247
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                9.235,
+                6.247
+              ],
+              [
+                9.09,
+                6.829
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                9.09,
+                6.829
+              ],
+              [
+                8.865,
+                7.385
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.865,
+                7.385
+              ],
+              [
+                8.565,
+                7.905
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.565,
+                7.905
+              ],
+              [
+                8.196,
+                8.377
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.196,
+                8.377
+              ],
+              [
+                7.764,
+                8.794
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                5,
+                5.5
+              ],
+              [
+                8.724,
+                3.35
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 3
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                5,
+                5.5
+              ],
+              [
+                7.764,
+                8.794
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 3
+          },
+          {
+            "type": "angle",
+            "points": [
+              [
+                8.724,
+                3.35
+              ],
+              [
+                5,
+                5.5
+              ],
+              [
+                7.764,
+                8.794
+              ]
+            ],
+            "text": "x°",
+            "color": "#e5484d"
+          },
+          {
+            "type": "point",
+            "x": 5,
+            "y": 5.5,
+            "color": "#1f2a56"
+          },
+          {
+            "type": "text",
+            "x": 4.5,
+            "y": 5.6,
+            "text": "O",
+            "size": 15,
+            "color": "#1f2a56"
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 7.4,
+            "text": "弧長 $=2\\pi r\\times\\dfrac{x}{360}$",
+            "size": 21,
+            "color": "#e5484d"
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 4.8,
+            "text": "圓心角：頂點在圓心的角",
+            "size": 18,
+            "color": "#1d4fa3"
+          }
+        ],
+        "caption": "半徑 r、圓心角 x° 的弧長"
+      },
+      "activity": {
+        "id": "a-retrieve-q",
+        "type": "numeric",
+        "prompt": "提取：直接寫出答案",
+        "items": [
+          {
+            "prompt": "半徑 6 的圓，周長 ＝ □π，□ ＝ ？",
+            "answer": "12"
+          },
+          {
+            "prompt": "半徑 6、圓心角 60° 的弧長 ＝ □π，□ ＝ ？",
+            "answer": "2"
+          },
+          {
+            "prompt": "圓心角 120° 是周角的幾分之幾？",
+            "answer": "1/3"
+          }
+        ],
+        "explanation": "(1) 2π×6＝12π。(2) 12π×60/360＝2π。(3) 120/360＝1/3。"
+      },
+      "notes": "提取練習：第 3 題為弧的度數鋪路（圓心角占周角的幾分之幾）。"
+    },
+    {
+      "id": "a-predict",
+      "phase": "預測",
+      "eyebrow": "02 / 先猜",
+      "title": "坐海盜船的中間，擺盪的角度會比較小嗎？",
+      "body": "課本 p.110 的海盜船：船身繞著同一個點擺動。坐船頭和坐中間，轉過的角度一樣嗎？先猜。",
+      "source": "對應課本 2-2 p.110 主題 1 情境（選項為自編，答案見教用版 p.112 旁注）",
+      "figures": [
+        {
+          "src": "g9-2-2/ship.png",
+          "alt": "課本 p.110 海盜船情境"
+        }
+      ],
+      "activity": {
+        "id": "a-predict-q",
+        "type": "single",
+        "prompt": "坐在船的哪裡，擺盪的角度最大？",
+        "options": [
+          "船頭、船尾最大",
+          "船中間最大",
+          "每個位置都一樣大",
+          "要看船擺得多快"
+        ],
+        "correct": [
+          2
+        ],
+        "explanation": "角度一樣。船頭、船尾和船中間所夾的圓心角都是固定的，所以船上任一位置擺盪的角度都相同；不同的是走過的「弧長」。"
+      },
+      "notes": "先公布統計、不公布答案，保留疑問到具體操作頁。教用版 p.112 旁注：角度一樣。"
+    },
+    {
+      "id": "a-explore",
+      "phase": "具體操作",
+      "eyebrow": "03 / 拖拖看：弧的度數",
+      "title": "弧的度數就是圓心角的度數",
+      "body": "量角器拼成圓，圓周分成 360 等分，一等分的弧是 1°。拖橘點 C（這一頁只看小於半圓的弧），比較內外兩圈的度數和弧長。",
+      "source": "對應課本 2-2 p.110 圖 2 與 Key point（同心圓示範為自編）",
+      "figures": [
+        {
+          "src": "g9-2-2/degree.png",
+          "alt": "課本 p.110 弧的度數與 Key point"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": -6.3,
+          "xMax": 6.3,
+          "yMin": -10.2,
+          "yMax": 6.3,
+          "aspect": "equal"
+        },
+        "points": [
+          {
+            "id": "C",
+            "x": 2.5,
+            "y": 4.33,
+            "color": "#ff7a45",
+            "minX": -6.2,
+            "maxX": 6.2,
+            "minY": 0.3,
+            "maxY": 6.2
+          }
+        ],
+        "shapes": [
+          {
+            "type": "circle",
+            "x": 0,
+            "y": 0,
+            "r": 5,
+            "color": "#6b7394",
+            "width": 1.6
+          },
+          {
+            "type": "circle",
+            "x": 0,
+            "y": 0,
+            "r": 3,
+            "color": "#6b7394",
+            "width": 1.6
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                5,
+                0
+              ],
+              [
+                5.28,
+                0
+              ]
+            ],
+            "color": "#8b93b3",
+            "width": 1.2
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                4.33,
+                2.5
+              ],
+              [
+                4.573,
+                2.64
+              ]
+            ],
+            "color": "#8b93b3",
+            "width": 1.2
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                2.5,
+                4.33
+              ],
+              [
+                2.64,
+                4.573
+              ]
+            ],
+            "color": "#8b93b3",
+            "width": 1.2
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                5.28
+              ]
+            ],
+            "color": "#8b93b3",
+            "width": 1.2
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                -2.5,
+                4.33
+              ],
+              [
+                -2.64,
+                4.573
+              ]
+            ],
+            "color": "#8b93b3",
+            "width": 1.2
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                -4.33,
+                2.5
+              ],
+              [
+                -4.573,
+                2.64
+              ]
+            ],
+            "color": "#8b93b3",
+            "width": 1.2
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                -5,
+                0
+              ],
+              [
+                -5.28,
+                0
+              ]
+            ],
+            "color": "#8b93b3",
+            "width": 1.2
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                -4.33,
+                -2.5
+              ],
+              [
+                -4.573,
+                -2.64
+              ]
+            ],
+            "color": "#8b93b3",
+            "width": 1.2
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                -2.5,
+                -4.33
+              ],
+              [
+                -2.64,
+                -4.573
+              ]
+            ],
+            "color": "#8b93b3",
+            "width": 1.2
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0,
+                -5
+              ],
+              [
+                0,
+                -5.28
+              ]
+            ],
+            "color": "#8b93b3",
+            "width": 1.2
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                2.5,
+                -4.33
+              ],
+              [
+                2.64,
+                -4.573
+              ]
+            ],
+            "color": "#8b93b3",
+            "width": 1.2
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                4.33,
+                -2.5
+              ],
+              [
+                4.573,
+                -2.64
+              ]
+            ],
+            "color": "#8b93b3",
+            "width": 1.2
+          },
+          {
+            "type": "polygon",
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                "5*cos(max(10,min(170,round(atan2(Cy,Cx)/10)*10))*0/24)",
+                "5*sin(max(10,min(170,round(atan2(Cy,Cx)/10)*10))*0/24)"
+              ],
+              [
+                "5*cos(max(10,min(170,round(atan2(Cy,Cx)/10)*10))*1/24)",
+                "5*sin(max(10,min(170,round(atan2(Cy,Cx)/10)*10))*1/24)"
+              ],
+              [
+                "5*cos(max(10,min(170,round(atan2(Cy,Cx)/10)*10))*2/24)",
+                "5*sin(max(10,min(170,round(atan2(Cy,Cx)/10)*10))*2/24)"
+              ],
+              [
+                "5*cos(max(10,min(170,round(atan2(Cy,Cx)/10)*10))*3/24)",
+                "5*sin(max(10,min(170,round(atan2(Cy,Cx)/10)*10))*3/24)"
+              ],
+              [
+                "5*cos(max(10,min(170,round(atan2(Cy,Cx)/10)*10))*4/24)",
+                "5*sin(max(10,min(170,round(atan2(Cy,Cx)/10)*10))*4/24)"
+              ],
+              [
+                "5*cos(max(10,min(170,round(atan2(Cy,Cx)/10)*10))*5/24)",
+                "5*sin(max(10,min(170,round(atan2(Cy,Cx)/10)*10))*5/24)"
+              ],
+              [
+                "5*cos(max(10,min(170,round(atan2(Cy,Cx)/10)*10))*6/24)",
+                "5*sin(max(10,min(170,round(atan2(Cy,Cx)/10)*10))*6/24)"
+              ],
+              [
+                "5*cos(max(10,min(170,round(atan2(Cy,Cx)/10)*10))*7/24)",
+                "5*sin(max(10,min(170,round(atan2(Cy,Cx)/10)*10))*7/24)"
+              ],
+              [
+                "5*cos(max(10,min(170,round(atan2(Cy,Cx)/10)*10))*8/24)",
+                "5*sin(max(10,min(170,round(atan2(Cy,Cx)/10)*10))*8/24)"
+              ],
+              [
+                "5*cos(max(10,min(170,round(atan2(Cy,Cx)/10)*10))*9/24)",
+                "5*sin(max(10,min(170,round(atan2(Cy,Cx)/10)*10))*9/24)"
+              ],
+              [
+                "5*cos(max(10,min(170,round(atan2(Cy,Cx)/10)*10))*10/24)",
+                "5*sin(max(10,min(170,round(atan2(Cy,Cx)/10)*10))*10/24)"
+              ],
+              [
+                "5*cos(max(10,min(170,round(atan2(Cy,Cx)/10)*10))*11/24)",
+                "5*sin(max(10,min(170,round(atan2(Cy,Cx)/10)*10))*11/24)"
+              ],
+              [
+                "5*cos(max(10,min(170,round(atan2(Cy,Cx)/10)*10))*12/24)",
+                "5*sin(max(10,min(170,round(atan2(Cy,Cx)/10)*10))*12/24)"
+              ],
+              [
+                "5*cos(max(10,min(170,round(atan2(Cy,Cx)/10)*10))*13/24)",
+                "5*sin(max(10,min(170,round(atan2(Cy,Cx)/10)*10))*13/24)"
+              ],
+              [
+                "5*cos(max(10,min(170,round(atan2(Cy,Cx)/10)*10))*14/24)",
+                "5*sin(max(10,min(170,round(atan2(Cy,Cx)/10)*10))*14/24)"
+              ],
+              [
+                "5*cos(max(10,min(170,round(atan2(Cy,Cx)/10)*10))*15/24)",
+                "5*sin(max(10,min(170,round(atan2(Cy,Cx)/10)*10))*15/24)"
+              ],
+              [
+                "5*cos(max(10,min(170,round(atan2(Cy,Cx)/10)*10))*16/24)",
+                "5*sin(max(10,min(170,round(atan2(Cy,Cx)/10)*10))*16/24)"
+              ],
+              [
+                "5*cos(max(10,min(170,round(atan2(Cy,Cx)/10)*10))*17/24)",
+                "5*sin(max(10,min(170,round(atan2(Cy,Cx)/10)*10))*17/24)"
+              ],
+              [
+                "5*cos(max(10,min(170,round(atan2(Cy,Cx)/10)*10))*18/24)",
+                "5*sin(max(10,min(170,round(atan2(Cy,Cx)/10)*10))*18/24)"
+              ],
+              [
+                "5*cos(max(10,min(170,round(atan2(Cy,Cx)/10)*10))*19/24)",
+                "5*sin(max(10,min(170,round(atan2(Cy,Cx)/10)*10))*19/24)"
+              ],
+              [
+                "5*cos(max(10,min(170,round(atan2(Cy,Cx)/10)*10))*20/24)",
+                "5*sin(max(10,min(170,round(atan2(Cy,Cx)/10)*10))*20/24)"
+              ],
+              [
+                "5*cos(max(10,min(170,round(atan2(Cy,Cx)/10)*10))*21/24)",
+                "5*sin(max(10,min(170,round(atan2(Cy,Cx)/10)*10))*21/24)"
+              ],
+              [
+                "5*cos(max(10,min(170,round(atan2(Cy,Cx)/10)*10))*22/24)",
+                "5*sin(max(10,min(170,round(atan2(Cy,Cx)/10)*10))*22/24)"
+              ],
+              [
+                "5*cos(max(10,min(170,round(atan2(Cy,Cx)/10)*10))*23/24)",
+                "5*sin(max(10,min(170,round(atan2(Cy,Cx)/10)*10))*23/24)"
+              ],
+              [
+                "5*cos(max(10,min(170,round(atan2(Cy,Cx)/10)*10))*24/24)",
+                "5*sin(max(10,min(170,round(atan2(Cy,Cx)/10)*10))*24/24)"
+              ]
+            ],
+            "fill": "rgba(255,138,61,.20)",
+            "color": "rgba(0,0,0,0)",
+            "width": 0.5
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                "5*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*0/20)",
+                "5*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*0/20)"
+              ],
+              [
+                "5*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*1/20)",
+                "5*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*1/20)"
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4.5
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                "5*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*1/20)",
+                "5*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*1/20)"
+              ],
+              [
+                "5*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*2/20)",
+                "5*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*2/20)"
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4.5
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                "5*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*2/20)",
+                "5*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*2/20)"
+              ],
+              [
+                "5*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*3/20)",
+                "5*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*3/20)"
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4.5
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                "5*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*3/20)",
+                "5*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*3/20)"
+              ],
+              [
+                "5*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*4/20)",
+                "5*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*4/20)"
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4.5
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                "5*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*4/20)",
+                "5*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*4/20)"
+              ],
+              [
+                "5*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*5/20)",
+                "5*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*5/20)"
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4.5
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                "5*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*5/20)",
+                "5*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*5/20)"
+              ],
+              [
+                "5*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*6/20)",
+                "5*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*6/20)"
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4.5
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                "5*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*6/20)",
+                "5*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*6/20)"
+              ],
+              [
+                "5*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*7/20)",
+                "5*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*7/20)"
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4.5
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                "5*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*7/20)",
+                "5*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*7/20)"
+              ],
+              [
+                "5*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*8/20)",
+                "5*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*8/20)"
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4.5
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                "5*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*8/20)",
+                "5*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*8/20)"
+              ],
+              [
+                "5*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*9/20)",
+                "5*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*9/20)"
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4.5
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                "5*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*9/20)",
+                "5*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*9/20)"
+              ],
+              [
+                "5*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*10/20)",
+                "5*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*10/20)"
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4.5
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                "5*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*10/20)",
+                "5*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*10/20)"
+              ],
+              [
+                "5*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*11/20)",
+                "5*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*11/20)"
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4.5
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                "5*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*11/20)",
+                "5*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*11/20)"
+              ],
+              [
+                "5*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*12/20)",
+                "5*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*12/20)"
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4.5
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                "5*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*12/20)",
+                "5*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*12/20)"
+              ],
+              [
+                "5*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*13/20)",
+                "5*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*13/20)"
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4.5
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                "5*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*13/20)",
+                "5*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*13/20)"
+              ],
+              [
+                "5*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*14/20)",
+                "5*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*14/20)"
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4.5
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                "5*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*14/20)",
+                "5*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*14/20)"
+              ],
+              [
+                "5*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*15/20)",
+                "5*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*15/20)"
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4.5
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                "5*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*15/20)",
+                "5*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*15/20)"
+              ],
+              [
+                "5*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*16/20)",
+                "5*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*16/20)"
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4.5
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                "5*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*16/20)",
+                "5*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*16/20)"
+              ],
+              [
+                "5*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*17/20)",
+                "5*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*17/20)"
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4.5
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                "5*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*17/20)",
+                "5*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*17/20)"
+              ],
+              [
+                "5*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*18/20)",
+                "5*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*18/20)"
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4.5
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                "5*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*18/20)",
+                "5*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*18/20)"
+              ],
+              [
+                "5*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*19/20)",
+                "5*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*19/20)"
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4.5
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                "5*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*19/20)",
+                "5*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*19/20)"
+              ],
+              [
+                "5*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*20/20)",
+                "5*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*20/20)"
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4.5
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                "3*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*0/20)",
+                "3*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*0/20)"
+              ],
+              [
+                "3*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*1/20)",
+                "3*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*1/20)"
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4.5
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                "3*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*1/20)",
+                "3*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*1/20)"
+              ],
+              [
+                "3*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*2/20)",
+                "3*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*2/20)"
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4.5
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                "3*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*2/20)",
+                "3*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*2/20)"
+              ],
+              [
+                "3*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*3/20)",
+                "3*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*3/20)"
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4.5
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                "3*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*3/20)",
+                "3*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*3/20)"
+              ],
+              [
+                "3*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*4/20)",
+                "3*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*4/20)"
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4.5
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                "3*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*4/20)",
+                "3*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*4/20)"
+              ],
+              [
+                "3*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*5/20)",
+                "3*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*5/20)"
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4.5
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                "3*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*5/20)",
+                "3*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*5/20)"
+              ],
+              [
+                "3*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*6/20)",
+                "3*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*6/20)"
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4.5
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                "3*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*6/20)",
+                "3*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*6/20)"
+              ],
+              [
+                "3*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*7/20)",
+                "3*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*7/20)"
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4.5
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                "3*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*7/20)",
+                "3*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*7/20)"
+              ],
+              [
+                "3*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*8/20)",
+                "3*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*8/20)"
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4.5
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                "3*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*8/20)",
+                "3*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*8/20)"
+              ],
+              [
+                "3*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*9/20)",
+                "3*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*9/20)"
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4.5
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                "3*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*9/20)",
+                "3*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*9/20)"
+              ],
+              [
+                "3*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*10/20)",
+                "3*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*10/20)"
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4.5
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                "3*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*10/20)",
+                "3*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*10/20)"
+              ],
+              [
+                "3*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*11/20)",
+                "3*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*11/20)"
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4.5
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                "3*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*11/20)",
+                "3*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*11/20)"
+              ],
+              [
+                "3*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*12/20)",
+                "3*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*12/20)"
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4.5
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                "3*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*12/20)",
+                "3*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*12/20)"
+              ],
+              [
+                "3*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*13/20)",
+                "3*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*13/20)"
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4.5
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                "3*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*13/20)",
+                "3*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*13/20)"
+              ],
+              [
+                "3*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*14/20)",
+                "3*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*14/20)"
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4.5
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                "3*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*14/20)",
+                "3*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*14/20)"
+              ],
+              [
+                "3*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*15/20)",
+                "3*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*15/20)"
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4.5
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                "3*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*15/20)",
+                "3*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*15/20)"
+              ],
+              [
+                "3*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*16/20)",
+                "3*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*16/20)"
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4.5
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                "3*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*16/20)",
+                "3*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*16/20)"
+              ],
+              [
+                "3*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*17/20)",
+                "3*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*17/20)"
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4.5
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                "3*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*17/20)",
+                "3*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*17/20)"
+              ],
+              [
+                "3*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*18/20)",
+                "3*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*18/20)"
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4.5
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                "3*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*18/20)",
+                "3*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*18/20)"
+              ],
+              [
+                "3*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*19/20)",
+                "3*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*19/20)"
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4.5
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                "3*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*19/20)",
+                "3*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*19/20)"
+              ],
+              [
+                "3*cos((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*20/20)",
+                "3*sin((0)+((max(10,min(170,round(atan2(Cy,Cx)/10)*10)))-(0))*20/20)"
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4.5
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                5,
+                0
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 2.2
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                "5*cos(max(10,min(170,round(atan2(Cy,Cx)/10)*10)))",
+                "5*sin(max(10,min(170,round(atan2(Cy,Cx)/10)*10)))"
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 2.2
+          },
+          {
+            "type": "point",
+            "x": 0,
+            "y": 0,
+            "color": "#1f2a56"
+          },
+          {
+            "type": "text",
+            "x": -0.55,
+            "y": -0.45,
+            "text": "O",
+            "size": 15,
+            "color": "#1f2a56"
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                "5*cos(max(10,min(170,round(atan2(Cy,Cx)/10)*10)))",
+                "5*sin(max(10,min(170,round(atan2(Cy,Cx)/10)*10)))"
+              ],
+              [
+                "Cx",
+                "Cy"
+              ]
+            ],
+            "color": "#b7bdd3",
+            "width": 1,
+            "dash": true,
+            "show": "!(hypot(Cx,Cy)<1.5)"
+          },
+          {
+            "type": "point",
+            "x": "5*cos(max(10,min(170,round(atan2(Cy,Cx)/10)*10)))",
+            "y": "5*sin(max(10,min(170,round(atan2(Cy,Cx)/10)*10)))",
+            "color": "#e5484d",
+            "show": "!(hypot(Cx,Cy)<1.5)"
+          },
+          {
+            "type": "text",
+            "x": "5.6*cos(max(10,min(170,round(atan2(Cy,Cx)/10)*10)))",
+            "y": "5.6*sin(max(10,min(170,round(atan2(Cy,Cx)/10)*10)))",
+            "text": "C",
+            "size": 16,
+            "color": "#e5484d",
+            "show": "!(hypot(Cx,Cy)<1.5)"
+          },
+          {
+            "type": "point",
+            "x": "5*cos(0)",
+            "y": "5*sin(0)",
+            "color": "#1f2a56"
+          },
+          {
+            "type": "text",
+            "x": "5.6*cos(0)",
+            "y": "5.6*sin(0)",
+            "text": "D",
+            "size": 16,
+            "color": "#1f2a56"
+          },
+          {
+            "type": "text",
+            "x": 0,
+            "y": -6.9,
+            "text": "∠COD ＝ $\\overset{\\frown}{CD}$ ＝ {max(10,min(170,round(atan2(Cy,Cx)/10)*10))}°",
+            "size": 18,
+            "color": "#5a3fd6",
+            "show": "!(hypot(Cx,Cy)<1.5)"
+          },
+          {
+            "type": "text",
+            "x": 0,
+            "y": -6.9,
+            "text": "太靠近圓心了，把 C 往圓周拖",
+            "size": 17,
+            "color": "#6b7394",
+            "show": "hypot(Cx,Cy)<1.5"
+          }
+        ],
+        "readouts": [
+          {
+            "label": "弧的度數",
+            "expr": "(hypot(Cx,Cy)<1.5)?sqrt(-1):(max(10,min(170,round(atan2(Cy,Cx)/10)*10)))"
+          },
+          {
+            "label": "半徑 5 的弧長是 π 的幾倍",
+            "expr": "(hypot(Cx,Cy)<1.5)?sqrt(-1):(max(10,min(170,round(atan2(Cy,Cx)/10)*10))/36)",
+            "digits": 2
+          },
+          {
+            "label": "半徑 3 的弧長是 π 的幾倍",
+            "expr": "(hypot(Cx,Cy)<1.5)?sqrt(-1):(max(10,min(170,round(atan2(Cy,Cx)/10)*10))/60)",
+            "digits": 2
+          }
+        ],
+        "caption": "拖橘點，C 會沿著上半圓走（10°～170°，每 10° 一格）。兩圈度數一樣，弧長不一樣：弧長還要看半徑"
+      },
+      "activity": {
+        "id": "a-explore-q",
+        "type": "manipulate",
+        "prompt": "把 C 拖到 $\\overset{\\frown}{CD}$ 的度數是 120° 的位置，再按「送出我的操作」。",
+        "check": "max(10,min(170,round(atan2(Cy,Cx)/10)*10))==120&&!(hypot(Cx,Cy)<1.5)",
+        "record": [
+          "Cx",
+          "Cy"
+        ],
+        "explanation": "∠COD＝120° 時，弧 CD 的度數就是 120°。內外兩圈的度數都是 120°，但弧長分別是 2π 和 10π/3。"
+      },
+      "notes": "具體操作（CRA）。回到海盜船：船身是圓心角，坐得離轉軸遠近不同，度數一樣、弧長不同。追問：度數和弧長的單位各是什麼？"
+    },
+    {
+      "id": "a-rule",
+      "phase": "圖式連結",
+      "eyebrow": "04 / 度數和長度",
+      "title": "同圓或等圓中，度數和弧長一起變",
+      "body": "弧的長度＝圓周長×x/360。同圓或等圓中圓周長相等，所以度數相同的弧，弧長也相等。",
+      "source": "對應課本 2-2 p.111（IRS 數字為自編）",
+      "figures": [
+        {
+          "src": "g9-2-2/arc-rule.png",
+          "alt": "課本 p.111 弧的度數與弧的長度"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 20,
+          "yMin": 0,
+          "yMax": 11,
+          "aspect": "equal"
+        },
+        "shapes": [
+          {
+            "type": "circle",
+            "x": 5,
+            "y": 5.5,
+            "r": 4.3,
+            "color": "#1f2a56",
+            "width": 2,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                9.041,
+                6.971
+              ],
+              [
+                8.897,
+                7.317
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.897,
+                7.317
+              ],
+              [
+                8.724,
+                7.65
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.724,
+                7.65
+              ],
+              [
+                8.522,
+                7.966
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.522,
+                7.966
+              ],
+              [
+                8.294,
+                8.264
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.294,
+                8.264
+              ],
+              [
+                8.041,
+                8.541
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.041,
+                8.541
+              ],
+              [
+                7.764,
+                8.794
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                7.764,
+                8.794
+              ],
+              [
+                7.466,
+                9.022
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                7.466,
+                9.022
+              ],
+              [
+                7.15,
+                9.224
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                1.276,
+                7.65
+              ],
+              [
+                1.103,
+                7.317
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                1.103,
+                7.317
+              ],
+              [
+                0.959,
+                6.971
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.959,
+                6.971
+              ],
+              [
+                0.847,
+                6.613
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.847,
+                6.613
+              ],
+              [
+                0.765,
+                6.247
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.765,
+                6.247
+              ],
+              [
+                0.716,
+                5.875
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.716,
+                5.875
+              ],
+              [
+                0.7,
+                5.5
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.7,
+                5.5
+              ],
+              [
+                0.716,
+                5.125
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.716,
+                5.125
+              ],
+              [
+                0.765,
+                4.753
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                2.85,
+                1.776
+              ],
+              [
+                3.389,
+                1.513
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                3.389,
+                1.513
+              ],
+              [
+                3.96,
+                1.328
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                3.96,
+                1.328
+              ],
+              [
+                4.551,
+                1.224
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                4.551,
+                1.224
+              ],
+              [
+                5.15,
+                1.203
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                5.15,
+                1.203
+              ],
+              [
+                5.747,
+                1.265
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                5.747,
+                1.265
+              ],
+              [
+                6.329,
+                1.41
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6.329,
+                1.41
+              ],
+              [
+                6.885,
+                1.635
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6.885,
+                1.635
+              ],
+              [
+                7.405,
+                1.935
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                7.405,
+                1.935
+              ],
+              [
+                7.877,
+                2.304
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                7.877,
+                2.304
+              ],
+              [
+                8.294,
+                2.736
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              3
+            ]
+          },
+          {
+            "type": "point",
+            "x": 5,
+            "y": 5.5,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 4.5,
+            "y": 5.6,
+            "text": "O",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "point",
+            "x": 7.15,
+            "y": 9.224,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 7.4,
+            "y": 9.657,
+            "text": "A",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "point",
+            "x": 9.041,
+            "y": 6.971,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9.511,
+            "y": 7.142,
+            "text": "B",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "point",
+            "x": 1.276,
+            "y": 7.65,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 0.843,
+            "y": 7.9,
+            "text": "C",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "point",
+            "x": 0.765,
+            "y": 4.753,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 0.273,
+            "y": 4.666,
+            "text": "D",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "point",
+            "x": 2.85,
+            "y": 1.776,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 2.6,
+            "y": 1.343,
+            "text": "E",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "point",
+            "x": 8.294,
+            "y": 2.736,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 8.677,
+            "y": 2.415,
+            "text": "F",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                5,
+                5.5
+              ],
+              [
+                9.041,
+                6.971
+              ]
+            ],
+            "color": "#6b7394",
+            "width": 1.4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                5,
+                5.5
+              ],
+              [
+                7.15,
+                9.224
+              ]
+            ],
+            "color": "#6b7394",
+            "width": 1.4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                5,
+                5.5
+              ],
+              [
+                1.276,
+                7.65
+              ]
+            ],
+            "color": "#6b7394",
+            "width": 1.4,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                5,
+                5.5
+              ],
+              [
+                0.765,
+                4.753
+              ]
+            ],
+            "color": "#6b7394",
+            "width": 1.4,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                5,
+                5.5
+              ],
+              [
+                2.85,
+                1.776
+              ]
+            ],
+            "color": "#6b7394",
+            "width": 1.4,
+            "focus": [
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                5,
+                5.5
+              ],
+              [
+                8.294,
+                2.736
+              ]
+            ],
+            "color": "#6b7394",
+            "width": 1.4,
+            "focus": [
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 9.3,
+            "text": "$\\overset{\\frown}{AB}$ 的度數 ＝ ∠AOB ＝ x°",
+            "size": 18,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 7.200000000000001,
+            "text": "$\\overset{\\frown}{AB}$ 的長度 ＝ 圓周長 × $\\tfrac{x}{360}$",
+            "size": 18,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 5.1000000000000005,
+            "text": "度數相同 ⟺ 弧長相等",
+            "size": 18,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 3,
+            "text": "度數較大 ⟺ 弧長較長",
+            "size": 18,
+            "color": "#5a3fd6",
+            "step": 3,
+            "focus": [
+              3
+            ]
+          }
+        ],
+        "steps": [
+          "弧的度數等於所對的圓心角",
+          "弧長要乘上圓周長",
+          "同一個圓的圓周長相同，所以度數相同（弧 AB、弧 CD），弧長也相等",
+          "度數越大（弧 EF），弧長越長"
+        ]
+      },
+      "activity": {
+        "id": "a-rule-q",
+        "type": "single",
+        "prompt": "同一個圓中，$\\overset{\\frown}{AB}$ 的度數是 50°，$\\overset{\\frown}{CD}$ 的度數是 70°。哪一段弧比較長？",
+        "options": [
+          "$\\overset{\\frown}{AB}$",
+          "$\\overset{\\frown}{CD}$",
+          "一樣長",
+          "不知道半徑，無法判斷"
+        ],
+        "correct": [
+          1
+        ],
+        "explanation": "同圓的圓周長相同，度數較大的弧，弧長也較長；雖然不知道半徑，還是可以比較。"
+      },
+      "notes": "提醒：課本的 AB 上加弧可以表示弧本身、弧的度數或弧的長度，由前後文分辨。"
+    },
+    {
+      "id": "a-ex1",
+      "phase": "工作範例",
+      "eyebrow": "05 / 例 1",
+      "title": "同一個圓心角，度數相等、弧長不等",
+      "body": "兩同心圓半徑 8、10，圓心角都是 120°。答案含 π 時只填 π 前面的數。先自己算，再按「下一步」。",
+      "source": "對應課本 2-2 p.111（題目數字同課本）",
+      "figures": [
+        {
+          "src": "g9-2-2/ex1.png",
+          "alt": "課本 p.111 例 1 題目"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 20,
+          "yMin": 0,
+          "yMax": 11,
+          "aspect": "equal"
+        },
+        "shapes": [
+          {
+            "type": "circle",
+            "x": 5,
+            "y": 5.5,
+            "r": 4.4,
+            "color": "#1f2a56",
+            "width": 2,
+            "fill": "rgba(255,201,60,.10)",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "circle",
+            "x": 5,
+            "y": 5.5,
+            "r": 3.5,
+            "color": "#1f2a56",
+            "width": 2,
+            "fill": "rgba(132,204,22,.22)",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                7.681,
+                3.25
+              ],
+              [
+                7.968,
+                3.645
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              1,
+              2,
+              3,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                7.968,
+                3.645
+              ],
+              [
+                8.197,
+                4.076
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              1,
+              2,
+              3,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.197,
+                4.076
+              ],
+              [
+                8.364,
+                4.535
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              1,
+              2,
+              3,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.364,
+                4.535
+              ],
+              [
+                8.466,
+                5.013
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              1,
+              2,
+              3,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.466,
+                5.013
+              ],
+              [
+                8.5,
+                5.5
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              1,
+              2,
+              3,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.5,
+                5.5
+              ],
+              [
+                8.466,
+                5.987
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              1,
+              2,
+              3,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.466,
+                5.987
+              ],
+              [
+                8.364,
+                6.465
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              1,
+              2,
+              3,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.364,
+                6.465
+              ],
+              [
+                8.197,
+                6.924
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              1,
+              2,
+              3,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.197,
+                6.924
+              ],
+              [
+                7.968,
+                7.355
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              1,
+              2,
+              3,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                7.968,
+                7.355
+              ],
+              [
+                7.681,
+                7.75
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              1,
+              2,
+              3,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                7.681,
+                7.75
+              ],
+              [
+                7.342,
+                8.101
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              1,
+              2,
+              3,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                7.342,
+                8.101
+              ],
+              [
+                6.957,
+                8.402
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              1,
+              2,
+              3,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6.957,
+                8.402
+              ],
+              [
+                6.534,
+                8.646
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              1,
+              2,
+              3,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6.534,
+                8.646
+              ],
+              [
+                6.082,
+                8.829
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              1,
+              2,
+              3,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6.082,
+                8.829
+              ],
+              [
+                5.608,
+                8.947
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              1,
+              2,
+              3,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.371,
+                2.672
+              ],
+              [
+                8.731,
+                3.168
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              1,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.731,
+                3.168
+              ],
+              [
+                9.02,
+                3.71
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              1,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                9.02,
+                3.71
+              ],
+              [
+                9.23,
+                4.287
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              1,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                9.23,
+                4.287
+              ],
+              [
+                9.357,
+                4.888
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              1,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                9.357,
+                4.888
+              ],
+              [
+                9.4,
+                5.5
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              1,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                9.4,
+                5.5
+              ],
+              [
+                9.357,
+                6.112
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              1,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                9.357,
+                6.112
+              ],
+              [
+                9.23,
+                6.713
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              1,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                9.23,
+                6.713
+              ],
+              [
+                9.02,
+                7.29
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              1,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                9.02,
+                7.29
+              ],
+              [
+                8.731,
+                7.832
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              1,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.731,
+                7.832
+              ],
+              [
+                8.371,
+                8.328
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              1,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.371,
+                8.328
+              ],
+              [
+                7.944,
+                8.77
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              1,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                7.944,
+                8.77
+              ],
+              [
+                7.46,
+                9.148
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              1,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                7.46,
+                9.148
+              ],
+              [
+                6.929,
+                9.455
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              1,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6.929,
+                9.455
+              ],
+              [
+                6.36,
+                9.685
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              1,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6.36,
+                9.685
+              ],
+              [
+                5.764,
+                9.833
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              1,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                5,
+                5.5
+              ],
+              [
+                5.764,
+                9.833
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 2,
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                5,
+                5.5
+              ],
+              [
+                8.371,
+                2.672
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 2,
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "angle",
+            "points": [
+              [
+                8.371,
+                2.672
+              ],
+              [
+                5,
+                5.5
+              ],
+              [
+                5.764,
+                9.833
+              ]
+            ],
+            "text": "120°",
+            "color": "#e5484d",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "point",
+            "x": 5,
+            "y": 5.5,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 4.5,
+            "y": 5.6,
+            "text": "O",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 5.103,
+            "y": 8.448,
+            "text": "A",
+            "size": 14,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 5.851,
+            "y": 10.326,
+            "text": "C",
+            "size": 14,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6.896,
+            "y": 3.24,
+            "text": "B",
+            "size": 14,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 8.754,
+            "y": 2.35,
+            "text": "D",
+            "size": 14,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3,
+            "y": 3.8,
+            "text": "r＝8",
+            "size": 13,
+            "color": "#1d4fa3",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3,
+            "y": 8.7,
+            "text": "r＝10",
+            "size": 13,
+            "color": "#e5484d",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 9.8,
+            "text": "兩弧的度數、長度 ＝ ？",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 8.200000000000001,
+            "text": "度數 ＝ 圓心角 ＝ 120°",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 6.6000000000000005,
+            "text": "$\\overset{\\frown}{AB}$ $=2\\pi\\times8\\times\\tfrac{120}{360}$",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 5,
+            "text": "$=\\tfrac{16}{3}\\pi$",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 3,
+            "focus": [
+              3,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 3.4000000000000004,
+            "text": "$\\overset{\\frown}{CD}$ $=2\\pi\\times10\\times\\tfrac{120}{360}$",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 4,
+            "focus": [
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 1.8000000000000007,
+            "text": "$=\\tfrac{20}{3}\\pi$",
+            "size": 19,
+            "color": "#5a3fd6",
+            "step": 5,
+            "focus": [
+              5
+            ]
+          }
+        ],
+        "steps": [
+          "題目要求兩段弧的度數和長度",
+          "弧的度數＝圓心角，兩圈的圓心角都一樣",
+          "內圈半徑 8，弧 AB 的長度",
+          "約分",
+          "外圈半徑 10，弧 CD 的長度",
+          "度數相等，但半徑不等，弧長不相等"
+        ],
+        "caption": "課本例 1 的方法"
+      },
+      "activity": {
+        "id": "a-ex1-q",
+        "type": "numeric",
+        "prompt": "先自己算例 1",
+        "items": [
+          {
+            "prompt": "$\\overset{\\frown}{AB}$、$\\overset{\\frown}{CD}$ 的度數都是幾度？",
+            "answer": "120"
+          },
+          {
+            "prompt": "$\\overset{\\frown}{AB}$ 的長度 ＝ □π，□ ＝ ？",
+            "answer": "16/3"
+          },
+          {
+            "prompt": "$\\overset{\\frown}{CD}$ 的長度 ＝ □π，□ ＝ ？",
+            "answer": "20/3"
+          }
+        ],
+        "explanation": "(1) 度數＝圓心角＝120°。(2) 2π×8×120/360＝16π/3。(3) 2π×10×120/360＝20π/3。半徑不等的兩圓，相同圓心角所對的弧度數相等，弧長不相等。"
+      },
+      "notes": "收斂課本結論：半徑不等長的兩圓中，相同圓心角所對弧的度數相等，弧長不相等。"
+    },
+    {
+      "id": "a-ex1-practice",
+      "phase": "隨堂練習",
+      "eyebrow": "06 / 例 1 隨堂",
+      "title": "大扇形的弧比小扇形的弧長多少？",
+      "body": "左圖用另一組數字示範。課本的題目自己算，答案只填 π 前面的數。",
+      "source": "對應課本 2-2 p.111（題目同課本，左圖的示範數字為自編）",
+      "figures": [
+        {
+          "src": "g9-2-2/ex1-practice.png",
+          "alt": "課本 p.111 例 1 隨堂練習"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 20,
+          "yMin": 0,
+          "yMax": 11,
+          "aspect": "equal"
+        },
+        "shapes": [
+          {
+            "type": "polygon",
+            "points": [
+              [
+                2.2,
+                1.6
+              ],
+              [
+                10.6,
+                1.6
+              ],
+              [
+                10.592,
+                1.966
+              ],
+              [
+                10.568,
+                2.332
+              ],
+              [
+                10.528,
+                2.696
+              ],
+              [
+                10.472,
+                3.059
+              ],
+              [
+                10.401,
+                3.418
+              ],
+              [
+                10.314,
+                3.774
+              ],
+              [
+                10.211,
+                4.126
+              ],
+              [
+                10.093,
+                4.473
+              ],
+              [
+                9.961,
+                4.815
+              ],
+              [
+                9.813,
+                5.15
+              ],
+              [
+                9.651,
+                5.479
+              ],
+              [
+                9.475,
+                5.8
+              ],
+              [
+                9.284,
+                6.113
+              ],
+              [
+                9.081,
+                6.418
+              ],
+              [
+                8.864,
+                6.714
+              ],
+              [
+                8.635,
+                6.999
+              ],
+              [
+                8.393,
+                7.275
+              ],
+              [
+                8.14,
+                7.54
+              ],
+              [
+                7.875,
+                7.793
+              ],
+              [
+                7.599,
+                8.035
+              ],
+              [
+                7.314,
+                8.264
+              ],
+              [
+                7.018,
+                8.481
+              ],
+              [
+                6.713,
+                8.684
+              ],
+              [
+                6.4,
+                8.875
+              ]
+            ],
+            "fill": "rgba(18,163,154,.20)",
+            "color": "#1f2a56",
+            "width": 2,
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                10.6,
+                1.6
+              ],
+              [
+                10.528,
+                2.696
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              1,
+              2,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                10.528,
+                2.696
+              ],
+              [
+                10.314,
+                3.774
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              1,
+              2,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                10.314,
+                3.774
+              ],
+              [
+                9.961,
+                4.815
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              1,
+              2,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                9.961,
+                4.815
+              ],
+              [
+                9.475,
+                5.8
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              1,
+              2,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                9.475,
+                5.8
+              ],
+              [
+                8.864,
+                6.714
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              1,
+              2,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.864,
+                6.714
+              ],
+              [
+                8.14,
+                7.54
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              1,
+              2,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.14,
+                7.54
+              ],
+              [
+                7.314,
+                8.264
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              1,
+              2,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                7.314,
+                8.264
+              ],
+              [
+                6.4,
+                8.875
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              1,
+              2,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6.4,
+                1.6
+              ],
+              [
+                6.364,
+                2.148
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6.364,
+                2.148
+              ],
+              [
+                6.257,
+                2.687
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6.257,
+                2.687
+              ],
+              [
+                6.08,
+                3.207
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6.08,
+                3.207
+              ],
+              [
+                5.837,
+                3.7
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                5.837,
+                3.7
+              ],
+              [
+                5.532,
+                4.157
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                5.532,
+                4.157
+              ],
+              [
+                5.17,
+                4.57
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                5.17,
+                4.57
+              ],
+              [
+                4.757,
+                4.932
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                4.757,
+                4.932
+              ],
+              [
+                4.3,
+                5.237
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 1.9000000000000001,
+            "y": 1.2000000000000002,
+            "text": "O",
+            "size": 14,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6.300000000000001,
+            "y": 9.375,
+            "text": "P",
+            "size": 14,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 11.1,
+            "y": 1.5,
+            "text": "Q",
+            "size": 14,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3.8,
+            "y": 5.437,
+            "text": "M",
+            "size": 14,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6.4,
+            "y": 1.1,
+            "text": "N",
+            "size": 14,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "angle",
+            "points": [
+              [
+                10.6,
+                1.6
+              ],
+              [
+                2.2,
+                1.6
+              ],
+              [
+                6.4,
+                8.875
+              ]
+            ],
+            "text": "60°",
+            "color": "#e5484d",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 4.672,
+            "y": 7.719,
+            "text": "18",
+            "size": 13,
+            "color": "#1d4fa3",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 15,
+            "y": 9.8,
+            "text": "示範：$\\overline{OM}=9$",
+            "size": 17,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 15,
+            "y": 8.200000000000001,
+            "text": "$\\overset{\\frown}{PQ}$ $=2\\pi\\times18\\times\\tfrac{60}{360}$",
+            "size": 17,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 15,
+            "y": 6.6000000000000005,
+            "text": "$=6\\pi$",
+            "size": 17,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 15,
+            "y": 5,
+            "text": "$\\overset{\\frown}{MN}$ $=2\\pi\\times9\\times\\tfrac{60}{360}$",
+            "size": 17,
+            "color": "#1f2a56",
+            "step": 3,
+            "focus": [
+              3,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 15,
+            "y": 3.4000000000000004,
+            "text": "$=3\\pi$",
+            "size": 17,
+            "color": "#1f2a56",
+            "step": 4,
+            "focus": [
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 15,
+            "y": 1.8000000000000007,
+            "text": "相差 $6\\pi-3\\pi=3\\pi$",
+            "size": 17,
+            "color": "#5a3fd6",
+            "step": 5,
+            "focus": [
+              5
+            ]
+          }
+        ],
+        "steps": [
+          "另一組數字：大扇形半徑 18；M 是中點，小扇形半徑是一半",
+          "大扇形的弧",
+          "約分",
+          "圓心角相同，半徑是一半",
+          "約分",
+          "相減"
+        ]
+      },
+      "activity": {
+        "id": "a-ex1-practice-q",
+        "type": "numeric",
+        "prompt": "課本 p.111 隨堂",
+        "items": [
+          {
+            "prompt": "$\\overset{\\frown}{PQ}$ 比 $\\overset{\\frown}{MN}$ 長 □π，□ ＝ ？",
+            "answer": "2"
+          }
+        ],
+        "explanation": "答案：弧 PQ＝2π×10×72/360＝4π，半徑 OM＝5，弧 MN＝2π×5×72/360＝2π，相差 2π。"
+      },
+      "notes": "追問：不用算弧 MN，看半徑的比能不能直接知道？（半徑一半，弧長也是一半）。"
+    },
+    {
+      "id": "a-ex2",
+      "phase": "工作範例",
+      "eyebrow": "07 / 例 2",
+      "title": "度數相等的兩弧，弦等長嗎？",
+      "body": "課本問弦 AB 與弦 CD 是否等長、為什麼。先選答案和理由，再按「下一步」看說明。",
+      "source": "對應課本 2-2 p.112（課本是說明題，這裡改成選出關鍵理由，選項為自編）",
+      "figures": [
+        {
+          "src": "g9-2-2/ex2.png",
+          "alt": "課本 p.112 例 2 題目"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 20,
+          "yMin": 0,
+          "yMax": 11,
+          "aspect": "equal"
+        },
+        "shapes": [
+          {
+            "type": "circle",
+            "x": 5,
+            "y": 5.5,
+            "r": 4.3,
+            "color": "#1f2a56",
+            "width": 2,
+            "fill": "rgba(47,128,237,.08)",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "polygon",
+            "points": [
+              [
+                5,
+                5.5
+              ],
+              [
+                3.183,
+                9.397
+              ],
+              [
+                8.041,
+                8.541
+              ]
+            ],
+            "fill": "rgba(47,128,237,.18)",
+            "color": "#1f2a56",
+            "width": 2,
+            "focus": [
+              3,
+              4
+            ]
+          },
+          {
+            "type": "polygon",
+            "points": [
+              [
+                5,
+                5.5
+              ],
+              [
+                0.847,
+                4.387
+              ],
+              [
+                4.625,
+                1.216
+              ]
+            ],
+            "fill": "rgba(47,128,237,.18)",
+            "color": "#1f2a56",
+            "width": 2,
+            "focus": [
+              3,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.041,
+                8.541
+              ],
+              [
+                7.601,
+                8.924
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                7.601,
+                8.924
+              ],
+              [
+                7.114,
+                9.245
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                7.114,
+                9.245
+              ],
+              [
+                6.588,
+                9.496
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6.588,
+                9.496
+              ],
+              [
+                6.032,
+                9.674
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6.032,
+                9.674
+              ],
+              [
+                5.458,
+                9.776
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                5.458,
+                9.776
+              ],
+              [
+                4.875,
+                9.798
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                4.875,
+                9.798
+              ],
+              [
+                4.294,
+                9.742
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                4.294,
+                9.742
+              ],
+              [
+                3.727,
+                9.607
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                3.727,
+                9.607
+              ],
+              [
+                3.183,
+                9.397
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.847,
+                4.387
+              ],
+              [
+                1.035,
+                3.835
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                1.035,
+                3.835
+              ],
+              [
+                1.297,
+                3.314
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                1.297,
+                3.314
+              ],
+              [
+                1.627,
+                2.833
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                1.627,
+                2.833
+              ],
+              [
+                2.019,
+                2.401
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                2.019,
+                2.401
+              ],
+              [
+                2.466,
+                2.026
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                2.466,
+                2.026
+              ],
+              [
+                2.959,
+                1.715
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                2.959,
+                1.715
+              ],
+              [
+                3.49,
+                1.474
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                3.49,
+                1.474
+              ],
+              [
+                4.049,
+                1.306
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                4.049,
+                1.306
+              ],
+              [
+                4.625,
+                1.216
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                5,
+                5.5
+              ],
+              [
+                3.183,
+                9.397
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 2,
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                5,
+                5.5
+              ],
+              [
+                8.041,
+                8.541
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 2,
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                5,
+                5.5
+              ],
+              [
+                0.847,
+                4.387
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 2,
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                5,
+                5.5
+              ],
+              [
+                4.625,
+                1.216
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 2,
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                3.183,
+                9.397
+              ],
+              [
+                8.041,
+                8.541
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 3,
+            "focus": [
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.847,
+                4.387
+              ],
+              [
+                4.625,
+                1.216
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 3,
+            "focus": [
+              4
+            ]
+          },
+          {
+            "type": "point",
+            "x": 5,
+            "y": 5.5,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 5.55,
+            "y": 5.35,
+            "text": "O",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "point",
+            "x": 3.183,
+            "y": 9.397,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 2.971,
+            "y": 9.85,
+            "text": "A",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "point",
+            "x": 8.041,
+            "y": 8.541,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 8.394,
+            "y": 8.894,
+            "text": "B",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "point",
+            "x": 0.847,
+            "y": 4.387,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 0.364,
+            "y": 4.258,
+            "text": "C",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "point",
+            "x": 4.625,
+            "y": 1.216,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 4.582,
+            "y": 0.718,
+            "text": "D",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 9.6,
+            "text": "度數相等：∠AOB ＝ ∠COD",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 7.85,
+            "text": "$\\overline{OA}$ ＝ $\\overline{OC}$（圓 O 的半徑）",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 6.1,
+            "text": "$\\overline{OB}$ ＝ $\\overline{OD}$（圓 O 的半徑）",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 4.35,
+            "text": "△AOB ≅ △COD（SAS）",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 3,
+            "focus": [
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 2.5999999999999996,
+            "text": "故 $\\overline{AB}$ ＝ $\\overline{CD}$",
+            "size": 19,
+            "color": "#5a3fd6",
+            "step": 4,
+            "focus": [
+              4
+            ]
+          }
+        ],
+        "steps": [
+          "度數相等 → 圓心角相等",
+          "半徑相等",
+          "半徑相等",
+          "兩邊夾一角",
+          "對應邊相等：等弧對等弦"
+        ]
+      },
+      "activity": {
+        "id": "a-ex2-q",
+        "type": "single",
+        "prompt": "例 2：弦 $\\overline{AB}$ 與 $\\overline{CD}$ 是否等長？用什麼理由？",
+        "options": [
+          "等長，△AOB ≅ △COD（SAS）",
+          "等長，△AOB ≅ △COD（SSS）",
+          "等長，△AOB ≅ △COD（RHS）",
+          "不一定等長"
+        ],
+        "correct": [
+          0
+        ],
+        "explanation": "半徑 OA＝OC、OB＝OD，夾角 ∠AOB＝∠COD（度數相等），由 SAS 得全等，所以 AB＝CD。SSS 還要先知道弦相等，這正是要說明的事。"
+      },
+      "notes": "課本這題是「為什麼」，下一頁的隨堂（反過來由弦推弧）讓學生寫完整理由，這一頁只用選擇題確認關鍵步驟。"
+    },
+    {
+      "id": "a-ex2-practice",
+      "phase": "隨堂練習",
+      "eyebrow": "08 / 例 2 隨堂",
+      "title": "反過來：弦相等，弧也相等嗎？",
+      "body": "在畫布上寫出理由，或寫在紙上拍照。左圖只給骨架，「？」要自己填。",
+      "source": "對應課本 2-2 p.112（題目同課本）",
+      "figures": [
+        {
+          "src": "g9-2-2/ex2-practice.png",
+          "alt": "課本 p.112 例 2 隨堂練習"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 20,
+          "yMin": 0,
+          "yMax": 11,
+          "aspect": "equal"
+        },
+        "shapes": [
+          {
+            "type": "circle",
+            "x": 5,
+            "y": 5.5,
+            "r": 4.3,
+            "color": "#1f2a56",
+            "width": 2,
+            "fill": "rgba(47,128,237,.08)",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "polygon",
+            "points": [
+              [
+                5,
+                5.5
+              ],
+              [
+                3.183,
+                9.397
+              ],
+              [
+                8.041,
+                8.541
+              ]
+            ],
+            "fill": "rgba(47,128,237,.18)",
+            "color": "#1f2a56",
+            "width": 2,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "polygon",
+            "points": [
+              [
+                5,
+                5.5
+              ],
+              [
+                0.847,
+                4.387
+              ],
+              [
+                4.625,
+                1.216
+              ]
+            ],
+            "fill": "rgba(47,128,237,.18)",
+            "color": "#1f2a56",
+            "width": 2,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "point",
+            "x": 5,
+            "y": 5.5,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 5.55,
+            "y": 5.35,
+            "text": "O",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "point",
+            "x": 3.183,
+            "y": 9.397,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 2.971,
+            "y": 9.85,
+            "text": "A",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "point",
+            "x": 8.041,
+            "y": 8.541,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 8.394,
+            "y": 8.894,
+            "text": "B",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "point",
+            "x": 0.847,
+            "y": 4.387,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 0.364,
+            "y": 4.258,
+            "text": "C",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "point",
+            "x": 4.625,
+            "y": 1.216,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 4.582,
+            "y": 0.718,
+            "text": "D",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 9.2,
+            "text": "$\\overline{AB}$ ＝ $\\overline{CD}$",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 7.3999999999999995,
+            "text": "$\\overline{OA}$ ＝ $\\overline{OC}$，$\\overline{OB}$ ＝ $\\overline{OD}$",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 5.6,
+            "text": "△AOB ≅ △COD（？）",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 3.799999999999999,
+            "text": "對應角相等：∠AOB ＝ ？",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 1.9999999999999991,
+            "text": "弧的度數？弧的長度？",
+            "size": 19,
+            "color": "#5a3fd6",
+            "step": 3,
+            "focus": [
+              3
+            ]
+          }
+        ],
+        "steps": [
+          "題目給的和半徑",
+          "哪一個全等性質？",
+          "圓心角相等",
+          "度數相等；在同一個圓裡，長度呢？"
+        ]
+      },
+      "activity": {
+        "id": "a-ex2-practice-q",
+        "type": "canvas",
+        "prompt": "課本 p.112 隨堂：弦 $\\overline{AB}$ ＝ $\\overline{CD}$。(1) $\\overset{\\frown}{AB}$ 與 $\\overset{\\frown}{CD}$ 的度數是否相等？為什麼？(2) 長度是否相等？為什麼？",
+        "canvas": "grid",
+        "allowPhoto": true,
+        "aiAllowed": true,
+        "rubric": {
+          "criteria": [
+            {
+              "id": "basis",
+              "label": "推理的依據",
+              "points": 2,
+              "levels": [
+                {
+                  "score": 0,
+                  "description": "沒有寫出依據或依據錯誤"
+                },
+                {
+                  "score": 1,
+                  "description": "有寫出依據，但條件不完整"
+                },
+                {
+                  "score": 2,
+                  "description": "列齊條件，並寫出正確的依據"
+                }
+              ]
+            },
+            {
+              "id": "deg",
+              "label": "第 (1) 小題",
+              "points": 2,
+              "levels": [
+                {
+                  "score": 0,
+                  "description": "未說明"
+                },
+                {
+                  "score": 1,
+                  "description": "只有結論，沒有理由"
+                },
+                {
+                  "score": 2,
+                  "description": "結論正確，並由前面的依據合理推得"
+                }
+              ]
+            },
+            {
+              "id": "len",
+              "label": "第 (2) 小題",
+              "points": 2,
+              "levels": [
+                {
+                  "score": 0,
+                  "description": "未說明"
+                },
+                {
+                  "score": 1,
+                  "description": "只有結論，沒有理由"
+                },
+                {
+                  "score": 2,
+                  "description": "結論正確，並說明成立的條件"
+                }
+              ]
+            }
+          ],
+          "reference": "(1) 因為 AB＝CD、OA＝OC、OB＝OD，所以 △AOB ≅ △COD（SSS）。對應角相等得 ∠AOB＝∠COD，故弧 AB 的度數＝弧 CD 的度數。(2) 由(1)知度數相等，又兩弧在相同的圓中，故弧 AB 的長度＝弧 CD 的長度。",
+          "graderNotes": "依據滿分：由 AB＝CD、OA＝OC、OB＝OD 得 △AOB ≅ △COD（SSS）。第 (1) 小題滿分：由對應角相等得 ∠AOB＝∠COD，所以兩弧度數相等。第 (2) 小題滿分：在同一個圓中，度數相等的兩弧，長度也相等。"
+        }
+      },
+      "notes": "收斂課本結論：同圓或等圓中，度數相等的兩弧（等弧）所對弦長相等，長度相等的兩弦（等弦）所對的弧也相等。"
+    },
+    {
+      "id": "a-ex3",
+      "phase": "工作範例",
+      "eyebrow": "09 / 例 3",
+      "title": "等弦對等弧的應用",
+      "body": "正五邊形五條邊都是圓的弦。先自己算 ∠AOC，再按「下一步」。",
+      "source": "對應課本 2-2 p.113（題目數字同課本）",
+      "figures": [
+        {
+          "src": "g9-2-2/ex3.png",
+          "alt": "課本 p.113 例 3 題目"
+        },
+        {
+          "src": "g9-2-2/equal-arc-rule.png",
+          "alt": "課本 p.112 等弧對等弦、等弦對等弧"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 20,
+          "yMin": 0,
+          "yMax": 11,
+          "aspect": "equal"
+        },
+        "shapes": [
+          {
+            "type": "circle",
+            "x": 5,
+            "y": 5.5,
+            "r": 4.3,
+            "color": "#1f2a56",
+            "width": 2,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "polygon",
+            "points": [
+              [
+                5,
+                9.8
+              ],
+              [
+                0.91,
+                6.829
+              ],
+              [
+                2.473,
+                2.021
+              ],
+              [
+                7.527,
+                2.021
+              ],
+              [
+                9.09,
+                6.829
+              ]
+            ],
+            "fill": "rgba(132,204,22,.22)",
+            "color": "#1f2a56",
+            "width": 2,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                5,
+                9.8
+              ],
+              [
+                4.402,
+                9.758
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                4.402,
+                9.758
+              ],
+              [
+                3.815,
+                9.633
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                3.815,
+                9.633
+              ],
+              [
+                3.251,
+                9.428
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                3.251,
+                9.428
+              ],
+              [
+                2.721,
+                9.147
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                2.721,
+                9.147
+              ],
+              [
+                2.236,
+                8.794
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                2.236,
+                8.794
+              ],
+              [
+                1.804,
+                8.377
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                1.804,
+                8.377
+              ],
+              [
+                1.435,
+                7.905
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                1.435,
+                7.905
+              ],
+              [
+                1.135,
+                7.385
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                1.135,
+                7.385
+              ],
+              [
+                0.91,
+                6.829
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.91,
+                6.829
+              ],
+              [
+                0.765,
+                6.247
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.765,
+                6.247
+              ],
+              [
+                0.703,
+                5.65
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.703,
+                5.65
+              ],
+              [
+                0.724,
+                5.051
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.724,
+                5.051
+              ],
+              [
+                0.828,
+                4.46
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.828,
+                4.46
+              ],
+              [
+                1.013,
+                3.889
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                1.013,
+                3.889
+              ],
+              [
+                1.276,
+                3.35
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                1.276,
+                3.35
+              ],
+              [
+                1.612,
+                2.853
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                1.612,
+                2.853
+              ],
+              [
+                2.013,
+                2.407
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                2.013,
+                2.407
+              ],
+              [
+                2.473,
+                2.021
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                5,
+                5.5
+              ],
+              [
+                5,
+                9.8
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 2.6,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                5,
+                5.5
+              ],
+              [
+                2.473,
+                2.021
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 2.6,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "angle",
+            "points": [
+              [
+                5,
+                9.8
+              ],
+              [
+                5,
+                5.5
+              ],
+              [
+                2.473,
+                2.021
+              ]
+            ],
+            "text": "？",
+            "color": "#e5484d",
+            "focus": [
+              3
+            ]
+          },
+          {
+            "type": "point",
+            "x": 5,
+            "y": 5.5,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 5.5,
+            "y": 5.5,
+            "text": "O",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "point",
+            "x": 5,
+            "y": 9.8,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 5,
+            "y": 10.3,
+            "text": "A",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "point",
+            "x": 0.91,
+            "y": 6.829,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 0.435,
+            "y": 6.983,
+            "text": "B",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "point",
+            "x": 2.473,
+            "y": 2.021,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 2.179,
+            "y": 1.617,
+            "text": "C",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "point",
+            "x": 7.527,
+            "y": 2.021,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 7.821,
+            "y": 1.617,
+            "text": "D",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "point",
+            "x": 9.09,
+            "y": 6.829,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9.565,
+            "y": 6.983,
+            "text": "E",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 9,
+            "text": "五條邊（弦）都相等",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 7,
+            "text": "等弦對等弧：五段弧相等",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 5,
+            "text": "$\\overset{\\frown}{ABC}$ $=360^{\\circ}\\times\\tfrac{2}{5}$",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 3,
+            "text": "∠AOC ＝ $\\overset{\\frown}{ABC}$ ＝ 144°",
+            "size": 19,
+            "color": "#5a3fd6",
+            "step": 3,
+            "focus": [
+              3
+            ]
+          }
+        ],
+        "steps": [
+          "正五邊形的五條邊都是弦",
+          "五段弧把圓周分成 5 等分",
+          "弧 ABC 占 2 段",
+          "圓心角＝弧的度數"
+        ]
+      },
+      "activity": {
+        "id": "a-ex3-q",
+        "type": "numeric",
+        "prompt": "先自己算例 3",
+        "items": [
+          {
+            "prompt": "∠AOC ＝ ？ 度",
+            "answer": "144"
+          }
+        ],
+        "explanation": "答案：五段弧相等，弧 ABC 占 2 段，360°×2/5＝144°，∠AOC＝144°。"
+      },
+      "notes": "弧 ABC 要寫三個字母，表示經過 B 的那一段弧。"
+    },
+    {
+      "id": "a-ex3-practice",
+      "phase": "隨堂練習",
+      "eyebrow": "10 / 例 3 隨堂",
+      "title": "兩弦相交，比較旁邊的兩段弧",
+      "body": "左圖用另一組數字示範。課本的題目沒有數字，選出正確的結論和理由。",
+      "source": "對應課本 2-2 p.113（題目同課本，左圖的示範數字為自編）",
+      "figures": [
+        {
+          "src": "g9-2-2/ex3-practice.png",
+          "alt": "課本 p.113 例 3 隨堂練習"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 20,
+          "yMin": 0,
+          "yMax": 11,
+          "aspect": "equal"
+        },
+        "shapes": [
+          {
+            "type": "circle",
+            "x": 5,
+            "y": 5.5,
+            "r": 4.3,
+            "color": "#1f2a56",
+            "width": 2,
+            "fill": "rgba(123,97,255,.10)",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                1.276,
+                7.65
+              ],
+              [
+                1.027,
+                7.146
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                1.027,
+                7.146
+              ],
+              [
+                0.847,
+                6.613
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.847,
+                6.613
+              ],
+              [
+                0.737,
+                6.061
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.737,
+                6.061
+              ],
+              [
+                0.7,
+                5.5
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.7,
+                5.5
+              ],
+              [
+                0.737,
+                4.939
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.737,
+                4.939
+              ],
+              [
+                0.847,
+                4.387
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.847,
+                4.387
+              ],
+              [
+                1.027,
+                3.854
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                1.027,
+                3.854
+              ],
+              [
+                1.276,
+                3.35
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                1.276,
+                3.35
+              ],
+              [
+                1.589,
+                2.882
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                1.589,
+                2.882
+              ],
+              [
+                1.959,
+                2.459
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                1.959,
+                2.459
+              ],
+              [
+                2.382,
+                2.089
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                2.382,
+                2.089
+              ],
+              [
+                2.85,
+                1.776
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                7.15,
+                1.776
+              ],
+              [
+                7.618,
+                2.089
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                7.618,
+                2.089
+              ],
+              [
+                8.041,
+                2.459
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.041,
+                2.459
+              ],
+              [
+                8.411,
+                2.882
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.411,
+                2.882
+              ],
+              [
+                8.724,
+                3.35
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.724,
+                3.35
+              ],
+              [
+                8.973,
+                3.854
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.973,
+                3.854
+              ],
+              [
+                9.153,
+                4.387
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                9.153,
+                4.387
+              ],
+              [
+                9.263,
+                4.939
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                9.263,
+                4.939
+              ],
+              [
+                9.3,
+                5.5
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                9.3,
+                5.5
+              ],
+              [
+                9.263,
+                6.061
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                9.263,
+                6.061
+              ],
+              [
+                9.153,
+                6.613
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                9.153,
+                6.613
+              ],
+              [
+                8.973,
+                7.146
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.973,
+                7.146
+              ],
+              [
+                8.724,
+                7.65
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                2.85,
+                1.776
+              ],
+              [
+                3.354,
+                1.527
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                3.354,
+                1.527
+              ],
+              [
+                3.887,
+                1.347
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                3.887,
+                1.347
+              ],
+              [
+                4.439,
+                1.237
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                4.439,
+                1.237
+              ],
+              [
+                5,
+                1.2
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                5,
+                1.2
+              ],
+              [
+                5.561,
+                1.237
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                5.561,
+                1.237
+              ],
+              [
+                6.113,
+                1.347
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6.113,
+                1.347
+              ],
+              [
+                6.646,
+                1.527
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6.646,
+                1.527
+              ],
+              [
+                7.15,
+                1.776
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                1.276,
+                7.65
+              ],
+              [
+                7.15,
+                1.776
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 2.2,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                2.85,
+                1.776
+              ],
+              [
+                8.724,
+                7.65
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 2.2,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "point",
+            "x": 5,
+            "y": 5.5,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 5,
+            "y": 6,
+            "text": "O",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "point",
+            "x": 1.276,
+            "y": 7.65,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 0.843,
+            "y": 7.9,
+            "text": "A",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "point",
+            "x": 7.15,
+            "y": 1.776,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 7.4,
+            "y": 1.343,
+            "text": "B",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "point",
+            "x": 2.85,
+            "y": 1.776,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 2.6,
+            "y": 1.343,
+            "text": "C",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "point",
+            "x": 8.724,
+            "y": 7.65,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9.157,
+            "y": 7.9,
+            "text": "D",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 8.8,
+            "text": "$\\overset{\\frown}{ACB}$ ＝ $\\overset{\\frown}{DBC}$ ＝ 150°",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 6.800000000000001,
+            "text": "共同的部分：$\\overset{\\frown}{BC}$ ＝ 60°",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 4.800000000000001,
+            "text": "$\\overset{\\frown}{AC}$ ＝ 150° － 60° ＝ 90°",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 2.8000000000000007,
+            "text": "$\\overset{\\frown}{BD}$ ＝ 150° － 60° ＝ 90°",
+            "size": 19,
+            "color": "#5a3fd6",
+            "step": 3,
+            "focus": [
+              3
+            ]
+          }
+        ],
+        "steps": [
+          "兩段大弧的度數相等（另一組數字）",
+          "兩段都包含弧 BC",
+          "相等的大弧扣掉同一段弧",
+          "剩下的一樣大"
+        ]
+      },
+      "activity": {
+        "id": "a-ex3-practice-q",
+        "type": "single",
+        "prompt": "課本 p.113 隨堂：圓 O 中兩弦 $\\overline{AB}$ ＝ $\\overline{CD}$，$\\overset{\\frown}{AC}$ 與 $\\overset{\\frown}{BD}$ 是否相等？",
+        "options": [
+          "相等：等弦對等弧得 $\\overset{\\frown}{ACB}$ ＝ $\\overset{\\frown}{DBC}$，兩邊都扣掉 $\\overset{\\frown}{BC}$",
+          "相等：兩弦相等，所以 $\\overline{AC}$ 一定和 $\\overline{BD}$ 平行",
+          "不相等：$\\overset{\\frown}{AC}$ 離圓心比較遠",
+          "無法判斷：要先知道圓心角的度數"
+        ],
+        "correct": [
+          0
+        ],
+        "explanation": "由 AB＝CD 得弧 ACB＝弧 DBC（等弦對等弧）。弧 ACB＝弧 AC＋弧 BC，弧 DBC＝弧 BD＋弧 BC，所以弧 AC＝弧 BD。"
+      },
+      "notes": "此題課本是說明題，改成選出結論與理由，讓全班都做得完；需要時請學生口頭說明。"
+    },
+    {
+      "id": "a-error",
+      "phase": "錯誤分析",
+      "eyebrow": "11 / 找錯誤",
+      "title": "小華的弧長對嗎？",
+      "body": "兩同心圓半徑 9、6，∠AOB＝∠COD＝80°。找出小華的錯誤，寫出正確的答案和理由。",
+      "source": "對應課本 2-2 p.111 例 1 的結論（自編錯誤分析）",
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 20,
+          "yMin": 0,
+          "yMax": 11,
+          "aspect": "equal"
+        },
+        "shapes": [
+          {
+            "type": "circle",
+            "x": 5,
+            "y": 5.5,
+            "r": 4.4,
+            "color": "#1f2a56",
+            "width": 2,
+            "fill": "rgba(255,201,60,.10)",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "circle",
+            "x": 5,
+            "y": 5.5,
+            "r": 2.93,
+            "color": "#1f2a56",
+            "width": 2,
+            "fill": "rgba(132,204,22,.22)",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                9.333,
+                6.264
+              ],
+              [
+                9.185,
+                6.86
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                9.185,
+                6.86
+              ],
+              [
+                8.955,
+                7.429
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.955,
+                7.429
+              ],
+              [
+                8.648,
+                7.96
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.648,
+                7.96
+              ],
+              [
+                8.27,
+                8.444
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.27,
+                8.444
+              ],
+              [
+                7.828,
+                8.871
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                7.828,
+                8.871
+              ],
+              [
+                7.332,
+                9.231
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                7.332,
+                9.231
+              ],
+              [
+                6.79,
+                9.52
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6.79,
+                9.52
+              ],
+              [
+                6.213,
+                9.73
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6.213,
+                9.73
+              ],
+              [
+                5.612,
+                9.857
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                5.612,
+                9.857
+              ],
+              [
+                5,
+                9.9
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                7.885,
+                6.009
+              ],
+              [
+                7.787,
+                6.405
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                7.787,
+                6.405
+              ],
+              [
+                7.633,
+                6.784
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                7.633,
+                6.784
+              ],
+              [
+                7.429,
+                7.138
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                7.429,
+                7.138
+              ],
+              [
+                7.177,
+                7.461
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                7.177,
+                7.461
+              ],
+              [
+                6.883,
+                7.745
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6.883,
+                7.745
+              ],
+              [
+                6.553,
+                7.985
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6.553,
+                7.985
+              ],
+              [
+                6.192,
+                8.177
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6.192,
+                8.177
+              ],
+              [
+                5.808,
+                8.316
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                5.808,
+                8.316
+              ],
+              [
+                5.408,
+                8.401
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                5.408,
+                8.401
+              ],
+              [
+                5,
+                8.43
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                5,
+                5.5
+              ],
+              [
+                5,
+                9.9
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 2,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                5,
+                5.5
+              ],
+              [
+                9.333,
+                6.264
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 2,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "angle",
+            "points": [
+              [
+                9.333,
+                6.264
+              ],
+              [
+                5,
+                5.5
+              ],
+              [
+                5,
+                9.9
+              ]
+            ],
+            "text": "80°",
+            "color": "#e5484d",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "point",
+            "x": 5,
+            "y": 5.5,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 4.5,
+            "y": 5.4,
+            "text": "O",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 5,
+            "y": 10.4,
+            "text": "A",
+            "size": 14,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9.826,
+            "y": 6.351,
+            "text": "B",
+            "size": 14,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 4.583,
+            "y": 7.864,
+            "text": "C",
+            "size": 14,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 7.4,
+            "y": 5.5,
+            "text": "D",
+            "size": 14,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 8.8,
+            "text": "小華：兩弧度數相等",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 6.800000000000001,
+            "text": "所以長度也相等",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 4.800000000000001,
+            "text": "都是 $2\\pi\\times9\\times\\tfrac{80}{360}=4\\pi$",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 2.8000000000000007,
+            "text": "$\\overset{\\frown}{CD}$ 的長度 ＝ ？",
+            "size": 19,
+            "color": "#5a3fd6",
+            "step": 3,
+            "focus": [
+              3
+            ]
+          }
+        ],
+        "steps": [
+          "度數的部分對嗎？",
+          "這一步要什麼條件？",
+          "這個算式算的是哪一段弧？",
+          "自己算出來"
+        ]
+      },
+      "activity": {
+        "id": "a-error-q",
+        "type": "canvas",
+        "prompt": "小華說「度數相等，所以兩段弧長都是 4π」。① 圈出錯誤 ② 算出弧 CD 正確的長度 ③ 說明理由",
+        "canvas": "grid",
+        "allowPhoto": true,
+        "aiAllowed": true,
+        "rubric": {
+          "criteria": [
+            {
+              "id": "find",
+              "label": "找出錯誤",
+              "points": 2,
+              "levels": [
+                {
+                  "score": 0,
+                  "description": "未指出錯誤"
+                },
+                {
+                  "score": 1,
+                  "description": "只說有錯，沒有指出錯在哪裡"
+                },
+                {
+                  "score": 2,
+                  "description": "明確指出錯的是哪一步，並說明錯在哪裡"
+                }
+              ]
+            },
+            {
+              "id": "fix",
+              "label": "正確計算",
+              "points": 2,
+              "levels": [
+                {
+                  "score": 0,
+                  "description": "答案錯誤或未作答"
+                },
+                {
+                  "score": 1,
+                  "description": "列式正確但計算錯"
+                },
+                {
+                  "score": 2,
+                  "description": "列式與計算都正確"
+                }
+              ]
+            },
+            {
+              "id": "why",
+              "label": "說明理由",
+              "points": 2,
+              "levels": [
+                {
+                  "score": 0,
+                  "description": "沒有理由"
+                },
+                {
+                  "score": 1,
+                  "description": "理由不完整"
+                },
+                {
+                  "score": 2,
+                  "description": "能說明這個結論要在什麼條件下才成立"
+                }
+              ]
+            }
+          ],
+          "reference": "度數相等（都是 80°）是對的，但兩圓半徑不同，弧長不相等。弧 AB＝2π×9×80/360＝4π，弧 CD＝2π×6×80/360＝8π/3。只有在同圓或等圓中，度數相等才會弧長相等。",
+          "graderNotes": "找出錯誤滿分：指出兩弧半徑不同，度數相等不代表長度相等。正確計算滿分：弧 CD＝2π×6×80/360＝8π/3。說明理由滿分：要在同圓或等圓中，度數相等才能推得弧長相等；弧長還要乘圓周長。只說半徑不一樣給 1 分。"
+        }
+      },
+      "notes": "收件後按「AI 批改」，覆核後發回；可回到具體操作頁看內外兩圈。"
+    },
+    {
+      "id": "a-exit",
+      "phase": "出場券",
+      "eyebrow": "12 / 出場券",
+      "title": "度數和長度，差在哪裡？",
+      "body": "用自己的話說明，並舉一個度數相等、長度不相等的例子。",
+      "source": "對應課本 2-2 p.110–112 重點（自編出場券）",
+      "figures": [
+        {
+          "src": "g9-2-2/arc-rule.png",
+          "alt": "課本 p.111 弧的度數與弧的長度"
+        }
+      ],
+      "activity": {
+        "id": "a-exit-q",
+        "type": "short",
+        "prompt": "弧的「度數」和弧的「長度」差在哪裡？舉一個度數相等、長度不相等的例子。",
+        "aiAllowed": true,
+        "rubric": {
+          "criteria": [
+            {
+              "id": "meaning",
+              "label": "意義",
+              "points": 2,
+              "levels": [
+                {
+                  "score": 0,
+                  "description": "沒有區分兩者"
+                },
+                {
+                  "score": 1,
+                  "description": "有區分，但說明不完整"
+                },
+                {
+                  "score": 2,
+                  "description": "清楚說明兩者各由什麼決定"
+                }
+              ]
+            },
+            {
+              "id": "example",
+              "label": "舉例",
+              "points": 2,
+              "levels": [
+                {
+                  "score": 0,
+                  "description": "沒有例子"
+                },
+                {
+                  "score": 1,
+                  "description": "例子不完整"
+                },
+                {
+                  "score": 2,
+                  "description": "舉出符合題目要求的正確例子"
+                }
+              ]
+            }
+          ],
+          "reference": "度數就是所對圓心角的度數，和半徑無關；長度是圓周長的 x/360，和半徑有關。例如兩同心圓半徑 8、10，圓心角都是 120°，度數都是 120°，弧長分別是 16π/3、20π/3。",
+          "graderNotes": "意義滿分：度數只看圓心角；長度＝圓周長×x/360，還要看半徑。只說一個會變一個不會給 1 分。舉例滿分：舉出半徑不同、圓心角相同的兩段弧，例如同心圓。"
+        }
+      }
+    },
+    {
+      "id": "a-reflect",
+      "phase": "後設認知",
+      "eyebrow": "最後 / 給自己打分數",
+      "title": "今天的內容，我掌握了多少？",
+      "body": "誠實評估，下一節課會從大家最沒把握的地方開始複習。",
+      "source": "自編自評：對應課本 2-2 p.110–113 重點",
+      "visual": "cards",
+      "notes": "3 分以下的學生，下節課開頭用提取練習再做一次；可用抽籤「答錯」請同學上台說明。",
+      "activity": {
+        "id": "a-reflect",
+        "type": "scale",
+        "prompt": "我能分辨弧的度數與長度，並使用等弧對等弦、等弦對等弧",
+        "min": 1,
+        "max": 5,
+        "minLabel": "還需要再看一次",
+        "maxLabel": "可以教別人"
+      }
+    }
+  ]
+}

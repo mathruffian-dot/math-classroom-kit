@@ -1,0 +1,27 @@
+{
+  "slides": [
+    {
+      "id": "warmup",
+      "phase": "暖身",
+      "eyebrow": "暖身 / 估一估",
+      "title": "估一估：對面的那段弧",
+      "body": "A、B、C 在圓上，經過 B 的那段弧 ABC 是 260°。先想 ∠ABC 對的是哪一段弧。",
+      "visual": "steps",
+      "bullets": [
+        "∠ABC 對的是不經過 B 的那段弧",
+        "那段弧是幾度？（整個圓是 360°）",
+        "圓周角是弧的一半"
+      ],
+      "activity": {
+        "id": "warmup-est",
+        "type": "numeric",
+        "prompt": "∠ABC 大約幾度？",
+        "answer": "50",
+        "tolerance": 5,
+        "explanation": "不經過 B 的弧是 $360^\\circ - 260^\\circ = 100^\\circ$，$\\angle ABC = 100^\\circ \\div 2 = 50^\\circ$。今天把這個想法用在四邊形。"
+      },
+      "notes": "容許誤差 ±5：50、48、52 都算對。先看全班答案的分布，再請估得最近、最遠的同學說怎麼想。",
+      "source": "暖身（自編）：估一估（複習圓周角所對的弧，預告圓內接四邊形）"
+    }
+  ]
+}

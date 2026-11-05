@@ -1,0 +1,2416 @@
+{
+  "schemaVersion": 1,
+  "id": "g8-3-1d",
+  "title": "3-1 提公因式與乘法公式作因式分解（4）利用乘法公式",
+  "description": "把乘法公式左右互換：切割正方形看見平方差、用代數磚拼出完全平方，練習利用平方差、和的平方、差的平方公式因式分解。例題與隨堂皆附課本截圖。",
+  "subject": "數學・八年級 3-1",
+  "duration": 45,
+  "objectives": [
+    "能判斷多項式是否符合乘法公式的形式",
+    "能利用平方差公式因式分解",
+    "能利用和的平方、差的平方公式因式分解"
+  ],
+  "slides": [
+    {
+      "id": "d-warmup",
+      "phase": "提取練習",
+      "eyebrow": "01 / 先想起乘法公式",
+      "title": "三個乘法公式，你還記得嗎？",
+      "body": "這一堂把它們左右互換來用。先做三個暖身題。",
+      "source": "自編提問，銜接 1-1 乘法公式；左圖為課本 3-1 p.121 公式",
+      "figures": [
+        {
+          "src": "g8-3-1/formulas.png",
+          "alt": "課本 p.121 乘法公式左右互換"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 12,
+          "yMin": 0.2,
+          "yMax": 2.9,
+          "aspect": "fill"
+        },
+        "shapes": [
+          {
+            "type": "text",
+            "x": 2,
+            "y": 2,
+            "text": "$(a+b)(a-b)$",
+            "size": 20,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 2,
+            "y": 1,
+            "text": "$=a^2-b^2$",
+            "size": 19,
+            "color": "#5a3fd6",
+            "step": 1,
+            "focus": [
+              1,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                4,
+                0.4
+              ],
+              [
+                4,
+                2.5
+              ]
+            ],
+            "color": "#c9d0ea",
+            "width": 1.2,
+            "dash": true,
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6,
+            "y": 2,
+            "text": "$(a+b)^2$",
+            "size": 20,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6,
+            "y": 1,
+            "text": "$=a^2+2ab+b^2$",
+            "size": 19,
+            "color": "#5a3fd6",
+            "step": 3,
+            "focus": [
+              3,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8,
+                0.4
+              ],
+              [
+                8,
+                2.5
+              ]
+            ],
+            "color": "#c9d0ea",
+            "width": 1.2,
+            "dash": true,
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 10,
+            "y": 2,
+            "text": "$(a-b)^2$",
+            "size": 20,
+            "color": "#1f2a56",
+            "step": 4,
+            "focus": [
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 10,
+            "y": 1,
+            "text": "$=a^2-2ab+b^2$",
+            "size": 19,
+            "color": "#5a3fd6",
+            "step": 5,
+            "focus": [
+              5
+            ]
+          }
+        ],
+        "steps": [
+          "平方差公式",
+          "兩個平方相減",
+          "和的平方公式",
+          "中間項 2ab 不能漏",
+          "差的平方公式",
+          "中間項是負的"
+        ]
+      },
+      "activity": {
+        "id": "d-warmup-q",
+        "type": "numeric",
+        "prompt": "暖身：直接寫出 □ 裡的數字",
+        "items": [
+          {
+            "prompt": "$(x+3)^2=x^2+\\square x+9$",
+            "answer": "6"
+          },
+          {
+            "prompt": "$(x-5)^2=x^2-10x+\\square$",
+            "answer": "25"
+          },
+          {
+            "prompt": "$(x+4)(x-4)=x^2-\\square$",
+            "answer": "16"
+          }
+        ],
+        "explanation": "(1) $2\\times x\\times3=6x$。(2) $5^2=25$。(3) $4^2=16$。"
+      },
+      "notes": "提取練習約 2 分鐘。第 1 題寫成 3x 的同學，是漏了 2ab 的 2。"
+    },
+    {
+      "id": "d-predict",
+      "phase": "預測",
+      "eyebrow": "02 / 先猜再驗證",
+      "title": "x²−9 可以寫成哪兩個式子相乘？",
+      "body": "先憑直覺選一個，下一頁動手切切看。",
+      "source": "自編提問，預告課本 3-1 p.121 例 6",
+      "visual": "cards",
+      "activity": {
+        "id": "d-predict-q",
+        "type": "single",
+        "prompt": "x²−9 因式分解的結果是？",
+        "options": [
+          "$(x-3)^2$",
+          "$(x+3)^2$",
+          "$(x+3)(x-3)$",
+          "$(x-9)(x+1)$"
+        ],
+        "correct": [
+          2
+        ],
+        "explanation": "$x^2-9=x^2-3^2=(x+3)(x-3)$。$(x-3)^2$ 展開有中間項 $-6x$，原式沒有。"
+      },
+      "notes": "先公布統計、不公布答案。選 (x−3)² 的同學：請他展開檢查。"
+    },
+    {
+      "id": "d-diff",
+      "phase": "具體操作",
+      "eyebrow": "03 / 切一塊搬過去",
+      "title": "兩個平方相減，切開來重拼",
+      "body": "大正方形切掉角落。拖拉滑桿把上面那塊轉 90° 搬到右邊：變成長 a＋b、寬 a−b 的長方形。",
+      "source": "自編操作，對應課本 3-1 p.121 平方差公式",
+      "interactive": {
+        "view": {
+          "xMin": -1.4,
+          "xMax": 10.4,
+          "yMin": -1.4,
+          "yMax": 8,
+          "aspect": "equal"
+        },
+        "params": [
+          {
+            "id": "a",
+            "label": "大正方形邊長 $a$",
+            "min": 4,
+            "max": 6,
+            "step": 1,
+            "value": 5
+          },
+          {
+            "id": "b",
+            "label": "切掉的小正方形邊長 $b$",
+            "min": 1,
+            "max": 3,
+            "step": 1,
+            "value": 2
+          },
+          {
+            "id": "t",
+            "label": "把上面那一塊轉 90° 搬到右邊",
+            "min": 0,
+            "max": 1,
+            "step": 0.25,
+            "value": 0
+          }
+        ],
+        "shapes": [
+          {
+            "type": "rect",
+            "x": "a-b",
+            "y": "a-b",
+            "w": "b",
+            "h": "b",
+            "color": "#e5484d",
+            "width": 1.6,
+            "dash": true,
+            "show": "t==0"
+          },
+          {
+            "type": "text",
+            "x": "a-b/2",
+            "y": "a-b/2",
+            "text": "$b^2$",
+            "size": 15,
+            "color": "#e5484d",
+            "show": "t==0"
+          },
+          {
+            "type": "rect",
+            "x": 0,
+            "y": 0,
+            "w": "a",
+            "h": "a-b",
+            "fill": "rgba(123,97,255,.26)",
+            "color": "#7b61ff",
+            "width": 2
+          },
+          {
+            "type": "polygon",
+            "points": [
+              [
+                "((a-b)/2)+t*((a+b/2)-((a-b)/2))+(-1)*(a-b)/2*cos(90*t)+(-1)*b/2*sin(90*t)",
+                "(a-b/2)+t*(((a-b)/2)-(a-b/2))-(-1)*(a-b)/2*sin(90*t)+(-1)*b/2*cos(90*t)"
+              ],
+              [
+                "((a-b)/2)+t*((a+b/2)-((a-b)/2))+(1)*(a-b)/2*cos(90*t)+(-1)*b/2*sin(90*t)",
+                "(a-b/2)+t*(((a-b)/2)-(a-b/2))-(1)*(a-b)/2*sin(90*t)+(-1)*b/2*cos(90*t)"
+              ],
+              [
+                "((a-b)/2)+t*((a+b/2)-((a-b)/2))+(1)*(a-b)/2*cos(90*t)+(1)*b/2*sin(90*t)",
+                "(a-b/2)+t*(((a-b)/2)-(a-b/2))-(1)*(a-b)/2*sin(90*t)+(1)*b/2*cos(90*t)"
+              ],
+              [
+                "((a-b)/2)+t*((a+b/2)-((a-b)/2))+(-1)*(a-b)/2*cos(90*t)+(1)*b/2*sin(90*t)",
+                "(a-b/2)+t*(((a-b)/2)-(a-b/2))-(-1)*(a-b)/2*sin(90*t)+(1)*b/2*cos(90*t)"
+              ]
+            ],
+            "fill": "rgba(47,128,237,.26)",
+            "color": "#2f80ed",
+            "width": 2
+          },
+          {
+            "type": "brace",
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                "a"
+              ]
+            ],
+            "text": "$a$",
+            "show": "t==0"
+          },
+          {
+            "type": "brace",
+            "points": [
+              [
+                0,
+                "a"
+              ],
+              [
+                "a",
+                "a"
+              ]
+            ],
+            "text": "$a$",
+            "show": "t==0"
+          },
+          {
+            "type": "brace",
+            "points": [
+              [
+                0,
+                "a-b"
+              ],
+              [
+                "a+b",
+                "a-b"
+              ]
+            ],
+            "text": "長 $a+b={a+b}$",
+            "show": "t==1"
+          },
+          {
+            "type": "brace",
+            "points": [
+              [
+                "a+b",
+                "a-b"
+              ],
+              [
+                "a+b",
+                0
+              ]
+            ],
+            "text": "寬 $a-b={a-b}$",
+            "show": "t==1"
+          },
+          {
+            "type": "text",
+            "x": 5,
+            "y": 7.3,
+            "text": "面積 $a^2-b^2={a^2-b^2}$",
+            "size": 18,
+            "color": "#1f2a56",
+            "show": "t<1"
+          },
+          {
+            "type": "text",
+            "x": 5,
+            "y": 7.3,
+            "text": "$a^2-b^2=(a+b)(a-b)={a+b}\\times{a-b}$",
+            "size": 18,
+            "color": "#5a3fd6",
+            "show": "t==1"
+          }
+        ],
+        "readouts": [
+          {
+            "label": "$a^2-b^2$",
+            "expr": "a^2-b^2"
+          },
+          {
+            "label": "$(a+b)(a-b)$",
+            "expr": "(a+b)*(a-b)"
+          }
+        ],
+        "caption": "藍色塊只有搬動和旋轉，大小形狀不變，所以總面積一直是 $a^2-b^2$：兩個平方的差可以寫成兩個因式的積"
+      },
+      "activity": {
+        "id": "d-diff-q",
+        "type": "manipulate",
+        "prompt": "把上面那塊完全搬到右邊（t 拉到底），再按「送出我的操作」。",
+        "check": "t==1",
+        "record": [
+          "t"
+        ],
+        "explanation": "面積不變，形狀變成長 $a+b$、寬 $a-b$ 的長方形：$a^2-b^2=(a+b)(a-b)$。"
+      },
+      "notes": "具體操作（CRA）。藍色塊全程只有搬動和旋轉，大小形狀不變；中途可能暫時蓋住紫色塊，面積並沒有變。換幾組 a、b，比對兩個讀數永遠相等。"
+    },
+    {
+      "id": "d-ex6",
+      "phase": "工作範例",
+      "eyebrow": "04 / 例 6 平方差",
+      "title": "先寫成 a²−b²",
+      "body": "先看兩項是不是都能寫成平方。先自己算，再按「下一步」對照。1 可以寫成 1²。",
+      "source": "課本原題：3-1 p.121（改為數值填空）",
+      "figures": [
+        {
+          "src": "g8-3-1/diff-squares-intro.png",
+          "alt": "課本 p.121 利用平方差公式"
+        },
+        {
+          "src": "g8-3-1/ex6.png",
+          "alt": "課本 p.121 例 6 題目"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 12,
+          "yMin": 0.2,
+          "yMax": 3.9,
+          "aspect": "fill"
+        },
+        "shapes": [
+          {
+            "type": "text",
+            "x": 3,
+            "y": 3,
+            "text": "$x^2-4$",
+            "size": 23,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3,
+            "y": 2,
+            "text": "$=x^2-2^2$",
+            "size": 22,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3,
+            "y": 1,
+            "text": "$=(x+2)(x-2)$",
+            "size": 22,
+            "color": "#5a3fd6",
+            "step": 2,
+            "focus": [
+              2,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6,
+                0.4
+              ],
+              [
+                6,
+                3.5
+              ]
+            ],
+            "color": "#c9d0ea",
+            "width": 1.2,
+            "dash": true,
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 3,
+            "text": "$36x^2-1$",
+            "size": 23,
+            "color": "#1f2a56",
+            "step": 3,
+            "focus": [
+              3,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 2,
+            "text": "$=(6x)^2-1^2$",
+            "size": 22,
+            "color": "#1f2a56",
+            "step": 4,
+            "focus": [
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 1,
+            "text": "$=(6x+1)(6x-1)$",
+            "size": 22,
+            "color": "#5a3fd6",
+            "step": 5,
+            "focus": [
+              5
+            ]
+          }
+        ],
+        "steps": [
+          "(1) 兩項相減",
+          "a＝x、b＝2",
+          "代入平方差公式",
+          "(2) 兩項相減",
+          "36x²＝(6x)²，a＝6x、b＝1",
+          "代入平方差公式"
+        ]
+      },
+      "activity": {
+        "id": "d-ex6-q",
+        "type": "numeric",
+        "prompt": "先自己算例 6，再把 □ 裡的數字填進來",
+        "items": [
+          {
+            "prompt": "$x^2-4=(x+\\square)(x-2)$",
+            "answer": "2"
+          },
+          {
+            "prompt": "$36x^2-1=(6x+1)(\\square x-1)$",
+            "answer": "6"
+          }
+        ],
+        "explanation": "(1) $x^2-2^2=(x+2)(x-2)$。(2) $(6x)^2-1^2=(6x+1)(6x-1)$。"
+      },
+      "notes": "教用版：國中階段因式以有理係數為限，x²−5＝(x＋√5)(x−√5) 不是課程內容。 鷹架安排：工作範例（按「下一步」看完整示範）→ IRS 的 □ 是只留關鍵步驟的填空鷹架 → 下一頁隨堂撤除提示，先紙筆獨立完成。"
+    },
+    {
+      "id": "d-ex6-practice",
+      "phase": "隨堂練習",
+      "eyebrow": "05 / 例 6 隨堂",
+      "title": "換你算：平方差",
+      "body": "課本隨堂原題。先寫完整過程，再填 □。左圖用另一組數字示範。",
+      "source": "課本原題：3-1 p.121（改為數值填空）；左圖示範的數字為自編",
+      "figures": [
+        {
+          "src": "g8-3-1/ex6-practice.png",
+          "alt": "課本 p.121 例 6 隨堂練習"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 12,
+          "yMin": 0.2,
+          "yMax": 3.9,
+          "aspect": "fill"
+        },
+        "shapes": [
+          {
+            "type": "text",
+            "x": 3,
+            "y": 3,
+            "text": "$x^2-25$",
+            "size": 23,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3,
+            "y": 2,
+            "text": "$=x^2-5^2$",
+            "size": 22,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3,
+            "y": 1,
+            "text": "$=(x+5)(x-5)$",
+            "size": 22,
+            "color": "#5a3fd6",
+            "step": 2,
+            "focus": [
+              2,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6,
+                0.4
+              ],
+              [
+                6,
+                3.5
+              ]
+            ],
+            "color": "#c9d0ea",
+            "width": 1.2,
+            "dash": true,
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 3,
+            "text": "$9x^2-16$",
+            "size": 23,
+            "color": "#1f2a56",
+            "step": 3,
+            "focus": [
+              3,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 2,
+            "text": "$=(3x)^2-4^2$",
+            "size": 22,
+            "color": "#1f2a56",
+            "step": 4,
+            "focus": [
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 1,
+            "text": "$=(3x+4)(3x-4)$",
+            "size": 22,
+            "color": "#5a3fd6",
+            "step": 5,
+            "focus": [
+              5
+            ]
+          }
+        ],
+        "steps": [
+          "示範（另一組數字）",
+          "a＝x、b＝5",
+          "代入公式",
+          "示範：有係數",
+          "9x²＝(3x)²，不是 (9x)²",
+          "代入公式"
+        ]
+      },
+      "activity": {
+        "id": "d-ex6-practice-q",
+        "type": "numeric",
+        "prompt": "先在課本上寫完整過程，再把 □ 裡的數字填進來",
+        "items": [
+          {
+            "prompt": "$x^2-16=(x+\\square)(x-4)$",
+            "answer": "4"
+          },
+          {
+            "prompt": "$4x^2-25=(2x+5)(\\square x-5)$",
+            "answer": "2"
+          }
+        ],
+        "explanation": "(1) $x^2-4^2=(x+4)(x-4)$。(2) $(2x)^2-5^2=(2x+5)(2x-5)$。"
+      },
+      "notes": "教用版提醒：部分同學會把 4x² 誤寫成 (4x)²。 鷹架安排：翻到這一頁前，先請學生在課本上獨立寫完整過程（這一頁的填空會透露分解結構）；寫完再開放 IRS，□ 只用來核對。答對不等於能獨立分解，請巡視或抽查紙筆。"
+    },
+    {
+      "id": "d-ex7",
+      "phase": "工作範例",
+      "eyebrow": "06 / 例 7 平方差的應用",
+      "title": "a、b 可以是一整個括號",
+      "body": "把 (x＋2) 看成 a。先自己算，再按「下一步」對照。",
+      "source": "課本原題：3-1 p.122（改為數值填空）",
+      "figures": [
+        {
+          "src": "g8-3-1/ex7.png",
+          "alt": "課本 p.122 例 7 題目"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 12,
+          "yMin": 0.2,
+          "yMax": 4.9,
+          "aspect": "fill"
+        },
+        "shapes": [
+          {
+            "type": "text",
+            "x": 3,
+            "y": 4,
+            "text": "$(x+2)^2-9$",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              7
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3,
+            "y": 3,
+            "text": "$=(x+2)^2-3^2$",
+            "size": 18,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              7
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3,
+            "y": 2,
+            "text": "$=[(x+2)+3][(x+2)-3]$",
+            "size": 18,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              7
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3,
+            "y": 1,
+            "text": "$=(x+5)(x-1)$",
+            "size": 18,
+            "color": "#5a3fd6",
+            "step": 3,
+            "focus": [
+              3,
+              7
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6,
+                0.4
+              ],
+              [
+                6,
+                4.5
+              ]
+            ],
+            "color": "#c9d0ea",
+            "width": 1.2,
+            "dash": true,
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 4,
+            "text": "$4-(y-1)^2$",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 4,
+            "focus": [
+              4,
+              7
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 3,
+            "text": "$=2^2-(y-1)^2$",
+            "size": 18,
+            "color": "#1f2a56",
+            "step": 5,
+            "focus": [
+              5,
+              7
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 2,
+            "text": "$=[2+(y-1)][2-(y-1)]$",
+            "size": 18,
+            "color": "#1f2a56",
+            "step": 6,
+            "focus": [
+              6,
+              7
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 1,
+            "text": "$=(y+1)(-y+3)$",
+            "size": 18,
+            "color": "#5a3fd6",
+            "step": 7,
+            "focus": [
+              7
+            ]
+          }
+        ],
+        "steps": [
+          "(1) 看成 a²−b²",
+          "a＝x＋2、b＝3",
+          "代入公式，括號留著",
+          "合併",
+          "(2) 看成 a²−b²",
+          "a＝2、b＝y−1",
+          "代入公式，括號留著",
+          "減號要變號；也可寫成 −(y＋1)(y−3)"
+        ]
+      },
+      "activity": {
+        "id": "d-ex7-q",
+        "type": "numeric",
+        "prompt": "先自己算例 7，再把 □ 裡的數字填進來",
+        "items": [
+          {
+            "prompt": "$(x+2)^2-9=(x+5)(x-\\square)$",
+            "answer": "1"
+          },
+          {
+            "prompt": "$4-(y-1)^2=(y+1)(-y+\\square)$",
+            "answer": "3"
+          }
+        ],
+        "explanation": "(1) $[(x+2)+3][(x+2)-3]=(x+5)(x-1)$。(2) $[2+(y-1)][2-(y-1)]=(y+1)(-y+3)$，也可寫成 $-(y+1)(y-3)$。"
+      },
+      "notes": "先用中括號保留結構，再去括號。教用版：(2) 兩種寫法都對。 鷹架安排：工作範例（按「下一步」看完整示範）→ IRS 的 □ 是只留關鍵步驟的填空鷹架 → 下一頁隨堂撤除提示，先紙筆獨立完成。"
+    },
+    {
+      "id": "d-ex7-practice",
+      "phase": "隨堂練習",
+      "eyebrow": "07 / 例 7 隨堂",
+      "title": "換你算：括號當一塊",
+      "body": "課本隨堂原題。先寫完整過程，再填 □。左圖用另一組數字示範。",
+      "source": "課本原題：3-1 p.122（改為數值填空）；左圖示範的數字為自編",
+      "figures": [
+        {
+          "src": "g8-3-1/ex7-practice.png",
+          "alt": "課本 p.122 例 7 隨堂練習"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 12,
+          "yMin": 0.2,
+          "yMax": 3.9,
+          "aspect": "fill"
+        },
+        "shapes": [
+          {
+            "type": "text",
+            "x": 3,
+            "y": 3,
+            "text": "$(x+1)^2-16$",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3,
+            "y": 2,
+            "text": "$=[(x+1)+4][(x+1)-4]$",
+            "size": 18,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3,
+            "y": 1,
+            "text": "$=(x+5)(x-3)$",
+            "size": 18,
+            "color": "#5a3fd6",
+            "step": 2,
+            "focus": [
+              2,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6,
+                0.4
+              ],
+              [
+                6,
+                3.5
+              ]
+            ],
+            "color": "#c9d0ea",
+            "width": 1.2,
+            "dash": true,
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 3,
+            "text": "$25-(y+2)^2$",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 3,
+            "focus": [
+              3,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 2,
+            "text": "$=[5+(y+2)][5-(y+2)]$",
+            "size": 18,
+            "color": "#1f2a56",
+            "step": 4,
+            "focus": [
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 1,
+            "text": "$=(y+7)(-y+3)$",
+            "size": 18,
+            "color": "#5a3fd6",
+            "step": 5,
+            "focus": [
+              5
+            ]
+          }
+        ],
+        "steps": [
+          "示範（另一組數字）",
+          "a＝x＋1、b＝4",
+          "合併",
+          "示範：第一項是常數",
+          "a＝5、b＝y＋2",
+          "減號要變號；也可寫成 −(y＋7)(y−3)"
+        ]
+      },
+      "activity": {
+        "id": "d-ex7-practice-q",
+        "type": "numeric",
+        "prompt": "先在課本上寫完整過程，再把 □ 裡的數字填進來",
+        "items": [
+          {
+            "prompt": "$(x+2)^2-36=(x+8)(x-\\square)$",
+            "answer": "4"
+          },
+          {
+            "prompt": "$16-(2y+3)^2=(2y+7)(-2y+\\square)$",
+            "answer": "1"
+          }
+        ],
+        "explanation": "(1) $[(x+2)+6][(x+2)-6]=(x+8)(x-4)$。(2) $[4+(2y+3)][4-(2y+3)]=(2y+7)(-2y+1)$，也可寫成 $-(2y+7)(2y-1)$。"
+      },
+      "notes": "常見錯誤：4−(2y＋3) 算成 4−2y＋3，後面的 3 沒有變號。 鷹架安排：翻到這一頁前，先請學生在課本上獨立寫完整過程（這一頁的填空會透露分解結構）；寫完再開放 IRS，□ 只用來核對。答對不等於能獨立分解，請巡視或抽查紙筆。"
+    },
+    {
+      "id": "d-square",
+      "phase": "具體操作",
+      "eyebrow": "08 / 拼正方形",
+      "title": "什麼樣的磚，拼得出正方形？",
+      "body": "拖拉 p、q，用 1 張 x²、4 張 x、4 張 1 拼圖。長和寬一樣時，就是完全平方。",
+      "source": "自編操作（代數磚數字為自編），對應課本 3-1 p.123–124",
+      "interactive": {
+        "view": {
+          "xMin": -2.8,
+          "xMax": 8.1,
+          "yMin": -0.6,
+          "yMax": 8.9,
+          "aspect": "equal"
+        },
+        "params": [
+          {
+            "id": "p",
+            "label": "右邊加幾排（$x+p$ 的 $p$）",
+            "min": 1,
+            "max": 4,
+            "step": 1,
+            "value": 1
+          },
+          {
+            "id": "q",
+            "label": "下面加幾排（$x+q$ 的 $q$）",
+            "min": 1,
+            "max": 4,
+            "step": 1,
+            "value": 3
+          }
+        ],
+        "shapes": [
+          {
+            "type": "rect",
+            "x": 0,
+            "y": "q",
+            "w": 3.5,
+            "h": 3.5,
+            "fill": "rgba(123,97,255,.26)",
+            "color": "#7b61ff",
+            "width": 2
+          },
+          {
+            "type": "text",
+            "x": 1.75,
+            "y": "q+1.75",
+            "text": "$x^2$",
+            "size": 20,
+            "color": "#5a3fd6"
+          },
+          {
+            "type": "rect",
+            "x": 3.5,
+            "y": "q",
+            "w": 1,
+            "h": 3.5,
+            "fill": "rgba(47,128,237,.26)",
+            "color": "#2f80ed",
+            "show": "p>0"
+          },
+          {
+            "type": "text",
+            "x": 4,
+            "y": "q+1.75",
+            "text": "$x$",
+            "size": 15,
+            "color": "#1d4fa3",
+            "show": "p>0"
+          },
+          {
+            "type": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 3.5,
+            "h": 1,
+            "fill": "rgba(47,128,237,.26)",
+            "color": "#2f80ed",
+            "show": "q>0"
+          },
+          {
+            "type": "text",
+            "x": 1.75,
+            "y": 0.5,
+            "text": "$x$",
+            "size": 15,
+            "color": "#1d4fa3",
+            "show": "q>0"
+          },
+          {
+            "type": "rect",
+            "x": 3.5,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "fill": "rgba(255,138,61,.32)",
+            "color": "#ff8a3d",
+            "show": "p>0 && q>0"
+          },
+          {
+            "type": "rect",
+            "x": 3.5,
+            "y": 1,
+            "w": 1,
+            "h": 1,
+            "fill": "rgba(255,138,61,.32)",
+            "color": "#ff8a3d",
+            "show": "p>0 && q>1"
+          },
+          {
+            "type": "rect",
+            "x": 3.5,
+            "y": 2,
+            "w": 1,
+            "h": 1,
+            "fill": "rgba(255,138,61,.32)",
+            "color": "#ff8a3d",
+            "show": "p>0 && q>2"
+          },
+          {
+            "type": "rect",
+            "x": 3.5,
+            "y": 3,
+            "w": 1,
+            "h": 1,
+            "fill": "rgba(255,138,61,.32)",
+            "color": "#ff8a3d",
+            "show": "p>0 && q>3"
+          },
+          {
+            "type": "rect",
+            "x": 4.5,
+            "y": "q",
+            "w": 1,
+            "h": 3.5,
+            "fill": "rgba(47,128,237,.26)",
+            "color": "#2f80ed",
+            "show": "p>1"
+          },
+          {
+            "type": "text",
+            "x": 5,
+            "y": "q+1.75",
+            "text": "$x$",
+            "size": 15,
+            "color": "#1d4fa3",
+            "show": "p>1"
+          },
+          {
+            "type": "rect",
+            "x": 0,
+            "y": 1,
+            "w": 3.5,
+            "h": 1,
+            "fill": "rgba(47,128,237,.26)",
+            "color": "#2f80ed",
+            "show": "q>1"
+          },
+          {
+            "type": "text",
+            "x": 1.75,
+            "y": 1.5,
+            "text": "$x$",
+            "size": 15,
+            "color": "#1d4fa3",
+            "show": "q>1"
+          },
+          {
+            "type": "rect",
+            "x": 4.5,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "fill": "rgba(255,138,61,.32)",
+            "color": "#ff8a3d",
+            "show": "p>1 && q>0"
+          },
+          {
+            "type": "rect",
+            "x": 4.5,
+            "y": 1,
+            "w": 1,
+            "h": 1,
+            "fill": "rgba(255,138,61,.32)",
+            "color": "#ff8a3d",
+            "show": "p>1 && q>1"
+          },
+          {
+            "type": "rect",
+            "x": 4.5,
+            "y": 2,
+            "w": 1,
+            "h": 1,
+            "fill": "rgba(255,138,61,.32)",
+            "color": "#ff8a3d",
+            "show": "p>1 && q>2"
+          },
+          {
+            "type": "rect",
+            "x": 4.5,
+            "y": 3,
+            "w": 1,
+            "h": 1,
+            "fill": "rgba(255,138,61,.32)",
+            "color": "#ff8a3d",
+            "show": "p>1 && q>3"
+          },
+          {
+            "type": "rect",
+            "x": 5.5,
+            "y": "q",
+            "w": 1,
+            "h": 3.5,
+            "fill": "rgba(47,128,237,.26)",
+            "color": "#2f80ed",
+            "show": "p>2"
+          },
+          {
+            "type": "text",
+            "x": 6,
+            "y": "q+1.75",
+            "text": "$x$",
+            "size": 15,
+            "color": "#1d4fa3",
+            "show": "p>2"
+          },
+          {
+            "type": "rect",
+            "x": 0,
+            "y": 2,
+            "w": 3.5,
+            "h": 1,
+            "fill": "rgba(47,128,237,.26)",
+            "color": "#2f80ed",
+            "show": "q>2"
+          },
+          {
+            "type": "text",
+            "x": 1.75,
+            "y": 2.5,
+            "text": "$x$",
+            "size": 15,
+            "color": "#1d4fa3",
+            "show": "q>2"
+          },
+          {
+            "type": "rect",
+            "x": 5.5,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "fill": "rgba(255,138,61,.32)",
+            "color": "#ff8a3d",
+            "show": "p>2 && q>0"
+          },
+          {
+            "type": "rect",
+            "x": 5.5,
+            "y": 1,
+            "w": 1,
+            "h": 1,
+            "fill": "rgba(255,138,61,.32)",
+            "color": "#ff8a3d",
+            "show": "p>2 && q>1"
+          },
+          {
+            "type": "rect",
+            "x": 5.5,
+            "y": 2,
+            "w": 1,
+            "h": 1,
+            "fill": "rgba(255,138,61,.32)",
+            "color": "#ff8a3d",
+            "show": "p>2 && q>2"
+          },
+          {
+            "type": "rect",
+            "x": 5.5,
+            "y": 3,
+            "w": 1,
+            "h": 1,
+            "fill": "rgba(255,138,61,.32)",
+            "color": "#ff8a3d",
+            "show": "p>2 && q>3"
+          },
+          {
+            "type": "rect",
+            "x": 6.5,
+            "y": "q",
+            "w": 1,
+            "h": 3.5,
+            "fill": "rgba(47,128,237,.26)",
+            "color": "#2f80ed",
+            "show": "p>3"
+          },
+          {
+            "type": "text",
+            "x": 7,
+            "y": "q+1.75",
+            "text": "$x$",
+            "size": 15,
+            "color": "#1d4fa3",
+            "show": "p>3"
+          },
+          {
+            "type": "rect",
+            "x": 0,
+            "y": 3,
+            "w": 3.5,
+            "h": 1,
+            "fill": "rgba(47,128,237,.26)",
+            "color": "#2f80ed",
+            "show": "q>3"
+          },
+          {
+            "type": "text",
+            "x": 1.75,
+            "y": 3.5,
+            "text": "$x$",
+            "size": 15,
+            "color": "#1d4fa3",
+            "show": "q>3"
+          },
+          {
+            "type": "rect",
+            "x": 6.5,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "fill": "rgba(255,138,61,.32)",
+            "color": "#ff8a3d",
+            "show": "p>3 && q>0"
+          },
+          {
+            "type": "rect",
+            "x": 6.5,
+            "y": 1,
+            "w": 1,
+            "h": 1,
+            "fill": "rgba(255,138,61,.32)",
+            "color": "#ff8a3d",
+            "show": "p>3 && q>1"
+          },
+          {
+            "type": "rect",
+            "x": 6.5,
+            "y": 2,
+            "w": 1,
+            "h": 1,
+            "fill": "rgba(255,138,61,.32)",
+            "color": "#ff8a3d",
+            "show": "p>3 && q>2"
+          },
+          {
+            "type": "rect",
+            "x": 6.5,
+            "y": 3,
+            "w": 1,
+            "h": 1,
+            "fill": "rgba(255,138,61,.32)",
+            "color": "#ff8a3d",
+            "show": "p>3 && q>3"
+          },
+          {
+            "type": "brace",
+            "points": [
+              [
+                0,
+                "q+3.5"
+              ],
+              [
+                "3.5+p",
+                "q+3.5"
+              ]
+            ],
+            "text": "長 $x+{p}$"
+          },
+          {
+            "type": "brace",
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                "q+3.5"
+              ]
+            ]
+          },
+          {
+            "type": "text",
+            "x": -1.5,
+            "y": "(q+3.5)/2",
+            "text": "寬 $x+{q}$",
+            "size": 15,
+            "color": "#1f2a56"
+          }
+        ],
+        "readouts": [
+          {
+            "label": "$x$ 磚（藍）幾張",
+            "expr": "p+q"
+          },
+          {
+            "label": "$1$ 磚（橘）幾張",
+            "expr": "p*q"
+          }
+        ],
+        "caption": "總面積 ＝ 長 × 寬：磚數決定多項式，長和寬就是它的兩個因式"
+      },
+      "activity": {
+        "id": "d-square-q",
+        "type": "manipulate",
+        "prompt": "拼出 x²＋4x＋4（x 磚 4 張、1 磚 4 張），再按「送出我的操作」。",
+        "check": "p==2 && q==2",
+        "record": [
+          "p",
+          "q"
+        ],
+        "explanation": "$p=q=2$：長和寬都是 $x+2$，$x^2+4x+4=(x+2)^2$。$x$ 磚 $2\\times2=4$ 張，$1$ 磚 $2^2=4$ 張。"
+      },
+      "notes": "具體操作（CRA）。p＝1、q＝3 也有 4 張 x 磚，但 1 磚只有 3 張：這就是「中間項和常數項要對得上」。"
+    },
+    {
+      "id": "d-ex8",
+      "phase": "工作範例",
+      "eyebrow": "09 / 例 8 和的平方",
+      "title": "首尾是平方，中間是 2ab",
+      "body": "先找 a、b，再檢查中間項。先自己算，再按「下一步」對照。",
+      "source": "課本原題：3-1 p.123（改為數值填空）",
+      "figures": [
+        {
+          "src": "g8-3-1/sum-square-intro.png",
+          "alt": "課本 p.123 利用和的平方公式"
+        },
+        {
+          "src": "g8-3-1/ex8.png",
+          "alt": "課本 p.123 例 8 題目"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 12,
+          "yMin": 0.2,
+          "yMax": 3.9,
+          "aspect": "fill"
+        },
+        "shapes": [
+          {
+            "type": "text",
+            "x": 3,
+            "y": 3,
+            "text": "$x^2+8x+16$",
+            "size": 22,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3,
+            "y": 2,
+            "text": "$=x^2+2\\cdot x\\cdot4+4^2$",
+            "size": 21,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3,
+            "y": 1,
+            "text": "$=(x+4)^2$",
+            "size": 21,
+            "color": "#5a3fd6",
+            "step": 2,
+            "focus": [
+              2,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6,
+                0.4
+              ],
+              [
+                6,
+                3.5
+              ]
+            ],
+            "color": "#c9d0ea",
+            "width": 1.2,
+            "dash": true,
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 3,
+            "text": "$9x^2+12x+4$",
+            "size": 22,
+            "color": "#1f2a56",
+            "step": 3,
+            "focus": [
+              3,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 2,
+            "text": "$=(3x)^2+2\\cdot3x\\cdot2+2^2$",
+            "size": 21,
+            "color": "#1f2a56",
+            "step": 4,
+            "focus": [
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 1,
+            "text": "$=(3x+2)^2$",
+            "size": 21,
+            "color": "#5a3fd6",
+            "step": 5,
+            "focus": [
+              5
+            ]
+          }
+        ],
+        "steps": [
+          "(1) 三項",
+          "a＝x、b＝4，中間項 2·x·4＝8x 對得上",
+          "代入公式",
+          "(2) 三項",
+          "a＝3x、b＝2，中間項 2·3x·2＝12x 對得上",
+          "代入公式"
+        ]
+      },
+      "activity": {
+        "id": "d-ex8-q",
+        "type": "numeric",
+        "prompt": "先自己算例 8，再把 □ 裡的數字填進來",
+        "items": [
+          {
+            "prompt": "$x^2+8x+16=(x+\\square)^2$",
+            "answer": "4"
+          },
+          {
+            "prompt": "$9x^2+12x+4=(\\square x+2)^2$",
+            "answer": "3"
+          }
+        ],
+        "explanation": "(1) $x^2+2\\cdot x\\cdot4+4^2=(x+4)^2$。(2) $(3x)^2+2\\cdot3x\\cdot2+2^2=(3x+2)^2$。"
+      },
+      "notes": "教用版：9x²＝(3x)²，許多同學誤寫成 (9x)²。一定要檢查中間項。 鷹架安排：工作範例（按「下一步」看完整示範）→ IRS 的 □ 是只留關鍵步驟的填空鷹架 → 下一頁隨堂撤除提示，先紙筆獨立完成。"
+    },
+    {
+      "id": "d-ex8-practice",
+      "phase": "隨堂練習",
+      "eyebrow": "10 / 例 8 隨堂",
+      "title": "換你算：和的平方",
+      "body": "課本隨堂原題。先寫完整過程，再填 □。左圖用另一組數字示範。",
+      "source": "課本原題：3-1 p.123（改為數值填空）；左圖示範的數字為自編",
+      "figures": [
+        {
+          "src": "g8-3-1/ex8-practice.png",
+          "alt": "課本 p.123 例 8 隨堂練習"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 12,
+          "yMin": 0.2,
+          "yMax": 3.9,
+          "aspect": "fill"
+        },
+        "shapes": [
+          {
+            "type": "text",
+            "x": 3,
+            "y": 3,
+            "text": "$x^2+10x+25$",
+            "size": 22,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3,
+            "y": 2,
+            "text": "$=x^2+2\\cdot x\\cdot5+5^2$",
+            "size": 21,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3,
+            "y": 1,
+            "text": "$=(x+5)^2$",
+            "size": 21,
+            "color": "#5a3fd6",
+            "step": 2,
+            "focus": [
+              2,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6,
+                0.4
+              ],
+              [
+                6,
+                3.5
+              ]
+            ],
+            "color": "#c9d0ea",
+            "width": 1.2,
+            "dash": true,
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 3,
+            "text": "$25x^2+20x+4$",
+            "size": 22,
+            "color": "#1f2a56",
+            "step": 3,
+            "focus": [
+              3,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 2,
+            "text": "$=(5x)^2+2\\cdot5x\\cdot2+2^2$",
+            "size": 21,
+            "color": "#1f2a56",
+            "step": 4,
+            "focus": [
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 1,
+            "text": "$=(5x+2)^2$",
+            "size": 21,
+            "color": "#5a3fd6",
+            "step": 5,
+            "focus": [
+              5
+            ]
+          }
+        ],
+        "steps": [
+          "示範（另一組數字）",
+          "a＝x、b＝5",
+          "代入公式",
+          "示範：有係數",
+          "a＝5x、b＝2",
+          "代入公式"
+        ]
+      },
+      "activity": {
+        "id": "d-ex8-practice-q",
+        "type": "numeric",
+        "prompt": "先在課本上寫完整過程，再把 □ 裡的數字填進來",
+        "items": [
+          {
+            "prompt": "$x^2+14x+49=(x+\\square)^2$",
+            "answer": "7"
+          },
+          {
+            "prompt": "$16x^2+8x+1=(\\square x+1)^2$",
+            "answer": "4"
+          }
+        ],
+        "explanation": "(1) $x^2+2\\cdot x\\cdot7+7^2=(x+7)^2$。(2) $(4x)^2+2\\cdot4x\\cdot1+1^2=(4x+1)^2$。"
+      },
+      "notes": "做完請學生說：怎麼確定中間項對得上？ 鷹架安排：翻到這一頁前，先請學生在課本上獨立寫完整過程（這一頁的填空會透露分解結構）；寫完再開放 IRS，□ 只用來核對。答對不等於能獨立分解，請巡視或抽查紙筆。"
+    },
+    {
+      "id": "d-ex9",
+      "phase": "工作範例",
+      "eyebrow": "11 / 例 9 差的平方",
+      "title": "中間項是負的",
+      "body": "只差中間項的符號。先自己算，再按「下一步」對照。",
+      "source": "課本原題：3-1 p.124（改為數值填空）",
+      "figures": [
+        {
+          "src": "g8-3-1/diff-square-intro.png",
+          "alt": "課本 p.124 利用差的平方公式"
+        },
+        {
+          "src": "g8-3-1/ex9.png",
+          "alt": "課本 p.124 例 9 題目"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 12,
+          "yMin": 0.2,
+          "yMax": 3.9,
+          "aspect": "fill"
+        },
+        "shapes": [
+          {
+            "type": "text",
+            "x": 3,
+            "y": 3,
+            "text": "$x^2-10x+25$",
+            "size": 22,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3,
+            "y": 2,
+            "text": "$=x^2-2\\cdot x\\cdot5+5^2$",
+            "size": 21,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3,
+            "y": 1,
+            "text": "$=(x-5)^2$",
+            "size": 21,
+            "color": "#5a3fd6",
+            "step": 2,
+            "focus": [
+              2,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6,
+                0.4
+              ],
+              [
+                6,
+                3.5
+              ]
+            ],
+            "color": "#c9d0ea",
+            "width": 1.2,
+            "dash": true,
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 3,
+            "text": "$4x^2-12x+9$",
+            "size": 22,
+            "color": "#1f2a56",
+            "step": 3,
+            "focus": [
+              3,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 2,
+            "text": "$=(2x)^2-2\\cdot2x\\cdot3+3^2$",
+            "size": 21,
+            "color": "#1f2a56",
+            "step": 4,
+            "focus": [
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 1,
+            "text": "$=(2x-3)^2$",
+            "size": 21,
+            "color": "#5a3fd6",
+            "step": 5,
+            "focus": [
+              5
+            ]
+          }
+        ],
+        "steps": [
+          "(1) 中間項是負的",
+          "a＝x、b＝5，中間項 −2·x·5＝−10x",
+          "代入差的平方公式",
+          "(2) 中間項是負的",
+          "a＝2x、b＝3，中間項 −2·2x·3＝−12x",
+          "代入差的平方公式"
+        ]
+      },
+      "activity": {
+        "id": "d-ex9-q",
+        "type": "numeric",
+        "prompt": "先自己算例 9，再把 □ 裡的數字填進來",
+        "items": [
+          {
+            "prompt": "$x^2-10x+25=(x-\\square)^2$",
+            "answer": "5"
+          },
+          {
+            "prompt": "$4x^2-12x+9=(\\square x-3)^2$",
+            "answer": "2"
+          }
+        ],
+        "explanation": "(1) $x^2-2\\cdot x\\cdot5+5^2=(x-5)^2$。(2) $(2x)^2-2\\cdot2x\\cdot3+3^2=(2x-3)^2$。"
+      },
+      "notes": "教用版：除了首末兩項是平方，更要確認中間項符合。 鷹架安排：工作範例（按「下一步」看完整示範）→ IRS 的 □ 是只留關鍵步驟的填空鷹架 → 下一頁隨堂撤除提示，先紙筆獨立完成。"
+    },
+    {
+      "id": "d-ex9-practice",
+      "phase": "隨堂練習",
+      "eyebrow": "12 / 例 9 隨堂",
+      "title": "換你算：差的平方",
+      "body": "課本隨堂原題。先寫完整過程，再填 □。左圖用另一組數字示範。",
+      "source": "課本原題：3-1 p.124（改為數值填空）；左圖示範的數字為自編",
+      "figures": [
+        {
+          "src": "g8-3-1/ex9-practice.png",
+          "alt": "課本 p.124 例 9 隨堂練習"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 12,
+          "yMin": 0.2,
+          "yMax": 3.9,
+          "aspect": "fill"
+        },
+        "shapes": [
+          {
+            "type": "text",
+            "x": 3,
+            "y": 3,
+            "text": "$x^2-14x+49$",
+            "size": 22,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3,
+            "y": 2,
+            "text": "$=x^2-2\\cdot x\\cdot7+7^2$",
+            "size": 21,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3,
+            "y": 1,
+            "text": "$=(x-7)^2$",
+            "size": 21,
+            "color": "#5a3fd6",
+            "step": 2,
+            "focus": [
+              2,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6,
+                0.4
+              ],
+              [
+                6,
+                3.5
+              ]
+            ],
+            "color": "#c9d0ea",
+            "width": 1.2,
+            "dash": true,
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 3,
+            "text": "$9x^2-6x+1$",
+            "size": 22,
+            "color": "#1f2a56",
+            "step": 3,
+            "focus": [
+              3,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 2,
+            "text": "$=(3x)^2-2\\cdot3x\\cdot1+1^2$",
+            "size": 21,
+            "color": "#1f2a56",
+            "step": 4,
+            "focus": [
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 1,
+            "text": "$=(3x-1)^2$",
+            "size": 21,
+            "color": "#5a3fd6",
+            "step": 5,
+            "focus": [
+              5
+            ]
+          }
+        ],
+        "steps": [
+          "示範（另一組數字）",
+          "a＝x、b＝7",
+          "代入公式",
+          "示範：有係數",
+          "a＝3x、b＝1",
+          "代入公式"
+        ]
+      },
+      "activity": {
+        "id": "d-ex9-practice-q",
+        "type": "numeric",
+        "prompt": "先在課本上寫完整過程，再把 □ 裡的數字填進來",
+        "items": [
+          {
+            "prompt": "$x^2-12x+36=(x-\\square)^2$",
+            "answer": "6"
+          },
+          {
+            "prompt": "$4x^2-4x+1=(\\square x-1)^2$",
+            "answer": "2"
+          }
+        ],
+        "explanation": "(1) $x^2-2\\cdot x\\cdot6+6^2=(x-6)^2$。(2) $(2x)^2-2\\cdot2x\\cdot1+1^2=(2x-1)^2$。"
+      },
+      "notes": "做完可以交錯提問：x²−36、x²−12x＋36、x²＋12x＋36 各用哪個公式？ 鷹架安排：翻到這一頁前，先請學生在課本上獨立寫完整過程（這一頁的填空會透露分解結構）；寫完再開放 IRS，□ 只用來核對。答對不等於能獨立分解，請巡視或抽查紙筆。"
+    },
+    {
+      "id": "d-error",
+      "phase": "錯誤分析",
+      "eyebrow": "13 / 當小老師",
+      "title": "小強的 a 是多少？",
+      "body": "小強把 16x²−8x＋1 分解成 (8x−1)²。對照左圖的面積模型，在畫布圈出錯誤、更正並說明，也可以拍照。",
+      "source": "自編錯誤分析，對應課本 3-1 p.124 例 9",
+      "interactive": {
+        "view": {
+          "xMin": -1.4,
+          "xMax": 13,
+          "yMin": -0.8,
+          "yMax": 7.3,
+          "aspect": "equal"
+        },
+        "shapes": [
+          {
+            "type": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 6,
+            "h": 6,
+            "fill": "rgba(123,97,255,.1)",
+            "color": "#7b61ff",
+            "width": 2,
+            "step": 0,
+            "focus": [
+              0,
+              4
+            ]
+          },
+          {
+            "type": "brace",
+            "points": [
+              [
+                0,
+                6
+              ],
+              [
+                6,
+                6
+              ]
+            ],
+            "text": "$a$",
+            "step": 0,
+            "focus": [
+              0,
+              4
+            ]
+          },
+          {
+            "type": "rect",
+            "x": 4,
+            "y": 0,
+            "w": 2,
+            "h": 6,
+            "fill": "rgba(47,128,237,.26)",
+            "color": "#2f80ed",
+            "step": 1,
+            "focus": [
+              1,
+              4
+            ]
+          },
+          {
+            "type": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 6,
+            "h": 2,
+            "fill": "rgba(47,128,237,.26)",
+            "color": "#2f80ed",
+            "step": 2,
+            "focus": [
+              2,
+              4
+            ]
+          },
+          {
+            "type": "rect",
+            "x": 4,
+            "y": 0,
+            "w": 2,
+            "h": 2,
+            "fill": "rgba(255,138,61,.32)",
+            "color": "#ff8a3d",
+            "width": 2,
+            "step": 3,
+            "focus": [
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 5,
+            "y": 1,
+            "text": "$b^2$",
+            "size": 15,
+            "color": "#b4541a",
+            "step": 3,
+            "focus": [
+              3,
+              4
+            ]
+          },
+          {
+            "type": "brace",
+            "points": [
+              [
+                6,
+                2
+              ],
+              [
+                6,
+                0
+              ]
+            ],
+            "text": "$b$",
+            "step": 1,
+            "focus": [
+              1,
+              4
+            ]
+          },
+          {
+            "type": "rect",
+            "x": 0,
+            "y": 2,
+            "w": 4,
+            "h": 4,
+            "fill": "rgba(123,97,255,.26)",
+            "color": "#7b61ff",
+            "width": 2.6,
+            "step": 4,
+            "focus": [
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 2,
+            "y": 4,
+            "text": "$(a-b)^2$",
+            "size": 18,
+            "color": "#5a3fd6",
+            "step": 4,
+            "focus": [
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9.7,
+            "y": 5.04,
+            "text": "$a^2$",
+            "size": 20,
+            "color": "#5a3fd6",
+            "step": 0,
+            "focus": [
+              0,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9.7,
+            "y": 3.96,
+            "text": "$-ab$",
+            "size": 20,
+            "color": "#1d4fa3",
+            "step": 1,
+            "focus": [
+              1,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9.7,
+            "y": 2.88,
+            "text": "$-ab$",
+            "size": 20,
+            "color": "#1d4fa3",
+            "step": 2,
+            "focus": [
+              2,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9.7,
+            "y": 1.7999999999999998,
+            "text": "$+b^2$",
+            "size": 20,
+            "color": "#b4541a",
+            "step": 3,
+            "focus": [
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9.7,
+            "y": 0.6000000000000001,
+            "text": "$a^2-2ab+b^2=(a-b)^2$",
+            "size": 18,
+            "color": "#1f2a56",
+            "step": 4,
+            "focus": [
+              4
+            ]
+          }
+        ],
+        "steps": [
+          "邊長 a 的正方形，面積 a²",
+          "右邊切掉一條 ab",
+          "下面再切掉一條 ab",
+          "角落的 b² 被扣了兩次，要加回來一次",
+          "剩下的就是邊長 a − b 的正方形"
+        ],
+        "caption": "$a^2-2ab+b^2=(a-b)^2$：這一題的 $a$、$b$ 是多少？中間項對得上嗎？"
+      },
+      "activity": {
+        "id": "d-error-q",
+        "type": "canvas",
+        "prompt": "小強：16x²−8x＋1＝(8x−1)²。① 圈出錯誤 ② 寫出正確的分解 ③ 用展開檢查並說明理由",
+        "canvas": "grid",
+        "allowPhoto": true,
+        "aiAllowed": true,
+        "rubric": {
+          "criteria": [
+            {
+              "id": "find",
+              "label": "找出錯誤",
+              "points": 2,
+              "levels": [
+                {
+                  "score": 0,
+                  "description": "未指出錯誤"
+                },
+                {
+                  "score": 1,
+                  "description": "只說算錯"
+                },
+                {
+                  "score": 2,
+                  "description": "指出小強對公式中 a 的判斷錯在哪裡"
+                }
+              ]
+            },
+            {
+              "id": "fix",
+              "label": "正確分解",
+              "points": 2,
+              "levels": [
+                {
+                  "score": 0,
+                  "description": "答案錯誤或未作答"
+                },
+                {
+                  "score": 1,
+                  "description": "找到正確的 a 但沒有寫完"
+                },
+                {
+                  "score": 2,
+                  "description": "正確完成分解"
+                }
+              ]
+            },
+            {
+              "id": "why",
+              "label": "展開檢查",
+              "points": 2,
+              "levels": [
+                {
+                  "score": 0,
+                  "description": "沒有檢查或理由"
+                },
+                {
+                  "score": 1,
+                  "description": "只寫出一邊的展開"
+                },
+                {
+                  "score": 2,
+                  "description": "用展開或中間項具體檢查，說明小強的結果與原式不同，或正確分解與原式相符"
+                }
+              ]
+            }
+          ],
+          "reference": "16x²＝(4x)²、1＝1²，中間項 2·4x·1＝8x 對得上，所以 16x²−8x＋1＝(4x)²−2·4x·1＋1²＝(4x−1)²。小強的 (8x−1)²＝64x²−16x＋1，不等於原式。",
+          "graderNotes": "接受任何正確的驗算方式（例如代數字 x＝1：原式 9，(4x−1)²＝9，(8x−1)²＝49）。各向度對照：find 滿分要指出 16x² 不是 (8x)²（8 是中間項的係數，不是 a）；fix 找到 a＝4x 但沒有寫完給 1 分，得到 (4x−1)² 給滿分；why 滿分要展開 (8x−1)²＝64x²−16x＋1 與原式不同，或用 2·4x·1＝8x 說明中間項對得上。"
+        }
+      },
+      "notes": "收件後按「AI 批改」，覆核後發回。教用版反覆提醒的錯誤：把係數直接當 a。"
+    },
+    {
+      "id": "d-reflect",
+      "phase": "後設認知",
+      "eyebrow": "最後 / 給自己打分數",
+      "title": "今天的內容，我掌握了多少？",
+      "body": "誠實評估，下一節課會從大家最沒把握的地方開始複習。",
+      "source": "自編自評，對應課本 3-1 p.121–124；附圖為課本 p.125 重點回顧",
+      "figures": [
+        {
+          "src": "g8-3-1/summary-2.png",
+          "alt": "課本 p.125 重點回顧"
+        }
+      ],
+      "visual": "cards",
+      "notes": "3 分以下的學生，下節課開頭用提取練習再做一次；可用抽籤「答錯」請同學上台說明。",
+      "activity": {
+        "id": "d-reflect",
+        "type": "scale",
+        "prompt": "我能判斷多項式符合哪一個乘法公式，並因式分解",
+        "min": 1,
+        "max": 5,
+        "minLabel": "還需要再看一次",
+        "maxLabel": "可以教別人"
+      }
+    }
+  ]
+}

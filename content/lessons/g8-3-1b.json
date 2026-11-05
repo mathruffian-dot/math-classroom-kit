@@ -1,0 +1,1504 @@
+{
+  "schemaVersion": 1,
+  "id": "g8-3-1b",
+  "title": "3-1 提公因式與乘法公式作因式分解（2）提公因式法",
+  "description": "把高相同的兩塊長方形併起來，看見 A×C＋B×C＝C×(A＋B)；練習提出單項公因式與多項公因式。例題與隨堂皆附課本截圖。",
+  "subject": "數學・八年級 3-1",
+  "duration": 45,
+  "objectives": [
+    "能找出各項的公因式",
+    "能用提公因式法因式分解",
+    "能把提出後括號內的式子化簡"
+  ],
+  "slides": [
+    {
+      "id": "b-warmup",
+      "phase": "提取練習",
+      "eyebrow": "01 / 先想起分配律",
+      "title": "分配律與最大公因數",
+      "body": "提公因式就是分配律倒過來用。先做三個暖身題。",
+      "source": "自編提問，銜接 1 上 2-1 因數與倍數、2 上 1-1 分配律",
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 12,
+          "yMin": 0.2,
+          "yMax": 2.9,
+          "aspect": "fill"
+        },
+        "shapes": [
+          {
+            "type": "text",
+            "x": 6,
+            "y": 2,
+            "text": "$x(x+3)=x\\cdot x+x\\cdot3$",
+            "size": 26,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              1
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6,
+            "y": 1,
+            "text": "$=x^2+3x$",
+            "size": 24,
+            "color": "#5a3fd6",
+            "step": 1,
+            "focus": [
+              1
+            ]
+          }
+        ],
+        "steps": [
+          "分配律：乘進去",
+          "這一堂把它倒過來"
+        ]
+      },
+      "activity": {
+        "id": "b-warmup-q",
+        "type": "numeric",
+        "prompt": "暖身：直接寫出 □ 裡的數字",
+        "items": [
+          {
+            "prompt": "$x(x+3)=x^2+\\square x$",
+            "answer": "3"
+          },
+          {
+            "prompt": "$2x(x-1)=2x^2-\\square x$",
+            "answer": "2"
+          },
+          {
+            "prompt": "14 和 4 的最大公因數",
+            "answer": "2"
+          }
+        ],
+        "explanation": "(1) $x\\times3=3x$。(2) $2x\\times(-1)=-2x$。(3) $14=2\\times7$、$4=2\\times2$，最大公因數 $2$。"
+      },
+      "notes": "提取練習約 2 分鐘。第 3 題等一下提 14x²＋4x 的公因式會用到。"
+    },
+    {
+      "id": "b-predict",
+      "phase": "預測",
+      "eyebrow": "02 / 先猜再驗證",
+      "title": "2x²＋6x 分解到底，長什麼樣子？",
+      "body": "先憑直覺選一個，學完這一堂再回來檢查。",
+      "source": "自編提問，預告課本 3-1 p.118 例 2",
+      "visual": "cards",
+      "activity": {
+        "id": "b-predict-q",
+        "type": "single",
+        "prompt": "2x²＋6x 提出所有公因式後，是哪一個？",
+        "options": [
+          "$2(x^2+3x)$",
+          "$x(2x+6)$",
+          "$2x(x+3)$",
+          "$2x^2(1+3x)$"
+        ],
+        "correct": [
+          2
+        ],
+        "explanation": "兩項都有 $2$ 和 $x$：$2x^2+6x=2x\\cdot x+2x\\cdot3=2x(x+3)$。$2x^2$ 不是 $6x$ 的因式。"
+      },
+      "notes": "先公布統計、不公布答案。前兩個數值相等但沒提完整；第 4 個展開後不等於原式。"
+    },
+    {
+      "id": "b-concrete",
+      "phase": "具體操作",
+      "eyebrow": "03 / 兩塊併成一塊",
+      "title": "高一樣的兩塊，可以併起來",
+      "body": "拖拉滑桿把兩塊靠在一起：x²＋3x 變成一個高 x、寬 x＋3 的長方形。",
+      "source": "自編操作，對應課本 3-1 p.117（x²＋3x 的例子）",
+      "interactive": {
+        "view": {
+          "xMin": -2.4,
+          "xMax": 10.4,
+          "yMin": -1.4,
+          "yMax": 5.4,
+          "aspect": "equal"
+        },
+        "params": [
+          {
+            "id": "t",
+            "label": "把兩塊靠在一起",
+            "min": 0,
+            "max": 1,
+            "step": 0.25,
+            "value": 0
+          }
+        ],
+        "shapes": [
+          {
+            "type": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2.6,
+            "h": 2.6,
+            "fill": "rgba(123,97,255,.26)",
+            "color": "#7b61ff",
+            "width": 2
+          },
+          {
+            "type": "rect",
+            "x": "2.6+(1-t)*2.4",
+            "y": 0,
+            "w": 3,
+            "h": 2.6,
+            "fill": "rgba(47,128,237,.26)",
+            "color": "#2f80ed",
+            "width": 2
+          },
+          {
+            "type": "text",
+            "x": 1.3,
+            "y": 1.3,
+            "text": "$x^2$",
+            "size": 17,
+            "color": "#5a3fd6"
+          },
+          {
+            "type": "text",
+            "x": "2.6+(1-t)*2.4+1.5",
+            "y": 1.3,
+            "text": "$3x$",
+            "size": 17,
+            "color": "#1d4fa3"
+          },
+          {
+            "type": "brace",
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                2.6
+              ]
+            ]
+          },
+          {
+            "type": "text",
+            "x": -1.25,
+            "y": 1.3,
+            "text": "$x$",
+            "size": 15,
+            "color": "#1f2a56"
+          },
+          {
+            "type": "brace",
+            "points": [
+              [
+                "2.6+(1-t)*2.4+3",
+                2.6
+              ],
+              [
+                "2.6+(1-t)*2.4+3",
+                0
+              ]
+            ],
+            "show": "t<1"
+          },
+          {
+            "type": "text",
+            "x": "2.6+(1-t)*2.4+3+1.25",
+            "y": 1.3,
+            "text": "$x$",
+            "size": 15,
+            "color": "#1f2a56",
+            "show": "t<1"
+          },
+          {
+            "type": "brace",
+            "points": [
+              [
+                0,
+                2.6
+              ],
+              [
+                2.6,
+                2.6
+              ]
+            ],
+            "text": "$x$"
+          },
+          {
+            "type": "brace",
+            "points": [
+              [
+                "2.6+(1-t)*2.4",
+                2.6
+              ],
+              [
+                "2.6+(1-t)*2.4+3",
+                2.6
+              ]
+            ],
+            "text": "$3$"
+          },
+          {
+            "type": "text",
+            "x": 4,
+            "y": 4.7,
+            "text": "$x^2+3x$",
+            "size": 20,
+            "color": "#1f2a56",
+            "show": "t<1"
+          },
+          {
+            "type": "text",
+            "x": 4,
+            "y": 4.7,
+            "text": "$x^2+3x=x(x+3)$",
+            "size": 22,
+            "color": "#5a3fd6",
+            "show": "t==1"
+          },
+          {
+            "type": "text",
+            "x": 2.8,
+            "y": -0.8,
+            "text": "兩塊的高一樣，高就是公因式",
+            "size": 15,
+            "color": "#12a39a",
+            "show": "t==1"
+          }
+        ],
+        "caption": "$A\\times C+B\\times C=C\\times(A+B)$：高相同的兩塊可以併成一塊"
+      },
+      "activity": {
+        "id": "b-concrete-q",
+        "type": "manipulate",
+        "prompt": "把兩塊完全靠在一起（滑桿拉到底），再按「送出我的操作」。",
+        "check": "t==1",
+        "record": [
+          "t"
+        ],
+        "explanation": "兩塊的高都是 $x$，併起來寬是 $x+3$：$x^2+3x=x(x+3)$。共同的高就是公因式。"
+      },
+      "notes": "具體操作（CRA）。追問：如果兩塊的高不一樣，還能併成長方形嗎？"
+    },
+    {
+      "id": "b-gcf",
+      "phase": "隨堂練習",
+      "eyebrow": "04 / p.117 公因式",
+      "title": "兩項都有的，就是公因式",
+      "body": "把每一項拆開，找兩邊都有的。左圖用另一組數字示範。",
+      "source": "課本原題：3-1 p.117（兩小題合併成單選，選項為自編）；左圖示範的數字為自編",
+      "figures": [
+        {
+          "src": "g8-3-1/gcf-define.png",
+          "alt": "課本 p.117 公因式"
+        },
+        {
+          "src": "g8-3-1/gcf-practice.png",
+          "alt": "課本 p.117 隨堂練習"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 12,
+          "yMin": 0.2,
+          "yMax": 4.9,
+          "aspect": "fill"
+        },
+        "shapes": [
+          {
+            "type": "text",
+            "x": 3,
+            "y": 4,
+            "text": "$4x$ 與 $x^2$",
+            "size": 20,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              7
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3,
+            "y": 3,
+            "text": "$4x=4\\cdot\\textcolor{#2f80ed}{x}$",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              7
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3,
+            "y": 2,
+            "text": "$x^2=x\\cdot\\textcolor{#2f80ed}{x}$",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              7
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3,
+            "y": 1,
+            "text": "公因式 $\\textcolor{#2f80ed}{x}$",
+            "size": 19,
+            "color": "#5a3fd6",
+            "step": 3,
+            "focus": [
+              3,
+              7
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6,
+                0.4
+              ],
+              [
+                6,
+                4.5
+              ]
+            ],
+            "color": "#c9d0ea",
+            "width": 1.2,
+            "dash": true,
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 4,
+            "text": "$2(x+3)$ 與 $x(x+3)$",
+            "size": 20,
+            "color": "#1f2a56",
+            "step": 4,
+            "focus": [
+              4,
+              7
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 3,
+            "text": "$2\\cdot\\textcolor{#2f80ed}{(x+3)}$",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 5,
+            "focus": [
+              5,
+              7
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 2,
+            "text": "$x\\cdot\\textcolor{#2f80ed}{(x+3)}$",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 6,
+            "focus": [
+              6,
+              7
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 1,
+            "text": "公因式 $\\textcolor{#2f80ed}{(x+3)}$",
+            "size": 19,
+            "color": "#5a3fd6",
+            "step": 7,
+            "focus": [
+              7
+            ]
+          }
+        ],
+        "steps": [
+          "示範（另一組數字）：單項式",
+          "拆開 4x",
+          "拆開 x²",
+          "兩項都有 x",
+          "公因式也可以是一整個括號",
+          "拆開第一項",
+          "拆開第二項",
+          "兩項都有 (x＋3)"
+        ]
+      },
+      "activity": {
+        "id": "b-gcf-q",
+        "type": "single",
+        "prompt": "課本 p.117 隨堂：(1) 2x² 與 7x 的公因式；(2) (x＋1)(x＋2) 與 (x＋2)(x−1) 的公因式",
+        "options": [
+          "(1) $x$；(2) $x+2$",
+          "(1) $2x^2$；(2) $x+2$",
+          "(1) $x$；(2) $x+1$",
+          "(1) $x^2$；(2) $(x+1)(x-1)$"
+        ],
+        "correct": [
+          0
+        ],
+        "explanation": "(1) $2x^2=2x\\cdot x$、$7x=7\\cdot x$，$2$ 和 $7$ 的最大公因數是 $1$，公因式是 $x$。(2) 兩式都有 $(x+2)$。"
+      },
+      "notes": "診斷先測（依課本 p.117 的順序）：排在下一頁提公因式法之前，先看學生能不能從「拆開找相同」認出公因式。答案是代數式，判分系統不能判，這題改用單選（兩小題合併成一組選項）。第 (1) 小題只放確定不是公因式的干擾項；若以有理係數來看 2x 也整除兩式，所以不列為錯誤選項，學生問起時說明課本取 2 和 7 的最大公因數 1，寫成 x。"
+    },
+    {
+      "id": "b-method",
+      "phase": "圖式連結",
+      "eyebrow": "05 / 提公因式法",
+      "title": "A×C＋B×C＝C×(A＋B)",
+      "body": "按「下一步」：把每一項拆開，公因式（藍色）提到前面，剩下的放進括號。",
+      "source": "自編提問，對應課本 3-1 p.117 提公因式法",
+      "figures": [
+        {
+          "src": "g8-3-1/method.png",
+          "alt": "課本 p.117 提公因式法"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 12,
+          "yMin": 0.2,
+          "yMax": 4.9,
+          "aspect": "fill"
+        },
+        "shapes": [
+          {
+            "type": "text",
+            "x": 6,
+            "y": 4,
+            "text": "$x^2+3x$",
+            "size": 28,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6,
+            "y": 3,
+            "text": "$=x\\cdot\\textcolor{#2f80ed}{x}+3\\cdot\\textcolor{#2f80ed}{x}$",
+            "size": 26,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6,
+            "y": 2,
+            "text": "$=\\textcolor{#2f80ed}{x}\\cdot(x+3)$",
+            "size": 26,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6,
+            "y": 1,
+            "text": "$=x(x+3)$",
+            "size": 26,
+            "color": "#5a3fd6",
+            "step": 3,
+            "focus": [
+              3
+            ]
+          }
+        ],
+        "steps": [
+          "兩項：x² 和 3x",
+          "拆開，找到公因式 x",
+          "公因式提出來，剩下的放進括號",
+          "單項式放在前面"
+        ]
+      },
+      "activity": {
+        "id": "b-method-q",
+        "type": "single",
+        "prompt": "課本約定：提公因式分解的結果，通常怎麼寫？",
+        "options": [
+          "單項式放在式子的前面，如 $x(x+3)$",
+          "單項式放在式子的後面，如 $(x+3)x$",
+          "一定要展開，如 $x^2+3x$",
+          "括號內的項要越多越好"
+        ],
+        "correct": [
+          0
+        ],
+        "explanation": "$x(x+3)$ 和 $(x+3)x$ 都對，乘法可以交換；課本習慣把單項式放前面。"
+      },
+      "notes": "圖和式同色對應：藍色的 x 就是上一頁長方形共同的高。"
+    },
+    {
+      "id": "b-ex2",
+      "phase": "工作範例",
+      "eyebrow": "06 / 例 2 提單項公因式",
+      "title": "每一項都有 x，就提出 x",
+      "body": "先自己算，再按「下一步」對照。第 (3) 小題括號前是負號，每一項都要變號。",
+      "source": "課本原題：3-1 p.118（改為數值填空）",
+      "figures": [
+        {
+          "src": "g8-3-1/ex2.png",
+          "alt": "課本 p.118 例 2 題目"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 12,
+          "yMin": 0.2,
+          "yMax": 5.9,
+          "aspect": "fill"
+        },
+        "shapes": [
+          {
+            "type": "text",
+            "x": 2,
+            "y": 5,
+            "text": "$11x^2+9x$",
+            "size": 16,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              11
+            ]
+          },
+          {
+            "type": "text",
+            "x": 2,
+            "y": 4,
+            "text": "$=11x\\cdot\\textcolor{#2f80ed}{x}+9\\cdot\\textcolor{#2f80ed}{x}$",
+            "size": 15,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              11
+            ]
+          },
+          {
+            "type": "text",
+            "x": 2,
+            "y": 3,
+            "text": "$=\\textcolor{#2f80ed}{x}(11x+9)$",
+            "size": 15,
+            "color": "#5a3fd6",
+            "step": 2,
+            "focus": [
+              2,
+              11
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                4,
+                0.4
+              ],
+              [
+                4,
+                5.5
+              ]
+            ],
+            "color": "#c9d0ea",
+            "width": 1.2,
+            "dash": true,
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6,
+            "y": 5,
+            "text": "$2x^2+x(x+1)$",
+            "size": 16,
+            "color": "#1f2a56",
+            "step": 3,
+            "focus": [
+              3,
+              11
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6,
+            "y": 4,
+            "text": "$=2x\\cdot\\textcolor{#2f80ed}{x}+\\textcolor{#2f80ed}{x}(x+1)$",
+            "size": 15,
+            "color": "#1f2a56",
+            "step": 4,
+            "focus": [
+              4,
+              11
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6,
+            "y": 3,
+            "text": "$=\\textcolor{#2f80ed}{x}[2x+(x+1)]$",
+            "size": 15,
+            "color": "#1f2a56",
+            "step": 5,
+            "focus": [
+              5,
+              11
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6,
+            "y": 2,
+            "text": "$=x(3x+1)$",
+            "size": 15,
+            "color": "#5a3fd6",
+            "step": 6,
+            "focus": [
+              6,
+              11
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8,
+                0.4
+              ],
+              [
+                8,
+                5.5
+              ]
+            ],
+            "color": "#c9d0ea",
+            "width": 1.2,
+            "dash": true,
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11
+            ]
+          },
+          {
+            "type": "text",
+            "x": 10,
+            "y": 5,
+            "text": "$x(3x+1)-x(x+3)$",
+            "size": 16,
+            "color": "#1f2a56",
+            "step": 7,
+            "focus": [
+              7,
+              11
+            ]
+          },
+          {
+            "type": "text",
+            "x": 10,
+            "y": 4,
+            "text": "$=\\textcolor{#2f80ed}{x}[(3x+1)-(x+3)]$",
+            "size": 15,
+            "color": "#1f2a56",
+            "step": 8,
+            "focus": [
+              8,
+              11
+            ]
+          },
+          {
+            "type": "text",
+            "x": 10,
+            "y": 3,
+            "text": "$=x(3x+1-x-3)$",
+            "size": 15,
+            "color": "#1f2a56",
+            "step": 9,
+            "focus": [
+              9,
+              11
+            ]
+          },
+          {
+            "type": "text",
+            "x": 10,
+            "y": 2,
+            "text": "$=x(2x-2)$",
+            "size": 15,
+            "color": "#1f2a56",
+            "step": 10,
+            "focus": [
+              10,
+              11
+            ]
+          },
+          {
+            "type": "text",
+            "x": 10,
+            "y": 1,
+            "text": "$=2x(x-1)$",
+            "size": 15,
+            "color": "#5a3fd6",
+            "step": 11,
+            "focus": [
+              11
+            ]
+          }
+        ],
+        "steps": [
+          "(1) 原式",
+          "拆開找公因式 x",
+          "提出 x",
+          "(2) 原式",
+          "每一項都有 x",
+          "提出 x",
+          "括號內合併",
+          "(3) 原式",
+          "提出 x，括號內兩項原封不動",
+          "括號前是負號：每一項都變號",
+          "合併同類項",
+          "還有公因式 2，通常再提出來"
+        ]
+      },
+      "activity": {
+        "id": "b-ex2-q",
+        "type": "numeric",
+        "prompt": "先自己算例 2，再把 □ 裡的數字填進來",
+        "items": [
+          {
+            "prompt": "$11x^2+9x=x(11x+\\square)$",
+            "answer": "9"
+          },
+          {
+            "prompt": "$2x^2+x(x+1)=x(3x+\\square)$",
+            "answer": "1"
+          },
+          {
+            "prompt": "$x(3x+1)-x(x+3)=2x(x-\\square)$",
+            "answer": "1"
+          }
+        ],
+        "explanation": "(1) $x(11x+9)$。(2) $x[2x+(x+1)]=x(3x+1)$。(3) $x(3x+1-x-3)=x(2x-2)$，通常寫成 $2x(x-1)$。"
+      },
+      "notes": "工作範例。(3) 教用版：x(2x−2) 或 2x(x−1) 都算正確，通常寫成 2x(x−1)。常見錯誤是括號前的負號只變第一項。 鷹架安排：工作範例（按「下一步」看完整示範）→ IRS 的 □ 是只留關鍵步驟的填空鷹架 → 下一頁隨堂撤除提示，先紙筆獨立完成。"
+    },
+    {
+      "id": "b-ex2-practice",
+      "phase": "隨堂練習",
+      "eyebrow": "07 / 例 2 隨堂",
+      "title": "換你提：單項公因式",
+      "body": "課本隨堂原題。先寫完整過程，再填 □。左圖用另一組數字示範。",
+      "source": "課本原題：3-1 p.118（改為數值填空）；左圖示範的數字為自編",
+      "figures": [
+        {
+          "src": "g8-3-1/ex2-practice.png",
+          "alt": "課本 p.118 例 2 隨堂練習"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 12,
+          "yMin": 0.2,
+          "yMax": 5.9,
+          "aspect": "fill"
+        },
+        "shapes": [
+          {
+            "type": "text",
+            "x": 3,
+            "y": 5,
+            "text": "$6x^2+9x$",
+            "size": 20,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              7
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3,
+            "y": 4,
+            "text": "$=3x\\cdot2x+3x\\cdot3$",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              7
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3,
+            "y": 3,
+            "text": "$=3x(2x+3)$",
+            "size": 19,
+            "color": "#5a3fd6",
+            "step": 2,
+            "focus": [
+              2,
+              7
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6,
+                0.4
+              ],
+              [
+                6,
+                5.5
+              ]
+            ],
+            "color": "#c9d0ea",
+            "width": 1.2,
+            "dash": true,
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 5,
+            "text": "$x^2-3x(x+2)$",
+            "size": 20,
+            "color": "#1f2a56",
+            "step": 3,
+            "focus": [
+              3,
+              7
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 4,
+            "text": "$=x[x-3(x+2)]$",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 4,
+            "focus": [
+              4,
+              7
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 3,
+            "text": "$=x(x-3x-6)$",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 5,
+            "focus": [
+              5,
+              7
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 2,
+            "text": "$=x(-2x-6)$",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 6,
+            "focus": [
+              6,
+              7
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 1,
+            "text": "$=-2x(x+3)$",
+            "size": 19,
+            "color": "#5a3fd6",
+            "step": 7,
+            "focus": [
+              7
+            ]
+          }
+        ],
+        "steps": [
+          "示範（另一組數字）",
+          "6 和 9 的最大公因數是 3，也提出來",
+          "提出 3x",
+          "示範：括號前有減號",
+          "提出 x",
+          "−3 乘進去，每一項都要乘",
+          "合併",
+          "負號和 2 也提出來"
+        ]
+      },
+      "activity": {
+        "id": "b-ex2-practice-q",
+        "type": "numeric",
+        "prompt": "先在課本上寫完整過程，再把 □ 裡的數字填進來",
+        "items": [
+          {
+            "prompt": "$14x^2+4x=2x(\\square x+2)$",
+            "answer": "7"
+          },
+          {
+            "prompt": "$x^2-2x(x+1)=-x(x+\\square)$",
+            "answer": "2"
+          },
+          {
+            "prompt": "$x(5x+2)+x(x-1)=x(\\square x+1)$",
+            "answer": "6"
+          }
+        ],
+        "explanation": "(1) $2x(7x+2)$（寫 $x(14x+4)$ 也對，但 $2$ 還能再提）。(2) $x[x-2(x+1)]=x(-x-2)=-x(x+2)$。(3) $x[(5x+2)+(x-1)]=x(6x+1)$。"
+      },
+      "notes": "教用版：(1) x(14x＋4) 或 2x(7x＋2) 都對，(2) x(−x−2) 或 −x(x＋2) 都對。填空題把寫法固定成提完整的那一種；課本上寫另一種的同學請他再化一步。 鷹架安排：翻到這一頁前，先請學生在課本上獨立寫完整過程（這一頁的填空會透露分解結構）；寫完再開放 IRS，□ 只用來核對。答對不等於能獨立分解，請巡視或抽查紙筆。"
+    },
+    {
+      "id": "b-ex3",
+      "phase": "工作範例",
+      "eyebrow": "08 / 例 3 提公因式",
+      "title": "公因式是一整個括號",
+      "body": "把 (2x＋1) 看成一整塊，就和 x·C＋3·C 一樣。先自己算，再按「下一步」對照。",
+      "source": "課本原題：3-1 p.118（改為數值填空）",
+      "figures": [
+        {
+          "src": "g8-3-1/ex3.png",
+          "alt": "課本 p.118 例 3 題目"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 12,
+          "yMin": 0.2,
+          "yMax": 3.9,
+          "aspect": "fill"
+        },
+        "shapes": [
+          {
+            "type": "text",
+            "x": 3,
+            "y": 3,
+            "text": "$x(2x+1)+3(2x+1)$",
+            "size": 18,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3,
+            "y": 2,
+            "text": "$=x\\cdot\\textcolor{#2f80ed}{(2x+1)}+3\\cdot\\textcolor{#2f80ed}{(2x+1)}$",
+            "size": 17,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3,
+            "y": 1,
+            "text": "$=\\textcolor{#2f80ed}{(2x+1)}(x+3)$",
+            "size": 17,
+            "color": "#5a3fd6",
+            "step": 2,
+            "focus": [
+              2,
+              5
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6,
+                0.4
+              ],
+              [
+                6,
+                3.5
+              ]
+            ],
+            "color": "#c9d0ea",
+            "width": 1.2,
+            "dash": true,
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 3,
+            "text": "$3x(4x-5)-2(4x-5)$",
+            "size": 18,
+            "color": "#1f2a56",
+            "step": 3,
+            "focus": [
+              3,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 2,
+            "text": "$=3x\\cdot\\textcolor{#2f80ed}{(4x-5)}-2\\cdot\\textcolor{#2f80ed}{(4x-5)}$",
+            "size": 17,
+            "color": "#1f2a56",
+            "step": 4,
+            "focus": [
+              4,
+              5
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9,
+            "y": 1,
+            "text": "$=\\textcolor{#2f80ed}{(4x-5)}(3x-2)$",
+            "size": 17,
+            "color": "#5a3fd6",
+            "step": 5,
+            "focus": [
+              5
+            ]
+          }
+        ],
+        "steps": [
+          "(1) 看成兩項",
+          "公因式是 (2x＋1)",
+          "提出來，剩下 x＋3",
+          "(2) 看成兩項",
+          "公因式是 (4x−5)",
+          "提出來，剩下 3x−2"
+        ]
+      },
+      "activity": {
+        "id": "b-ex3-q",
+        "type": "numeric",
+        "prompt": "先自己算例 3，再把 □ 裡的數字填進來",
+        "items": [
+          {
+            "prompt": "$x(2x+1)+3(2x+1)=(2x+1)(x+\\square)$",
+            "answer": "3"
+          },
+          {
+            "prompt": "$3x(4x-5)-2(4x-5)=(4x-5)(3x-\\square)$",
+            "answer": "2"
+          }
+        ],
+        "explanation": "(1) 提出 $(2x+1)$，得 $(2x+1)(x+3)$。(2) 提出 $(4x-5)$，得 $(4x-5)(3x-2)$。"
+      },
+      "notes": "教用版：可先把 x(2x＋1) 與 3(2x＋1) 視為多項式的兩項。 鷹架安排：工作範例（按「下一步」看完整示範）→ IRS 的 □ 是只留關鍵步驟的填空鷹架 → 下一頁隨堂撤除提示，先紙筆獨立完成。"
+    },
+    {
+      "id": "b-ex3-practice",
+      "phase": "隨堂練習",
+      "eyebrow": "09 / 例 3 隨堂",
+      "title": "換你提：一整個括號",
+      "body": "課本隨堂原題。先寫完整過程，再填 □。左圖用另一組數字示範。",
+      "source": "課本原題：3-1 p.119（改為數值填空）；左圖示範的數字為自編",
+      "figures": [
+        {
+          "src": "g8-3-1/ex3-practice.png",
+          "alt": "課本 p.119 例 3 隨堂練習"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 12,
+          "yMin": 0.2,
+          "yMax": 3.9,
+          "aspect": "fill"
+        },
+        "shapes": [
+          {
+            "type": "text",
+            "x": 6,
+            "y": 3,
+            "text": "$x(3x+2)+5(3x+2)$",
+            "size": 26,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              2
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6,
+            "y": 2,
+            "text": "$=x\\cdot\\textcolor{#2f80ed}{(3x+2)}+5\\cdot\\textcolor{#2f80ed}{(3x+2)}$",
+            "size": 24,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              2
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6,
+            "y": 1,
+            "text": "$=\\textcolor{#2f80ed}{(3x+2)}(x+5)$",
+            "size": 24,
+            "color": "#5a3fd6",
+            "step": 2,
+            "focus": [
+              2
+            ]
+          }
+        ],
+        "steps": [
+          "示範（另一組數字）",
+          "公因式是 (3x＋2)",
+          "提出來，剩下 x＋5"
+        ]
+      },
+      "activity": {
+        "id": "b-ex3-practice-q",
+        "type": "numeric",
+        "prompt": "先在課本上寫完整過程，再把 □ 裡的數字填進來",
+        "items": [
+          {
+            "prompt": "$x(7x-6)+8(7x-6)=(7x-6)(x+\\square)$",
+            "answer": "8"
+          },
+          {
+            "prompt": "$9x(3x+10)-4(3x+10)=(3x+10)(9x-\\square)$",
+            "answer": "4"
+          }
+        ],
+        "explanation": "(1) $(7x-6)(x+8)$。(2) $(3x+10)(9x-4)$。"
+      },
+      "notes": "常見錯誤：想把括號展開再分解。提醒：看到一樣的括號就直接提。 鷹架安排：翻到這一頁前，先請學生在課本上獨立寫完整過程（這一頁的填空會透露分解結構）；寫完再開放 IRS，□ 只用來核對。答對不等於能獨立分解，請巡視或抽查紙筆。"
+    },
+    {
+      "id": "b-error",
+      "phase": "錯誤分析",
+      "eyebrow": "10 / 當小老師",
+      "title": "小華的負號跑去哪了？",
+      "body": "小華分解 x(4x＋1)−x(x＋2)，得到 x(3x＋3)。在畫布圈出錯誤、更正並說明，也可以拍照。",
+      "source": "自編錯誤分析，對應課本 3-1 p.118 例 2(3)",
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 12,
+          "yMin": 0.2,
+          "yMax": 5.9,
+          "aspect": "fill"
+        },
+        "shapes": [
+          {
+            "type": "text",
+            "x": 6,
+            "y": 5,
+            "text": "$x(4x+1)-x(x+2)$",
+            "size": 25,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6,
+            "y": 4,
+            "text": "小華：$=x(4x+1-x+2)$",
+            "size": 23,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6,
+            "y": 3,
+            "text": "$=x(3x+3)$ ？",
+            "size": 23,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6,
+            "y": 2,
+            "text": "正確：$=x[(4x+1)-(x+2)]$",
+            "size": 23,
+            "color": "#1f2a56",
+            "step": 3,
+            "focus": [
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6,
+            "y": 1,
+            "text": "$=x($ ？ $)$",
+            "size": 23,
+            "color": "#5a3fd6",
+            "step": 4,
+            "focus": [
+              4
+            ]
+          }
+        ],
+        "steps": [
+          "題目",
+          "括號前是減號",
+          "展開檢查，對嗎？",
+          "先把括號留著",
+          "自己算括號內"
+        ]
+      },
+      "activity": {
+        "id": "b-error-q",
+        "type": "canvas",
+        "prompt": "小華：x(4x＋1)−x(x＋2)＝x(4x＋1−x＋2)＝x(3x＋3)。① 圈出錯誤 ② 寫出正確的分解 ③ 說明錯在哪裡",
+        "canvas": "grid",
+        "allowPhoto": true,
+        "aiAllowed": true,
+        "rubric": {
+          "criteria": [
+            {
+              "id": "find",
+              "label": "找出錯誤",
+              "points": 2,
+              "levels": [
+                {
+                  "score": 0,
+                  "description": "未指出錯誤"
+                },
+                {
+                  "score": 1,
+                  "description": "只說算錯"
+                },
+                {
+                  "score": 2,
+                  "description": "圈出出錯的那一步，並指出錯在哪裡"
+                }
+              ]
+            },
+            {
+              "id": "fix",
+              "label": "正確分解",
+              "points": 2,
+              "levels": [
+                {
+                  "score": 0,
+                  "description": "答案錯誤或未作答"
+                },
+                {
+                  "score": 1,
+                  "description": "提公因式的列式正確，但括號內化簡錯誤"
+                },
+                {
+                  "score": 2,
+                  "description": "正確完成分解，括號內化到最簡"
+                }
+              ]
+            },
+            {
+              "id": "why",
+              "label": "說明理由",
+              "points": 2,
+              "levels": [
+                {
+                  "score": 0,
+                  "description": "沒有理由"
+                },
+                {
+                  "score": 1,
+                  "description": "只寫答案比對"
+                },
+                {
+                  "score": 2,
+                  "description": "說明這一步違反的運算規則，或用展開比對原式"
+                }
+              ]
+            }
+          ],
+          "reference": "x(4x＋1)−x(x＋2)＝x[(4x＋1)−(x＋2)]＝x(4x＋1−x−2)＝x(3x−1)。減去 (x＋2) 時，x 和 2 都要變號，小華只變了 x。",
+          "graderNotes": "也接受先展開 4x²＋x−x²−2x＝3x²−x，再提出 x 得 x(3x−1)。各向度對照：find 滿分要圈出 −x＋2，括號前的減號沒有變到第二項；fix 列出 x[(4x＋1)−(x＋2)] 但化簡錯誤給 1 分，得到 x(3x−1) 給滿分；why 滿分要說明減去一個括號，括號內每一項都要變號（或用展開比對原式）。"
+        }
+      },
+      "notes": "收件後按「AI 批改」，覆核後發回。請同學用展開驗算：x(3x＋3)＝3x²＋3x，和原式 3x²−x 不同。"
+    },
+    {
+      "id": "b-exit",
+      "phase": "出場券",
+      "eyebrow": "11 / 用自己的話說",
+      "title": "為什麼可以把括號當成一整塊？",
+      "body": "想想 x·C＋3·C，把 C 換成括號。用一句話說明。",
+      "source": "自編出場券，對應課本 3-1 p.117–118",
+      "visual": "steps",
+      "bullets": [
+        "兩項都有哪一個括號？",
+        "把它看成一個字母 C",
+        "分配律倒過來：A×C＋B×C＝(A＋B)×C"
+      ],
+      "activity": {
+        "id": "b-exit-q",
+        "type": "short",
+        "prompt": "x(2x＋1)＋3(2x＋1) 為什麼可以提出 (2x＋1)？用分配律或面積說明。",
+        "aiAllowed": true,
+        "rubric": {
+          "criteria": [
+            {
+              "id": "link",
+              "label": "說出關係",
+              "points": 2,
+              "levels": [
+                {
+                  "score": 0,
+                  "description": "沒有說明或說錯"
+                },
+                {
+                  "score": 1,
+                  "description": "只說兩項有相同的部分，沒有說明它的角色"
+                },
+                {
+                  "score": 2,
+                  "description": "指出兩項共同的因式，並說明它是公因式"
+                }
+              ]
+            },
+            {
+              "id": "reason",
+              "label": "分配律或面積",
+              "points": 2,
+              "levels": [
+                {
+                  "score": 0,
+                  "description": "沒有提到"
+                },
+                {
+                  "score": 2,
+                  "description": "用分配律或面積模型清楚說明為什麼可以提出"
+                }
+              ]
+            }
+          ],
+          "reference": "兩項都是「某數 × (2x＋1)」，所以 (2x＋1) 是公因式。把 (2x＋1) 看成 C，x·C＋3·C＝(x＋3)·C，這就是分配律倒過來用；也可以看成高相同的兩塊長方形併起來。",
+          "graderNotes": "link 只寫「因為兩項都有」給 1 分，說明兩項都有因式 (2x＋1)、它是公因式給滿分。reason 用 A×C＋B×C＝(A＋B)×C 或「高相同的兩塊併起來」說明給滿分。"
+        }
+      }
+    },
+    {
+      "id": "b-reflect",
+      "phase": "後設認知",
+      "eyebrow": "最後 / 給自己打分數",
+      "title": "今天的內容，我掌握了多少？",
+      "body": "誠實評估，下一節課會從大家最沒把握的地方開始複習。",
+      "source": "自編自評，對應課本 3-1 p.117–119",
+      "visual": "cards",
+      "notes": "3 分以下的學生，下節課開頭用提取練習再做一次；可用抽籤「答錯」請同學上台說明。",
+      "activity": {
+        "id": "b-reflect",
+        "type": "scale",
+        "prompt": "我能找出公因式，並用提公因式法因式分解",
+        "min": 1,
+        "max": 5,
+        "minLabel": "還需要再看一次",
+        "maxLabel": "可以教別人"
+      }
+    }
+  ]
+}

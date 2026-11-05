@@ -465,3 +465,199 @@ export function rampExplore({ ang = 25, s = 2 } = {}) {
     caption: '角度固定時，坡道拉長或縮短（相似），三個比值都不變；角度一改，比值才跟著改',
   };
 }
+
+/* ───────────── 因式分解（八上 3-1） ───────────── */
+/** 代數磚：1 張 x²、(p+q) 張 x、pq 張 1 拼成長方形，長和寬就是兩個因式（拖拉 p、q）。 */
+export function algebraTiles({ p = 1, q = 1, xLen = 3.5, max = 5 } = {}) {
+  const shapes = [
+    { type: 'rect', x: 0, y: 'q', w: xLen, h: xLen, fill: C.fViolet, color: C.violet, width: 2 },
+    { type: 'text', x: xLen / 2, y: `q+${xLen / 2}`, text: '$x^2$', size: 20, color: '#5a3fd6' },
+  ];
+  for (let i = 0; i < max; i++) {
+    shapes.push({ type: 'rect', x: xLen + i, y: 'q', w: 1, h: xLen, fill: C.fBlue, color: C.blue, show: `p>${i}` });
+    shapes.push({ type: 'text', x: xLen + i + 0.5, y: `q+${xLen / 2}`, text: '$x$', size: 15, color: '#1d4fa3', show: `p>${i}` });
+    shapes.push({ type: 'rect', x: 0, y: i, w: xLen, h: 1, fill: C.fBlue, color: C.blue, show: `q>${i}` });
+    shapes.push({ type: 'text', x: xLen / 2, y: i + 0.5, text: '$x$', size: 15, color: '#1d4fa3', show: `q>${i}` });
+    for (let j = 0; j < max; j++) shapes.push({ type: 'rect', x: xLen + i, y: j, w: 1, h: 1, fill: C.fOrange, color: C.orange, show: `p>${i} && q>${j}` });
+  }
+  shapes.push(
+    { type: 'brace', points: [[0, `q+${xLen}`], [`${xLen}+p`, `q+${xLen}`]], text: '長 $x+{p}$' },
+    { type: 'brace', points: [[0, 0], [0, `q+${xLen}`]] },
+    { type: 'text', x: -1.5, y: `(q+${xLen})/2`, text: '寬 $x+{q}$', size: 15, color: C.ink },
+  );
+  return {
+    view: { xMin: -2.8, xMax: xLen + max + 0.6, yMin: -0.6, yMax: xLen + max + 1.4, aspect: 'equal' },
+    params: [
+      { id: 'p', label: '右邊加幾排（$x+p$ 的 $p$）', min: 1, max, step: 1, value: p },
+      { id: 'q', label: '下面加幾排（$x+q$ 的 $q$）', min: 1, max, step: 1, value: q },
+    ],
+    shapes,
+    readouts: [
+      { label: '$x$ 磚（藍）幾張', expr: 'p+q' },
+      { label: '$1$ 磚（橘）幾張', expr: 'p*q' },
+    ],
+    caption: '總面積 ＝ 長 × 寬：磚數決定多項式，長和寬就是它的兩個因式',
+  };
+}
+
+/**
+ * 提公因式的面積模型：兩塊高相同的長方形靠攏（拖拉 t），共同的高就是公因式。
+ * hLen、w1Len、w2Len 是畫圖長度；其餘是標籤（LaTeX 字串）。
+ */
+export function mergeArea({ hLen, w1Len, w2Len, hLab, w1Lab, w2Lab, a1Lab, a2Lab, whole, expr, gap = 2.4, caption }) {
+  const W = w1Len + w2Len + gap,
+    x2 = `${w1Len}+(1-t)*${gap}`;
+  return {
+    view: { xMin: -2.4, xMax: W + 2.4, yMin: -1.4, yMax: hLen + 2.8, aspect: 'equal' },
+    params: [{ id: 't', label: '把兩塊靠在一起', min: 0, max: 1, step: 0.25, value: 0 }],
+    shapes: [
+      { type: 'rect', x: 0, y: 0, w: w1Len, h: hLen, fill: C.fViolet, color: C.violet, width: 2 },
+      { type: 'rect', x: x2, y: 0, w: w2Len, h: hLen, fill: C.fBlue, color: C.blue, width: 2 },
+      { type: 'text', x: w1Len / 2, y: hLen / 2, text: a1Lab, size: 17, color: '#5a3fd6' },
+      { type: 'text', x: `${x2}+${w2Len / 2}`, y: hLen / 2, text: a2Lab, size: 17, color: '#1d4fa3' },
+      { type: 'brace', points: [[0, 0], [0, hLen]] },
+      { type: 'text', x: -1.25, y: hLen / 2, text: hLab, size: 15, color: C.ink },
+      { type: 'brace', points: [[`${x2}+${w2Len}`, hLen], [`${x2}+${w2Len}`, 0]], show: 't<1' },
+      { type: 'text', x: `${x2}+${w2Len}+1.25`, y: hLen / 2, text: hLab, size: 15, color: C.ink, show: 't<1' },
+      { type: 'brace', points: [[0, hLen], [w1Len, hLen]], text: w1Lab },
+      { type: 'brace', points: [[x2, hLen], [`${x2}+${w2Len}`, hLen]], text: w2Lab },
+      { type: 'text', x: W / 2, y: hLen + 2.1, text: expr, size: 20, color: C.ink, show: 't<1' },
+      { type: 'text', x: W / 2, y: hLen + 2.1, text: whole, size: 22, color: '#5a3fd6', show: 't==1' },
+      { type: 'text', x: (w1Len + w2Len) / 2, y: -0.8, text: '兩塊的高一樣，高就是公因式', size: 15, color: C.teal, show: 't==1' },
+    ],
+    caption: caption ?? '$A\\times C+B\\times C=C\\times(A+B)$：高相同的兩塊可以併成一塊',
+  };
+}
+
+/** 平方差：a² 切掉角落 b²，剩下的 L 形切一塊轉 90° 搬到右邊（拖拉 t），變成 (a＋b)(a−b) 的長方形。每個 t 都是剛體運動，面積不變。 */
+export function diffSquareCut({ a = 5, b = 2 } = {}) {
+  const lerp = (u, v) => `(${u})+t*((${v})-(${u}))`,
+    cx = lerp('(a-b)/2', 'a+b/2'),
+    cy = lerp('a-b/2', '(a-b)/2'),
+    corner = (sx, sy) => [`${cx}+(${sx})*(a-b)/2*cos(90*t)+(${sy})*b/2*sin(90*t)`, `${cy}-(${sx})*(a-b)/2*sin(90*t)+(${sy})*b/2*cos(90*t)`];
+  return {
+    view: { xMin: -1.4, xMax: 10.4, yMin: -1.4, yMax: 8, aspect: 'equal' },
+    params: [
+      { id: 'a', label: '大正方形邊長 $a$', min: 4, max: 6, step: 1, value: a },
+      { id: 'b', label: '切掉的小正方形邊長 $b$', min: 1, max: 3, step: 1, value: b },
+      { id: 't', label: '把上面那一塊轉 90° 搬到右邊', min: 0, max: 1, step: 0.25, value: 0 },
+    ],
+    shapes: [
+      { type: 'rect', x: 'a-b', y: 'a-b', w: 'b', h: 'b', color: C.red, width: 1.6, dash: true, show: 't==0' },
+      { type: 'text', x: 'a-b/2', y: 'a-b/2', text: '$b^2$', size: 15, color: C.red, show: 't==0' },
+      { type: 'rect', x: 0, y: 0, w: 'a', h: 'a-b', fill: C.fViolet, color: C.violet, width: 2 },
+      { type: 'polygon', points: [corner(-1, -1), corner(1, -1), corner(1, 1), corner(-1, 1)], fill: C.fBlue, color: C.blue, width: 2 },
+      { type: 'brace', points: [[0, 0], [0, 'a']], text: '$a$', show: 't==0' },
+      { type: 'brace', points: [[0, 'a'], ['a', 'a']], text: '$a$', show: 't==0' },
+      { type: 'brace', points: [[0, 'a-b'], ['a+b', 'a-b']], text: '長 $a+b={a+b}$', show: 't==1' },
+      { type: 'brace', points: [['a+b', 'a-b'], ['a+b', 0]], text: '寬 $a-b={a-b}$', show: 't==1' },
+      { type: 'text', x: 5, y: 7.3, text: '面積 $a^2-b^2={a^2-b^2}$', size: 18, color: C.ink, show: 't<1' },
+      { type: 'text', x: 5, y: 7.3, text: '$a^2-b^2=(a+b)(a-b)={a+b}\\times{a-b}$', size: 18, color: '#5a3fd6', show: 't==1' },
+    ],
+    readouts: [
+      { label: '$a^2-b^2$', expr: 'a^2-b^2' },
+      { label: '$(a+b)(a-b)$', expr: '(a+b)*(a-b)' },
+    ],
+    caption: '藍色塊只有搬動和旋轉，大小形狀不變，所以總面積一直是 $a^2-b^2$：兩個平方的差可以寫成兩個因式的積',
+  };
+}
+
+/** 差的平方的面積模型（靜態，按「下一步」）：a² 去掉兩條 ab，多扣的 b² 要加回來。 */
+export function diffSquareSteps({ aLen = 6, bLen = 2, aLab = '$a$', bLab = '$b$', caption } = {}) {
+  const r = aLen - bLen;
+  return litAtEnd({
+    view: { xMin: -1.4, xMax: aLen + 7, yMin: -0.8, yMax: aLen + 1.3, aspect: 'equal' },
+    shapes: [
+      { type: 'rect', x: 0, y: 0, w: aLen, h: aLen, fill: 'rgba(123,97,255,.1)', color: C.violet, width: 2, step: 0 },
+      { type: 'brace', points: [[0, aLen], [aLen, aLen]], text: aLab, step: 0 },
+      { type: 'rect', x: r, y: 0, w: bLen, h: aLen, fill: C.fBlue, color: C.blue, step: 1 },
+      { type: 'rect', x: 0, y: 0, w: aLen, h: bLen, fill: C.fBlue, color: C.blue, step: 2 },
+      { type: 'rect', x: r, y: 0, w: bLen, h: bLen, fill: C.fOrange, color: C.orange, width: 2, step: 3 },
+      { type: 'text', x: r + bLen / 2, y: bLen / 2, text: '$b^2$', size: 15, color: '#b4541a', step: 3 },
+      { type: 'brace', points: [[aLen, bLen], [aLen, 0]], text: bLab, step: 1 },
+      { type: 'rect', x: 0, y: bLen, w: r, h: r, fill: C.fViolet, color: C.violet, width: 2.6, step: 4 },
+      { type: 'text', x: r / 2, y: bLen + r / 2, text: '$(a-b)^2$', size: 18, color: '#5a3fd6', step: 4 },
+      { type: 'text', x: aLen + 3.7, y: aLen * 0.84, text: '$a^2$', size: 20, color: '#5a3fd6', step: 0 },
+      { type: 'text', x: aLen + 3.7, y: aLen * 0.66, text: '$-ab$', size: 20, color: '#1d4fa3', step: 1 },
+      { type: 'text', x: aLen + 3.7, y: aLen * 0.48, text: '$-ab$', size: 20, color: '#1d4fa3', step: 2 },
+      { type: 'text', x: aLen + 3.7, y: aLen * 0.3, text: '$+b^2$', size: 20, color: '#b4541a', step: 3 },
+      { type: 'text', x: aLen + 3.7, y: aLen * 0.1, text: '$a^2-2ab+b^2=(a-b)^2$', size: 18, color: C.ink, step: 4 },
+    ],
+    steps: ['邊長 a 的正方形，面積 a²', '右邊切掉一條 ab', '下面再切掉一條 ab', '角落的 b² 被扣了兩次，要加回來一次', '剩下的就是邊長 a − b 的正方形'],
+    ...(caption ? { caption } : {}),
+  });
+}
+
+/** 多項式的一項：係數、次數 → LaTeX；first 表示式子第一項（正號不寫）。 */
+function polyTerm(c, deg, v, first) {
+  const sign = c < 0 ? '-' : first ? '' : '+',
+    abs = Math.abs(c),
+    body = deg === 0 ? String(abs) : `${abs === 1 ? '' : abs}${v}${deg === 2 ? '^2' : ''}`;
+  return `${sign}${body}`;
+}
+/**
+ * 直式除法：(a2 v² + a1 v + a0) ÷ (d1 v + d0)，商與餘式由數字算出來（不會打錯）；一步一步揭示。
+ * after：結論文字（最多兩行）。steps 依序是列式、第一次商、第二次商、看餘式、結論。
+ */
+export function longDivSteps({ a, d, v = 'x', after = [], caption, conclusion = '看餘式是不是 0' }) {
+  const [a2, a1, a0] = a,
+    [d1, d0] = d,
+    q1 = a2 / d1,
+    r1 = a1 - q1 * d0,
+    q0 = r1 / d1,
+    rem = a0 - q0 * d0;
+  const COL = [5.2, 7.2, 9.2];
+  const line = (cells, y, step, color = C.ink, size = 19) =>
+    cells.map((c, i) => (c === null ? null : { type: 'text', x: COL[i], y, text: `$${c}$`, size, color, step })).filter(Boolean);
+  const rule = (x0, x1, y, step) => ({ type: 'segment', points: [[x0, y], [x1, y]], color: C.ink, width: 1.6, step });
+  const dtex = `${polyTerm(d1, 1, v, true)}${polyTerm(d0, 0, v, false)}`;
+  const shapes = [
+    { type: 'text', x: 2.4, y: 6.5, text: `$${dtex}$`, size: 19, color: C.blue, step: 0 },
+    { type: 'segment', points: [[4, 7.1], [4, 5.95]], color: C.ink, width: 1.8, step: 0 },
+    rule(4, 10.4, 7.1, 0),
+    ...line([polyTerm(a2, 2, v, true), polyTerm(a1, 1, v, false), polyTerm(a0, 0, v, false)], 6.5, 0),
+    ...line([null, polyTerm(q1, 1, v, true), null], 7.6, 1, '#5a3fd6'),
+    ...line([polyTerm(q1 * d1, 2, v, true), polyTerm(q1 * d0, 1, v, false), null], 5.5, 1, C.teal),
+    rule(4.2, 10.4, 5.0, 1),
+    ...line([null, polyTerm(r1, 1, v, true), polyTerm(a0, 0, v, false)], 4.4, 1),
+    ...line([null, null, polyTerm(q0, 0, v, false)], 7.6, 2, '#5a3fd6'),
+    ...line([null, polyTerm(q0 * d1, 1, v, true), polyTerm(q0 * d0, 0, v, false)], 3.4, 2, C.teal),
+    rule(6.2, 10.4, 2.9, 2),
+    ...line([null, null, String(rem)], 2.3, 3, rem === 0 ? '#16824f' : C.red, 22),
+    { type: 'text', x: 11.8, y: 2.3, text: `餘式 ${String(rem).replace('-', '−')}`, size: 15, color: rem === 0 ? '#16824f' : C.red, step: 3 },
+    ...after.map((text, i) => ({ type: 'text', x: 7.5, y: 1.2 - i * 0.85, text, size: 17, color: '#5a3fd6', step: 4 })),
+  ];
+  return litAtEnd({
+    view: { xMin: 0.4, xMax: 14.6, yMin: after.length > 1 ? -0.3 : 0.5, yMax: 8.2, aspect: 'fill' },
+    shapes,
+    steps: ['寫成直式（缺項補 0）', `第一次商 ${polyTerm(q1, 1, v, true).replace('-', '−')}，乘回去再相減`, `第二次商 ${polyTerm(q0, 0, v, true).replace('-', '−')}，乘回去再相減`, conclusion, '結論'],
+    ...(caption ? { caption } : {}),
+  });
+}
+
+/**
+ * 幾小題並排的逐步解題（課本的左右欄）：columns 每欄 { lines }，一行一步，整體依序揭示。
+ * captions 的數量要等於總行數；最後一步全部點亮。
+ */
+export function columnsSteps({ columns, captions, size = 19, caption }) {
+  const n = columns.length,
+    rows = Math.max(...columns.map((c) => c.lines.length)),
+    all = captions.map((_, k) => k),
+    shapes = [];
+  let step = 0;
+  columns.forEach((col, i) => {
+    const x = (12 / n) * (i + 0.5);
+    col.lines.forEach((text, r) => {
+      shapes.push({ type: 'text', x, y: rows - r, text, size: r === 0 ? size + 1 : size, color: r === col.lines.length - 1 ? '#5a3fd6' : C.ink, step });
+      step++;
+    });
+    if (i < n - 1) shapes.push({ type: 'segment', points: [[(12 / n) * (i + 1), 0.4], [(12 / n) * (i + 1), rows + 0.5]], color: '#c9d0ea', width: 1.2, dash: true, focus: all });
+  });
+  if (step !== captions.length) throw new Error(`columnsSteps：${step} 行算式配 ${captions.length} 句說明`);
+  return litAtEnd({
+    view: { xMin: 0, xMax: 12, yMin: 0.2, yMax: rows + 0.9, aspect: 'fill' },
+    shapes,
+    steps: captions,
+    ...(caption ? { caption } : {}),
+  });
+}

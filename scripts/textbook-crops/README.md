@@ -25,3 +25,19 @@ python -I math-classroom-kit/scripts/textbook-crops/crop_g9_2_1.py . math-classr
 ```
 
 `g9-2-1-boxes.json` 的座標以 953×1180 的頁面預覽圖（1.6 倍）為準，PDF 第 n 頁＝課本 p.(n＋83)；輸出 45 張 2.5 倍 PNG 到 `public/lesson-assets/g9-2-1/`（例題、隨堂只截題目框與附圖，不截解答）。
+
+重製 8 上 3-1 的截圖（在 2026數學課 根目錄執行）：
+
+```bash
+python -I math-classroom-kit/scripts/textbook-crops/crop_g8_3_1.py . math-classroom-kit/scripts/textbook-crops/g8-3-1-boxes.json rel.json
+```
+
+`g8-3-1-boxes.json` 的格式同上（927×1157 預覽圖座標，預覽圖在 `八年級/115上_視覺化互動教學/textbook-pages/3-1/`，PDF 第 n 頁＝課本 p.(n＋109)），輸出到 `public/lesson-assets/g8-3-1/`（37 張，只截題目框與附圖，不截解答）。
+
+重製 9 上 2-2 的截圖（在 2026數學課 根目錄執行）：
+
+```bash
+python -I math-classroom-kit/scripts/textbook-crops/crop_g9_2_2.py . math-classroom-kit/scripts/textbook-crops/g9-2-2-boxes.json rel.json
+```
+
+`g9-2-2-boxes.json` 的座標以 953×1180 的頁面預覽圖為準，PDF 第 n 頁＝課本 p.(n＋109)；輸出 38 張 2.5 倍 PNG 到 `public/lesson-assets/g9-2-2/`（例題、隨堂只截題目框與附圖，不截解答）。

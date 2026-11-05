@@ -1,0 +1,3901 @@
+{
+  "schemaVersion": 1,
+  "id": "g9-2-2d",
+  "title": "2-2 圓心角、圓周角與弧的關係（4）圓內接四邊形",
+  "description": "拖曳四個頂點看見圓內接四邊形對角互補，用弧的和說明原因；用例 8 與隨堂練習外角等於內對角；由半圓所對圓周角是直角學會過圓外一點作切線，最後做自我檢核與挑錯題。",
+  "subject": "數學・九年級 2-2",
+  "duration": 45,
+  "objectives": [
+    "能說明圓內接四邊形的對角互補",
+    "能用對角互補與外角關係求角度、寫出說明",
+    "能依步驟過圓外一點作圓的切線，並說明為什麼是切線"
+  ],
+  "slides": [
+    {
+      "id": "d-retrieve",
+      "phase": "提取練習",
+      "eyebrow": "01 / 先想起要用的工具",
+      "title": "互補、圓周角、整圓 360°",
+      "body": "等一下的說明會用到這三件事，先想起來。",
+      "source": "銜接課本 2-2 p.118 圓周角；p.121 學習時光機（互補）（題目為自編）",
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 20,
+          "yMin": 0,
+          "yMax": 11,
+          "aspect": "equal"
+        },
+        "shapes": [
+          {
+            "type": "circle",
+            "x": 5,
+            "y": 5.5,
+            "r": 4.3,
+            "color": "#1f2a56",
+            "width": 2
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.959,
+                4.029
+              ],
+              [
+                1.196,
+                3.496
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                1.196,
+                3.496
+              ],
+              [
+                1.502,
+                3
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                1.502,
+                3
+              ],
+              [
+                1.872,
+                2.549
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                1.872,
+                2.549
+              ],
+              [
+                2.3,
+                2.153
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                2.3,
+                2.153
+              ],
+              [
+                2.778,
+                1.818
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                2.778,
+                1.818
+              ],
+              [
+                3.297,
+                1.552
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                3.297,
+                1.552
+              ],
+              [
+                3.847,
+                1.358
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                3.847,
+                1.358
+              ],
+              [
+                4.418,
+                1.24
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                4.418,
+                1.24
+              ],
+              [
+                5,
+                1.2
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                5,
+                1.2
+              ],
+              [
+                5.582,
+                1.24
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                5.582,
+                1.24
+              ],
+              [
+                6.153,
+                1.358
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6.153,
+                1.358
+              ],
+              [
+                6.703,
+                1.552
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6.703,
+                1.552
+              ],
+              [
+                7.222,
+                1.818
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                7.222,
+                1.818
+              ],
+              [
+                7.7,
+                2.153
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                7.7,
+                2.153
+              ],
+              [
+                8.128,
+                2.549
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.128,
+                2.549
+              ],
+              [
+                8.498,
+                3
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.498,
+                3
+              ],
+              [
+                8.804,
+                3.496
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.804,
+                3.496
+              ],
+              [
+                9.041,
+                4.029
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                9.041,
+                4.029
+              ],
+              [
+                9.204,
+                4.595
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                9.204,
+                4.595
+              ],
+              [
+                9.288,
+                5.179
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                9.288,
+                5.179
+              ],
+              [
+                9.292,
+                5.768
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                9.292,
+                5.768
+              ],
+              [
+                9.215,
+                6.352
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                9.215,
+                6.352
+              ],
+              [
+                9.059,
+                6.92
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                9.059,
+                6.92
+              ],
+              [
+                8.826,
+                7.462
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.826,
+                7.462
+              ],
+              [
+                8.522,
+                7.966
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.522,
+                7.966
+              ],
+              [
+                8.152,
+                8.425
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.152,
+                8.425
+              ],
+              [
+                7.723,
+                8.828
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                7.723,
+                8.828
+              ],
+              [
+                7.242,
+                9.169
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                7.242,
+                9.169
+              ],
+              [
+                6.72,
+                9.441
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6.72,
+                9.441
+              ],
+              [
+                6.165,
+                9.639
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6.165,
+                9.639
+              ],
+              [
+                5.588,
+                9.76
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                5.588,
+                9.76
+              ],
+              [
+                5,
+                9.8
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                5,
+                9.8
+              ],
+              [
+                4.412,
+                9.76
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                4.412,
+                9.76
+              ],
+              [
+                3.835,
+                9.639
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                3.835,
+                9.639
+              ],
+              [
+                3.28,
+                9.441
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                3.28,
+                9.441
+              ],
+              [
+                2.758,
+                9.169
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                2.758,
+                9.169
+              ],
+              [
+                2.277,
+                8.828
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                2.277,
+                8.828
+              ],
+              [
+                1.848,
+                8.425
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                1.848,
+                8.425
+              ],
+              [
+                1.478,
+                7.966
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                1.478,
+                7.966
+              ],
+              [
+                1.174,
+                7.462
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                1.174,
+                7.462
+              ],
+              [
+                0.941,
+                6.92
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.941,
+                6.92
+              ],
+              [
+                0.785,
+                6.352
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.785,
+                6.352
+              ],
+              [
+                0.708,
+                5.768
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.708,
+                5.768
+              ],
+              [
+                0.712,
+                5.179
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.712,
+                5.179
+              ],
+              [
+                0.796,
+                4.595
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.796,
+                4.595
+              ],
+              [
+                0.959,
+                4.029
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                4.253,
+                9.735
+              ],
+              [
+                0.959,
+                4.029
+              ]
+            ],
+            "color": "#ff8a3d",
+            "width": 2.6
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                4.253,
+                9.735
+              ],
+              [
+                9.041,
+                4.029
+              ]
+            ],
+            "color": "#ff8a3d",
+            "width": 2.6
+          },
+          {
+            "type": "point",
+            "x": 4.253,
+            "y": 9.735,
+            "color": "#1f2a56"
+          },
+          {
+            "type": "text",
+            "x": 4.166,
+            "y": 10.227,
+            "text": "A",
+            "size": 15,
+            "color": "#1f2a56"
+          },
+          {
+            "type": "point",
+            "x": 0.959,
+            "y": 4.029,
+            "color": "#1f2a56"
+          },
+          {
+            "type": "text",
+            "x": 0.489,
+            "y": 3.858,
+            "text": "B",
+            "size": 15,
+            "color": "#1f2a56"
+          },
+          {
+            "type": "point",
+            "x": 9.041,
+            "y": 4.029,
+            "color": "#1f2a56"
+          },
+          {
+            "type": "text",
+            "x": 9.511,
+            "y": 3.858,
+            "text": "C",
+            "size": 15,
+            "color": "#1f2a56"
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 8,
+            "text": "互補：兩角的和是 180°",
+            "size": 19,
+            "color": "#5a3fd6"
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 5.7,
+            "text": "圓周角 ＝ 所對弧的一半",
+            "size": 19,
+            "color": "#e5484d"
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 3.4,
+            "text": "整個圓的弧 ＝ 360°",
+            "size": 19,
+            "color": "#1d4fa3"
+          }
+        ],
+        "caption": "紅弧和藍弧合起來是整個圓"
+      },
+      "activity": {
+        "id": "d-retrieve-q",
+        "type": "numeric",
+        "prompt": "提取：直接寫出答案",
+        "items": [
+          {
+            "prompt": "∠1 和 ∠2 互補，∠1 ＝ 65°，∠2 ＝ ？",
+            "answer": "115"
+          },
+          {
+            "prompt": "弧的度數 140°，所對圓周角 ＝ ？",
+            "answer": "70"
+          },
+          {
+            "prompt": "圓被分成兩段弧，一段 140°，另一段 ＝ ？",
+            "answer": "220"
+          }
+        ],
+        "explanation": "(1) 180°－65°＝115°。(2) 140°÷2＝70°。(3) 360°－140°＝220°。"
+      },
+      "notes": "第 2、3 題合起來：另一段弧 220° 所對的圓周角是 110°，和 70° 互補，預告今天的主題。"
+    },
+    {
+      "id": "d-predict",
+      "phase": "預測",
+      "eyebrow": "02 / 先猜",
+      "title": "四個頂點都在圓上，對角有什麼關係？",
+      "body": "四邊形 ABCD 的四個頂點都在圓周上，叫做圓內接四邊形。∠A＝70°，∠C 會是多少？先猜。",
+      "source": "對應課本 2-2 p.121（預測題自編）",
+      "figures": [
+        {
+          "src": "g9-2-2/cyclic-def.png",
+          "alt": "課本 p.121 圓內接四邊形的定義"
+        }
+      ],
+      "activity": {
+        "id": "d-predict-q",
+        "type": "single",
+        "prompt": "圓內接四邊形 ABCD 中，∠A＝70°，∠C 是幾度？",
+        "options": [
+          "70°",
+          "110°",
+          "140°",
+          "條件不夠，不一定"
+        ],
+        "correct": [
+          1
+        ],
+        "explanation": "∠A、∠C 對的兩段弧合起來是整個圓，所以 ∠A＋∠C＝180°，∠C＝110°。"
+      },
+      "notes": "先公布統計、不公布答案，保留疑問到具體操作頁。選 70° 的同學把平行四邊形的性質搬過來了。"
+    },
+    {
+      "id": "d-explore",
+      "phase": "具體操作",
+      "eyebrow": "03 / 拖拖看：對角",
+      "title": "拖曳四個頂點，看對角的和",
+      "body": "先固定 A、C，拖 B 或 D 把 ∠A 調成 110°；再拖 A 觀察 ∠A 有沒有變。紅色是一組對角、藍色是另一組。四邊形的形狀變了，什麼沒有變？",
+      "source": "對應課本 2-2 p.121（拖曳操作為自編）",
+      "interactive": {
+        "view": {
+          "xMin": -6.3,
+          "xMax": 6.3,
+          "yMin": -10.2,
+          "yMax": 6.3,
+          "aspect": "equal"
+        },
+        "points": [
+          {
+            "id": "A",
+            "x": -3.83,
+            "y": 3.214,
+            "color": "#ff7a45",
+            "minX": -6.2,
+            "maxX": -1,
+            "minY": 1,
+            "maxY": 6.2
+          },
+          {
+            "id": "B",
+            "x": -4.33,
+            "y": -2.5,
+            "color": "#ff7a45",
+            "minX": -6.2,
+            "maxX": -1,
+            "minY": -6.2,
+            "maxY": -1
+          },
+          {
+            "id": "C",
+            "x": 3.83,
+            "y": -3.214,
+            "color": "#ff7a45",
+            "minX": 1,
+            "maxX": 6.2,
+            "minY": -6.2,
+            "maxY": -1
+          },
+          {
+            "id": "D",
+            "x": 3.214,
+            "y": 3.83,
+            "color": "#ff7a45",
+            "minX": 1,
+            "maxX": 6.2,
+            "minY": 1,
+            "maxY": 6.2
+          }
+        ],
+        "shapes": [
+          {
+            "type": "circle",
+            "x": 0,
+            "y": 0,
+            "r": 5,
+            "color": "#1f2a56",
+            "width": 2
+          },
+          {
+            "type": "polygon",
+            "points": [
+              [
+                "5*cos(round(atan2(Ay,Ax)/10)*10)",
+                "5*sin(round(atan2(Ay,Ax)/10)*10)"
+              ],
+              [
+                "5*cos(round(atan2(By,Bx)/10)*10)",
+                "5*sin(round(atan2(By,Bx)/10)*10)"
+              ],
+              [
+                "5*cos(round(atan2(Cy,Cx)/10)*10)",
+                "5*sin(round(atan2(Cy,Cx)/10)*10)"
+              ],
+              [
+                "5*cos(round(atan2(Dy,Dx)/10)*10)",
+                "5*sin(round(atan2(Dy,Dx)/10)*10)"
+              ]
+            ],
+            "fill": "rgba(132,204,22,.20)",
+            "color": "#1f2a56",
+            "width": 2.4
+          },
+          {
+            "type": "angle",
+            "points": [
+              [
+                "5*cos(round(atan2(Dy,Dx)/10)*10)",
+                "5*sin(round(atan2(Dy,Dx)/10)*10)"
+              ],
+              [
+                "5*cos(round(atan2(Ay,Ax)/10)*10)",
+                "5*sin(round(atan2(Ay,Ax)/10)*10)"
+              ],
+              [
+                "5*cos(round(atan2(By,Bx)/10)*10)",
+                "5*sin(round(atan2(By,Bx)/10)*10)"
+              ]
+            ],
+            "color": "#e5484d"
+          },
+          {
+            "type": "angle",
+            "points": [
+              [
+                "5*cos(round(atan2(By,Bx)/10)*10)",
+                "5*sin(round(atan2(By,Bx)/10)*10)"
+              ],
+              [
+                "5*cos(round(atan2(Cy,Cx)/10)*10)",
+                "5*sin(round(atan2(Cy,Cx)/10)*10)"
+              ],
+              [
+                "5*cos(round(atan2(Dy,Dx)/10)*10)",
+                "5*sin(round(atan2(Dy,Dx)/10)*10)"
+              ]
+            ],
+            "color": "#e5484d"
+          },
+          {
+            "type": "angle",
+            "points": [
+              [
+                "5*cos(round(atan2(Ay,Ax)/10)*10)",
+                "5*sin(round(atan2(Ay,Ax)/10)*10)"
+              ],
+              [
+                "5*cos(round(atan2(By,Bx)/10)*10)",
+                "5*sin(round(atan2(By,Bx)/10)*10)"
+              ],
+              [
+                "5*cos(round(atan2(Cy,Cx)/10)*10)",
+                "5*sin(round(atan2(Cy,Cx)/10)*10)"
+              ]
+            ],
+            "color": "#2f80ed"
+          },
+          {
+            "type": "angle",
+            "points": [
+              [
+                "5*cos(round(atan2(Cy,Cx)/10)*10)",
+                "5*sin(round(atan2(Cy,Cx)/10)*10)"
+              ],
+              [
+                "5*cos(round(atan2(Dy,Dx)/10)*10)",
+                "5*sin(round(atan2(Dy,Dx)/10)*10)"
+              ],
+              [
+                "5*cos(round(atan2(Ay,Ax)/10)*10)",
+                "5*sin(round(atan2(Ay,Ax)/10)*10)"
+              ]
+            ],
+            "color": "#2f80ed"
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                "5*cos(round(atan2(Ay,Ax)/10)*10)",
+                "5*sin(round(atan2(Ay,Ax)/10)*10)"
+              ],
+              [
+                "Ax",
+                "Ay"
+              ]
+            ],
+            "color": "#b7bdd3",
+            "width": 1,
+            "dash": true
+          },
+          {
+            "type": "point",
+            "x": "5*cos(round(atan2(Ay,Ax)/10)*10)",
+            "y": "5*sin(round(atan2(Ay,Ax)/10)*10)",
+            "color": "#e5484d"
+          },
+          {
+            "type": "text",
+            "x": "5.6*cos(round(atan2(Ay,Ax)/10)*10)",
+            "y": "5.6*sin(round(atan2(Ay,Ax)/10)*10)",
+            "text": "A",
+            "size": 16,
+            "color": "#e5484d"
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                "5*cos(round(atan2(By,Bx)/10)*10)",
+                "5*sin(round(atan2(By,Bx)/10)*10)"
+              ],
+              [
+                "Bx",
+                "By"
+              ]
+            ],
+            "color": "#b7bdd3",
+            "width": 1,
+            "dash": true
+          },
+          {
+            "type": "point",
+            "x": "5*cos(round(atan2(By,Bx)/10)*10)",
+            "y": "5*sin(round(atan2(By,Bx)/10)*10)",
+            "color": "#1d4fa3"
+          },
+          {
+            "type": "text",
+            "x": "5.6*cos(round(atan2(By,Bx)/10)*10)",
+            "y": "5.6*sin(round(atan2(By,Bx)/10)*10)",
+            "text": "B",
+            "size": 16,
+            "color": "#1d4fa3"
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                "5*cos(round(atan2(Cy,Cx)/10)*10)",
+                "5*sin(round(atan2(Cy,Cx)/10)*10)"
+              ],
+              [
+                "Cx",
+                "Cy"
+              ]
+            ],
+            "color": "#b7bdd3",
+            "width": 1,
+            "dash": true
+          },
+          {
+            "type": "point",
+            "x": "5*cos(round(atan2(Cy,Cx)/10)*10)",
+            "y": "5*sin(round(atan2(Cy,Cx)/10)*10)",
+            "color": "#e5484d"
+          },
+          {
+            "type": "text",
+            "x": "5.6*cos(round(atan2(Cy,Cx)/10)*10)",
+            "y": "5.6*sin(round(atan2(Cy,Cx)/10)*10)",
+            "text": "C",
+            "size": 16,
+            "color": "#e5484d"
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                "5*cos(round(atan2(Dy,Dx)/10)*10)",
+                "5*sin(round(atan2(Dy,Dx)/10)*10)"
+              ],
+              [
+                "Dx",
+                "Dy"
+              ]
+            ],
+            "color": "#b7bdd3",
+            "width": 1,
+            "dash": true
+          },
+          {
+            "type": "point",
+            "x": "5*cos(round(atan2(Dy,Dx)/10)*10)",
+            "y": "5*sin(round(atan2(Dy,Dx)/10)*10)",
+            "color": "#1d4fa3"
+          },
+          {
+            "type": "text",
+            "x": "5.6*cos(round(atan2(Dy,Dx)/10)*10)",
+            "y": "5.6*sin(round(atan2(Dy,Dx)/10)*10)",
+            "text": "D",
+            "size": 16,
+            "color": "#1d4fa3"
+          },
+          {
+            "type": "text",
+            "x": 0,
+            "y": -6.9,
+            "text": "∠A ＋ ∠C ＝ {mod(round(atan2(Dy,Dx)/10)*10-round(atan2(By,Bx)/10)*10,360)/2}° ＋ {mod(round(atan2(By,Bx)/10)*10-round(atan2(Dy,Dx)/10)*10,360)/2}°",
+            "size": 17,
+            "color": "#e5484d"
+          },
+          {
+            "type": "text",
+            "x": 0,
+            "y": -9.2,
+            "text": "∠B ＋ ∠D ＝ {mod(round(atan2(Ay,Ax)/10)*10-round(atan2(Cy,Cx)/10)*10,360)/2}° ＋ {mod(round(atan2(Cy,Cx)/10)*10-round(atan2(Ay,Ax)/10)*10,360)/2}°",
+            "size": 17,
+            "color": "#1d4fa3"
+          }
+        ],
+        "readouts": [
+          {
+            "label": "量到的 ∠A",
+            "expr": "abs(mod(atan2(sin(round(atan2(Dy,Dx)/10)*10)-sin(round(atan2(Ay,Ax)/10)*10),cos(round(atan2(Dy,Dx)/10)*10)-cos(round(atan2(Ay,Ax)/10)*10))-atan2(sin(round(atan2(By,Bx)/10)*10)-sin(round(atan2(Ay,Ax)/10)*10),cos(round(atan2(By,Bx)/10)*10)-cos(round(atan2(Ay,Ax)/10)*10))+180,360)-180)",
+            "digits": 1
+          },
+          {
+            "label": "量到的 ∠C",
+            "expr": "abs(mod(atan2(sin(round(atan2(By,Bx)/10)*10)-sin(round(atan2(Cy,Cx)/10)*10),cos(round(atan2(By,Bx)/10)*10)-cos(round(atan2(Cy,Cx)/10)*10))-atan2(sin(round(atan2(Dy,Dx)/10)*10)-sin(round(atan2(Cy,Cx)/10)*10),cos(round(atan2(Dy,Dx)/10)*10)-cos(round(atan2(Cy,Cx)/10)*10))+180,360)-180)",
+            "digits": 1
+          },
+          {
+            "label": "量到的 ∠B",
+            "expr": "abs(mod(atan2(sin(round(atan2(Ay,Ax)/10)*10)-sin(round(atan2(By,Bx)/10)*10),cos(round(atan2(Ay,Ax)/10)*10)-cos(round(atan2(By,Bx)/10)*10))-atan2(sin(round(atan2(Cy,Cx)/10)*10)-sin(round(atan2(By,Bx)/10)*10),cos(round(atan2(Cy,Cx)/10)*10)-cos(round(atan2(By,Bx)/10)*10))+180,360)-180)",
+            "digits": 1
+          },
+          {
+            "label": "量到的 ∠D",
+            "expr": "abs(mod(atan2(sin(round(atan2(Cy,Cx)/10)*10)-sin(round(atan2(Dy,Dx)/10)*10),cos(round(atan2(Cy,Cx)/10)*10)-cos(round(atan2(Dy,Dx)/10)*10))-atan2(sin(round(atan2(Ay,Ax)/10)*10)-sin(round(atan2(Dy,Dx)/10)*10),cos(round(atan2(Ay,Ax)/10)*10)-cos(round(atan2(Dy,Dx)/10)*10))+180,360)-180)",
+            "digits": 1
+          }
+        ],
+        "caption": "拖四個橘點（各在自己的象限內）：四邊形怎麼變，對角加起來都是 180°"
+      },
+      "activity": {
+        "id": "d-explore-q",
+        "type": "manipulate",
+        "prompt": "拖曳頂點，把 ∠A 調成 110°，看 ∠C 是幾度，再按「送出我的操作」。",
+        "check": "mod(round(atan2(Dy,Dx)/10)*10-round(atan2(By,Bx)/10)*10,360)==220",
+        "record": [
+          "Ax",
+          "Ay",
+          "Bx",
+          "By",
+          "Cx",
+          "Cy",
+          "Dx",
+          "Dy"
+        ],
+        "explanation": "∠A＝110° 時，它對的弧 BCD＝220°，另一段弧 BAD＝140°，∠C＝70°，∠A＋∠C＝180°。"
+      },
+      "notes": "具體操作（CRA）。提示：∠A 由 B、D 的位置決定，A 自己移動不會改變 ∠A。請學生觀察這件事和同弧圓周角的關係。"
+    },
+    {
+      "id": "d-proof",
+      "phase": "圖式連結",
+      "eyebrow": "04 / 為什麼互補",
+      "title": "對角所對的兩段弧，合起來是整個圓",
+      "body": "∠A 對弧 BCD，∠C 對弧 BAD。按「下一步」，把拖出來的現象用弧說明。",
+      "source": "對應課本 2-2 p.121 說明與 Key point（IRS 數字為自編）",
+      "figures": [
+        {
+          "src": "g9-2-2/cyclic-def.png",
+          "alt": "課本 p.121 圓內接四邊形的定義"
+        },
+        {
+          "src": "g9-2-2/keybox-cyclic.png",
+          "alt": "課本 p.121 Key point 圓內接四邊形的性質"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 20,
+          "yMin": 0,
+          "yMax": 11,
+          "aspect": "equal"
+        },
+        "shapes": [
+          {
+            "type": "circle",
+            "x": 5,
+            "y": 5.5,
+            "r": 4.3,
+            "color": "#1f2a56",
+            "width": 2,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "polygon",
+            "points": [
+              [
+                1.478,
+                7.966
+              ],
+              [
+                2.534,
+                1.978
+              ],
+              [
+                8.294,
+                2.736
+              ],
+              [
+                8.724,
+                7.65
+              ]
+            ],
+            "fill": "rgba(132,204,22,.22)",
+            "color": "#1f2a56",
+            "width": 2,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                2.534,
+                1.978
+              ],
+              [
+                3.031,
+                1.677
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                3.031,
+                1.677
+              ],
+              [
+                3.565,
+                1.447
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                3.565,
+                1.447
+              ],
+              [
+                4.124,
+                1.29
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                4.124,
+                1.29
+              ],
+              [
+                4.7,
+                1.21
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                4.7,
+                1.21
+              ],
+              [
+                5.281,
+                1.209
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                5.281,
+                1.209
+              ],
+              [
+                5.857,
+                1.286
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                5.857,
+                1.286
+              ],
+              [
+                6.418,
+                1.44
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6.418,
+                1.44
+              ],
+              [
+                6.952,
+                1.669
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6.952,
+                1.669
+              ],
+              [
+                7.451,
+                1.967
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                7.451,
+                1.967
+              ],
+              [
+                7.905,
+                2.33
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                7.905,
+                2.33
+              ],
+              [
+                8.306,
+                2.75
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.306,
+                2.75
+              ],
+              [
+                8.647,
+                3.221
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.647,
+                3.221
+              ],
+              [
+                8.921,
+                3.734
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.921,
+                3.734
+              ],
+              [
+                9.123,
+                4.279
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                9.123,
+                4.279
+              ],
+              [
+                9.25,
+                4.846
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                9.25,
+                4.846
+              ],
+              [
+                9.299,
+                5.425
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                9.299,
+                5.425
+              ],
+              [
+                9.27,
+                6.005
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                9.27,
+                6.005
+              ],
+              [
+                9.163,
+                6.577
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                9.163,
+                6.577
+              ],
+              [
+                8.98,
+                7.128
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.98,
+                7.128
+              ],
+              [
+                8.724,
+                7.65
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.724,
+                7.65
+              ],
+              [
+                8.394,
+                8.141
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                8.394,
+                8.141
+              ],
+              [
+                7.999,
+                8.581
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                7.999,
+                8.581
+              ],
+              [
+                7.548,
+                8.963
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                7.548,
+                8.963
+              ],
+              [
+                7.049,
+                9.28
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                7.049,
+                9.28
+              ],
+              [
+                6.511,
+                9.526
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                6.511,
+                9.526
+              ],
+              [
+                5.945,
+                9.695
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                5.945,
+                9.695
+              ],
+              [
+                5.36,
+                9.785
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                5.36,
+                9.785
+              ],
+              [
+                4.769,
+                9.794
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                4.769,
+                9.794
+              ],
+              [
+                4.182,
+                9.722
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                4.182,
+                9.722
+              ],
+              [
+                3.611,
+                9.569
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                3.611,
+                9.569
+              ],
+              [
+                3.066,
+                9.34
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                3.066,
+                9.34
+              ],
+              [
+                2.557,
+                9.039
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                2.557,
+                9.039
+              ],
+              [
+                2.095,
+                8.67
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                2.095,
+                8.67
+              ],
+              [
+                1.688,
+                8.242
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                1.688,
+                8.242
+              ],
+              [
+                1.343,
+                7.761
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                1.343,
+                7.761
+              ],
+              [
+                1.067,
+                7.238
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                1.067,
+                7.238
+              ],
+              [
+                0.866,
+                6.682
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.866,
+                6.682
+              ],
+              [
+                0.743,
+                6.104
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.743,
+                6.104
+              ],
+              [
+                0.7,
+                5.514
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.7,
+                5.514
+              ],
+              [
+                0.739,
+                4.924
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.739,
+                4.924
+              ],
+              [
+                0.858,
+                4.345
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                0.858,
+                4.345
+              ],
+              [
+                1.055,
+                3.788
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                1.055,
+                3.788
+              ],
+              [
+                1.328,
+                3.263
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                1.328,
+                3.263
+              ],
+              [
+                1.669,
+                2.78
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                1.669,
+                2.78
+              ],
+              [
+                2.074,
+                2.349
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                2.074,
+                2.349
+              ],
+              [
+                2.534,
+                1.978
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 4,
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "angle",
+            "points": [
+              [
+                8.724,
+                7.65
+              ],
+              [
+                1.478,
+                7.966
+              ],
+              [
+                2.534,
+                1.978
+              ]
+            ],
+            "color": "#e5484d",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "angle",
+            "points": [
+              [
+                2.534,
+                1.978
+              ],
+              [
+                8.294,
+                2.736
+              ],
+              [
+                8.724,
+                7.65
+              ]
+            ],
+            "color": "#2f80ed",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "point",
+            "x": 1.478,
+            "y": 7.966,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 1.068,
+            "y": 8.253,
+            "text": "A",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "point",
+            "x": 2.534,
+            "y": 1.978,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 2.247,
+            "y": 1.568,
+            "text": "B",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "point",
+            "x": 8.294,
+            "y": 2.736,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 8.677,
+            "y": 2.415,
+            "text": "C",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "point",
+            "x": 8.724,
+            "y": 7.65,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9.157,
+            "y": 7.9,
+            "text": "D",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 9.8,
+            "text": "∠A $=\\tfrac{1}{2}$$\\overset{\\frown}{BCD}$",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 8.200000000000001,
+            "text": "∠C $=\\tfrac{1}{2}$$\\overset{\\frown}{BAD}$",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 6.6000000000000005,
+            "text": "∠A ＋ ∠C",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 5,
+            "text": "$=\\tfrac{1}{2}($$\\overset{\\frown}{BCD}$ ＋ $\\overset{\\frown}{BAD}$$)$",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 3.4000000000000004,
+            "text": "$=\\tfrac{1}{2}\\times360^{\\circ}=180^{\\circ}$",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 1.8000000000000007,
+            "text": "同理，∠B＋∠D＝180°",
+            "size": 19,
+            "color": "#5a3fd6",
+            "step": 3,
+            "focus": [
+              3
+            ]
+          }
+        ],
+        "steps": [
+          "每個角都是對面那段弧的一半",
+          "兩段弧合起來",
+          "合起來就是整個圓",
+          "圓內接四邊形的對角互補"
+        ]
+      },
+      "activity": {
+        "id": "d-proof-q",
+        "type": "numeric",
+        "prompt": "圓內接四邊形 ABCD",
+        "items": [
+          {
+            "prompt": "∠A ＝ 70°，∠C ＝ ？ 度",
+            "answer": "110"
+          },
+          {
+            "prompt": "∠B ＝ 95°，∠D ＝ ？ 度",
+            "answer": "85"
+          }
+        ],
+        "explanation": "(1) 180°－70°＝110°。(2) 180°－95°＝85°。對角互補。"
+      },
+      "notes": "課本 p.121 說明。回到預測頁：∠C＝110°。"
+    },
+    {
+      "id": "d-ex8",
+      "phase": "半完成範例",
+      "eyebrow": "05 / 例 8：補關鍵步驟",
+      "title": "圓內接四邊形的外角",
+      "body": "上一頁看過完整的說明，這一題換你接手：題目留了空格，在畫布上補完並寫出理由，或寫在紙上拍照；公布後再按「下一步」對照。",
+      "source": "對應課本 2-2 p.121（題目數字同課本）",
+      "figures": [
+        {
+          "src": "g9-2-2/ex8.png",
+          "alt": "課本 p.121 例 8 題目"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 20,
+          "yMin": 0,
+          "yMax": 11,
+          "aspect": "equal"
+        },
+        "shapes": [
+          {
+            "type": "circle",
+            "x": 5,
+            "y": 5.5,
+            "r": 4.3,
+            "color": "#1f2a56",
+            "width": 2,
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "polygon",
+            "points": [
+              [
+                2.236,
+                8.794
+              ],
+              [
+                1.103,
+                3.683
+              ],
+              [
+                7.466,
+                1.978
+              ],
+              [
+                6.471,
+                9.541
+              ]
+            ],
+            "fill": "rgba(47,128,237,.10)",
+            "color": "#1f2a56",
+            "width": 2,
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                7.466,
+                1.978
+              ],
+              [
+                9.50216,
+                1.4324
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 2,
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "angle",
+            "points": [
+              [
+                6.471,
+                9.541
+              ],
+              [
+                2.236,
+                8.794
+              ],
+              [
+                1.103,
+                3.683
+              ]
+            ],
+            "color": "#2f80ed",
+            "focus": [
+              0,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "angle",
+            "points": [
+              [
+                1.103,
+                3.683
+              ],
+              [
+                7.466,
+                1.978
+              ],
+              [
+                6.471,
+                9.541
+              ]
+            ],
+            "color": "#12a39a",
+            "focus": [
+              0,
+              1,
+              2
+            ]
+          },
+          {
+            "type": "angle",
+            "points": [
+              [
+                9.50216,
+                1.4324
+              ],
+              [
+                7.466,
+                1.978
+              ],
+              [
+                6.471,
+                9.541
+              ]
+            ],
+            "text": "1",
+            "color": "#e5484d",
+            "focus": [
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "point",
+            "x": 2.236,
+            "y": 8.794,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 1.915,
+            "y": 9.177,
+            "text": "A",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "point",
+            "x": 1.103,
+            "y": 3.683,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 0.65,
+            "y": 3.471,
+            "text": "B",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "point",
+            "x": 7.466,
+            "y": 1.978,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 7.753,
+            "y": 1.568,
+            "text": "C",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "point",
+            "x": 6.471,
+            "y": 9.541,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 6.642,
+            "y": 10.011,
+            "text": "D",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 9.6,
+            "text": "圓內接四邊形 ABCD",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 7.85,
+            "text": "∠BAD ＋ ∠BCD ＝ 180°",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 6.1,
+            "text": "又 ∠1 ＋ ∠BCD ＝ 180°",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 4.35,
+            "text": "兩式的左邊相等",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 3,
+            "focus": [
+              3,
+              4
+            ]
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 2.5999999999999996,
+            "text": "故 ∠BAD ＝ ∠1",
+            "size": 19,
+            "color": "#5a3fd6",
+            "step": 4,
+            "focus": [
+              4
+            ]
+          }
+        ],
+        "steps": [
+          "確認條件",
+          "對角互補",
+          "∠1 和 ∠BCD 組成平角",
+          "都等於 180°：∠BAD＋∠BCD＝∠1＋∠BCD",
+          "兩邊都扣掉 ∠BCD"
+        ],
+        "caption": "課本例 8 的說明"
+      },
+      "activity": {
+        "id": "d-ex8-q",
+        "type": "canvas",
+        "prompt": "課本 p.121 例 8：四邊形 ABCD 為圓內接四邊形，試說明 ∠1＝∠BAD。補完空格並寫出理由：① ∠BAD＋∠BCD＝□，理由？ ② ∠1＋∠BCD＝□，理由？ ③ 由 ①、② 說明 ∠1＝∠BAD。",
+        "canvas": "grid",
+        "allowPhoto": true,
+        "aiAllowed": true,
+        "rubric": {
+          "criteria": [
+            {
+              "id": "step1",
+              "label": "步驟 ①",
+              "points": 2,
+              "levels": [
+                {
+                  "score": 0,
+                  "description": "沒有補或補錯"
+                },
+                {
+                  "score": 1,
+                  "description": "空格正確，但缺理由"
+                },
+                {
+                  "score": 2,
+                  "description": "空格和理由都正確"
+                }
+              ]
+            },
+            {
+              "id": "step2",
+              "label": "步驟 ②",
+              "points": 2,
+              "levels": [
+                {
+                  "score": 0,
+                  "description": "沒有補或補錯"
+                },
+                {
+                  "score": 1,
+                  "description": "空格正確，但缺理由"
+                },
+                {
+                  "score": 2,
+                  "description": "空格和理由都正確"
+                }
+              ]
+            },
+            {
+              "id": "end",
+              "label": "步驟 ③",
+              "points": 2,
+              "levels": [
+                {
+                  "score": 0,
+                  "description": "沒有結論"
+                },
+                {
+                  "score": 1,
+                  "description": "只寫結論，沒有推理"
+                },
+                {
+                  "score": 2,
+                  "description": "由前兩步推得結論，過程完整"
+                }
+              ]
+            }
+          ],
+          "reference": "因為四邊形 ABCD 是圓內接四邊形，所以 ∠BAD＋∠BCD＝180°。又 ∠1＋∠BCD＝180°，得 ∠BAD＋∠BCD＝∠1＋∠BCD，故 ∠BAD＝∠1。",
+          "graderNotes": "步驟 ① 滿分：∠BAD＋∠BCD＝180°，理由是圓內接四邊形對角互補。步驟 ② 滿分：∠1＋∠BCD＝180°，理由是兩角組成平角。步驟 ③ 滿分：由兩式相等，同減 ∠BCD，得 ∠1＝∠BAD。"
+        }
+      },
+      "notes": "半完成範例：d-proof 是完整說明，這一頁留關鍵步驟給學生補，下一頁隨堂再完全獨立。先讓學生寫，收件後再按「下一步」對照。結論：圓內接四邊形的外角等於它的內對角，下一頁隨堂第 2 小題會用到。"
+    },
+    {
+      "id": "d-ex8-practice",
+      "phase": "隨堂練習",
+      "eyebrow": "06 / 例 8 隨堂",
+      "title": "對角互補、外角等於內對角",
+      "body": "左圖用另一組數字示範。課本的題目自己算。",
+      "source": "對應課本 2-2 p.122（題目同課本，左圖的示範數字為自編）",
+      "figures": [
+        {
+          "src": "g9-2-2/ex8-practice.png",
+          "alt": "課本 p.122 例 8 隨堂練習"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 20,
+          "yMin": 0,
+          "yMax": 11,
+          "aspect": "equal"
+        },
+        "shapes": [
+          {
+            "type": "circle",
+            "x": 5,
+            "y": 5.5,
+            "r": 4.3,
+            "color": "#1f2a56",
+            "width": 2,
+            "focus": [
+              0,
+              1,
+              2
+            ]
+          },
+          {
+            "type": "polygon",
+            "points": [
+              [
+                1.276,
+                7.65
+              ],
+              [
+                1.276,
+                3.35
+              ],
+              [
+                9.235,
+                4.753
+              ],
+              [
+                7.15,
+                9.224
+              ]
+            ],
+            "fill": "rgba(132,204,22,.22)",
+            "color": "#1f2a56",
+            "width": 2,
+            "focus": [
+              0,
+              1,
+              2
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                9.235,
+                4.753
+              ],
+              [
+                10.826799999999999,
+                5.0336
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 2,
+            "focus": [
+              0,
+              1,
+              2
+            ]
+          },
+          {
+            "type": "point",
+            "x": 10.826799999999999,
+            "y": 5.0336,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2
+            ]
+          },
+          {
+            "type": "text",
+            "x": 11.176799999999998,
+            "y": 5.3336,
+            "text": "E",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2
+            ]
+          },
+          {
+            "type": "text",
+            "x": 2.142,
+            "y": 7.15,
+            "text": "105°",
+            "size": 13,
+            "color": "#e5484d",
+            "focus": [
+              0,
+              1,
+              2
+            ]
+          },
+          {
+            "type": "text",
+            "x": 2.117,
+            "y": 3.698,
+            "text": "80°",
+            "size": 13,
+            "color": "#e5484d",
+            "focus": [
+              0,
+              1,
+              2
+            ]
+          },
+          {
+            "type": "point",
+            "x": 1.276,
+            "y": 7.65,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2
+            ]
+          },
+          {
+            "type": "text",
+            "x": 0.843,
+            "y": 7.9,
+            "text": "A",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2
+            ]
+          },
+          {
+            "type": "point",
+            "x": 1.276,
+            "y": 3.35,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2
+            ]
+          },
+          {
+            "type": "text",
+            "x": 0.843,
+            "y": 3.1,
+            "text": "B",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2
+            ]
+          },
+          {
+            "type": "point",
+            "x": 9.235,
+            "y": 4.753,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2
+            ]
+          },
+          {
+            "type": "text",
+            "x": 9.727,
+            "y": 4.666,
+            "text": "C",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2
+            ]
+          },
+          {
+            "type": "point",
+            "x": 7.15,
+            "y": 9.224,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2
+            ]
+          },
+          {
+            "type": "text",
+            "x": 7.4,
+            "y": 9.657,
+            "text": "D",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2
+            ]
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 9.4,
+            "text": "∠ABC ＝ 80°",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              2
+            ]
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 7.6000000000000005,
+            "text": "∠BAD ＝ 105°",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              2
+            ]
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 5.800000000000001,
+            "text": "∠ADC ＝ 180° － 80°",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              2
+            ]
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 4,
+            "text": "＝ 100°",
+            "size": 19,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              2
+            ]
+          },
+          {
+            "type": "text",
+            "x": 13.8,
+            "y": 2.2,
+            "text": "∠DCE ＝ ∠BAD ＝ 105°",
+            "size": 19,
+            "color": "#5a3fd6",
+            "step": 2,
+            "focus": [
+              2
+            ]
+          }
+        ],
+        "steps": [
+          "另一組數字",
+          "對角互補",
+          "外角等於內對角"
+        ]
+      },
+      "activity": {
+        "id": "d-ex8-practice-q",
+        "type": "numeric",
+        "prompt": "課本 p.122 隨堂：∠ABC ＝ 70°，∠BAD ＝ 115°",
+        "items": [
+          {
+            "prompt": "(1) ∠ADC ＝ ？ 度",
+            "answer": "110"
+          },
+          {
+            "prompt": "(2) ∠DCE ＝ ？ 度",
+            "answer": "115"
+          }
+        ],
+        "explanation": "(1) 對角互補，∠ADC＝180°－70°＝110°。(2) 外角等於內對角，∠DCE＝∠BAD＝115°。"
+      },
+      "notes": "可以請學生用第 1 小題的方法驗算：∠BCD＝180°－115°＝65°，∠DCE＝180°－65°＝115°。"
+    },
+    {
+      "id": "d-tangent",
+      "phase": "圖式連結",
+      "eyebrow": "07 / 過圓外一點作切線",
+      "title": "怎麼找到切點？",
+      "body": "要讓 PM 是切線，就要找到 M 使 ∠OMP＝90°。先在紙上用尺規照課本作一次，按「下一步」看作法，再回答為什麼。",
+      "source": "對應課本 2-2 p.122 圖 14、圖 15（尺規作圖在紙上做；理由選擇題為自編）",
+      "figures": [
+        {
+          "src": "g9-2-2/tangent-construct.png",
+          "alt": "課本 p.122 過圓外一點作切線"
+        }
+      ],
+      "interactive": {
+        "view": {
+          "xMin": 0,
+          "xMax": 20,
+          "yMin": 0,
+          "yMax": 11,
+          "aspect": "equal"
+        },
+        "shapes": [
+          {
+            "type": "circle",
+            "x": 3.8,
+            "y": 5.2,
+            "r": 2.6,
+            "color": "#1f2a56",
+            "width": 2,
+            "fill": "rgba(255,201,60,.30)",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "point",
+            "x": 3.8,
+            "y": 5.2,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 3.3499999999999996,
+            "y": 5,
+            "text": "O",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "point",
+            "x": 11.2,
+            "y": 6.4,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 11.6,
+            "y": 6.7,
+            "text": "P",
+            "size": 15,
+            "color": "#1f2a56",
+            "focus": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                3.8,
+                5.2
+              ],
+              [
+                11.2,
+                6.4
+              ]
+            ],
+            "color": "#e5484d",
+            "width": 2.2,
+            "step": 0,
+            "focus": [
+              0,
+              1,
+              3
+            ]
+          },
+          {
+            "type": "point",
+            "x": 7.5,
+            "y": 5.800000000000001,
+            "color": "#e5484d",
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 7.5,
+            "y": 6.300000000000001,
+            "text": "Q",
+            "size": 15,
+            "color": "#e5484d",
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "circle",
+            "x": 7.5,
+            "y": 5.800000000000001,
+            "r": 3.7483329627982624,
+            "color": "#e5484d",
+            "width": 1.8,
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                11.2,
+                6.4
+              ],
+              [
+                2.5749999999999993,
+                8.09
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 2.8,
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                11.2,
+                6.4
+              ],
+              [
+                3.5500000000000007,
+                2.07125
+              ]
+            ],
+            "color": "#2f80ed",
+            "width": 2.8,
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "point",
+            "x": 4.3,
+            "y": 7.752,
+            "color": "#2f80ed",
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "point",
+            "x": 5.08,
+            "y": 2.937,
+            "color": "#2f80ed",
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 4.25,
+            "y": 8.302,
+            "text": "M",
+            "size": 15,
+            "color": "#1d4fa3",
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 5.03,
+            "y": 2.3869999999999996,
+            "text": "N",
+            "size": 15,
+            "color": "#1d4fa3",
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                3.8,
+                5.2
+              ],
+              [
+                4.3,
+                7.752
+              ]
+            ],
+            "color": "#6b7394",
+            "width": 1.8,
+            "dash": true,
+            "step": 3,
+            "focus": [
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                3.8,
+                5.2
+              ],
+              [
+                5.08,
+                2.937
+              ]
+            ],
+            "color": "#6b7394",
+            "width": 1.8,
+            "dash": true,
+            "step": 3,
+            "focus": [
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                4.2327057651936535,
+                7.4085302255484065
+              ],
+              [
+                4.576174420775182,
+                7.341230280280837
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4,
+            "step": 3,
+            "focus": [
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                4.643468655581528,
+                7.6847000547324305
+              ],
+              [
+                4.576174420775182,
+                7.341230280280837
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4,
+            "step": 3,
+            "focus": [
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                4.907686814484707,
+                3.2416443272039905
+              ],
+              [
+                5.21230126868936,
+                3.4140103165684863
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4,
+            "step": 3,
+            "focus": [
+              3
+            ]
+          },
+          {
+            "type": "segment",
+            "points": [
+              [
+                5.384614454204653,
+                3.1093659893644956
+              ],
+              [
+                5.21230126868936,
+                3.4140103165684863
+              ]
+            ],
+            "color": "#1f2a56",
+            "width": 1.4,
+            "step": 3,
+            "focus": [
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 16.2,
+            "y": 9.4,
+            "text": "(1) 連接 $\\overline{OP}$",
+            "size": 16,
+            "color": "#1f2a56",
+            "step": 0,
+            "focus": [
+              0,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 16.2,
+            "y": 7.7,
+            "text": "(2) 以 $\\overline{OP}$ 為直徑作圓 Q",
+            "size": 16,
+            "color": "#1f2a56",
+            "step": 1,
+            "focus": [
+              1,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 16.2,
+            "y": 6,
+            "text": "(3) 交圓 O 於 M、N",
+            "size": 16,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 16.2,
+            "y": 4.300000000000001,
+            "text": "作直線 PM、PN",
+            "size": 16,
+            "color": "#1f2a56",
+            "step": 2,
+            "focus": [
+              2,
+              3
+            ]
+          },
+          {
+            "type": "text",
+            "x": 16.2,
+            "y": 2.6000000000000005,
+            "text": "∠OMP ＝ ∠ONP ＝ 90°",
+            "size": 16,
+            "color": "#5a3fd6",
+            "step": 3,
+            "focus": [
+              3
+            ]
+          }
+        ],
+        "steps": [
+          "想法：找到 M，使 ∠OMP＝90°",
+          "Q 是 OP 的中點，也是新圓的圓心",
+          "兩圓的交點 M、N 就是切點",
+          "半圓所對的圓周角是直角，半徑垂直 PM，所以 PM 是切線"
+        ]
+      },
+      "activity": {
+        "id": "d-tangent-q",
+        "type": "single",
+        "prompt": "直接使用哪個性質可知 ∠OMP＝90°？",
+        "options": [
+          "OP 是圓 Q 的直徑，半圓所對的圓周角是直角",
+          "切線段 PM、PN 等長",
+          "圓內接四邊形的對角互補",
+          "弦心距垂直平分弦"
+        ],
+        "correct": [
+          0
+        ],
+        "explanation": "M 在圓 Q 上，OP 是圓 Q 的直徑，所以 ∠OMP 是半圓所對的圓周角，90°。半徑 OM 垂直 PM，PM 就是圓 O 的切線。"
+      },
+      "notes": "學生在紙上用尺規作圖，老師巡視。課本 QR Code 有作圖影片（未收入，需要時老師自行開啟）。四邊形 PMON 是圓 Q 的內接四邊形。"
+    },
+    {
+      "id": "d-check",
+      "phase": "交錯練習",
+      "eyebrow": "08 / 自我檢核",
+      "title": "課本的自我檢核：哪些說法正確？",
+      "body": "四個說法各對應一個重點。先在腦中判斷，再把正確的都勾起來。",
+      "source": "對應課本 2-2 p.123 自我檢核 1–4",
+      "figures": [
+        {
+          "src": "g9-2-2/selfcheck-1.png",
+          "alt": "課本 p.123 自我檢核 1、2"
+        },
+        {
+          "src": "g9-2-2/selfcheck-2.png",
+          "alt": "課本 p.123 自我檢核 3、4"
+        }
+      ],
+      "activity": {
+        "id": "d-check-q",
+        "type": "multiple",
+        "prompt": "選出所有正確的說法",
+        "options": [
+          "第 1 題：$\\overset{\\frown}{AB}$ ＝ 60°，則 ∠AOB ＝ 60°",
+          "第 2 題：$\\overset{\\frown}{AC}$ ＝ 60°，則 ∠ABC ＝ 60°",
+          "第 3 題：∠AOC ＝ 80°，則 ∠ABC ＝ 40°",
+          "第 4 題：$\\overline{AB}$ 為直徑，則 △ABC 為直角三角形"
+        ],
+        "correct": [
+          0,
+          2,
+          3
+        ],
+        "explanation": "第 2 題錯：∠ABC 是圓周角，∠ABC＝½×60°＝30°。其他三題正確：圓心角等於弧的度數，圓周角是圓心角的一半，直徑所對的圓周角是直角。"
+      },
+      "notes": "課本 p.123 自我檢核，教用版答案：1 是、2 否、3 是、4 是。"
+    },
+    {
+      "id": "d-error",
+      "phase": "錯誤分析",
+      "eyebrow": "09 / 挑錯題",
+      "title": "小翊和小妍，誰說得對？",
+      "body": "AC 是直徑。判斷兩人的說法是否正確，並說明理由。提示：角的頂點在哪裡？",
+      "source": "對應課本 2-2 p.125 挑錯題（判斷兩人說法同課本；③ 比較兩弧大小是依教用版解析改寫的延伸小題）",
+      "figures": [
+        {
+          "src": "g9-2-2/find-error.png",
+          "alt": "課本 p.125 挑錯題"
+        }
+      ],
+      "activity": {
+        "id": "d-error-q",
+        "type": "canvas",
+        "prompt": "判斷小翊、小妍的說法是否正確。① 圈出錯誤 ② 寫出理由 ③ 比較弧 AB 和弧 CD 哪一個比較大",
+        "canvas": "grid",
+        "allowPhoto": true,
+        "aiAllowed": true,
+        "rubric": {
+          "criteria": [
+            {
+              "id": "yi",
+              "label": "小翊",
+              "points": 2,
+              "levels": [
+                {
+                  "score": 0,
+                  "description": "判斷錯誤"
+                },
+                {
+                  "score": 1,
+                  "description": "判斷正確，但沒有理由"
+                },
+                {
+                  "score": 2,
+                  "description": "判斷正確，理由完整"
+                }
+              ]
+            },
+            {
+              "id": "yan",
+              "label": "小妍",
+              "points": 2,
+              "levels": [
+                {
+                  "score": 0,
+                  "description": "判斷錯誤"
+                },
+                {
+                  "score": 1,
+                  "description": "判斷正確，但理由不清楚"
+                },
+                {
+                  "score": 2,
+                  "description": "判斷正確，理由完整"
+                }
+              ]
+            },
+            {
+              "id": "fix",
+              "label": "比較兩弧（延伸）",
+              "points": 2,
+              "levels": [
+                {
+                  "score": 0,
+                  "description": "沒有比較"
+                },
+                {
+                  "score": 1,
+                  "description": "只寫出大小，沒有推理"
+                },
+                {
+                  "score": 2,
+                  "description": "比較結果正確，推理完整"
+                }
+              ]
+            }
+          ],
+          "reference": "小翊正確：∠CAB 和 ∠CDB 所對的弧都是弧 BC。小妍錯誤：E 不是圓心，∠AEB、∠CED 不是圓心角。弧 AB＝∠AOB＞∠AEB＝∠CED＞∠COD＝弧 CD（外角大於不相鄰的內角），故弧 AB＞弧 CD。",
+          "graderNotes": "小翊滿分：正確，∠CAB、∠CDB 都是弧 BC 所對的圓周角，同弧所對的圓周角相等。小妍滿分：錯誤，∠AEB、∠CED 的頂點 E 不是圓心，也不在圓上，不能由這兩個角相等推得兩弧相等；學生只指出 E 不是圓心、不能推得兩弧相等，這個向度就可得滿分。比較兩弧滿分：用外角比較，弧 AB＝∠AOB＞∠AEB＝∠CED＞∠COD＝弧 CD，所以弧 AB＞弧 CD。③ 就是教用版 p.125 寫的理由，依圖中 O、E 的位置（E 在 O 和 C 之間）用外角比較。"
+        }
+      },
+      "notes": "收件後按「AI 批改」，覆核後發回。對照教用版 p.125：小翊正確、小妍錯誤。"
+    },
+    {
+      "id": "d-exit",
+      "phase": "出場券",
+      "eyebrow": "10 / 2-2 重點回顧",
+      "title": "2-2 圓心角、圓周角與弧：一張圖整理",
+      "body": "對照課本的重點整理，說明怎麼由「圓周角是弧的一半」推出另外兩個性質。",
+      "source": "對應課本 2-2 p.123 重點整理（自編出場券）",
+      "figures": [
+        {
+          "src": "g9-2-2/summary-1.png",
+          "alt": "課本 p.123 重點整理：角與弧度的關係"
+        },
+        {
+          "src": "g9-2-2/summary-2.png",
+          "alt": "課本 p.123 重點整理：平行弦、圓內接四邊形"
+        }
+      ],
+      "activity": {
+        "id": "d-exit-q",
+        "type": "short",
+        "prompt": "由「圓周角是所對弧度數的一半」，怎麼推出：(1) 半圓所對的圓周角是直角 (2) 圓內接四邊形對角互補？",
+        "aiAllowed": true,
+        "rubric": {
+          "criteria": [
+            {
+              "id": "semi",
+              "label": "第 (1) 小題",
+              "points": 2,
+              "levels": [
+                {
+                  "score": 0,
+                  "description": "沒有說明"
+                },
+                {
+                  "score": 1,
+                  "description": "只寫結論"
+                },
+                {
+                  "score": 2,
+                  "description": "從題目給的性質完整推出"
+                }
+              ]
+            },
+            {
+              "id": "cyc",
+              "label": "第 (2) 小題",
+              "points": 2,
+              "levels": [
+                {
+                  "score": 0,
+                  "description": "沒有說明"
+                },
+                {
+                  "score": 1,
+                  "description": "只寫結論"
+                },
+                {
+                  "score": 2,
+                  "description": "從題目給的性質完整推出"
+                }
+              ]
+            }
+          ],
+          "reference": "(1) 半圓弧 180°，圓周角＝180°÷2＝90°。(2) 對角 ∠A、∠C 所對的弧 BCD、BAD 合起來是整個圓，∠A＋∠C＝½×360°＝180°。",
+          "graderNotes": "第 (1) 小題滿分：半圓弧 180°，一半是 90°。第 (2) 小題滿分：對角所對的兩段弧合起來是 360°，兩個角的和是 180°。"
+        }
+      }
+    },
+    {
+      "id": "d-reflect",
+      "phase": "後設認知",
+      "eyebrow": "最後 / 給自己打分數",
+      "title": "今天的內容，我掌握了多少？",
+      "body": "誠實評估，下一節課會從大家最沒把握的地方開始複習。",
+      "source": "自編自評：對應課本 2-2 p.121–123 重點",
+      "visual": "cards",
+      "notes": "3 分以下的學生，下節課開頭用提取練習再做一次；可用抽籤「答錯」請同學上台說明。",
+      "activity": {
+        "id": "d-reflect",
+        "type": "scale",
+        "prompt": "我能使用圓內接四邊形的性質，並說明過圓外一點作切線的原理",
+        "min": 1,
+        "max": 5,
+        "minLabel": "還需要再看一次",
+        "maxLabel": "可以教別人"
+      }
+    }
+  ]
+}
