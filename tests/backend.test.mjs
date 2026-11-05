@@ -609,6 +609,56 @@ test('simplest radical form and multi-item numeric questions are judged per item
   void session;
 });
 
+test('sub-item answers and tolerances stay on the server until results are shown on that slide',async()=>{
+  const {f,lesson}=await setup();
+  const q=(id,a,b,tol)=>({id,type:'numeric',prompt:'計算',unit:'公分',tolerance:tol,explanation:`解析${id}`,items:[{prompt:`${id}甲`,answer:a,tolerance:0.0137},{prompt:`${id}乙`,answer:b}]});
+  const custom={...lesson,id:'items-leak',slides:[{id:'s1',title:'第一頁',body:'',activity:q('leak-q1','5417.25','7193.75',0.0271)},{id:'s2',title:'第二頁',body:'',activity:q('leak-q2','6271.5','8317.5',0.0313)}]};
+  assert.equal((await f.call('/api/lessons/items-leak','PUT',{lesson:custom})).status,200);
+  const s=(await f.call('/api/sessions','POST',{lessonId:'items-leak',classId:'demo-class'})).body.session;
+  const SECRET1=['5417.25','7193.75','0.0137','0.0271','解析leak-q1'],SECRET2=['6271.5','8317.5','0.0313','解析leak-q2'];
+  const student=async()=>{
+    const view=(await f.call(`/api/sessions/${s.id}`,'GET',null,'student')).body,live=(await f.call('/api/student/session','GET',null,'student')).body;
+    assert.deepEqual(live.lesson.slides,view.lesson.slides,'both student routes send the same lesson');
+    return view;
+  };
+  const absent=(view,words)=>{const text=JSON.stringify(view);for(const w of words)assert(!text.includes(w),`student view leaks ${w}`);};
+  await f.call(`/api/sessions/${s.id}/control`,'POST',{action:'activity',value:true});
+  // 公布前：兩頁都看不到答案，作答需要的題目與單位還在
+  let v=await student();
+  absent(v,[...SECRET1,...SECRET2]);
+  const a=v.lesson.slides[0].activity;
+  assert.deepEqual(a.items,[{prompt:'leak-q1甲'},{prompt:'leak-q1乙'}]);assert.equal(a.unit,'公分');assert.equal(a.prompt,'計算');
+  // 公布後：只有當頁拿得到
+  await f.call(`/api/sessions/${s.id}/control`,'POST',{action:'results',value:true});
+  v=await student();
+  assert.deepEqual(v.lesson.slides[0].activity.items,custom.slides[0].activity.items);assert.equal(v.lesson.slides[0].activity.tolerance,0.0271);
+  absent(v,SECRET2);
+  // 換頁後公布自動收回，上一頁的答案也不再送出
+  await f.call(`/api/sessions/${s.id}/control`,'POST',{action:'slide',index:1});
+  absent(await student(),[...SECRET1,...SECRET2]);
+  // 老師端一直拿得到
+  const t=(await f.call(`/api/sessions/${s.id}`)).body;
+  assert.deepEqual(t.lesson.slides.map(x=>x.activity.items),custom.slides.map(x=>x.activity.items));assert.equal(t.session.resultsVisible,false);
+  // 判對仍在伺服器端進行：學生拿不到答案也能作答、判定
+  await f.call(`/api/sessions/${s.id}/control`,'POST',{action:'activity',value:true});
+  assert.equal((await f.call(`/api/sessions/${s.id}/answers`,'POST',{submissionId:'leak-1',activityId:'leak-q2',value:['6271.5','1']},'student')).status,200);
+  assert.deepEqual((await f.call(`/api/sessions/${s.id}`)).body.answers[0].itemsCorrect,[true,false]);
+});
+
+test('every project lesson with sub-items sends students only the sub-item prompts before results',async()=>{
+  const f=fixture();assert.equal((await f.call('/api/login','POST',TEACHER)).status,200);
+  const {lessons,classes}=(await f.call('/api/dashboard')).body;
+  await f.call('/api/login','POST',{role:'student',classCode:'DEMO801',seat:1,code:'DEMO01'},'student');
+  const withItems=lessons.filter(l=>l.slides.some(x=>x.activity?.items));
+  assert(withItems.length>0);
+  for(const l of withItems){
+    const s=(await f.call('/api/sessions','POST',{lessonId:l.id,classId:classes[0].id})).body.session;
+    const v=(await f.call(`/api/sessions/${s.id}`,'GET',null,'student')).body;
+    for(const x of v.lesson.slides)for(const it of x.activity?.items||[])assert.deepEqual(Object.keys(it),['prompt'],`${l.id}/${x.id}`);
+    await f.call(`/api/sessions/${s.id}`,'DELETE');
+  }
+});
+
 test('layer 1 (default) only judges right/wrong; teacher can set the verdict; layer 2 replaces it',async()=>{
   const {f,lesson,session}=await setup();
   await openSlide(f,session,lesson,'error-canvas');

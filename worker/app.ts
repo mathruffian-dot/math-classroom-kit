@@ -589,7 +589,10 @@ function hideKeys(activity: Activity) {
   delete activity.explanation;
   delete activity.answer;
   delete activity.check;
+  delete activity.tolerance;
   delete activity.practice; // 補救練習的題目與答案另外經 view.practice 依進度送出
+  // 小題只留題目（白名單）：答案、容許誤差與日後新增的欄位都不送到學生端
+  if (activity.items) activity.items = activity.items.map(({ prompt }) => ({ prompt })) as Activity['items'];
   if (activity.rubric) {
     delete activity.rubric.reference;
     delete activity.rubric.graderNotes;
