@@ -254,10 +254,14 @@ function inkMeter(img: HTMLImageElement): { density: (r: StepRect, W: number, H:
         solid[(y + 1) * (cw + 1) + x + 1] = keep + solid[y * (cw + 1) + x + 1] + solid[(y + 1) * (cw + 1) + x] - solid[y * (cw + 1) + x];
       }
     const count = (r: StepRect, W: number, H: number) => {
-      const x0 = Math.max(0, Math.floor((r.x / W) * cw)),
-        y0 = Math.max(0, Math.floor((r.y / H) * ch)),
-        x1 = Math.min(cw, Math.ceil(((r.x + r.w) / W) * cw)),
-        y1 = Math.min(ch, Math.ceil(((r.y + r.h) / H) * ch));
+      // 筆跡圖比畫面細兩倍以上時一格不到 0.5 px（圈線的安全邊已涵蓋），只算中心在範圍內的格子；否則範圍往外取整，寧可多算
+      const fine = cw / W >= 2,
+        low = fine ? Math.round : Math.floor,
+        high = fine ? Math.round : Math.ceil;
+      const x0 = Math.max(0, low((r.x / W) * cw)),
+        y0 = Math.max(0, low((r.y / H) * ch)),
+        x1 = Math.min(cw, high(((r.x + r.w) / W) * cw)),
+        y1 = Math.min(ch, high(((r.y + r.h) / H) * ch));
       if (x1 <= x0 || y1 <= y0 || r.w <= 0 || r.h <= 0) return 0;
       const at = (x: number, y: number) => solid[y * (cw + 1) + x];
       return at(x1, y1) - at(x0, y1) - at(x1, y0) + at(x0, y0);
@@ -287,7 +291,7 @@ function inkMeter(img: HTMLImageElement): { density: (r: StepRect, W: number, H:
 }
 /**
  * 這張照片上每一題「做錯的步驟」：手繪圈＋紅字標籤（字級固定）。線寬不隨照片縮放，所以寬度改變時圈、標籤、連線全部重新決定。
- * 圈線壓到目標框外的筆跡就取消那個圈（文字說明在每題下方）。標籤連不回圈時改放圈旁小題號，文字列在照片下方；題號也放不下就只靠圖例。
+ * 圈線壓到任何筆跡（包含被圈的那一行）就取消那個圈（文字說明在每題下方）。標籤連不回圈時改放圈旁小題號，文字列在照片下方；題號也放不下就只靠圖例。
  */
 function mountStepMarks(host: HTMLElement, img: HTMLImageElement, v: HomeworkSheetView, photo: number) {
   const steps = (v.result?.items || []).flatMap((m, i) => {

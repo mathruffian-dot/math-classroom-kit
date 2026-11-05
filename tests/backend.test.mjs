@@ -2070,6 +2070,17 @@ test('C-12: the backup says what it does not contain (homework is not backed up 
     // 完全沒有空隙：取消
     assert.equal(plan(inkFrom(target,{x:100,y:112.5,w:120,h:12})),null);
     assert.equal(plan(inkFrom(target,{x:0,y:90,w:400,h:40})),null,'box cuts through other writing');
+    // 被圈的那一行也算筆跡：線條（含厚度）不能壓到（Codex 第 2 次複審 B4）
+    const clear=(p,ink)=>p.points.every(([x,y])=>ink({x:x-p.pen/2,y:y-p.pen/2,w:p.pen,h:p.pen})===0);
+    assert(clear(open,inkFrom(target)),'stays off the circled line');
+    assert(clear(tight,inkFrom(target,next)),'stays off both lines');
+    // 上下空隙只有 2 px，放不下 2 px 的線（加安全邊）：取消
+    assert.equal(plan(inkFrom(target,{x:100,y:114,w:120,h:12})),null);
+    // 筆畫超出外框一點點：線繞到字外面
+    const over={x:100,y:98,w:120,h:16};
+    assert(clear(plan(inkFrom(over)),inkFrom(over)),'goes around strokes past the box');
+    // 外框切過字（上面還有一大段）：取消，不沿著框壓字
+    assert.equal(plan(inkFrom({x:60,y:80,w:200,h:50})),null);
     // 碰到別的圈也取消
     const other=stepLib.planStepRing({W,H,box:{x:100,y:118,w:120,h:12},pad:{x:6,y:5},seed:3,inkCount:inkFrom(target),others:[]});
     assert.equal(plan(inkFrom(target),[other]),null);

@@ -69,7 +69,7 @@
 
 ## 修正紀錄
 
-2026-11-05，Claude Code。3 項 Blocker 與建議 1 都已修正；建議 2 只做了「讀不到像素」的部分，建議 3 沒有做（見文末）。下面的測試名稱都在 tests/e2e/homework-step.spec.ts，單元測試在 tests/backend.test.mjs。
+2026-11-05，Claude Code。4 項 Blocker（含第 2 次複審發現的 B4）與建議 1 都已修正；建議 2 只做了「讀不到像素」的部分，建議 3 沒有做（見文末）。下面的測試名稱都在 tests/e2e/homework-step.spec.ts，單元測試在 tests/backend.test.mjs。
 
 ### B1．連線穿過學生筆跡
 
@@ -88,6 +88,14 @@
 - **修法：** 拿掉 maxlength，改用 shared/homework-step.ts 的 clipStepInput（和後端一樣算碼點）。input 事件超過上限時，從游標前面刪掉多的字，游標後面的字不動；輸入法組字中不截，compositionend 才截。儲存前再用 stepText 清理一次。
 - **測試：** teacher fields count code points like the server。實際鍵盤打 61 個 𝑥 只留 60 個；31 個 𝑥 後還能再打 z（Codex 的重現）；真的貼上 70 個 𝑥 到字串中間；用 CDP 模擬輸入法組字；打滿 60 個後走真的伺服器儲存。單元測試另外涵蓋 clipStepInput。
 
+### B4．紅圈壓到被圈的那一行（Codex 第 2 次複審發現）
+
+- **原因：** planStepRing 把目標框內的筆跡整個扣掉（foreign），最細的線又可以貼框，所以圈線壓到目標行仍會通過。e2e 的 inkUnderOverlays 同樣排除目標框，測不出來。
+- **修法：** shared/homework-step.ts 的 planStepRing 拿掉扣除，實際圈線（含線寬與白底）對全部筆跡檢查。新增 freeBand，找出框邊到相鄰筆跡之間的空白帶，線放在帶內：盡量用原本的留白，空間不夠就放中間，放不下這個線寬就換下一種樣式。筆畫超出外框 3 px 以內時線繞到字外面，超出更多視為外框切過字。收緊的圈先試接近圓角矩形，角會切到字時改成幾乎方正。全部樣式都放不下就取消圈，保留文字。
+- **連帶調整：** 安全邊由 0.5 px 改 0.25 px，收緊時的抖動減半。src/homework.ts 的 inkMeter.count 在筆跡圖比畫面細兩倍以上時只算中心在範圍內的格子。原因是筆跡圖的模糊已經算一層緩衝，不調的話，行距 36 的算式在 390 寬也會被取消（實際空隙約 4 px，量到 2.5 px）。stepLeader 改成沿線等距取連接點，否則接近方正的圈長邊中段接不上連線。
+- **測試：** inkUnderOverlays／expectNothingOnInk 拿掉豁免，所有 e2e 都對全部筆跡核對。新增 the ring never touches the circled line itself（Codex 的重現：32 px Arial、基線 710／743；390 寬取消圈、留文字，820 寬有圈且 0 個筆跡像素，另含外框切進字的案例）、whatever the width and line spacing（行距 33／36／42 × 寬度 360／390／430／700／820 共 15 組，有畫的圈都不碰字，也確認空隙夠的組合真的有圈）。單元測試 step ring tightens… 加上目標行、空隙不足、筆畫超框、外框切字。
+- **確認測試擋得住：** 新的 e2e 檢查先在舊程式上跑，重現案例失敗（ring 累計 1018，逐取樣點累加，不是不重複像素，所以和 Codex 的 157 不能直接比）；修正後為 0。
+
 ### 建議 1．回歸斷言
 
 - 新增 inkUnderOverlays／expectNothingOnInk：用**原圖像素**核對所有疊圖實際畫到的範圍（圈線含線寬與白底、連線、小題號、標籤），不經過程式裡的筆跡偵測；連線也核對不穿過其他批註。主流程（手機、iPad、老師頁）與上述情境都用這個檢查。
@@ -97,15 +105,17 @@
 
 - **示範批改：** 示範的外框是固定位置，不對應實際的字，照片有字時圈常常取消（只留文字）。測試 teacher sees the circle… 走真伺服器的段落因此把照片換成白紙。
 - **真實 AI：** 外框切過別行或目標行時圈會取消。外框不準時，看到的會是「沒有圈、只有文字」，不是圈錯位置。
+- **B4 之後：** 圈不再壓目標行，所以行距很密時取消得比以前多（32 px 算式、行距 33 在 360、390 寬會取消，430 以上有圈）。正常的圈常因橢圓會切到行頭行尾的字，改用較方正的圓角形。
 
 ### 驗證結果
 
-- npm test 110/110；npm run typecheck 通過（23 份課程 0 錯誤、21 則提醒）；node scripts/check-homework.mjs 13 課通過。
-- Playwright（Edge，PW_CHANNEL=msedge）homework.spec.ts＋homework-step.spec.ts 20/20；homework-step.spec.ts 另外連跑 3 次都是 13/13。
+- B4 修正後：npm test 110/110；npm run typecheck 通過（23 份課程 0 錯誤、21 則提醒）；node scripts/check-homework.mjs 13 課通過。
+- Playwright（Edge，PW_CHANNEL=msedge）homework.spec.ts＋homework-step.spec.ts 22/22；homework-step.spec.ts 另外連跑 3 次共 45/45。全套 e2e 沒跑。
+- 正常範例（學生手機 390、iPad 820、老師作業頁）看過截圖，都有圈、沒有壓字。
 - 截圖在 artifacts/redpen-step/，全部用假 AI 回應與合成作答紙。
 
 ### 尚未處理
 
 - 建議 2：多張照片、第二張照片的降級圖例、橫豎比例混用的完整師生 E2E 還沒加（讀不到像素的案例已加）。
 - 建議 3：真實模型的外框準確度與防注入沒有驗證。真實手機照片、iPhone／iPad 實機 Safari 也沒有驗證。
-- 這次修正還沒有請 Codex 複審。
+- B1、B3 已由 Codex 複審確認；B2 的現況與 B4 修正還沒有請 Codex 再複審。

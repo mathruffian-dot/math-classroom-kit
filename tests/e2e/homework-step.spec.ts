@@ -193,11 +193,11 @@ async function paintedStudent(browser: Browser, url: URL, width: number, body: B
   return page;
 }
 /**
- * 逐像素核對：所有疊在照片上的東西實際畫到的範圍（圈線含線寬與白底、連線、小題號、標籤）底下，有沒有目標框外的筆跡；連線也不能穿過別的批註。
+ * 逐像素核對：所有疊在照片上的東西實際畫到的範圍（圈線含線寬與白底、連線、小題號、標籤）底下，有沒有任何筆跡（包含被圈的那一行）；連線也不能穿過別的批註。
  * 用原圖判斷筆跡，和程式裡的筆跡偵測無關。
  */
-async function inkUnderOverlays(page: Page, exempt: Box[]) {
-  return page.evaluate((own) => {
+async function inkUnderOverlays(page: Page) {
+  return page.evaluate(() => {
     const img = document.querySelector<HTMLImageElement>('.hw-photo img')!;
     const c = document.createElement('canvas');
     c.width = img.naturalWidth;
@@ -216,12 +216,10 @@ async function inkUnderOverlays(page: Page, exempt: Box[]) {
     const frame = img.getBoundingClientRect(),
       sx = c.width / frame.width,
       sy = c.height / frame.height;
-    // 程式容許目標框外 1 px（畫面）：貼著框的筆畫屬於目標行
-    const mine = (nx: number, ny: number) => own.some(([a, b, d, e]) => nx >= a * c.width - sx - 1 && nx <= d * c.width + sx + 1 && ny >= b * c.height - sy - 1 && ny <= e * c.height + sy + 1);
     const inkIn = (left: number, top: number, right: number, bottom: number) => {
       let n = 0;
       for (let y = Math.max(0, Math.floor((top - frame.top) * sy)); y < Math.min(c.height, Math.ceil((bottom - frame.top) * sy)); y++)
-        for (let x = Math.max(0, Math.floor((left - frame.left) * sx)); x < Math.min(c.width, Math.ceil((right - frame.left) * sx)); x++) if (lum(x, y) < paper * 0.85 && !mine(x, y)) n++;
+        for (let x = Math.max(0, Math.floor((left - frame.left) * sx)); x < Math.min(c.width, Math.ceil((right - frame.left) * sx)); x++) if (lum(x, y) < paper * 0.85) n++;
       return n;
     };
     const out = { ring: 0, ringSamples: 0, leader: 0, leaderOverNote: 0, badge: 0, label: 0 };
@@ -258,10 +256,10 @@ async function inkUnderOverlays(page: Page, exempt: Box[]) {
       out.label += inkIn(r.left, r.top, r.right, r.bottom);
     });
     return out;
-  }, exempt);
+  });
 }
-async function expectNothingOnInk(page: Page, exempt: Box[]) {
-  const hits = await inkUnderOverlays(page, exempt);
+async function expectNothingOnInk(page: Page) {
+  const hits = await inkUnderOverlays(page);
   expect({ ...hits, ringSamples: 0 }, JSON.stringify(hits)).toEqual({ ring: 0, ringSamples: 0, leader: 0, leaderOverNote: 0, badge: 0, label: 0 });
   return hits;
 }
@@ -293,7 +291,7 @@ test('student sees the wrong step circled on phone and iPad, aligned after resiz
   await expectRingOn(phone, 1, boxes[6]);
   await expect(phone.locator('.hw-step-label, .hw-step-badge')).toHaveCount(2);
   await expectLabelsClear(phone, boxes);
-  await expectNothingOnInk(phone, boxes);
+  await expectNothingOnInk(phone);
   // 手機上的字夠大
   expect(await phone.locator('.hw-step-label, .hw-step-badge').first().evaluate((el) => parseFloat(getComputedStyle(el.parentElement!).fontSize))).toBeGreaterThanOrEqual(13);
   // 每一題下面都有文字；答對的題沒有；原本的 ✓／✗ 與評語還在
@@ -324,7 +322,7 @@ test('student sees the wrong step circled on phone and iPad, aligned after resiz
   await expectRingOn(ipad, 0, boxes[1]);
   await expectRingOn(ipad, 1, boxes[6]);
   await expectLabelsClear(ipad, boxes);
-  await expectNothingOnInk(ipad, boxes);
+  await expectNothingOnInk(ipad);
   await expect(ipad.locator('.hw-step-label').first()).toContainText('這裡做錯：');
   await ipad.locator('.hw-photo').first().scrollIntoViewIfNeeded();
   await ipad.screenshot({ path: join(shotDir, 'student-ipad-820x1180.png') });
@@ -382,7 +380,7 @@ test('no blank space on the photo: the words go under the photo, nothing covers 
   await expect(page.locator('.hw-step-badge')).toHaveCount(0); // 寫滿字：連小題號都不放，不蓋字
   await expect(page.locator('.hw-step-leaders line')).toHaveCount(0);
   await expect(page.locator('.hw-step-legend li').first()).toContainText('這裡做錯：+3 移到等號另一邊要變號');
-  await expectNothingOnInk(page, boxes);
+  await expectNothingOnInk(page);
 });
 
 // Codex 審核 B1：標籤放得下但連線會穿過筆跡時，不畫跨頁連線
@@ -404,7 +402,7 @@ test('far blank space that cannot be reached safely: no cross-page line, small n
     const ring = (await page.locator(RED_PATH).boundingBox())!,
       badge = (await page.locator('.hw-step-badge').boundingBox())!;
     expect(Math.max(ring.x - (badge.x + badge.width), badge.x - (ring.x + ring.width), ring.y - (badge.y + badge.height), badge.y - (ring.y + ring.height))).toBeLessThan(12);
-    await expectNothingOnInk(page, boxes);
+    await expectNothingOnInk(page);
     if (width === 390) await page.locator('.hw-photo').first().screenshot({ path: join(shotDir, 'degraded-number-and-legend-phone.png') });
   }
 });
@@ -424,7 +422,7 @@ test('far blank space with a clear corridor: the label stays on the photo and it
   const frame = (await page.locator('.hw-photo img').boundingBox())!;
   const label = rectIn((await page.locator('.hw-step-label').boundingBox())!, frame);
   expect(label.y0, 'label is in the far blank space').toBeGreaterThan(boxes[0][3] + 0.1);
-  await expectNothingOnInk(page, boxes);
+  await expectNothingOnInk(page);
   await page.locator('.hw-photo').first().screenshot({ path: join(shotDir, 'far-label-safe-line-phone.png') });
 });
 
@@ -440,7 +438,7 @@ test('leader lines do not cross another ring or label', async ({ browser }) => {
   const page = await paintedStudent(browser, sheetUrl, 390, body, boxes);
   await expect(page.locator(RED_PATH)).toHaveCount(2);
   await expect(page.locator('.hw-step-label, .hw-step-badge')).toHaveCount(2);
-  await expectNothingOnInk(page, boxes);
+  await expectNothingOnInk(page);
 });
 
 // Codex 審核 B2：密集行距
@@ -460,7 +458,7 @@ test('dense neighbouring lines: the ring tightens to stay off the next line, at 
     const page = await paintedStudent(browser, sheetUrl, width, body, boxes);
     await expect(page.locator(RED_PATH), `width ${width}`).toHaveCount(1);
     await expectRingOn(page, 0, boxes[0]);
-    const hits = await expectNothingOnInk(page, boxes);
+    const hits = await expectNothingOnInk(page);
     expect(hits.ringSamples).toBeGreaterThan(100);
     await expect(page.locator('.hw-r').nth(0).locator('.hw-step')).toContainText('做錯的步驟：');
     if (width === 390) await page.locator('.hw-photo').first().screenshot({ path: join(shotDir, 'dense-lines-tight-ring-phone.png') });
@@ -469,7 +467,7 @@ test('dense neighbouring lines: the ring tightens to stay off the next line, at 
   const page = await paintedStudent(browser, sheetUrl, 390, body, boxes);
   await page.setViewportSize({ width: 700, height: 420 });
   await expect.poll(async () => (await page.locator('.hw-photo img').first().boundingBox())!.width).toBeGreaterThan(500);
-  await expect.poll(async () => (await inkUnderOverlays(page, boxes)).ring).toBe(0);
+  await expect.poll(async () => (await inkUnderOverlays(page)).ring).toBe(0);
   await expectRingOn(page, 0, boxes[0]);
 });
 
@@ -511,6 +509,63 @@ test('pixels cannot be read: no ring and no label over the photo, the text stays
   await expect(page.locator(RED_PATH)).toHaveCount(0);
   await expect(page.locator('.hw-step-label, .hw-step-badge')).toHaveCount(0);
   await expect(page.locator('.hw-r').nth(0).locator('.hw-step')).toContainText('做錯的步驟：2x = 13 + 3');
+});
+
+// Codex 第 2 次複審 B4：被圈的那一行也不能被圈線壓到
+test('the ring never touches the circled line itself: no safe gap means no ring, the text stays', async ({ browser }) => {
+  test.setTimeout(120_000);
+  const { tp, sheetUrl } = await setup(browser);
+  const font = '32px Arial';
+  // Codex 的重現：兩行相同算式，基線 710／743，顯示寬 390（縮放後空隙只剩約 3 px）
+  const { body, boxes } = await paintPhoto(tp, {
+    rows: [
+      { text: '2x + 3 = 13 + 3', x: 124, y: 710, font, box: true },
+      { text: '2x + 3 = 13 + 3', x: 124, y: 743, font },
+    ],
+  });
+  const page = await paintedStudent(browser, sheetUrl, 390, body, boxes);
+  await expectNothingOnInk(page);
+  await expect(page.locator(RED_PATH)).toHaveCount(0);
+  await expect(page.locator('.hw-step-label, .hw-step-badge')).toHaveCount(0);
+  await expect(page.locator('.hw-r').nth(0).locator('.hw-step')).toContainText('做錯的步驟：2x = 13 + 3');
+  // 同一張照片放大後空隙夠了：圈得起來，而且不碰任何一行
+  const wide = await paintedStudent(browser, sheetUrl, 820, body, boxes);
+  await expect(wide.locator(RED_PATH)).toHaveCount(1);
+  await expectRingOn(wide, 0, boxes[0]);
+  expect((await expectNothingOnInk(wide)).ringSamples).toBeGreaterThan(100);
+  // 外框切進目標行（AI 框得太緊）：四周都空時圈繞到字外面，一樣不壓字
+  const [x0, y0, x1, y1] = boxes[0];
+  const alone = (await paintPhoto(tp, { rows: [{ text: '2x + 3 = 13 + 3', x: 124, y: 710, font }] })).body;
+  const cropped = await paintedStudent(browser, sheetUrl, 390, alone, [[x0 + 0.002, y0 + 0.002, x1 - 0.002, y1 - 0.002]]);
+  await expect(cropped.locator(RED_PATH)).toHaveCount(1);
+  await expectNothingOnInk(cropped);
+});
+
+test('whatever the width and line spacing, a drawn ring leaves every line untouched', async ({ browser }) => {
+  test.setTimeout(240_000);
+  const { tp, sheetUrl } = await setup(browser);
+  const font = '32px Arial';
+  const drawn: string[] = [];
+  for (const pitch of [33, 36, 42]) {
+    const { body, boxes } = await paintPhoto(tp, {
+      rows: [
+        { text: '2x + 3 = 13 + 3', x: 124, y: 710, font, box: true },
+        { text: '2x + 3 = 13 + 3', x: 124, y: 710 + pitch, font },
+        { text: '2x + 3 = 13 + 3', x: 124, y: 710 - pitch, font },
+      ],
+    });
+    for (const width of [360, 390, 430, 700, 820]) {
+      const page = await paintedStudent(browser, sheetUrl, width, body, boxes);
+      const hits = await inkUnderOverlays(page);
+      expect(hits.ring, `pitch ${pitch}, width ${width}`).toBe(0);
+      if (hits.ringSamples) drawn.push(`${pitch}@${width}`);
+      await expect(page.locator('.hw-r').nth(0).locator('.hw-step')).toContainText('做錯的步驟：');
+      await page.context().close();
+      contexts.splice(contexts.indexOf(page.context()), 1);
+    }
+  }
+  // 空隙夠的組合真的有圈，不是全部取消才通過
+  for (const combo of ['36@700', '36@820', '42@390', '42@820']) expect(drawn).toContain(combo);
 });
 
 // Codex 審核 B3：輸入框和後端一樣用碼點計算
@@ -582,7 +637,7 @@ test('teacher sees the circle and can rewrite or delete it; students see the cha
   await expect(shot.locator('svg.hw-step-rings path[stroke="#e03131"]')).toHaveCount(2);
   await expectRingOn(shot, 0, boxes[1]);
   await expectLabelsClear(shot, boxes);
-  await expectNothingOnInk(shot, boxes);
+  await expectNothingOnInk(shot);
   await expect(shot.locator('.hw-step-edit')).toHaveCount(2);
   await shot.locator('.hw-step-label').first().scrollIntoViewIfNeeded();
   await shot.screenshot({ path: join(shotDir, 'teacher-homework.png') });
@@ -665,7 +720,7 @@ test('faint pencil counts as writing: no label, line or ring on it', async ({ br
   await expect(page.locator('.hw-step-leaders line')).toHaveCount(0);
   await expect(page.locator('.hw-step-label')).toHaveCount(0);
   await expect(page.locator('.hw-step-legend li')).toHaveCount(1);
-  await expectNothingOnInk(page, boxes);
+  await expectNothingOnInk(page);
   // 外框沒有對齊行距（切過別行）：取消圈，不蓋淡鉛筆
   const crooked = await paintedStudent(browser, sheetUrl, 390, body, [[0.1, 0.03, 0.5, 0.06], [0.1, 0.1, 0.5, 0.13]]);
   await expect(crooked.locator(RED_PATH)).toHaveCount(0);

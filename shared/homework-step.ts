@@ -131,11 +131,6 @@ const RING_STYLES = [
   { pen: 2.5, halo: 0, fit: true },
   { pen: 2, halo: 0, fit: true },
 ];
-const overlap = (a: StepRect, b: StepRect): StepRect => {
-  const x = Math.max(a.x, b.x),
-    y = Math.max(a.y, b.y);
-  return { x, y, w: Math.max(0, Math.min(a.x + a.w, b.x + b.w) - x), h: Math.max(0, Math.min(a.y + a.h, b.y + b.h) - y) };
-};
 const square = ([x, y]: Point, r: number): StepRect => ({ x: x - r, y: y - r, w: r * 2, h: r * 2 });
 /** 沿折線每隔約 1 px 取一點。 */
 function samplePath(points: Point[]): Point[] {
@@ -148,13 +143,12 @@ function samplePath(points: Point[]): Point[] {
   });
   return out;
 }
-function ringPoints(c: StepRect, W: number, H: number, fit: boolean, seed: number): Point[] {
+function ringPoints(c: StepRect, W: number, H: number, power: number, fit: boolean, seed: number): Point[] {
   let s = seed;
   const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647 - 0.5;
   const cx = c.x + c.w / 2,
     cy = c.y + c.h / 2,
-    power = fit ? 0.3 : 0.72,
-    wobble = fit ? 0.4 : (2.5 * W) / 1000,
+    wobble = fit ? 0.2 : (2.5 * W) / 1000,
     swell = fit ? 0 : 0.02,
     steps = fit ? 90 : 58,
     pow = (v: number) => Math.sign(v) * Math.abs(v) ** power;
@@ -169,42 +163,60 @@ function ringPoints(c: StepRect, W: number, H: number, fit: boolean, seed: numbe
   }
   return pts;
 }
+/** 目標行的筆畫可以超出外框多少（反鋸齒、筆跡圖取整）。超出更多就是外框切過字，不沿著它收緊。 */
+const RING_OVERHANG = 3;
 /**
- * 決定這一行的圈怎麼畫：實際圈線（含線寬）不可以壓到目標框外的筆跡（inkCount 回傳範圍內的筆跡像素數），也不可以碰到其他圈。
+ * 外框一側可以走線的空白帶（從框邊往外算）：start 之前是目標行超出框的筆畫，end 之後是相鄰筆跡（沒碰到時是 Infinity）。
+ * 外框切過字時回傳 null。
+ */
+function freeBand(band: (d: number) => StepRect, limit: number, inkCount: (r: StepRect) => number) {
+  let d = 0;
+  while (inkCount(band(d)) > 0) if ((d += 0.5) > RING_OVERHANG) return null;
+  const start = d;
+  while (d < limit) {
+    if (inkCount(band(d)) > 0) return { start, end: d };
+    d += 0.5;
+  }
+  return { start, end: Infinity };
+}
+/**
+ * 決定這一行的圈怎麼畫：實際圈線（含線寬與白底）不可以壓到任何筆跡，包含被圈的這一行；也不可以碰到其他圈。
  * 怎麼收都畫不下時回傳 null：取消這個圈，只留文字說明。
  */
 export function planStepRing(opts: { W: number; H: number; box: StepRect; pad: { x: number; y: number }; seed: number; inkCount: (r: StepRect) => number; others: StepRingPlan[] }): StepRingPlan | null {
   const { W, H, box, pad, seed, inkCount, others } = opts;
-  // 目標那一行不算：外框邊緣留 1 px，貼著框的筆畫才不會被當成相鄰筆跡
-  const own: StepRect = { x: box.x - 1, y: box.y - 1, w: box.w + 2, h: box.h + 2 };
-  const foreign = (r: StepRect) => inkCount(r) - inkCount(overlap(r, own));
-  const gapTo = (band: (d: number) => StepRect, limit: number) => {
-    for (let d = 0; d < limit; d += 0.5) if (inkCount(band(d)) > 0) return d;
-    return limit;
-  };
   for (const { pen, halo, fit } of RING_STYLES) {
-    const reach = Math.max(pen, halo) / 2 + 0.5;
-    // 再多留 1 px：線條的抖動，加上筆跡圖比畫面粗（一格約 1 px）
-    const room = (gap: number, normal: number) => Math.max(0, Math.min(normal, gap - reach));
+    // 筆跡圖本身已經比字粗一點（縮圖的模糊也算筆跡），線條厚度外只再留 0.25 px
+    const reach = Math.max(pen, halo) / 2 + 0.25;
+    // 線放在空白帶裡：盡量用原本的留白，空間不夠時放中間；兩邊都留不出線寬就回傳 NaN（這個線寬畫不下）
+    const room = (side: { start: number; end: number } | null, normal: number) => {
+      if (!side) return NaN;
+      const near = side.start + reach,
+        far = side.end - reach;
+      return near > far ? NaN : Math.max(near, Math.min(normal, (side.start + side.end) / 2));
+    };
     let [l, r, t, b] = [pad.x, pad.x, pad.y, pad.y];
     if (fit) {
-      l = room(gapTo((d) => ({ x: own.x - d - 0.5, y: own.y, w: 0.5, h: own.h }), pad.x + reach), pad.x);
-      r = room(gapTo((d) => ({ x: own.x + own.w + d, y: own.y, w: 0.5, h: own.h }), pad.x + reach), pad.x);
+      l = room(freeBand((d) => ({ x: box.x - d - 0.5, y: box.y, w: 0.5, h: box.h }), pad.x + reach * 2 + 2, inkCount), pad.x);
+      r = room(freeBand((d) => ({ x: box.x + box.w + d, y: box.y, w: 0.5, h: box.h }), pad.x + reach * 2 + 2, inkCount), pad.x);
+      if (Number.isNaN(l + r)) continue;
       const across = { x: box.x - l - reach, w: box.w + l + r + reach * 2 };
-      t = room(gapTo((d) => ({ ...across, y: own.y - d - 0.5, h: 0.5 }), pad.y + reach), pad.y);
-      b = room(gapTo((d) => ({ ...across, y: own.y + own.h + d, h: 0.5 }), pad.y + reach), pad.y);
+      t = room(freeBand((d) => ({ ...across, y: box.y - d - 0.5, h: 0.5 }), pad.y + reach * 2 + 2, inkCount), pad.y);
+      b = room(freeBand((d) => ({ ...across, y: box.y + box.h + d, h: 0.5 }), pad.y + reach * 2 + 2, inkCount), pad.y);
+      if (Number.isNaN(t + b)) continue;
     }
-    // 較粗的線要整條都在目標框外；只有最細的線才可以貼上框邊（不然就要取消這個圈了）
-    if (fit && pen > 2 && Math.min(l, r, t, b) < reach) continue;
-    const points = ringPoints({ x: box.x - l, y: box.y - t, w: box.w + l + r, h: box.h + t + b }, W, H, fit, seed);
-    const line = samplePath(points);
-    if (line.some((p) => foreign(square(p, reach)) > 0)) continue;
-    const xs = points.map((p) => p[0]),
-      ys = points.map((p) => p[1]);
-    const rect: StepRect = { x: Math.min(...xs) - reach, y: Math.min(...ys) - reach, w: Math.max(...xs) - Math.min(...xs) + reach * 2, h: Math.max(...ys) - Math.min(...ys) + reach * 2 };
-    const touches = others.some((o) => hit(rect, o.rect) && samplePath(o.points).some(([ox, oy]) => line.some(([x, y]) => Math.hypot(x - ox, y - oy) <= reach + o.reach)));
-    if (touches) continue;
-    return { points, pen, halo, reach, rect, box };
+    // 收緊時由接近圓角矩形到幾乎方正：圈的四個角才不會切過行頭、行尾的字
+    for (const power of fit ? [0.3, 0.15] : [0.72]) {
+      const points = ringPoints({ x: box.x - l, y: box.y - t, w: box.w + l + r, h: box.h + t + b }, W, H, power, fit, seed);
+      const line = samplePath(points);
+      if (line.some((p) => inkCount(square(p, reach)) > 0)) continue;
+      const xs = points.map((p) => p[0]),
+        ys = points.map((p) => p[1]);
+      const rect: StepRect = { x: Math.min(...xs) - reach, y: Math.min(...ys) - reach, w: Math.max(...xs) - Math.min(...xs) + reach * 2, h: Math.max(...ys) - Math.min(...ys) + reach * 2 };
+      const touches = others.some((o) => hit(rect, o.rect) && samplePath(o.points).some(([ox, oy]) => line.some(([x, y]) => Math.hypot(x - ox, y - oy) <= reach + o.reach)));
+      if (touches) continue;
+      return { points, pen, halo, reach, rect, box };
+    }
   }
   return null;
 }
@@ -225,7 +237,8 @@ export function stepLeader(opts: { label: StepRect; ring: StepRingPlan; inkCount
   const nearest = ([x, y]: Point): Point => [Math.max(label.x, Math.min(label.x + label.w, x)), Math.max(label.y, Math.min(label.y + label.h, y))];
   const cx = ring.box.x + ring.box.w / 2,
     cy = ring.box.y + ring.box.h / 2,
-    pts = ring.points,
+    // 沿線等距取點：接近方正的圈，折線點都擠在四個角
+    pts = samplePath(ring.points),
     every = Math.max(1, Math.floor(pts.length / 32));
   const tries: { line: StepLine; len: number }[] = [];
   let closest = Infinity;
