@@ -5651,6 +5651,76 @@ button.link {
   width: 100%;
   border-radius: 10px;
 }
+.hw-photo svg.hw-step-rings,
+.hw-step-layer,
+.hw-step-leaders {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.hw-step-leaders line {
+  stroke: #d0021b;
+  stroke-width: 1.5;
+}
+.hw-step-label,
+.hw-step-badge {
+  position: absolute;
+  box-sizing: border-box;
+  color: #c5101a;
+  font-weight: 800;
+  line-height: 1.3;
+}
+.hw-step-label {
+  overflow-wrap: anywhere;
+  padding: 1px 4px;
+  border-radius: 5px;
+  background: #ffffffd9;
+}
+.hw-step-badge {
+  display: grid;
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: 50%;
+  background: #c5101a;
+  color: #fff;
+  font-size: 0.85em;
+}
+.hw-step-legend {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: #fff4f4;
+  color: #c5101a;
+  font-weight: 700;
+  list-style: none;
+  overflow-wrap: anywhere;
+}
+.hw-step-legend[hidden] {
+  display: none;
+}
+.hw-step {
+  margin: 6px 0;
+  padding: 6px 10px;
+  border-left: 3px solid #d93025;
+  background: #fff4f4;
+  color: #a50e0e;
+  overflow-wrap: anywhere;
+}
+.hw-step p {
+  margin: 2px 0;
+}
+.hw-step-edit {
+  margin: 6px 0;
+}
+.hw-step-edit label {
+  display: grid;
+  gap: 2px;
+  margin: 6px 0;
+}
 .hw-results {
   display: grid;
   gap: 8px;

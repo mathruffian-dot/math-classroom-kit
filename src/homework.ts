@@ -15,7 +15,8 @@ import type {
 import { api, download, escape as esc } from './api';
 import { icon } from './icons';
 import { md, plain } from './math';
-import { mountRedpen } from './sketch';
+import { RING_PAD, mountRedpen, stepRingsSvg } from './sketch';
+import { STEP_INK_LIMIT, STEP_TEXT_MAX, clipStepInput, placeStepLabel, planStepRing, shownStep, stepLeader, stepRing, stepText, type StepLine, type StepRect, type StepRingPlan } from '../shared/homework-step';
 
 interface Helpers {
   toast(message: string, error?: boolean): void;
@@ -205,8 +206,222 @@ function mountPhotos(root: ParentNode, v: HomeworkSheetView, src: (photoId: stri
     if (!photo) return;
     const r = v.result;
     const stamp = r && i === 0 ? ({ total: r.score, max: r.max, depth: 'full' } as unknown as Grade) : null;
-    mountRedpen(host, src(photo.id), stamp, r ? marksFor(r.items, i) : []);
+    mountRedpen(host, src(photo.id), stamp, r ? marksFor(r.items, i) : [], (img) => mountStepMarks(host, img, v, i));
   });
+}
+/**
+ * 量照片上的筆跡，用來找空白處放標籤。縮小後每一區以較亮的顏色當底色（照片有陰影也不會誤判），比底色暗的像素算筆跡。
+ * density 回傳範圍內最密一小格的筆跡比例：不看整塊平均，淡鉛筆、細字才不會被周圍的空白稀釋。
+ * count 回傳範圍內的筆跡像素數（去掉孤立雜點），圈線、連線、題號要完全不碰字時用。
+ * 讀不到像素時回傳 null（不能確認不蓋字：不圈、只留文字）。
+ */
+function inkMeter(img: HTMLImageElement): { density: (r: StepRect, W: number, H: number) => number; count: (r: StepRect, W: number, H: number) => number } | null {
+  try {
+    const cw = Math.min(800, img.naturalWidth),
+      ch = Math.max(1, Math.round((cw * img.naturalHeight) / img.naturalWidth));
+    const canvas = document.createElement('canvas');
+    canvas.width = cw;
+    canvas.height = ch;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(img, 0, 0, cw, ch);
+    const px = ctx.getImageData(0, 0, cw, ch).data;
+    const lum = new Float32Array(cw * ch);
+    for (let i = 0; i < lum.length; i++) lum[i] = 0.3 * px[i * 4] + 0.59 * px[i * 4 + 1] + 0.11 * px[i * 4 + 2];
+    const sum = new Uint32Array((cw + 1) * (ch + 1));
+    const B = 40,
+      CELL = 16;
+    const inkAt = new Uint8Array(cw * ch);
+    for (let by = 0; by < ch; by += B)
+      for (let bx = 0; bx < cw; bx += B) {
+        const vals: number[] = [];
+        for (let y = by; y < Math.min(ch, by + B); y += 2) for (let x = bx; x < Math.min(cw, bx + B); x += 2) vals.push(lum[y * cw + x]);
+        vals.sort((a, b) => a - b);
+        const paper = vals[Math.floor(vals.length * 0.85)];
+        for (let y = by; y < Math.min(ch, by + B); y++) for (let x = bx; x < Math.min(cw, bx + B); x++) if (lum[y * cw + x] < paper * 0.88 && paper - lum[y * cw + x] > 14) inkAt[y * cw + x] = 1;
+      }
+    for (let y = 0; y < ch; y++) for (let x = 0; x < cw; x++) sum[(y + 1) * (cw + 1) + x + 1] = inkAt[y * cw + x] + sum[y * (cw + 1) + x + 1] + sum[(y + 1) * (cw + 1) + x] - sum[y * (cw + 1) + x];
+    // 同樣的累加表，只留周圍至少還有 2 個筆跡像素的點（JPEG 雜點不算字）
+    const solid = new Uint32Array((cw + 1) * (ch + 1));
+    for (let y = 0; y < ch; y++)
+      for (let x = 0; x < cw; x++) {
+        let keep = 0;
+        if (inkAt[y * cw + x]) {
+          let near = -1;
+          for (let ny = Math.max(0, y - 1); ny <= Math.min(ch - 1, y + 1); ny++) for (let nx = Math.max(0, x - 1); nx <= Math.min(cw - 1, x + 1); nx++) near += inkAt[ny * cw + nx];
+          keep = near >= 2 ? 1 : 0;
+        }
+        solid[(y + 1) * (cw + 1) + x + 1] = keep + solid[y * (cw + 1) + x + 1] + solid[(y + 1) * (cw + 1) + x] - solid[y * (cw + 1) + x];
+      }
+    const count = (r: StepRect, W: number, H: number) => {
+      const x0 = Math.max(0, Math.floor((r.x / W) * cw)),
+        y0 = Math.max(0, Math.floor((r.y / H) * ch)),
+        x1 = Math.min(cw, Math.ceil(((r.x + r.w) / W) * cw)),
+        y1 = Math.min(ch, Math.ceil(((r.y + r.h) / H) * ch));
+      if (x1 <= x0 || y1 <= y0 || r.w <= 0 || r.h <= 0) return 0;
+      const at = (x: number, y: number) => solid[y * (cw + 1) + x];
+      return at(x1, y1) - at(x0, y1) - at(x1, y0) + at(x0, y0);
+    };
+    const density = (r: StepRect, W: number, H: number) => {
+      const x0 = Math.max(0, Math.floor((r.x / W) * cw)),
+        y0 = Math.max(0, Math.floor((r.y / H) * ch)),
+        x1 = Math.min(cw, Math.ceil(((r.x + r.w) / W) * cw)),
+        y1 = Math.min(ch, Math.ceil(((r.y + r.h) / H) * ch));
+      if (x1 <= x0 || y1 <= y0) return 1;
+      const at = (x: number, y: number) => sum[y * (cw + 1) + x];
+      let most = 0;
+      // 一小格一小格看（每次移半格，字不會剛好被切在兩格之間）；已經超過上限就不用再算
+      for (let y = y0; y < y1; y += CELL / 2)
+        for (let x = x0; x < x1; x += CELL / 2) {
+          const xe = Math.min(x1, x + CELL),
+            ye = Math.min(y1, y + CELL);
+          most = Math.max(most, (at(xe, ye) - at(x, ye) - at(xe, y) + at(x, y)) / (CELL * CELL));
+          if (most > STEP_INK_LIMIT) return most;
+        }
+      return most;
+    };
+    return { density, count };
+  } catch {
+    return null;
+  }
+}
+/**
+ * 這張照片上每一題「做錯的步驟」：手繪圈＋紅字標籤（字級固定）。線寬不隨照片縮放，所以寬度改變時圈、標籤、連線全部重新決定。
+ * 圈線壓到目標框外的筆跡就取消那個圈（文字說明在每題下方）。標籤連不回圈時改放圈旁小題號，文字列在照片下方；題號也放不下就只靠圖例。
+ */
+function mountStepMarks(host: HTMLElement, img: HTMLImageElement, v: HomeworkSheetView, photo: number) {
+  const steps = (v.result?.items || []).flatMap((m, i) => {
+    const step = shownStep(m),
+      box = stepRing(step, photo);
+    return step && box ? [{ n: i + 1, text: step.why || step.wrong, box }] : [];
+  });
+  if (!steps.length) return;
+  const layer = document.createElement('div');
+  layer.className = 'hw-step-layer';
+  host.append(layer);
+  const legend = document.createElement('ul');
+  legend.className = 'hw-step-legend';
+  legend.hidden = true;
+  host.after(legend);
+  const ink = inkMeter(img);
+  let drawnWidth = 0;
+  const layout = () => {
+    const W = img.clientWidth,
+      H = img.clientHeight;
+    if (!W || !H || W === drawnWidth) return;
+    drawnWidth = W;
+    const frame = img.getBoundingClientRect(),
+      zoom = frame.width / W || 1;
+    const relative = (r: DOMRect): StepRect => ({ x: (r.left - frame.left) / zoom, y: (r.top - frame.top) / zoom, w: r.width / zoom, h: r.height / zoom });
+    const inkCount = (r: StepRect) => (ink ? ink.count(r, W, H) : 1);
+    const pad = { x: (RING_PAD.x * W) / 1000, y: (RING_PAD.y * W) / 1000 };
+    const placedRings: StepRingPlan[] = [];
+    const circled = steps.flatMap((s, i) => {
+      const [x0, y0, x1, y1] = s.box;
+      const ring = ink ? planStepRing({ W, H, box: { x: x0 * W, y: y0 * H, w: (x1 - x0) * W, h: (y1 - y0) * H }, pad, seed: 11 + i * 97, inkCount, others: placedRings }) : null;
+      if (!ring) return [];
+      placedRings.push(ring);
+      return [{ ...s, ring }];
+    });
+    host.querySelector('svg.hw-step-rings')?.remove();
+    if (circled.length) layer.insertAdjacentHTML('beforebegin', stepRingsSvg(circled.map((s) => s.ring), W, H));
+    const marks = [...host.querySelectorAll('svg.redpen > *')].map((el) => relative(el.getBoundingClientRect())).filter((r) => r.w > 0 && r.h > 0);
+    const placed: StepRect[] = [];
+    const font = Math.round(Math.max(13, Math.min(18, W * 0.026)));
+    layer.innerHTML = '';
+    layer.style.fontSize = `${font}px`;
+    const lines: StepLine[] = [];
+    // 已畫好的連線：後面的標籤、題號也不能蓋上去
+    const onLine = (r: StepRect) =>
+      lines.some(({ x1, y1, x2, y2 }) => {
+        const n = Math.max(1, Math.ceil(Math.hypot(x2 - x1, y2 - y1)));
+        for (let k = 0; k <= n; k++) {
+          const x = x1 + ((x2 - x1) * k) / n,
+            y = y1 + ((y2 - y1) * k) / n;
+          if (x > r.x - 2 && x < r.x + r.w + 2 && y > r.y - 2 && y < r.y + r.h + 2) return true;
+        }
+        return false;
+      });
+    const inkOf = (r: StepRect) => {
+      if (!ink || onLine(r) || inkCount(r) > 0) return 1;
+      return ink.density(r, W, H);
+    };
+    const missed: string[] = [];
+    circled.forEach((s) => {
+      const label = document.createElement('div');
+      label.className = 'hw-step-label';
+      label.dataset.n = String(s.n);
+      const chars = [...s.text];
+      label.textContent = `${s.n}. 這裡做錯：${chars.length > 30 ? `${chars.slice(0, 29).join('')}…` : s.text}`;
+      layer.append(label);
+      const sizes = [0.62, 0.46, 0.32].map((f) => {
+        // 寬度貼合文字：短句不佔多餘的空白
+        label.style.width = 'max-content';
+        label.style.maxWidth = `${Math.min(W, Math.max(font * 7, Math.round(W * f)))}px`;
+        return { w: label.offsetWidth + 1, h: label.offsetHeight };
+      });
+      const others = [...circled.filter((o) => o !== s).map((o) => o.ring.rect), ...marks, ...placed];
+      const leaderFor = (r: StepRect) => stepLeader({ label: r, ring: s.ring, inkCount, blocked: others, lines });
+      const spot = placeStepLabel({ W, H, ring: s.ring.rect, sizes, blocked: others, ink: inkOf, link: (r) => !!leaderFor(r) });
+      const place = (el: HTMLElement, r: StepRect) => {
+        el.style.left = `${r.x}px`;
+        el.style.top = `${r.y}px`;
+        el.style.width = `${r.w}px`;
+        el.style.maxWidth = '';
+        placed.push(r);
+      };
+      if (spot) {
+        const line = leaderFor(spot);
+        place(label, spot);
+        if (line && line !== 'touching') lines.push(line);
+        return;
+      }
+      // 沒有放得下又連得回圈的空白：文字放到照片下方，圈旁有小空位才放題號對應；也沒有就只靠圖例（不蓋字）
+      const side = font + 7;
+      const dot = placeStepLabel({ W, H, ring: s.ring.rect, sizes: [{ w: side, h: side }], blocked: others, ink: inkOf, near: true });
+      if (dot) {
+        label.className = 'hw-step-badge';
+        label.textContent = String(s.n);
+        place(label, dot);
+      } else label.remove();
+      missed.push(`<li><b>${s.n}.</b> 這裡做錯：${esc(s.text)}</li>`);
+    });
+    if (lines.length) layer.insertAdjacentHTML('afterbegin', `<svg class="hw-step-leaders" viewBox="0 0 ${W} ${H}" aria-hidden="true">${lines.map((l) => `<line x1="${l.x1}" y1="${l.y1}" x2="${l.x2}" y2="${l.y2}"/>`).join('')}</svg>`);
+    legend.innerHTML = missed.join('');
+    legend.hidden = !missed.length;
+  };
+  layout();
+  const watch = new ResizeObserver(() => {
+    if (!host.isConnected) watch.disconnect();
+    else layout();
+  });
+  watch.observe(host);
+}
+/* 老師輸入框的字數：和後端一樣算碼點（瀏覽器的 maxlength 算 UTF-16，𝑥 會算成 2 個字）。輸入法組字中不動，組完才截。 */
+function clipStepField(field: HTMLInputElement) {
+  const key = field.dataset.stepField as keyof typeof STEP_TEXT_MAX;
+  const { value, caret } = clipStepInput(field.value, field.selectionStart ?? field.value.length, STEP_TEXT_MAX[key]);
+  if (value === field.value) return;
+  field.value = value;
+  field.setSelectionRange(caret, caret);
+}
+document.addEventListener('input', (e) => {
+  const field = e.target as HTMLInputElement;
+  if (field.matches?.('[data-step-field]') && !(e as InputEvent).isComposing) clipStepField(field);
+});
+document.addEventListener('compositionend', (e) => {
+  const field = e.target as HTMLInputElement;
+  if (field.matches?.('[data-step-field]')) clipStepField(field);
+});
+/** 每一題的文字：做錯的步驟（不論有沒有圈得出來都有）；老師可以改寫或刪掉。 */
+function stepHtml(m: HomeworkMark | undefined, seat: number, n: number, teacher: boolean) {
+  const s = shownStep(m);
+  const text = s
+    ? `<div class="hw-step"><p><b>做錯的步驟：</b>${esc(s.wrong || s.why)}${s.teacher ? ' <small>（老師改寫）</small>' : ''}</p>${s.wrong && s.why ? `<p>為什麼錯：${esc(s.why)}</p>` : ''}${s.fix ? `<p>怎麼改：${esc(s.fix)}</p>` : ''}</div>`
+    : '';
+  if (!teacher || m?.correct !== false) return text;
+  const field = (key: keyof typeof STEP_TEXT_MAX, label: string) => `<label>${label}<input data-step-field="${key}" value="${esc(s?.[key] || '')}"></label>`;
+  return `${text}<details class="hw-step-edit"><summary>${s ? '修改這個圈的說明' : '加上做錯的步驟'}</summary>${field('wrong', '錯的內容')}${field('why', '為什麼錯')}${field('fix', '怎麼改')}<div class="actions">${btn('儲存', 'hw-step-save', 'secondary', 'save', `data-seat="${seat}" data-n="${n}"`)}${s ? btn('刪除這個圈', 'hw-step-del', 'quiet danger', 'trash', `data-seat="${seat}" data-n="${n}"`) : ''}</div></details>`;
 }
 function resultHtml(v: HomeworkSheetView, teacher: boolean) {
   const r = v.result!;
@@ -217,7 +432,7 @@ function resultHtml(v: HomeworkSheetView, teacher: boolean) {
       const fix = teacher
         ? `<div class="hw-fix" role="group" aria-label="第 ${q.n} 題改判">${(['true', 'false', 'null'] as const).map((c) => `<button class="btn quiet ${String(m?.correct ?? null) === c ? 'selected' : ''}" data-action="hw-override" data-seat="${v.seat}" data-n="${q.n}" data-correct="${c}">${c === 'true' ? '✓' : c === 'false' ? '✗' : '?'}</button>`).join('')}</div>`
         : '';
-      return `<li class="hw-r ${m?.correct === true ? 'ok' : m?.correct === false ? 'no' : ''}">${mark}<div><div class="hw-stem"><b>${q.n}.</b> ${md(q.stem)}</div><p class="hw-comment">${esc(m?.comment || '')}${m?.teacher ? ' <small>（老師改判）</small>' : ''}</p><p class="small-text muted">你的答案：${esc(m?.read || '（沒有讀到）')}${q.answer ? `　正確答案：${md(q.answer)}` : ''}</p>${q.solution && m?.correct !== true ? `<details><summary>看詳解</summary><p>${md(q.solution)}</p></details>` : ''}</div>${fix}</li>`;
+      return `<li class="hw-r ${m?.correct === true ? 'ok' : m?.correct === false ? 'no' : ''}">${mark}<div><div class="hw-stem"><b>${q.n}.</b> ${md(q.stem)}</div><p class="hw-comment">${esc(m?.comment || '')}${m?.teacher ? ' <small>（老師改判）</small>' : ''}</p><p class="small-text muted">你的答案：${esc(m?.read || '（沒有讀到）')}${q.answer ? `　正確答案：${md(q.answer)}` : ''}</p>${stepHtml(m, v.seat, q.n, teacher)}${q.solution && m?.correct !== true ? `<details><summary>看詳解</summary><p>${md(q.solution)}</p></details>` : ''}</div>${fix}</li>`;
     })
     .join('');
   return `<section class="hw-result"><div class="hw-score"><strong>${r.score}<small>/${r.max}</small></strong><p>${esc(r.feedback)}</p>${r.mode === 'mock' ? tag('示範批改', 'amber') : ''}</div><div class="hw-photos">${v.photos.map((_, i) => `<div class="hw-photo" data-hw-photo="${i}"></div>`).join('')}</div><ol class="hw-results">${rows}</ol></section>`;
@@ -543,6 +758,15 @@ export async function homeworkAction(el: HTMLElement): Promise<boolean> {
         n = Number(el.dataset.n);
       const correct = el.dataset.correct === 'true' ? true : el.dataset.correct === 'false' ? false : null;
       const r = await api<{ sheet: HomeworkSheetView }>(`/homework/${detail!.meta.id}/${seat}/items/${n}`, 'PUT', { correct });
+      detail!.sheets = detail!.sheets.map((s) => (s.seat === seat ? r.sheet : s));
+      seatModal(seat);
+      return true;
+    }
+    case 'hw-step-save':
+    case 'hw-step-del': {
+      const seat = Number(el.dataset.seat);
+      const step = act === 'hw-step-del' ? null : Object.fromEntries([...el.closest('.hw-step-edit')!.querySelectorAll<HTMLInputElement>('[data-step-field]')].map((f) => [f.dataset.stepField, stepText(f.value, STEP_TEXT_MAX[f.dataset.stepField as keyof typeof STEP_TEXT_MAX])]));
+      const r = await api<{ sheet: HomeworkSheetView }>(`/homework/${detail!.meta.id}/${seat}/items/${el.dataset.n}`, 'PUT', { step });
       detail!.sheets = detail!.sheets.map((s) => (s.seat === seat ? r.sheet : s));
       seatModal(seat);
       return true;

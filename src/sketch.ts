@@ -446,18 +446,29 @@ export function redpenSvg(
     : '';
   return `<svg class="redpen" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">${parts.join('')}${stamp}</svg>`;
 }
-/** 在容器中放入作答圖片，載入後疊上紅筆。 */
-export function mountRedpen(host: HTMLElement, imageUrl: string, grade: Grade | null, annotations?: Annotation[]) {
+/** 手繪圈超出外框的留白（寬 1000 的座標）。 */
+export const RING_PAD = { x: 16, y: 12 };
+/**
+ * 回家作業「做錯的步驟」的手繪圈：折線已由 planStepRing 依筆跡決定（單位是畫面像素）。線寬固定（手機也看得清楚），白底只有留白夠時才有。
+ */
+export function stepRingsSvg(rings: { points: [number, number][]; pen: number; halo: number }[], W: number, H: number): string {
+  const stroke = (ring: { points: [number, number][] }, color: string, width: number) =>
+    `<path d="${ring.points.map(([x, y], i) => `${i ? 'L' : 'M'}${x.toFixed(1)} ${y.toFixed(1)}`).join('')}" fill="none" stroke="${color}" stroke-width="${width}" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>`;
+  return `<svg class="hw-step-rings" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">${rings.map((r) => (r.halo ? stroke(r, '#ffffffb3', r.halo) : '')).join('')}${rings.map((r) => stroke(r, RED, r.pen)).join('')}</svg>`;
+}
+/** 在容器中放入作答圖片，載入後疊上紅筆；onReady 在紅筆畫好後呼叫（圖片尺寸已知）。 */
+export function mountRedpen(host: HTMLElement, imageUrl: string, grade: Grade | null, annotations?: Annotation[], onReady?: (img: HTMLImageElement) => void) {
   host.classList.add('redpen-wrap');
   host.innerHTML = `<img src="${esc(imageUrl)}" alt="學生作答圖片" loading="lazy">`;
   const img = host.querySelector('img')!;
   const draw = () => {
     host.querySelector('svg.redpen')?.remove();
-    if (!grade && !annotations?.length) return;
-    host.insertAdjacentHTML(
-      'beforeend',
-      redpenSvg(annotations || grade?.annotations || [], grade, img.naturalWidth / img.naturalHeight || 4 / 3),
-    );
+    if (grade || annotations?.length)
+      host.insertAdjacentHTML(
+        'beforeend',
+        redpenSvg(annotations || grade?.annotations || [], grade, img.naturalWidth / img.naturalHeight || 4 / 3),
+      );
+    onReady?.(img);
   };
   if (img.complete && img.naturalWidth) draw();
   else img.addEventListener('load', draw, { once: true });

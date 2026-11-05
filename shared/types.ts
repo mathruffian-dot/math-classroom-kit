@@ -882,7 +882,22 @@ export interface HomeworkItem {
   slot: string;
   variant: number;
 }
-/** 一題的批改：correct＝null 表示看不清楚或沒寫；x、y 是答案在第 photo 張照片上的位置（0–1）。 */
+/** 外框 [左, 上, 右, 下]，相對整張照片（0–1，左上角 0,0）。 */
+export type HomeworkStepBox = [number, number, number, number];
+/** 答錯的題目裡，第一個做錯的步驟。沒有 photo、box（座標不可信、照片已清除、老師自己加的）時只顯示文字，不圈。 */
+export interface HomeworkStep {
+  /** 學生寫錯的內容。 */
+  wrong: string;
+  /** 為什麼錯。 */
+  why: string;
+  /** 應該怎麼改。 */
+  fix: string;
+  photo?: number;
+  box?: HomeworkStepBox;
+  /** 老師改寫過說明。 */
+  teacher?: boolean;
+}
+/** 一題的批改：correct＝null 表示看不清楚或沒寫；x、y 是答案在第 photo 張照片上的位置（0–1）。舊紀錄沒有 step。 */
 export interface HomeworkMark {
   correct: boolean | null;
   read: string;
@@ -890,6 +905,8 @@ export interface HomeworkMark {
   photo?: number;
   x?: number;
   y?: number;
+  /** 做錯的步驟；只有 correct＝false 時顯示（老師改判成對時保留，改回錯又會出現）。 */
+  step?: HomeworkStep;
   /** 老師改判過。 */
   teacher?: boolean;
 }

@@ -22,6 +22,7 @@ import {
 } from '../shared/expr';
 import type { RaidKind } from '../shared/raid';
 import { makeCheck } from '../shared/make';
+import { STEP_TEXT_MAX, stepText } from '../shared/homework-step';
 import { DUEL_RULES, duelBlanks, type DuelBank, type DuelTok } from '../shared/duel';
 
 export class HttpError extends Error {
@@ -44,6 +45,21 @@ export function str(value: unknown, name: string, max = 500, min = 0): string {
     `${name}格式不正確`,
   );
   return value;
+}
+/** 老師改寫「做錯的步驟」的說明。只收文字：圈的位置不能由請求改。至少要有錯的內容或原因。 */
+export function validateHomeworkStepEdit(value: unknown): { wrong: string; why: string; fix: string } {
+  assert(!!value && typeof value === 'object' && !Array.isArray(value), '做錯的步驟格式不正確');
+  const r = value as Record<string, unknown>;
+  const field = (key: 'wrong' | 'why' | 'fix', name: string) => {
+    if (r[key] === undefined) return '';
+    // 和 AI 輸出一樣以字元（碼點）計算：𝑥 這類字元 length 是 2，AI 寫的內容要能原樣存回
+    const text = str(r[key], name, STEP_TEXT_MAX[key] * 2);
+    assert([...text].length <= STEP_TEXT_MAX[key], `${name}格式不正確`);
+    return stepText(text, STEP_TEXT_MAX[key]);
+  };
+  const edit = { wrong: field('wrong', '做錯的內容'), why: field('why', '錯誤原因'), fix: field('fix', '訂正方式') };
+  assert(edit.wrong || edit.why, '請寫出做錯的內容或原因');
+  return edit;
 }
 export function integer(value: unknown, min: number, max: number): number {
   assert(

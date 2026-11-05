@@ -11,10 +11,11 @@ import { execFileSync } from 'node:child_process';
 const dir=await mkdtemp(join(tmpdir(),'classroom-backend-'));
 // 回家作業題庫用測試用的小題庫（真的題庫還會改，不影響測試）
 const homeworkFixture={name:'homework-fixture',setup(b){b.onResolve({filter:/homework\.generated\.json$/},()=>({path:resolve('tests/fixtures/homework.json')}));}};
-await build({entryPoints:[resolve('worker/app.ts'),resolve('worker/storage.ts'),resolve('worker/index.ts'),resolve('worker/ai.ts'),resolve('worker/validation.ts'),resolve('shared/expr.ts'),resolve('shared/practice.ts'),resolve('shared/quiz.ts'),resolve('shared/raid.ts'),resolve('shared/make.ts'),resolve('shared/duel.ts'),resolve('worker/photos.ts'),resolve('worker/homework.ts')],outdir:dir,bundle:true,platform:'node',format:'esm',outExtension:{'.js':'.mjs'},logLevel:'silent',plugins:[homeworkFixture]});
+await build({entryPoints:[resolve('worker/app.ts'),resolve('worker/storage.ts'),resolve('worker/index.ts'),resolve('worker/ai.ts'),resolve('worker/validation.ts'),resolve('shared/expr.ts'),resolve('shared/practice.ts'),resolve('shared/quiz.ts'),resolve('shared/raid.ts'),resolve('shared/make.ts'),resolve('shared/duel.ts'),resolve('shared/homework-step.ts'),resolve('worker/photos.ts'),resolve('worker/homework.ts')],outdir:dir,bundle:true,platform:'node',format:'esm',outExtension:{'.js':'.mjs'},logLevel:'silent',plugins:[homeworkFixture]});
 // 真的題庫（content/homework.generated.json，npm test 先跑 lessons 產生）：檢查魔王戰、步驟格鬥的題型對應
 await build({entryPoints:[resolve('worker/homework.ts')],outdir:join(dir,'real'),bundle:true,platform:'node',format:'esm',outExtension:{'.js':'.mjs'},logLevel:'silent'});
 const {handleApi,liveTicket,liveView,drainHomework}=await import(pathToFileURL(join(dir,'worker','app.mjs')).href);
+const stepLib=await import(pathToFileURL(join(dir,'shared','homework-step.mjs')).href);
 const hwLib=await import(pathToFileURL(join(dir,'worker','homework.mjs')).href);
 const hwReal=await import(pathToFileURL(join(dir,'real','homework.mjs')).href);
 const {SupabaseStore,DurableStore,SessionSplitStore,MAX_SNAPSHOT_BYTES}=await import(pathToFileURL(join(dir,'worker','storage.mjs')).href);
@@ -1940,3 +1941,259 @@ test('C-12: the backup says what it does not contain (homework is not backed up 
   assert.deepEqual(backup.excludes,['homework','photos','credentials']);
   assert.equal(backup.homework,undefined);
 });
+
+// 回家作業紅筆「圈出做錯的步驟」
+{
+  const ok={wrong:'2x=13+3',why:'+3 移項要變號',fix:'改成 2x=13−3'};
+  const reply=(extra={},step=ok)=>({items:[{n:1,correct:false,read:'x=8',comment:'移項要變號',photo:0,x:.7,y:.5,lines:[{i:1,text:'2x+3=13',photo:0,box:[.1,.4,.4,.44]},{i:2,text:'2x=13+3',photo:0,box:[.1,.46,.4,.5]}],step:{line:2,...step},...extra}],feedback:'加油'});
+  const norm=(raw,photos=2)=>hwLib.normalizeHomework(raw,1,photos,'live').items[0];
+
+  test('red-pen step: the wrong line gets a box, right answers and unreadable ones do not',()=>{
+    const m=norm(reply());
+    assert.deepEqual(m.step,{...ok,photo:0,box:[.1,.46,.4,.5]});
+    assert.equal(m.lines,undefined,'the transcription of every line is not stored');
+    assert.equal(norm(reply({correct:true})).step,undefined,'right answers are never circled');
+    assert.equal(norm(reply({correct:null})).step,undefined,'unreadable answers are never circled');
+    assert.equal(norm({items:[{n:1,correct:false,comment:'x'}]}).step,undefined,'older AI reply without step');
+    // 錯的內容沒寫時用那一行的抄寫
+    assert.equal(norm(reply({},{why:'x',fix:'y'})).step.wrong,'2x=13+3');
+    assert.equal(norm(reply({},{wrong:'',why:'',fix:'y',line:99})).step,undefined,'nothing to say → no step');
+  });
+
+  test('red-pen step: untrustworthy coordinates degrade to text only',()=>{
+    const withBox=box=>({...reply(),items:[{...reply().items[0],lines:[{i:2,text:'2x=13+3',photo:0,box}]}]});
+    const bad={
+      missing:undefined,'not an array':'0.1,0.2,0.3,0.4','three numbers':[.1,.2,.3],'five numbers':[.1,.2,.3,.4,.5],
+      'null value':[.1,null,.3,.4],'string value':['.1','.2','.3','.4'],NaN:[NaN,.2,.3,.4],infinity:[.1,.2,Infinity,.4],
+      negative:[-.1,.2,.3,.4],'over 1':[.1,.2,1.2,.4],'0–100 scale':[10,20,40,30],'0–1000 scale':[100,200,400,250],
+      'left and right swapped':[.4,.2,.1,.3],'top and bottom swapped':[.1,.3,.4,.2],'zero size':[.1,.2,.1,.2],
+      'too small':[.1,.2,.105,.204],'too narrow':[.1,.2,.11,.3],'too flat':[.1,.2,.5,.203],'too tall':[.4,.1,.5,.6],'nearly the whole page':[0,0,1,1],'half the page':[.05,.05,.95,.34+.05],
+    };
+    for(const [name,box] of Object.entries(bad)){
+      const m=norm(withBox(box));
+      assert.deepEqual(m.step,ok,`${name}: keeps the text, no coordinates`);
+      assert.equal(stepLib.stepRing(m.step,0),undefined,name);
+    }
+    assert.deepEqual(norm(withBox([.05,.2,.95,.28])).step.box,[.05,.2,.95,.28],'a long full-width line is fine');
+    // 照片編號不對、行號對不到、行號重複
+    const line=(lines,step=2)=>norm({items:[{n:1,correct:false,lines,step:{line:step,...ok}}]}).step;
+    const box=[.1,.46,.4,.5];
+    assert.deepEqual(line([{i:2,photo:2,box}]),ok,'photo out of range');
+    assert.deepEqual(line([{i:2,photo:-1,box}]),ok);
+    assert.deepEqual(line([{i:2,photo:.5,box}]),ok);
+    assert.deepEqual(line([{i:2,photo:'0',box}]),ok);
+    assert.deepEqual(line([{i:2,box}]),ok,'photo missing');
+    assert.deepEqual(line([{i:1,photo:0,box}]),ok,'line number not found');
+    assert.deepEqual(line([{i:2,photo:0,box},{i:2,photo:0,box:[.1,.6,.4,.64]}]),ok,'duplicate line number: do not guess');
+    assert.deepEqual(line('oops'),ok,'lines is not a list');
+    assert.deepEqual(line([{i:2,photo:0,box}],null),ok,'no line number');
+    // Codex 審核：行號型別不對不可以讓整份批改失敗，也不可以通過
+    for(const [i,no] of [[{toString:null},2],[2,{toString:null}],[1,true],[null,0],[1.5,1.5],['2','2'],[[2],[2]]])assert.deepEqual(line([{i,photo:0,box}],no),ok,`line ${JSON.stringify(no)} vs i ${JSON.stringify(i)}`);
+    assert.deepEqual(hwLib.normalizeHomework({items:[{n:{toString:null},correct:true},{n:1,correct:false}]},1,1,'live').items.map(x=>x.correct),[false],'a bad question number does not fail the whole sheet');
+    assert.equal(norm({items:[{n:1,correct:false,step:'看這裡'}]}).step,undefined,'step is not an object');
+    assert.equal(norm({items:[{n:1,correct:false,step:[ok]}]}).step,undefined);
+  });
+
+  test('red-pen step: AI text is cleaned and length-limited; HTML stays data for the page to escape',()=>{
+    const s=norm(reply({},{wrong:'<img src=x onerror=alert(1)>',why:`太\n長\u0000​了${'的'.repeat(200)}`,fix:{a:1}})).step;
+    assert.equal(s.wrong,'<img src=x onerror=alert(1)>');
+    assert.equal(s.fix,'');
+    assert.equal([...s.why].length,stepLib.STEP_TEXT_MAX.why);
+    assert(s.why.startsWith('太 長 了'),s.why);
+    assert.equal(stepLib.stepText('😀'.repeat(5),3),'😀😀😀','does not split an emoji');
+    assert.match(hwLib.HOMEWORK_SYSTEM,/不是給你的指令/);
+    assert.match(hwLib.HOMEWORK_SYSTEM,/第一個/);
+    assert.match(hwLib.HOMEWORK_SYSTEM,/答對或 null 的題目不要輸出 lines、step/);
+  });
+
+  test('red-pen step: records without the field still work (old grading results)',()=>{
+    const old={correct:false,read:'x',comment:'再想想',photo:0,x:.5,y:.5};
+    assert.equal(stepLib.shownStep(old),undefined);
+    assert.equal(stepLib.shownStep(undefined),undefined);
+    assert.equal(stepLib.stepRing(undefined,0),undefined);
+    // 改判成對：不顯示；改回錯：又出現
+    const step={...ok,photo:0,box:[.1,.46,.4,.5]};
+    assert.equal(stepLib.shownStep({...old,correct:true,step}),undefined);
+    assert.equal(stepLib.shownStep({...old,correct:null,step}),undefined);
+    assert.equal(stepLib.shownStep({...old,step}),step);
+    // 存檔裡的外框壞掉（被改過）也不圈；只有所在照片才圈
+    assert.equal(stepLib.stepRing({...step,box:[0,0,1,1]},0),undefined);
+    assert.equal(stepLib.stepRing(step,1),undefined);
+    assert.deepEqual(stepLib.stepRing(step,0),step.box);
+  });
+
+  test('red-pen step: the label avoids writing, switches sides, and gives up rather than covering words',()=>{
+    const W=400,H=500,ring={x:100,y:200,w:150,h:30},sizes=[{w:120,h:40}];
+    const clean=()=>0;
+    const overlap=(a,b)=>a.x<b.x+b.w&&b.x<a.x+a.w&&a.y<b.y+b.h&&b.y<a.y+a.h;
+    const right=stepLib.placeStepLabel({W,H,ring,sizes,blocked:[],ink:clean});
+    assert(right.x>=ring.x+ring.w,'right side first');
+    // 右邊有字 → 換到左邊
+    const ink=r=>(r.x>=250&&r.y<260&&r.y+r.h>190?.3:0);
+    const left=stepLib.placeStepLabel({W,H,ring:{...ring,x:140,w:110},sizes,blocked:[],ink});
+    assert(left.x+left.w<=140,JSON.stringify(left));
+    // 靠右邊界：右邊放不下
+    const edge=stepLib.placeStepLabel({W,H,ring:{...ring,x:260,w:130},sizes,blocked:[],ink:clean});
+    assert(edge.x+edge.w<=W&&!overlap(edge,{...ring,x:260,w:130}));
+    // 其他紅筆、其他圈
+    const other={x:0,y:0,w:W,h:195},other2={x:0,y:235,w:W,h:40};
+    const under=stepLib.placeStepLabel({W,H,ring:{...ring,w:300},sizes,blocked:[other,other2],ink:clean});
+    assert(under&&!overlap(under,other)&&!overlap(under,other2)&&under.y>=275);
+    // 四周都有字 → 掃到遠處的空白；整張都是字 → null
+    const far=r=>(r.y+r.h<=120?0:.2);
+    const spot=stepLib.placeStepLabel({W,H,ring,sizes,blocked:[],ink:far});
+    assert(spot&&spot.y+spot.h<=120);
+    assert.equal(stepLib.placeStepLabel({W,H,ring,sizes,blocked:[],ink:()=>.2}),null);
+    assert(stepLib.placeStepLabel({W,H,ring,sizes,blocked:[],ink:()=>stepLib.STEP_INK_LIMIT}),'a few specks are fine');
+    assert.equal(stepLib.placeStepLabel({W:100,H:40,ring:{x:0,y:0,w:100,h:40},sizes,blocked:[],ink:clean}),null,'does not fit anywhere');
+  });
+
+  test('step ring tightens to the gaps around the line, or gives up; leader lines avoid ink and other marks; fields count code points',()=>{
+    const W=400,H=600,box={x:100,y:100,w:120,h:12};
+    const inkFrom=(...areas)=>r=>areas.reduce((n,a)=>{
+      const w=Math.min(r.x+r.w,a.x+a.w)-Math.max(r.x,a.x),h=Math.min(r.y+r.h,a.y+a.h)-Math.max(r.y,a.y);
+      return n+(w>0&&h>0?Math.ceil(w*h):0);
+    },0);
+    const plan=(inkCount,others=[])=>stepLib.planStepRing({W,H,box,pad:{x:6,y:5},seed:11,inkCount,others});
+    const target={x:100,y:100,w:120,h:12};
+    // 四周都空：原本的手繪圈（白底 6、紅線 3）
+    const open=plan(inkFrom(target));
+    assert.equal(open.pen,3);
+    assert.equal(open.halo,6);
+    // 下一行只隔 4 px：線變細、留白收緊，線條（含厚度）不碰下一行
+    const next={x:100,y:116,w:120,h:12};
+    const tight=plan(inkFrom(target,next));
+    assert(tight,'still circled');
+    assert(tight.pen<3&&tight.halo===0,JSON.stringify([tight.pen,tight.halo]));
+    assert(tight.points.every(([,y])=>y+tight.reach<=next.y),'stays above the next line');
+    assert(tight.rect.y<=box.y&&tight.rect.y+tight.rect.h>=box.y+box.h,'still wraps the line');
+    // 完全沒有空隙：取消
+    assert.equal(plan(inkFrom(target,{x:100,y:112.5,w:120,h:12})),null);
+    assert.equal(plan(inkFrom(target,{x:0,y:90,w:400,h:40})),null,'box cuts through other writing');
+    // 碰到別的圈也取消
+    const other=stepLib.planStepRing({W,H,box:{x:100,y:118,w:120,h:12},pad:{x:6,y:5},seed:3,inkCount:inkFrom(target),others:[]});
+    assert.equal(plan(inkFrom(target),[other]),null);
+
+    const ring=open,noInk=inkFrom();
+    const leader=(label,inkCount=noInk,blocked=[],lines=[])=>stepLib.stepLeader({label,ring,inkCount,blocked,lines});
+    assert.equal(leader({x:ring.rect.x+ring.rect.w+2,y:100,w:40,h:20}),'touching');
+    const far={x:100,y:400,w:100,h:30};
+    const line=leader(far);
+    assert(line&&line!=='touching'&&line.y1===400&&line.y2>box.y+box.h,JSON.stringify(line));
+    // 路上整排都是字：這個位置不能用
+    const wall={x:0,y:300,w:W,h:20};
+    assert.equal(leader(far,inkFrom(wall)),null);
+    // 有洞就走洞
+    const viaGap=leader(far,inkFrom({x:0,y:300,w:150,h:20},{x:170,y:300,w:230,h:20}));
+    assert(viaGap&&viaGap!=='touching','goes through the gap');
+    // 其他批註、別條連線也不能穿過
+    assert.equal(leader(far,noInk,[wall]),null);
+    assert.equal(leader(far,noInk,[],[{x1:0,y1:300,x2:W,y2:300}]),null);
+
+    // 小題號只找圈旁，不掃全圖
+    const sizes=[{w:20,h:20}];
+    const blockedNear=r=>(r.y<300?.2:0);
+    assert.equal(stepLib.placeStepLabel({W,H,ring:ring.rect,sizes,blocked:[],ink:blockedNear,near:true}),null);
+    assert(stepLib.placeStepLabel({W,H,ring:ring.rect,sizes,blocked:[],ink:blockedNear}),'a label may search the whole page');
+    // 連不回圈的位置不算
+    assert.equal(stepLib.placeStepLabel({W,H,ring:ring.rect,sizes,blocked:[],ink:()=>0,link:()=>false}),null);
+
+    const X='\u{1D465}';
+    assert.deepEqual(stepLib.clipStepInput(X.repeat(60),120,60),{value:X.repeat(60),caret:120});
+    assert.deepEqual(stepLib.clipStepInput(X.repeat(61),122,60),{value:X.repeat(60),caret:120});
+    assert.deepEqual(stepLib.clipStepInput(`a${X.repeat(70)}bc`,141,60),{value:`a${X.repeat(57)}bc`,caret:115},'keeps what is after the caret');
+    assert.deepEqual(stepLib.clipStepInput('abc',1,60),{value:'abc',caret:1});
+  });
+
+  async function stepSheet(f){
+    const cl=(await f.call('/api/dashboard')).body.classes.find(c=>c.code==='DEMO801');
+    const created=(await f.call('/api/homework','POST',{classId:cl.id,lessonId:'g8-2-2a',seats:[1]})).body;
+    const id=created.homework.id,token=new URL(created.sheets[0].url).hash.split('/')[4];
+    assert.equal((await f.call(`/api/hw/${id}/1/photos?t=${token}`,'POST',{dataUrl:STEP_JPEG},'nobody')).status,200);
+    return {id,token,cl};
+  }
+  const STEP_JPEG='data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q==';
+
+  test('red-pen step: a mocked AI reply goes through grading to the student view; no real AI call',async()=>{
+    const {f}=await setup();
+    const original=globalThis.fetch,calls=[];
+    try{
+      globalThis.fetch=async(url,options)=>{
+        calls.push({url:String(url),body:JSON.parse(options.body)});
+        return Response.json({choices:[{message:{content:JSON.stringify({items:[
+          {n:1,read:'x=8',correct:false,comment:'移項要變號',photo:0,x:.7,y:.5,lines:[{i:1,text:'2x+3=13',photo:0,box:[.1,.4,.4,.44]},{i:2,text:'2x=13+3',photo:0,box:[.1,.46,.4,.5]}],step:{line:2,...ok}},
+          {n:2,read:'5',correct:true,comment:'很棒',photo:0,x:.7,y:.6,lines:[{i:1,photo:0,box:[.1,.6,.4,.64]}],step:{line:1,...ok}},
+          {n:3,read:'?',correct:false,comment:'再想想',step:{line:1,...ok},lines:[{i:1,photo:0,box:[0,0,1,1]}]},
+        ],feedback:'加油'})}}]});
+      };
+      assert.equal((await f.call('/api/settings/ai','PUT',{provider:'openai',baseUrl:'https://api.openai.com/v1',model:'gpt-6-luna',apiKey:'sk-test-fake-key',dailyLimit:50})).status,200);
+      const {id,token}=await stepSheet(f);
+      const sheet=(await f.call(`/api/hw/${id}/1/submit?t=${token}`,'POST',{},'nobody')).body.sheet;
+      assert.equal(calls.length,1);
+      assert.equal(calls[0].body.messages[0].content,hwLib.HOMEWORK_SYSTEM);
+      assert.equal(calls[0].body.max_completion_tokens,18000,'budget for per-line boxes');
+      assert.equal(sheet.status,'graded');
+      assert.equal(sheet.result.mode,'live');
+      assert.deepEqual(sheet.result.items[0].step,{...ok,photo:0,box:[.1,.46,.4,.5]});
+      assert.equal(sheet.result.items[1].step,undefined,'right answer not circled');
+      assert.deepEqual(sheet.result.items[2].step,ok,'bad box → text only');
+      const again=(await f.call(`/api/hw/${id}/1?t=${token}`,'GET',null,'nobody')).body.sheet;
+      assert.deepEqual(again.result.items[0].step,sheet.result.items[0].step,'student reads it back');
+    }finally{globalThis.fetch=original;}
+  });
+
+  test('red-pen step: the teacher can rewrite or delete it; re-grading replaces it; old photos lose only the circle',async()=>{
+    const {f}=await setup();
+    const {id,token}=await stepSheet(f);
+    const graded=(await f.call(`/api/hw/${id}/1/submit?t=${token}`,'POST',{},'nobody')).body.sheet;
+    const n=graded.result.items.findIndex(x=>x.correct===false)+1;
+    const right=graded.result.items.findIndex(x=>x.correct===true)+1;
+    const first=graded.result.items[n-1].step;
+    assert(first.box&&first.why,'demo grading shows the flow too');
+    assert.equal(graded.result.items[right-1].step,undefined);
+    const path=`/api/homework/${id}/1/items/${n}`;
+    // 權限與驗證
+    assert.equal((await f.call(path,'PUT',{step:{why:'x'}},'student')).status,403);
+    assert.equal((await f.call(path,'PUT',{step:{why:'x'}},'nobody')).status,401);
+    assert.equal((await f.call(path,'PUT',{step:'x'})).status,400);
+    assert.equal((await f.call(path,'PUT',{step:[]})).status,400);
+    assert.equal((await f.call(path,'PUT',{step:{fix:'只有改法'}})).status,400);
+    assert.equal((await f.call(path,'PUT',{step:{why:'的'.repeat(61)}})).status,400);
+    assert.equal((await f.call(path,'PUT',{step:{why:7}})).status,400);
+    // AI 能寫的長度，老師就能存回去：字數以字元計（𝑥 的 length 是 2）
+    assert.equal((await f.call(path,'PUT',{step:{wrong:'𝑥'.repeat(60),why:'x'}})).status,200);
+    assert.equal((await f.call(path,'PUT',{step:{wrong:'𝑥'.repeat(61),why:'x'}})).status,400);
+    assert.equal((await f.call(path,'PUT',{})).status,400,'still needs a verdict or a step');
+    assert.equal((await f.call(`/api/homework/${id}/1/items/${right}`,'PUT',{step:{why:'x'}})).status,409,'right answers have no wrong step');
+    // 改寫：說明換掉，圈的位置不能由請求改，不算改判
+    const score=graded.result.score;
+    const edited=(await f.call(path,'PUT',{step:{wrong:'第二行',why:'老師寫的<b>原因</b>',fix:'這樣改',box:[0,0,1,1],photo:5}})).body.sheet;
+    const m=edited.result.items[n-1];
+    assert.deepEqual(m.step,{wrong:'第二行',why:'老師寫的<b>原因</b>',fix:'這樣改',photo:first.photo,box:first.box,teacher:true});
+    assert.equal(m.teacher,undefined,'rewriting the note is not a change of verdict');
+    assert.equal(edited.result.score,score);
+    // 學生立刻看到
+    assert.equal((await f.call(`/api/hw/${id}/1?t=${token}`,'GET',null,'nobody')).body.sheet.result.items[n-1].step.why,'老師寫的<b>原因</b>');
+    // 改判成對再改回錯：說明還在
+    assert.equal((await f.call(path,'PUT',{correct:true})).body.sheet.result.items[n-1].step.why,'老師寫的<b>原因</b>');
+    assert.equal((await f.call(path,'PUT',{correct:false})).body.sheet.result.items[n-1].teacher,true);
+    // 刪除
+    const removed=(await f.call(path,'PUT',{step:null})).body.sheet.result.items[n-1];
+    assert.equal(removed.step,undefined);
+    assert.equal(removed.correct,false,'deleting the circle keeps the verdict and the mark');
+    assert(removed.x!==undefined&&removed.comment);
+    // 老師自己加的：只有文字
+    const added=(await f.call(path,'PUT',{step:{why:'老師加的'}})).body.sheet.result.items[n-1].step;
+    assert.deepEqual(added,{wrong:'',why:'老師加的',fix:'',teacher:true});
+    // 重新批改：整份換新
+    const regraded=(await f.call(`/api/homework/${id}/1/regrade`,'POST',{})).body.sheet;
+    assert.deepEqual(regraded.result.items[n-1].step,first);
+    // 清除舊照片：批改結果與說明留著，圈拿掉
+    const hw=f.vaultMap.get(`hw:${id}`);hw.sheets['1'].photos[0].at=new Date(Date.now()-864e5*30).toISOString();
+    assert.equal((await f.call('/api/settings/prune-photos','POST',{days:7})).body.removed,1);
+    const pruned=(await f.call(`/api/homework/${id}`)).body.sheets[0].result.items[n-1];
+    assert.equal(pruned.step.why,first.why);
+    assert.equal(pruned.step.box,undefined);
+    assert.equal(pruned.step.photo,undefined);
+  });
+}

@@ -43,6 +43,7 @@ import {
   record,
   str,
   validateAnswer,
+  validateHomeworkStepEdit,
   validateLesson,
   validateStrokes,
 } from './validation';
@@ -1160,6 +1161,10 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
               delete m.photo;
               delete m.x;
               delete m.y;
+              if (m.step) {
+                delete m.step.photo;
+                delete m.step.box;
+              }
             });
             removed += old.length;
           }
@@ -2992,7 +2997,8 @@ export async function drainHomework(
         }
         assert(images.length, '找不到作答照片', 409);
         const content: Parameters<typeof chat>[2] = [{ type: 'text', text: homeworkPrompt(job.questions, images.length) }, ...images.map((url) => ({ type: 'image_url' as const, image_url: { url } }))];
-        const reply = await chat(job.config, HOMEWORK_SYSTEM, content, { maxTokens: 3000, timeoutMs: 150_000, json: true });
+        // 答錯的題目要逐行列出外框，輸出比只對答案長
+        const reply = await chat(job.config, HOMEWORK_SYSTEM, content, { maxTokens: 6000, timeoutMs: 150_000, json: true });
         result = normalizeHomework(extractJson(reply), job.questions.length, images.length, 'live');
       }
     } catch (e) {
@@ -3254,14 +3260,22 @@ async function homeworkRoutes(
     return photoResponse(await photoStore(ctx.env as PhotoEnv, vault).get(photoKey(hw.id, sheet.seat, p.id)));
   }
   if (one[3] === 'items' && one[4] && method === 'PUT') {
-    // 老師改判一題（對、錯、看不清楚）並可改評語
+    // 老師改判一題（對、錯、看不清楚）並可改評語；step：改寫做錯步驟的說明（物件）或刪掉那個圈（null），只改 step 時不用帶 correct
     assert(sheet.result, '這份作業還沒批改', 409);
     const n = integer(Number(one[4]), 1, sheet.result.items.length);
     const mark = sheet.result.items[n - 1];
-    assert(body.correct === true || body.correct === false || body.correct === null, '對錯格式不正確');
-    mark.correct = body.correct;
+    if (body.step === undefined || body.correct !== undefined) {
+      assert(body.correct === true || body.correct === false || body.correct === null, '對錯格式不正確');
+      mark.correct = body.correct;
+      mark.teacher = true;
+    }
     if (body.comment !== undefined) mark.comment = str(body.comment, '評語', 40, 0);
-    mark.teacher = true;
+    if (body.step === null) delete mark.step;
+    else if (body.step !== undefined) {
+      assert(mark.correct === false, '只有答錯的題目可以寫做錯的步驟', 409);
+      // 圈的位置不變，只換說明
+      mark.step = { ...mark.step, ...validateHomeworkStepEdit(body.step), teacher: true };
+    }
     scoreResult(sheet.result);
     await saveHw(vault, state, hw);
     return save({ sheet: await viewOf(vault, hw, sheet, url.origin, true) });
