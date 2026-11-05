@@ -14,6 +14,10 @@ export function quizDeadline(run: QuizClock): number {
 export function quizOver(run: QuizClock, now: number): boolean {
   return !!run.endedAt || now >= quizDeadline(run);
 }
+/** 作答真正鎖定（老師按了結束，或截止＋寬限已過）。學生端的正解也等到這時才公布，否則可以先讀答案再改答。 */
+export function quizLocked(run: QuizClock, now: number): boolean {
+  return quizOver(run, now - QUIZ_GRACE_MS);
+}
 /**
  * 電腦對手的成績：作答時間表在開始時就決定好，伺服器和各裝置用同一份算出一樣的進度。
  */

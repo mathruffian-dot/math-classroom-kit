@@ -1,7 +1,7 @@
 import './styles.css';
 import { api, download, escape as esc, serverTime, syncClock } from './api';
 import { practiceStatus, practiceTotal, type PracticeStatus } from '../shared/practice';
-import { betSummary, botScore, decide, matchOver, quizDeadline, quizOver } from '../shared/quiz';
+import { betSummary, botScore, decide, matchOver, quizDeadline, quizLocked, quizOver } from '../shared/quiz';
 import { makeBack, makeCheck, makeText } from '../shared/make';
 import { playCorrect, unlockSound } from './sound';
 import { HandPad } from './handpad';
@@ -1801,6 +1801,8 @@ function quizCard(): string {
   // 全班測驗
   if (mine.done !== undefined || over) {
     if (!over) return `<section class="quiz-card" data-testid="quiz-card"><h2>${icon('target')}${esc(q.title)}</h2><p class="quiz-summary">已交卷，老師結束測驗後就能看到答案與解析。</p></section>`;
+    // 截止後的寬限期：伺服器還沒公布正解
+    if (q.questions.every((x) => x.answer === undefined)) return `<section class="quiz-card" data-testid="quiz-card"><h2>${icon('target')}${esc(q.title)}</h2><p class="quiz-summary">時間到，正在收卷，馬上就能看到答案與解析。</p></section>`;
     const right = mine.correct.filter((x) => x === true).length;
     const prev = q.prev?.[String(me)];
     const g = growth(right, n, prev);
@@ -1893,6 +1895,11 @@ function tickClocks() {
   });
   const qz = view.quiz;
   const quizPhase = qz && view.session.quiz ? (qz.run.startedAt > now ? 'pre' : quizOver(qz.run, now) ? 'over' : 'on') : '';
+  // 時間到不會有推送：學生手上的畫面若是作答鎖定前拿的，寬限過後向伺服器拿正解
+  if (qz && quizPhase === 'over' && user.role === 'student' && quizLocked(qz.run, now) && !quizLocked(qz.run, view.serverNow ?? 0) && Date.now() - quizRevealFetch > 2000) {
+    quizRevealFetch = Date.now();
+    void refreshSession();
+  }
   if (qz && qz.run.mode === 'pk' && quizPhase === 'on') {
     // 電腦對手的進度由各裝置依時間表自己算
     if (user.role === 'teacher' && qz.bot) {
@@ -1925,6 +1932,7 @@ function tickClocks() {
   // 這一輪逾時：寬限過後向伺服器拿這一輪的答案
   if (mine) setTimeout(() => void refreshSession(), 3200);
 }
+let quizRevealFetch = 0;
 setInterval(tickClocks, 500);
 unlockSound();
 /** 學生改過 AI 的辨識結果（老師批改時要留意照片和文字是否一致）。 */

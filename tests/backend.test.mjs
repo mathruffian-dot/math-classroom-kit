@@ -1085,6 +1085,67 @@ test('records: every danmaku kept; CSV lists each attempt, original-question pra
   assert.equal(restored.danmaku.length,120);assert.equal(restored.practice.rq['2'].subs[0].correct,true);
 });
 
+test('quiz answers stay hidden from students through the grace period; teachers and a teacher-ended quiz are unchanged',async()=>{
+  const {QUIZ_GRACE_MS,quizLocked,quizOver}=quizLib;
+  const clock={startedAt:1000,seconds:60},deadline=61000;
+  assert.equal(quizOver(clock,deadline),true);
+  assert.equal(quizLocked(clock,deadline+QUIZ_GRACE_MS-1),false);
+  assert.equal(quizLocked(clock,deadline+QUIZ_GRACE_MS),true);
+  assert.equal(quizLocked({...clock,endedAt:2000},2000),true,'a teacher-ended quiz locks at once');
+  const {f,session:first}=await setup();
+  await f.call(`/api/sessions/${first.id}/control`,'POST',{action:'end'});
+  const quiz={title:'寬限題庫',slots:Array.from({length:10},(_,q)=>({id:`g${q+1}`,topic:`題位 ${q+1}`,variants:[0,1,2].map(v=>({stem:`題幹 ${q+1}（${v}）`,options:['對','錯A','錯B','錯C'],answer:0,explanation:`解析 ${q+1}（${v}）`}))}))};
+  const base=(await f.call('/api/dashboard')).body.lessons[0];
+  assert.equal((await f.call('/api/lessons/grace','PUT',{lesson:{...base,id:'grace',title:'寬限',quiz}})).status,200);
+  await goOnline(f,[1,2]);
+  const s=(await f.call('/api/sessions','POST',{lessonId:'grace',classId:'demo-class'})).body.session;
+  const ctl=(body)=>f.call(`/api/sessions/${s.id}/control`,'POST',body);
+  const look=(who)=>f.call(`/api/sessions/${s.id}`,'GET',null,who).then(r=>r.body);
+  const answer=(body)=>f.call(`/api/sessions/${s.id}/quiz`,'POST',body,'seat1');
+  // 把開始時間往回調，讓「現在」落在截止後 elapsed 毫秒
+  const pastDeadline=(elapsed)=>{const run=f.data.sessions[s.id].session.quiz;run.startedAt=Date.now()-run.seconds*1000-elapsed;};
+  const right=(v,q)=>v.quiz.questions[q].options.indexOf('對');
+  await ctl({action:'quiz-class',seconds:60});
+  const runId=(await look('teacher')).quiz.run.id;
+  assert.equal((await answer({runId,q:0,choice:0})).status,200);
+  // 寬限期內：學生的 view（含對錯、解析、WebSocket 投影）沒有答案，仍可改答；老師照舊
+  pastDeadline(100);
+  const during=await look('seat1');
+  assert.equal(quizOver(during.quiz.run,during.serverNow),true,'the deadline has passed');
+  assert(during.quiz.questions.every(q=>q.answer===undefined&&q.explanation===undefined));
+  assert(during.quiz.mine.correct.every(x=>x===null));
+  assert(!JSON.stringify(during).includes('解析 '));
+  const ticket=await liveTicket(new Request('http://localhost/api/live',{headers:{Cookie:f.cookie('seat1'),Origin:'http://localhost'}}),f.data);
+  assert(liveView(f.data,ticket).quiz.questions.every(q=>q.answer===undefined));
+  assert.equal((await f.call('/api/student/session','GET',null,'seat1')).body.quiz.questions[0].answer,undefined);
+  const teacher=await look('teacher');
+  assert(teacher.quiz.questions.every(q=>q.answer!==undefined&&q.explanation));
+  const key=right(teacher,0);
+  assert.equal((await answer({runId,q:0,choice:key})).status,200,'answers still count during the grace period');
+  // 寬限過後：學生看得到答案與對錯，也不能再改
+  pastDeadline(QUIZ_GRACE_MS+1);
+  const after=await look('seat1');
+  assert(after.quiz.questions.every(q=>q.answer!==undefined&&q.explanation));
+  assert.equal(after.quiz.questions[0].answer,key);
+  assert.equal(after.quiz.mine.correct[0],true);
+  assert.equal((await answer({runId,q:0,choice:(key+1)%4})).status,409);
+  // 老師按結束：不用等寬限，馬上公布
+  await ctl({action:'quiz-class',seconds:60});
+  await ctl({action:'quiz-end'});
+  assert((await look('seat1')).quiz.questions.every(q=>q.answer!==undefined));
+  // PK：答過的題照舊馬上有答案；沒答的題在寬限期內也不給，否則可以先看再答
+  await ctl({action:'pk-lobby'});await ctl({action:'pk-pick',seat:1});await ctl({action:'pk-pick',seat:2});
+  await ctl({action:'pk-start',seconds:60});
+  const pk=(await look('teacher')).quiz.run.id;
+  pastDeadline(100);
+  assert.equal((await answer({runId:pk,q:0,choice:0})).status,200);
+  const pkDuring=await look('seat1');
+  assert.notEqual(pkDuring.quiz.questions[0].answer,undefined);
+  assert(pkDuring.quiz.questions.slice(1).every(q=>q.answer===undefined));
+  pastDeadline(QUIZ_GRACE_MS+1);
+  assert((await look('seat1')).quiz.questions.every(q=>q.answer!==undefined));
+});
+
 test('quiz scoring: more correct wins, ties go to the faster one; the computer follows its timetable',()=>{
   const s=(correct,timeMs,finished=true)=>({answered:10,correct,timeMs,finished});
   assert.equal(quizLib.decide(s(8,90000),s(7,30000)),'a');

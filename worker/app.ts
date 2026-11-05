@@ -23,7 +23,7 @@ import type {
 import catalog from '../content/catalog.generated.json';
 import { normalizeChars, parseNumberAnswer } from '../shared/expr';
 import { PRACTICE_GRACE_MS, practiceStatus, practiceTotal } from '../shared/practice';
-import { PK_COUNTDOWN_MS, QUIZ_GRACE_MS, decide, quizOver } from '../shared/quiz';
+import { PK_COUNTDOWN_MS, decide, quizLocked, quizOver } from '../shared/quiz';
 import { drawPaper, drawReview, instantFeedback, isCorrect, levelPairs, makeBot, newMatch, paperFor, quizRecord, quizView, restoreQuiz, runBank, score, sheetResult, viewRun, type QuizStore } from './quiz';
 import { analysisContext, analysisTaken, answerRaid, newQuestion, questionFor, raidBank, raidCorrect, raidHasAnalysis, skipRaid, raidCsvRows, raidOver, raidState, raidView, restoreRaid, type RaidStore } from './raid';
 import { RAID_ALL_KINDS, RAID_COUNTDOWN_MS, RAID_ROLES, raidConfig, type RaidDifficulty, type RaidKind, type RaidRole } from '../shared/raid';
@@ -2064,7 +2064,7 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
         assert(run && run.id === body.runId, '這份測驗已經結束', 409);
         const t = Date.now();
         assert(t >= run.startedAt - 300, '還沒開始', 409);
-        assert(!run.endedAt && !quizOver(run, t - QUIZ_GRACE_MS), '時間到，作答已鎖定', 409);
+        assert(!quizLocked(run, t), '時間到，作答已鎖定', 409);
         const bank = run.bank ?? quizBank(state, s),
           n = bank.slots.length;
         const sheets = ((s.quizSheets ||= {})[run.id] ||= {});

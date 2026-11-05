@@ -1,6 +1,6 @@
 // 課後形成性評量、PK 戰、錯題練習：抽題、電腦對手、成績、錯題紀錄、給師生的畫面。
 import type { Lesson, PkMatch, QuizBank, QuizPaper, QuizRecord, QuizRun, QuizScore, QuizSheet, QuizView, User, ViewQuizRun } from '../shared/types';
-import { betSummary, botScore, decide, quizOver } from '../shared/quiz';
+import { betSummary, botScore, decide, quizLocked, quizOver } from '../shared/quiz';
 import { assert, identifier, integer, record, validateQuiz } from './validation';
 
 export interface QuizStore {
@@ -108,7 +108,8 @@ export function quizView(lesson: Lesson, store: QuizStore, run: QuizRun, user: U
   if (!bank) return undefined;
   const sheets = store.quizSheets?.[run.id] || {};
   const teacher = user.role === 'teacher',
-    over = quizOver(run, now);
+    over = quizOver(run, now),
+    locked = quizLocked(run, now);
   const me = teacher ? '' : String(user.seat);
   const mineSheet = teacher ? undefined : sheets[me];
   const scores: Record<string, QuizScore> = {};
@@ -121,8 +122,8 @@ export function quizView(lesson: Lesson, store: QuizStore, run: QuizRun, user: U
   const questions = slots.map((q) => {
     const it = item(bank, picks, q),
       order = picks[q].order;
-    // PK、錯題練習：答過就看得到對錯；全班測驗：結束後才公布
-    const reveal = teacher || over || (instantFeedback(run) && answeredByMe(q));
+    // PK、錯題練習：答過就看得到對錯；全班測驗：作答鎖定後才公布
+    const reveal = teacher || locked || (instantFeedback(run) && answeredByMe(q));
     return {
       slot: q,
       topic: bank.slots[q].topic,
@@ -137,7 +138,7 @@ export function quizView(lesson: Lesson, store: QuizStore, run: QuizRun, user: U
     const answers = mineSheet?.answers || [];
     view.mine = {
       answers: slots.map((q) => (answers[q] === null || answers[q] === undefined ? null : picks[q].order.indexOf(answers[q]!))),
-      correct: slots.map((q) => (instantFeedback(run) || over ? isCorrect(bank, picks, q, answers[q]) : null)),
+      correct: slots.map((q) => (instantFeedback(run) || locked ? isCorrect(bank, picks, q, answers[q]) : null)),
       ...(mineSheet?.done !== undefined ? { done: mineSheet.done } : {}),
       ...(mineSheet?.conf ? { conf: slots.map((q) => mineSheet.conf![q] ?? null) } : {}),
     };
