@@ -24,7 +24,7 @@ import catalog from '../content/catalog.generated.json';
 import { normalizeChars, parseNumberAnswer } from '../shared/expr';
 import { PRACTICE_GRACE_MS, practiceStatus, practiceTotal } from '../shared/practice';
 import { PK_COUNTDOWN_MS, QUIZ_GRACE_MS, decide, quizOver } from '../shared/quiz';
-import { drawPaper, drawReview, instantFeedback, isCorrect, levelPairs, makeBot, newMatch, paperFor, quizRecord, quizView, restoreQuiz, runBank, score, sheetResult, type QuizStore } from './quiz';
+import { drawPaper, drawReview, instantFeedback, isCorrect, levelPairs, makeBot, newMatch, paperFor, quizRecord, quizView, restoreQuiz, runBank, score, sheetResult, viewRun, type QuizStore } from './quiz';
 import { analysisContext, analysisTaken, answerRaid, newQuestion, questionFor, raidBank, raidCorrect, raidHasAnalysis, skipRaid, raidCsvRows, raidOver, raidState, raidView, restoreRaid, type RaidStore } from './raid';
 import { RAID_ALL_KINDS, RAID_COUNTDOWN_MS, RAID_ROLES, raidConfig, type RaidDifficulty, type RaidKind, type RaidRole } from '../shared/raid';
 import { answerDuel, duelBank, duelCsvRows, duelJoin, duelOver, duelState, duelTeams, duelView, problemView, restoreDuel, startProblem, type DuelStore } from './duel';
@@ -584,6 +584,16 @@ function answerVerdict(answer: Answer, grade?: Grade): boolean | undefined {
   if (grade) return grade.correct ?? grade.total === grade.max;
   return undefined;
 }
+/** 老師在這一題的頁面公布結果了嗎。 */
+function answerRevealed(session: Session, lesson: Lesson, activityId: string) {
+  return session.resultsVisible && lesson.slides[session.slideIndex]?.activity?.id === activityId;
+}
+/** 學生拿到的作答（送出、重送、課堂畫面共用）：公布前拿掉對錯與判定說明。 */
+function studentAnswer(answer: Answer, revealed: boolean): Answer {
+  if (revealed) return answer;
+  const { correct: _correct, itemsCorrect: _items, note: _note, ...hidden } = answer;
+  return hidden;
+}
 function hideKeys(activity: Activity) {
   delete activity.correct;
   delete activity.explanation;
@@ -678,20 +688,15 @@ export function sessionView(state: State, stored: StoredSession, user: User, onl
       correct = latest.filter((x) => x.correct).length;
   }
   const answers = clone(
-    teacher ? stored.answers : stored.answers.filter((x) => x.userId === user.id),
+    teacher
+      ? stored.answers
+      : stored.answers.filter((x) => x.userId === user.id).map((x) => studentAnswer(x, answerRevealed(session, stored.lesson, x.activityId))),
   );
-  if (!teacher)
-    for (const answer of answers)
-      if (!session.resultsVisible || answer.activityId !== a?.id) {
-        delete answer.correct;
-        delete answer.itemsCorrect;
-        delete answer.note;
-      }
   const grades = Object.values(stored.grades || {}).filter((g) =>
     teacher ? true : g.released && stored.answers.some((x) => x.id === g.answerId && x.userId === user.id),
   );
   const view: SessionView = {
-    session: clone(session),
+    session: clone({ ...session, quiz: session.quiz && viewRun(session.quiz, teacher) }),
     lesson,
     answers,
     aggregate: {
@@ -1898,7 +1903,7 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
             '相同提交 ID 不可更換內容',
             409,
           );
-          return json({ answer: { ...previous, correct: undefined } });
+          return json({ answer: studentAnswer(previous, answerRevealed(session, s.lesson, activityId)) });
         }
         assert(
           !session.ended &&
@@ -1936,9 +1941,7 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
         s.seen[String(user.seat)] = now();
         session.revision++;
         await store.write(state);
-        return json({
-          answer: { ...answer, correct: undefined, itemsCorrect: undefined, note: undefined },
-        });
+        return json({ answer: studentAnswer(answer, answerRevealed(session, s.lesson, activityId)) });
       }
       if (action === 'practice' && method === 'POST') {
         // 補救練習作答：只能交「目前這一輪」，每輪一次；答錯就開始下一輪（狀態由 practiceStatus 推算）。

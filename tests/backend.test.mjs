@@ -659,6 +659,134 @@ test('every project lesson with sub-items sends students only the sub-item promp
   }
 });
 
+test('quiz banks, papers and option orders never reach students on any route; results and teacher data still arrive',async()=>{
+  const {f,session:first}=await setup();
+  await f.call(`/api/sessions/${first.id}/control`,'POST',{action:'end'});
+  const mk=(id,name)=>({title:`${name}題庫`,slots:Array.from({length:10},(_,q)=>({id:`${id}${q+1}`,topic:`${name} 題位 ${q+1}`,variants:[0,1,2].map(v=>({stem:`${name}題幹 ${q+1}（${v}）`,options:[`對${v}`,`錯A${v}`,`錯B${v}`,`錯C${v}`],answer:0,explanation:`${name}解析 ${q+1}（${v}）`}))}))});
+  const base=(await f.call('/api/dashboard')).body.lessons[0];
+  assert.equal((await f.call('/api/lessons/leak-a','PUT',{lesson:{...base,id:'leak-a',title:'第一課',quiz:mk('a','甲')}})).status,200);
+  assert.equal((await f.call('/api/lessons/leak-b','PUT',{lesson:{...base,id:'leak-b',title:'第二課',quiz:mk('b','乙')}})).status,200);
+  await goOnline(f,[1,2,3]);
+  const SERVER_ONLY=new Set(['bank','paper','personal','picks','order','variants','slots','detail']);
+  const RUN_KEYS=new Set(['id','mode','from','startedAt','seconds','endedAt','matches']);
+  const keysOf=(x,out=[])=>{if(x&&typeof x==='object')for(const [k,v] of Object.entries(x)){out.push(k);keysOf(v,out);}return out;};
+  // 同一位學生的三種 payload：課堂 GET、學生 GET、WebSocket 投影
+  const payloads=async(sid,who)=>{
+    const ticket=await liveTicket(new Request('http://localhost/api/live',{headers:{Cookie:f.cookie(who),Origin:'http://localhost'}}),f.data);
+    const list=[(await f.call(`/api/sessions/${sid}`,'GET',null,who)).body,(await f.call('/api/student/session','GET',null,who)).body,JSON.parse(JSON.stringify(liveView(f.data,ticket)))];
+    assert.equal(new Set(list.map(v=>v.quiz.run.id)).size,1,'all three show the same run');
+    return list;
+  };
+  // revealed：這位學生應該已經看得到解析的題數
+  const clean=async(sid,who,revealed)=>{
+    const list=await payloads(sid,who);
+    for(const v of list){
+      assert.equal(v.lesson.quiz,undefined);
+      const {slides:_slides,...lessonRest}=v.lesson;
+      const leaked=keysOf({...v,lesson:lessonRest}).filter(k=>SERVER_ONLY.has(k));
+      assert.deepEqual(leaked,[],'server-only fields in a student payload');
+      for(const run of [v.session.quiz,v.quiz.run])for(const k of Object.keys(run))assert(RUN_KEYS.has(k),`unexpected run field ${k}`);
+      const text=JSON.stringify(v);
+      assert.equal(text.split('題幹').length-1,v.quiz.questions.length,'only the stems on this paper');
+      assert.equal(text.split('解析 ').length-1,revealed,'only revealed explanations');
+      assert.equal(v.quiz.questions.filter(q=>q.answer!==undefined).length,revealed);
+    }
+    return list[0];
+  };
+  const right=(v,q)=>v.quiz.questions[q].options.findIndex(o=>o.startsWith('對'));
+  const a=(await f.call('/api/sessions','POST',{lessonId:'leak-a',classId:'demo-class'})).body.session;
+  const ctlA=(body)=>f.call(`/api/sessions/${a.id}/control`,'POST',body);
+  const viewA=(who='teacher')=>f.call(`/api/sessions/${a.id}`,'GET',null,who).then(r=>r.body);
+  const ansA=(who,body)=>f.call(`/api/sessions/${a.id}/quiz`,'POST',body,who);
+  // 全班測驗：學生看不到答案，仍看得到洗牌後的選項；用顯示位置作答，伺服器換算
+  await ctlA({action:'quiz-class',seconds:600});
+  let t=await viewA();
+  const shown=await clean(a.id,'seat1',0);
+  assert.deepEqual(shown.quiz.questions.map(q=>q.options),t.quiz.questions.map(q=>q.options),'same shuffled options as the teacher');
+  const runA=t.quiz.run.id;
+  for(let q=0;q<10;q++)assert.equal((await ansA('seat1',{runId:runA,q,choice:q===9?(right(t,q)+1)%4:right(t,q)})).status,200);
+  const during=await clean(a.id,'seat1',0);
+  assert.deepEqual(during.quiz.mine.answers,t.quiz.questions.map((_,q)=>q===9?(right(t,q)+1)%4:right(t,q)),'student sees their own picks in display order');
+  assert(during.quiz.mine.correct.every(x=>x===null));
+  // 老師：卷子、選項分布、每人對錯都在；題庫不用送
+  t=await viewA();
+  assert.equal(t.session.quiz.paper.picks.length,10);assert.equal(t.quiz.run.paper.picks.length,10);assert.equal(t.quiz.scores['1'].correct,9);assert.equal(t.quiz.picks[1][right(t,1)],1);assert.equal(t.quiz.detail['1'].filter(Boolean).length,9);
+  assert(t.quiz.questions.every(q=>q.answer!==undefined&&q.explanation));
+  // 結束後學生看得到正解位置、解析、自己的對錯，但對應表仍不送
+  await ctlA({action:'quiz-end'});
+  const ended=await clean(a.id,'seat1',10);
+  assert.deepEqual(ended.quiz.questions.map(q=>q.answer),t.quiz.questions.map(q=>q.answer));
+  assert.equal(ended.quiz.mine.correct.filter(Boolean).length,9);
+  // PK：答過的題馬上回正解位置；沒答的不給；對手與觀眾看不到
+  await ctlA({action:'pk-lobby'});await ctlA({action:'pk-pick',seat:1});await ctlA({action:'pk-pick',seat:2});
+  await ctlA({action:'pk-start',seconds:120});
+  f.data.sessions[a.id].session.quiz.startedAt-=4000;
+  const pk=await viewA();
+  await clean(a.id,'seat1',0);
+  const r=await ansA('seat1',{runId:pk.quiz.run.id,q:0,choice:right(pk,0)});
+  assert.equal(r.body.correct,true);assert.equal(r.body.answer,right(pk,0));assert(r.body.explanation);
+  const afterOne=await clean(a.id,'seat1',1);
+  assert.equal(afterOne.quiz.questions[0].answer,right(pk,0));assert.equal(afterOne.quiz.mine.correct[0],true);
+  assert.deepEqual(afterOne.quiz.run.matches.map(m=>[m.a,m.b]),[[1,2]],'students still see the pairing');
+  assert.equal(afterOne.quiz.scores['1'].correct,1);
+  await clean(a.id,'seat2',0);await clean(a.id,'seat3',0);
+  // 錯題練習：只拿到自己的題，老師看得到每人的卷子
+  await ctlA({action:'quiz-review'});
+  const rv=await viewA();
+  assert.deepEqual(rv.quiz.run.personal['1'].slots,[9]);assert.deepEqual(rv.session.quiz.personal['1'].slots,[9]);
+  const review=await clean(a.id,'seat1',0);
+  assert.deepEqual(review.quiz.questions.map(q=>q.slot),[9]);
+  const rr=await ansA('seat1',{runId:rv.quiz.run.id,q:9,choice:right(review,0)});
+  assert.equal(rr.body.correct,true);
+  assert.equal((await clean(a.id,'seat1',1)).quiz.mine.correct[0],true);
+  await ctlA({action:'quiz-end'});
+  await ctlA({action:'quiz-class',seconds:600});
+  const c2=await viewA();
+  for(const seat of [1,2,3])for(let q=0;q<10;q++)await ansA(`seat${seat}`,{runId:c2.quiz.run.id,q,choice:(right(c2,q)+1)%4});
+  await ctlA({action:'quiz-end'});
+  await ctlA({action:'end'});
+  // 間隔複習：題庫存在這一次裡，師生都不送，學生三條路徑都沒有
+  const b=(await f.call('/api/sessions','POST',{lessonId:'leak-b',classId:'demo-class'})).body.session;
+  await f.call(`/api/sessions/${b.id}/control`,'POST',{action:'quiz-spaced'});
+  assert(f.data.sessions[b.id].session.quiz.bank,'the bank stays on the server');
+  const spacedT=(await f.call(`/api/sessions/${b.id}`)).body;
+  assert.equal(spacedT.session.quiz.bank,undefined);assert.equal(spacedT.quiz.run.bank,undefined);assert(spacedT.quiz.questions[0].answer!==undefined);
+  const sp=await clean(b.id,'seat1',0);
+  assert.equal(sp.session.quiz.mode,'spaced');assert.equal(sp.session.quiz.from,'第一課');
+  const sr=await f.call(`/api/sessions/${b.id}/quiz`,'POST',{runId:sp.quiz.run.id,q:0,choice:right(sp,0)},'seat1');
+  assert.equal(sr.body.correct,true);
+  assert.equal((await clean(b.id,'seat1',1)).quiz.mine.correct[0],true);
+});
+
+test('first submission, retry and session view share one rule: no verdict before results on that slide',async()=>{
+  const {f,lesson}=await setup();
+  const q={id:'retry-q',type:'numeric',prompt:'化成最簡根式',form:'simplest-radical',items:[{prompt:'√12',answer:'2√3'},{prompt:'√18',answer:'3√2'}]};
+  const custom={...lesson,id:'retry-lesson',slides:[{id:'s1',title:'化簡',body:'',activity:q},{id:'s2',title:'下一頁',body:'',activity:{...q,id:'retry-q2'}}]};
+  assert.equal((await f.call('/api/lessons/retry-lesson','PUT',{lesson:custom})).status,200);
+  const s=(await f.call('/api/sessions','POST',{lessonId:'retry-lesson',classId:'demo-class'})).body.session;
+  const ctl=(body)=>f.call(`/api/sessions/${s.id}/control`,'POST',body);
+  const send=()=>f.call(`/api/sessions/${s.id}/answers`,'POST',{submissionId:'retry-1',activityId:'retry-q',value:['√12','3√2']},'student');
+  const VERDICT=['correct','itemsCorrect','note'];
+  const hidden=(answer)=>{assert.equal(answer.activityId,'retry-q');assert.deepEqual(answer.value,['√12','3√2']);for(const k of VERDICT)assert(!(k in answer),`${k} leaked`);};
+  await ctl({action:'activity',value:true});
+  const r1=await send();assert.equal(r1.status,200);hidden(r1.body.answer);
+  const r2=await send();assert.equal(r2.status,200);hidden(r2.body.answer);
+  assert.equal((await f.call(`/api/sessions/${s.id}/answers`,'POST',{submissionId:'retry-1',activityId:'retry-q',value:['1','2']},'student')).status,409,'a retry cannot change the content');
+  hidden((await f.call(`/api/sessions/${s.id}`,'GET',null,'student')).body.answers[0]);
+  // 老師一直看得到判定
+  const t=(await f.call(`/api/sessions/${s.id}`)).body.answers[0];
+  assert.deepEqual(t.itemsCorrect,[false,true]);assert.equal(t.correct,false);assert.match(t.note,/最簡根式/);
+  // 公布後：重送與畫面都拿得到自己的判定
+  await ctl({action:'results',value:true});
+  for(const answer of [(await send()).body.answer,(await f.call(`/api/sessions/${s.id}`,'GET',null,'student')).body.answers[0]]){
+    assert.deepEqual(answer.itemsCorrect,[false,true]);assert.equal(answer.correct,false);assert.match(answer.note,/最簡根式/);
+  }
+  // 換頁後收回：重送與畫面都不再回傳
+  await ctl({action:'slide',index:1});
+  hidden((await send()).body.answer);
+  hidden((await f.call(`/api/sessions/${s.id}`,'GET',null,'student')).body.answers[0]);
+});
+
 test('layer 1 (default) only judges right/wrong; teacher can set the verdict; layer 2 replaces it',async()=>{
   const {f,lesson,session}=await setup();
   await openSlide(f,session,lesson,'error-canvas');

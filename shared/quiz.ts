@@ -5,17 +5,19 @@ export const QUIZ_GRACE_MS = 2500;
 /** PK 開始前的倒數。 */
 export const PK_COUNTDOWN_MS = 3000;
 
-export function quizDeadline(run: QuizRun): number {
+type QuizClock = Pick<QuizRun, 'startedAt' | 'seconds' | 'endedAt'>;
+
+export function quizDeadline(run: QuizClock): number {
   return run.startedAt + run.seconds * 1000;
 }
 /** 時間到或老師按了結束。 */
-export function quizOver(run: QuizRun, now: number): boolean {
+export function quizOver(run: QuizClock, now: number): boolean {
   return !!run.endedAt || now >= quizDeadline(run);
 }
 /**
  * 電腦對手的成績：作答時間表在開始時就決定好，伺服器和各裝置用同一份算出一樣的進度。
  */
-export function botScore(bot: { correct: boolean[]; times: number[] }, run: QuizRun, now: number): QuizScore {
+export function botScore(bot: { correct: boolean[]; times: number[] }, run: QuizClock, now: number): QuizScore {
   const elapsed = Math.min(now, run.endedAt ?? Infinity) - run.startedAt;
   let answered = 0,
     correct = 0;
@@ -42,7 +44,7 @@ export function decide(a: QuizScore, b: QuizScore): 'a' | 'b' | 'draw' {
   return 'draw';
 }
 /** 這一組比完了嗎：兩人都交卷，或時間到。 */
-export function matchOver(run: QuizRun, a: QuizScore, b: QuizScore, now: number): boolean {
+export function matchOver(run: QuizClock, a: QuizScore, b: QuizScore, now: number): boolean {
   return quizOver(run, now) || (a.finished && b.finished);
 }
 

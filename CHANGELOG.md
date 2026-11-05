@@ -1,5 +1,11 @@
 # 版本紀錄
 
+## 未發布 — 2026-11-05（答案外流修正）
+
+- 學生端的 `session.quiz` 與 `quiz.run` 改用白名單（`viewRun`）：間隔複習題庫 `bank`、卷子 `paper`、每人卷子 `personal` 都不再送出。原本可以從 `order.indexOf(0)` 算出答案。前端本來就不讀這些欄位，學生操作不變。
+- 老師端的 `session.quiz` 也拿掉 `bank`；`paper`、`personal` 保留。
+- 重送數值題不再回傳 `itemsCorrect` 與 `note`：初次送出、重送、課堂畫面共用 `studentAnswer`，公布後才回傳判定。
+
 ## 未發布 — 2026-11-05（回家作業紅筆：圈出做錯的步驟）
 
 - AI 批改多一項：答錯的題目逐行列出外框，指出第一個做錯的是哪一行、為什麼錯、怎麼改（`HomeworkMark.step`；答對不圈）。輸出變長，`maxTokens` 由 3000 改成 6000。

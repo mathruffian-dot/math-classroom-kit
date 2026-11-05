@@ -1,5 +1,5 @@
 // 課後形成性評量、PK 戰、錯題練習：抽題、電腦對手、成績、錯題紀錄、給師生的畫面。
-import type { Lesson, PkMatch, QuizBank, QuizPaper, QuizRecord, QuizRun, QuizScore, QuizSheet, QuizView, User } from '../shared/types';
+import type { Lesson, PkMatch, QuizBank, QuizPaper, QuizRecord, QuizRun, QuizScore, QuizSheet, QuizView, User, ViewQuizRun } from '../shared/types';
 import { betSummary, botScore, decide, quizOver } from '../shared/quiz';
 import { assert, identifier, integer, record, validateQuiz } from './validation';
 
@@ -89,6 +89,19 @@ export function levelPairs(pool: number[], level: (seat: number) => number): [nu
   return pairs;
 }
 
+/**
+ * 送到前端的測驗資訊。學生用白名單：題庫原始答案固定在第 0 個選項，拿到卷子的 order 就能算出答案，
+ * 所以卷子只留在伺服器（學生送顯示位置，由伺服器換算），日後新增的欄位也不會跟著送出去。
+ */
+export function viewRun(run: QuizRun, teacher: boolean): ViewQuizRun {
+  if (teacher) {
+    const { bank: _bank, ...shown } = run;
+    return shown;
+  }
+  const { id, mode, from, startedAt, seconds, endedAt, matches } = run;
+  return { id, mode, ...(from !== undefined ? { from } : {}), startedAt, seconds, ...(endedAt !== undefined ? { endedAt } : {}), ...(matches ? { matches } : {}) };
+}
+
 /** 老師看得到所有人的成績、選項分布、每題對錯；學生只看到自己的作答，PK 時看得到各組的題數進度（不含答案）。 */
 export function quizView(lesson: Lesson, store: QuizStore, run: QuizRun, user: User, now: number): QuizView | undefined {
   const bank = runBank(lesson.quiz, run);
@@ -119,9 +132,7 @@ export function quizView(lesson: Lesson, store: QuizStore, run: QuizRun, user: U
       ...(reveal ? { answer: order.indexOf(it.answer), ...(it.explanation ? { explanation: it.explanation } : {}) } : {}),
     };
   });
-  // 間隔複習的題庫（含答案）不送出去
-  const { bank: _bank, ...shown } = run;
-  const view: QuizView = { run: teacher ? shown : { ...shown, personal: undefined }, title: bank.title, questions, scores };
+  const view: QuizView = { run: viewRun(run, teacher), title: bank.title, questions, scores };
   if (mineSheet || (!teacher && run.mode === 'review')) {
     const answers = mineSheet?.answers || [];
     view.mine = {

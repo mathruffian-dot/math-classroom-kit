@@ -386,6 +386,10 @@ export interface QuizRun {
   endedAt?: number;
   matches?: PkMatch[];
 }
+/** 學生看得到的測驗資訊：只有模式、時間與配對。卷子（選項順序對應）、題庫都留在伺服器。 */
+export type StudentQuizRun = Omit<QuizRun, 'paper' | 'bank' | 'personal'>;
+/** 送到前端的測驗資訊：老師另外有卷子與每人的卷子；題庫師生都不送。 */
+export type ViewQuizRun = StudentQuizRun & Partial<Pick<QuizRun, 'paper' | 'personal'>>;
 /** 一位同學在一次測驗的作答：answers 存原始選項，times 是從開始算起的毫秒。 */
 export interface QuizSheet {
   answers: (number | null)[];
@@ -411,7 +415,7 @@ export interface PkLobby {
   buzz: boolean;
 }
 export interface QuizView {
-  run: QuizRun;
+  run: ViewQuizRun;
   title: string;
   questions: {
     /** 題位（從 0 起算）；作答時送這個。錯題練習只列自己的題位。 */
@@ -640,7 +644,7 @@ export interface PracticeView {
   reveals: { round: number; answer: string; explanation?: string }[];
 }
 export interface SessionView {
-  session: Session;
+  session: Omit<Session, 'quiz'> & { quiz?: ViewQuizRun | null };
   lesson: Lesson;
   answers: Answer[];
   aggregate: {

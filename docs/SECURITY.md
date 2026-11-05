@@ -11,6 +11,8 @@
 - Supabase secret／service-role key 與 AI key 僅置於 Worker Secrets。前端不直接讀取正式資料表。
 - 學生只能存取自己班級的有效場次與自己的答案。教師可管理的資料也受擁有者檢查。
 - 標準答案與教師備註必須由伺服器過濾；前端隱藏按鈕不是權限控制。
+- 課後檢核／PK／錯題練習／間隔複習：題庫與卷子（選項順序對應）只留在伺服器。學生端的 `session.quiz`、`quiz.run` 用白名單（`viewRun`），學生送顯示位置，由伺服器換算；正解只在 `questions[].answer` 依公布規則送出。
+- 學生作答的 `correct`、`itemsCorrect`、`note`：送出、重送、課堂畫面都走 `studentAnswer`，老師在該題的頁面公布結果前一律不回。
 - 記錄僅用於授課與形成性回饋。需要學生姓名或跨校分析時，先另行設計資料最小化與權限。
 
 ## AI 資料流
