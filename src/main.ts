@@ -1589,6 +1589,35 @@ async function duelAct(act: string, el: HTMLElement) {
 }
 /** 學生作答回應的 revision：比它舊的推送不蓋掉本機的題目與鎖住時間。 */
 let raidRevision = 0;
+/**
+ * 學生自己在捲動（手指在螢幕上、剛滑過、慣性還在跑、滾輪）：新題目到的時候不把作答卡拉回最上面。
+ * 2026-11-06 老師手機錄影：按了應用題、網路慢，學生一邊往下滑，題目一到就被拉回最上面，像在跟學生搶捲動。
+ * 只看真的捲動（手指移動超過 8px、滾輪），點一下按鈕不算。
+ */
+const userScroll = { at: 0, touching: false, moved: false, x: 0, y: 0 };
+document.addEventListener('touchstart', (e) => {
+  userScroll.touching = true;
+  userScroll.moved = false;
+  userScroll.x = e.touches[0]?.clientX ?? 0;
+  userScroll.y = e.touches[0]?.clientY ?? 0;
+}, { capture: true, passive: true });
+document.addEventListener('touchmove', (e) => {
+  const t = e.touches[0];
+  if (!t || Math.hypot(t.clientX - userScroll.x, t.clientY - userScroll.y) <= 8) return;
+  userScroll.moved = true;
+  userScroll.at = Date.now();
+}, { capture: true, passive: true });
+const touchOff = () => (userScroll.touching = false);
+document.addEventListener('touchend', touchOff, { capture: true, passive: true });
+document.addEventListener('touchcancel', touchOff, { capture: true, passive: true });
+document.addEventListener('wheel', () => (userScroll.at = Date.now()), { capture: true, passive: true });
+// 慣性捲動：放開手指後還在捲，就算還在滑（app 自己只在新題目時寫一次 scrollTop，不會延長這段時間）
+document.addEventListener('scroll', (e) => {
+  if ((e.target as Element).classList?.contains('raid-scroll') && Date.now() - userScroll.at < 400) userScroll.at = Date.now();
+}, { capture: true, passive: true });
+function userScrolling() {
+  return (userScroll.touching && userScroll.moved) || Date.now() - userScroll.at < 800;
+}
 /** 戰場：老師在魔王戰那一頁時投影；學生在戰鬥期間，平板左側（手機的「教材」分頁）一直顯示。 */
 function showRaidBoard() {
   const v = view;
@@ -1665,7 +1694,8 @@ function refreshRaid() {
     card.dataset.raidKey = key;
     patchHtml(card, raidCardHtml(v.raid, now));
     wireArt(card);
-    if (newQuestion && scroller && scroller.scrollTop) scroller.scrollTop = 0;
+    // 新題目從題幹開頭看起（每題最多一次）；學生正在自己捲動就不拉回去
+    if (newQuestion && scroller && scroller.scrollTop && !userScrolling()) scroller.scrollTop = 0;
   } else {
     if (mini) patchHtml(mini, raidMiniHtml(v.raid, now));
     card.querySelectorAll<HTMLElement>('[data-lock-until]').forEach((el) => {
