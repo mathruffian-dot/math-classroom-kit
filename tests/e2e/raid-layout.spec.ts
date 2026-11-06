@@ -27,7 +27,7 @@ const VIEWPORTS = [
   [1024, 768],
   [1366, 1024],
 ] as const;
-const RAIDS = ['g8-2-2d', 'g9-1-4c'].filter((r) => !process.env.MCK_RAID_ONLY || process.env.MCK_RAID_ONLY === r);
+const RAIDS = ['g8-2-2d', 'g8-2-3c', 'g9-1-4c', 'g9-2-1c'].filter((r) => !process.env.MCK_RAID_ONLY || process.env.MCK_RAID_ONLY === r);
 const SEAT = 31;
 const headers = { Origin: baseURL };
 
