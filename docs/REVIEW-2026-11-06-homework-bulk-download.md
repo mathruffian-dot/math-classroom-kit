@@ -33,10 +33,39 @@
   - `eachSheet()`：依座號排序、每位同學排版＋截圖；`downloadZip()` 用它同時產生個人卷與合併卷，zip 加入 `01_全班作業（合併）.pdf`，回傳合併 blob；`downloadMergedPdf()` 只產合併卷（作業頁用）。
   - zip 內個人卷現在也依座號順序加入（原本照 API 回傳順序，檔名本來就有座號，所以解開後看不出差別）。
   - 新按鈕：`hw-merged-save`（派發完成視窗，`data-testid="hw-merged-save"`）、`hw-merged`（作業詳情頁，`data-testid="hw-merged"`）；詳情頁的 zip 按鈕加上 `data-testid="hw-zip"`。
-  - 完成視窗只在派發視窗還開著時才換內容（找 `[data-testid="hw-plan"]` 所在的 `.modal-body`），老師中途關掉或開了別的視窗不會被蓋掉。
+  - ~~完成視窗只在派發視窗還開著時才換內容，老師中途關掉或開了別的視窗不會被蓋掉。~~ **這句原本不成立**（Codex 審查 SHOULD-FIX，見下方「修復」）：舊寫法用全域選擇器找 `hw-plan`，重開的派發視窗也會被找到；合併 PDF 也存在全域 `lastMerged`，晚完成的派發會改寫它。
 - `src/styles.css`：`.hw-done`、`.hw-plan-note` 的間距。
 - 沒有改 worker、批改、紅筆、vault、API 契約。
 - `tests/e2e/homework.spec.ts`：zip 從 4 個檔變 5 個；檢查 `01_全班作業（合併）.pdf` 的頁數＝三位同學個人卷頁數的和（所以不含解答頁）；完成視窗按鈕下載的檔名與頁數；作業詳情頁「下載全班合併 PDF」的檔名與頁數。
+
+## 修復：重疊派發（Codex 審查 25b202d 的 SHOULD-FIX，2026-11-06）
+
+**老師會遇到的情況（修之前）**
+
+1. 派給 1 號、還在產生時關掉視窗，重開一個選 2 號 → 1 號那批產生完，把你正在選的新視窗換成「已派發 1 份作業」。
+2. 派給 1 號（很慢）→ 關掉、重開派給 2、3 號（先完成，畫面顯示「已派發 2 份」）→ 1 號那批隨後完成；畫面還是 2 份，但按「下載全班合併 PDF」下載到的是 1 號那批。可能印錯學生、甚至錯班。
+
+**現在**：每次派發只認「按下產生時的那個派發視窗」。
+
+- `src/homework.ts`
+  - `openPlan()` 每開一次派發視窗就把 `planToken` 加一（切換範圍也算重開）。
+  - `hw-create` 開始前記下 token 和按鈕所在的 `[data-testid="hw-plan"]` 元素；進度文字、完成畫面都要「token 沒變、而且那個元素還在畫面上」才更新，否則只下載 zip、跳 toast，不動畫面。
+  - 拿掉全域 `lastMerged`。合併 PDF 存在 `WeakMap`，鍵是那個完成視窗的 `hw-done` 元素；「下載全班合併 PDF」從按鈕所在的 `hw-done` 找自己的檔，別批派發不可能改到它。
+  - 副作用（刻意的）：產生途中在同一個視窗按「預設／全選／清除」會重畫派發內容，這時舊派發也不再換畫面（zip 照樣下載），避免把老師正在改的選擇蓋掉。
+- `tests/e2e/homework.spec.ts` 新增兩個回歸測試（攔住 A 的 `POST /api/homework` 製造延遲）：
+  - `SF-1: a late homework job never replaces a newly opened assign window`：A 完成後，新視窗仍是派發畫面、只勾 2 號、沒有 `hw-done`；A 的 zip 仍會下載。
+  - `SF-1: the merged-PDF button of a finished window always downloads its own batch…`：B 先完成；A 隨後完成；B 視窗按兩次合併下載，位元組都等於 B zip 內的 `01_全班作業（合併）.pdf`，且與 A 的不同。
+  - 測試裡建立的作業在 `afterEach` 一併刪除。
+
+**證據**
+
+| 指令 | 結果 |
+|---|---|
+| `npm run typecheck` | 通過 |
+| 舊程式（`git show 25b202d:src/homework.ts`）＋新測試，`-g "SF-1" --workers=1` | **2 failed**（第一個：出現 `hw-done`，Expected 0 / Received 1；第二個：B 按鈕下載內容≠B）＝成功重現 |
+| 修復後 `npx playwright test tests/e2e/homework.spec.ts --workers=1` | **9 passed** |
+
+未做：Codex 的 NIT（亂序座號 10、2、1 的逐頁影像比對、URL 回收後下載、自動下載次數斷言）沒有加進測試；第二個新測試只補了「完成視窗下載的位元組＝zip 內合併檔」。
 
 ## 測試
 

@@ -9,10 +9,12 @@ const shots = process.env.MCK_SHOT_DIR;
 const contexts: BrowserContext[] = [];
 let sessionId = '';
 let homeworkId = '';
+const extraHomework: string[] = [];
 
 test.afterEach(async () => {
   const req = contexts[0]?.request;
   if (req && homeworkId) await req.delete(`/api/homework/${homeworkId}`, { headers: { Origin: baseURL }, data: {} });
+  for (const id of extraHomework.splice(0)) if (req) await req.delete(`/api/homework/${id}`, { headers: { Origin: baseURL }, data: {} });
   if (req && sessionId) await req.delete(`/api/sessions/${sessionId}`, { headers: { Origin: baseURL }, data: {} });
   await Promise.all(contexts.splice(0).map((c) => c.close()));
 });
@@ -354,4 +356,75 @@ test('R-1: a late photo-upload reply is dropped after leaving the homework page 
   upload.release();
   await ip.waitForTimeout(1500);
   await expectNoTrace(ip, token);
+});
+
+// 2026-11-06 Codex 審查 25b202d SHOULD-FIX：晚完成的派發不能蓋掉新開的派發視窗，也不能讓別批的完成視窗下載到它的合併卷
+async function teacherInSession(browser: Browser) {
+  const teacher = await browser.newContext({ baseURL, viewport: { width: 1440, height: 900 }, acceptDownloads: true });
+  contexts.push(teacher);
+  const tp = await teacher.newPage();
+  await tp.goto('/');
+  await tp.getByLabel('帳號').fill('teacher');
+  await tp.getByLabel('密碼').fill('11235813');
+  await tp.locator('#login-form').getByRole('button', { name: '登入' }).click();
+  await expect(tp.getByTestId('lesson-card').first()).toBeVisible();
+  const headers = { Origin: baseURL };
+  const cl = (await (await tp.request.get('/api/dashboard')).json()).classes.find((c: { code: string }) => c.code === 'DEMO801');
+  sessionId = (await (await tp.request.post('/api/sessions', { headers, data: { lessonId: 'g9-2-1a', classId: cl.id } })).json()).session.id;
+  tp.on('response', async (r) => {
+    if (r.request().method() === 'POST' && new URL(r.url()).pathname === '/api/homework' && r.ok()) extraHomework.push((await r.json()).homework.id);
+  });
+  await tp.goto(`/#/session/${sessionId}`);
+  return tp;
+}
+async function openPlanFor(tp: Page, seats: number[]) {
+  await tp.getByTestId('hw-plan-open').click();
+  await expect(tp.getByTestId('hw-plan')).toBeVisible();
+  await tp.getByRole('button', { name: '清除' }).click();
+  for (const n of seats) await tp.getByLabel(`${n} 號`, { exact: true }).check();
+  await expect(tp.getByTestId('hw-count')).toHaveText(`已選 ${seats.length} 人`);
+}
+const mergedOf = async (path: string) => (await JSZip.loadAsync(await readFile(path))).file('01_全班作業（合併）.pdf')!.async('uint8array');
+
+test('SF-1: a late homework job never replaces a newly opened assign window', async ({ browser }) => {
+  test.setTimeout(180_000);
+  const tp = await teacherInSession(browser);
+  await openPlanFor(tp, [1]);
+  const a = holdRequest(tp, '**/api/homework', (r) => r.method() === 'POST');
+  await tp.getByTestId('hw-create').click();
+  await a.seen; // A 還在出題：老師關掉視窗，重開一個派給 2 號
+  await tp.getByRole('button', { name: '關閉對話框' }).click();
+  await openPlanFor(tp, [2]);
+  const [dl] = await Promise.all([tp.waitForEvent('download', { timeout: 120_000 }), a.release()]);
+  expect(dl.suggestedFilename()).toMatch(/\.zip$/); // A 的 zip 照樣下載
+  await tp.waitForTimeout(500);
+  await expect(tp.getByTestId('hw-done')).toHaveCount(0);
+  await expect(tp.getByTestId('hw-plan')).toBeVisible();
+  await expect(tp.getByTestId('hw-count')).toHaveText('已選 1 人');
+  await expect(tp.getByLabel('2 號', { exact: true })).toBeChecked();
+  await expect(tp.getByLabel('1 號', { exact: true })).not.toBeChecked();
+  await expect(tp.locator('#hw-progress')).toHaveText('');
+});
+
+test('SF-1: the merged-PDF button of a finished window always downloads its own batch, even if an older job finishes later', async ({ browser }) => {
+  test.setTimeout(240_000);
+  const tp = await teacherInSession(browser);
+  await openPlanFor(tp, [1]);
+  const a = holdRequest(tp, '**/api/homework', (r) => r.method() === 'POST');
+  await tp.getByTestId('hw-create').click();
+  await a.seen;
+  await tp.getByRole('button', { name: '關閉對話框' }).click();
+  await openPlanFor(tp, [2, 3]);
+  const [bZip] = await Promise.all([tp.waitForEvent('download', { timeout: 120_000 }), tp.getByTestId('hw-create').click()]);
+  await expect(tp.getByTestId('hw-done')).toContainText('已派發 2 份作業');
+  const [aZip] = await Promise.all([tp.waitForEvent('download', { timeout: 120_000 }), a.release()]);
+  const bMerged = await mergedOf((await bZip.path())!);
+  const aMerged = await mergedOf((await aZip.path())!);
+  expect(Buffer.from(aMerged).equals(Buffer.from(bMerged))).toBe(false);
+  await tp.waitForTimeout(500);
+  await expect(tp.getByTestId('hw-done')).toContainText('已派發 2 份作業');
+  for (let i = 0; i < 2; i++) {
+    const [m] = await Promise.all([tp.waitForEvent('download'), tp.getByTestId('hw-merged-save').click()]);
+    expect(Buffer.from(await readFile((await m.path())!)).equals(Buffer.from(bMerged))).toBe(true);
+  }
 });

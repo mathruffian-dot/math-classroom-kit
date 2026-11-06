@@ -44,8 +44,11 @@ const safeName = (s: string) => s.replace(/[\\/:*?"<>|\s]+/g, '_').slice(0, 60);
 
 /* ───────────── 派發 ───────────── */
 let plan: { classId: string; lessonId: string; plan: HomeworkPlan; slots: Record<string, SlotInfo>; picked: Set<number> } | null = null;
+/** 每開一次派發視窗就換號；還在產生中的舊派發看到號碼變了，就不再動畫面。 */
+let planToken = 0;
 export async function openPlan(classId: string, lessonId: string, scope: 'lesson' | 'section' = 'lesson') {
   const r = await api<{ plan: HomeworkPlan; slots: Record<string, SlotInfo> }>(`/homework/plan?classId=${encodeURIComponent(classId)}&lessonId=${encodeURIComponent(lessonId)}&scope=${scope}`);
+  planToken++;
   plan = { classId, lessonId, ...r, picked: new Set(r.plan.suggested) };
   H.modal('派發回家作業', planHtml(), 'wide');
 }
@@ -739,8 +742,8 @@ document.addEventListener('change', (e) => {
 });
 
 /* ───────────── 按鈕 ───────────── */
-/** 剛派發完的全班合併 PDF（派發視窗「下載全班合併 PDF」用）。 */
-let lastMerged: { blob: Blob; name: string } | null = null;
+/** 每個派發完成視窗自己的全班合併 PDF（「下載全班合併 PDF」只下載這個視窗那一批）。 */
+const doneMerged = new WeakMap<Element, { blob: Blob; name: string }>();
 /** 這個模組的按鈕；不是的話回傳 false。 */
 export async function homeworkAction(el: HTMLElement): Promise<boolean> {
   const act = el.dataset.action;
@@ -756,22 +759,30 @@ export async function homeworkAction(el: HTMLElement): Promise<boolean> {
     }
     case 'hw-create': {
       const p = plan!;
+      // 這次派發只認自己的視窗：老師中途關掉、或重開派發視窗（換號）後，就不再更新畫面（zip 照樣下載，作業頁也能再下）
+      const token = planToken;
+      const view = el.closest('[data-testid="hw-plan"]');
+      const mine = () => token === planToken && !!view?.isConnected;
       const progress = (t: string) => {
-        const el = document.querySelector('#hw-progress');
-        if (el) el.textContent = t;
+        const out = mine() ? view!.querySelector('#hw-progress') : null;
+        if (out) out.textContent = t;
       };
       progress('正在出題…');
       const r = await api<{ homework: HomeworkMeta; sheets: HomeworkSheetView[] }>('/homework', 'POST', { classId: p.classId, lessonId: p.lessonId, scope: p.plan.scope, seats: [...p.picked] });
-      lastMerged = await downloadZip(r.sheets, progress);
-      const body = document.querySelector('[data-testid="hw-plan"]')?.closest('.modal-body'); // 老師中途關掉視窗就不顯示（zip 已下載，作業頁也能再下）
-      if (body)
+      const merged = await downloadZip(r.sheets, progress);
+      const body = mine() ? view!.closest('.modal-body') : null;
+      if (body) {
         body.innerHTML = `<div class="hw-done" data-testid="hw-done"><p><strong>已派發 ${r.sheets.length} 份作業</strong>，zip 已經下載：每人一份 PDF、<code>00_解答總表（老師用）.pdf</code>、<code>${MERGED_IN_ZIP}</code>。</p><p class="muted">要整本印的話，也可以直接下載全班合併 PDF（不含解答）。之後到「作業」頁看繳交與批改，也能重新下載。</p><div class="hw-plan-foot">${btn('下載全班合併 PDF', 'hw-merged-save', 'secondary', 'download', 'data-testid="hw-merged-save"')}${btn('完成', 'close-modal', 'primary')}</div></div>`;
+        doneMerged.set(body.firstElementChild!, merged);
+      }
       H.toast(`已派發 ${r.sheets.length} 份作業；到「作業」頁看繳交與批改`);
       return true;
     }
-    case 'hw-merged-save':
-      if (lastMerged) save(lastMerged.blob, lastMerged.name);
+    case 'hw-merged-save': {
+      const m = doneMerged.get(el.closest('[data-testid="hw-done"]')!);
+      if (m) save(m.blob, m.name);
       return true;
+    }
     case 'hw-merged': {
       const r = await api<{ sheets: HomeworkSheetView[] }>(`/homework/${el.dataset.id}`);
       await downloadMergedPdf(r.sheets, (t) => t && H.toast(t));
