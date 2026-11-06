@@ -1131,7 +1131,10 @@ function studentPanel(a: Activity | undefined, index: number) {
   if (myPractice()) return `<div class="panel-scroll"><div id="student-answer">${practiceCard()}</div><div id="class-events">${eventsHtml()}</div></div>`;
   if (view!.duel && s.duel) return `<div class="panel-scroll"><div id="student-answer" data-duel-key="${esc(duelCardKey(view!.duel, serverTime()))}">${duelCardHtml(view!.duel, serverTime())}</div></div>`;
   if (view!.raid && s.raid) return `<div class="panel-scroll raid-scroll"><div id="student-answer" data-raid-key="${esc(raidCardKey(view!.raid, serverTime()))}">${raidCardHtml(view!.raid, serverTime())}</div></div>`;
-  if (view!.quiz && s.quiz) return `<div class="panel-scroll"><div id="student-answer">${quizCard()}</div><div id="class-events">${eventsHtml()}</div></div>`;
+  if (view!.quiz && s.quiz) {
+    const html = quizCard();
+    return `<div class="panel-scroll"><div id="student-answer" data-quiz-key="${esc(quizCardKey(html))}" data-quiz-q="${esc(quizQuestionKey())}">${html}</div><div id="class-events">${eventsHtml()}</div></div>`;
+  }
   if (s.pkLobby?.buzz && !pkTakenSeats(s.pkLobby).has(user!.seat!)) return `<div class="panel-scroll"><div id="student-answer">${pkBuzzCard()}</div></div>`;
   if (index !== s.slideIndex)
     return `<div class="quiet-moment"><h2>自主瀏覽中</h2><p>作答只開放在老師目前的頁面。</p>${btn('回到目前頁面', 'go-slide', 'primary', 'arrow', `data-index="${s.slideIndex}"`)}</div>`;
@@ -1885,8 +1888,36 @@ function refreshQuiz() {
     if (host) host.innerHTML = quizBoardHtml();
     return;
   }
-  const card = document.querySelector('#student-answer');
-  if (card && view.quiz && card.querySelector('[data-testid="quiz-card"]')) card.innerHTML = quizCard();
+  const card = document.querySelector<HTMLElement>('#student-answer');
+  if (!card || !view.quiz || !card.querySelector('[data-testid="quiz-card"]')) return;
+  const html = quizCard(),
+    key = quizCardKey(html),
+    q = quizQuestionKey();
+  // 只有比分（同學作答）或倒數變了：只改進度文字，不重畫題幹、附圖、選項（重畫時附圖高度先歸零，面板會往上跳）
+  if (card.dataset.quizKey === key) {
+    const prog = card.querySelector('#pk-progress'),
+      next = /<p class="pk-progress" id="pk-progress">([^<]*)<\/p>/.exec(html)?.[1];
+    if (prog && next !== undefined && prog.innerHTML !== next) prog.innerHTML = next;
+    return;
+  }
+  const newQuestion = card.dataset.quizQ !== q;
+  card.innerHTML = html;
+  card.dataset.quizKey = key;
+  card.dataset.quizQ = q;
+  // PK、錯題練習換到下一題：從題幹開頭看起一次（只在題目換了的時候）
+  const scroller = card.closest<HTMLElement>('.panel-scroll');
+  if (newQuestion && view.quiz.run.mode !== 'class' && scroller?.scrollTop) scroller.scrollTop = 0;
+}
+/** 測驗卡的內容指紋：拿掉進度文字（PK 比分）與倒數秒數，其他一樣就不用重畫。 */
+function quizCardKey(html: string) {
+  return html.replace(/(<p class="pk-progress" id="pk-progress">)[^<]*/, '$1').replace(/(role="timer">)[^<]*/g, '$1');
+}
+/** 學生現在看的是哪一題（換題時才把面板捲回頂端）。 */
+function quizQuestionKey() {
+  const q = view?.quiz;
+  if (!q) return '';
+  const i = q.run.mode === 'class' ? quizIndex : (q.mine?.answers ?? q.questions.map(() => null)).findIndex((x) => x === null);
+  return `${q.run.id}:${i}`;
 }
 /* ───────────── 彈幕 ───────────── */
 /** 老師端：開關、清除、紀錄（紀錄看得到座號，畫面上匿名的不顯示）。 */
