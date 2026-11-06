@@ -1297,7 +1297,7 @@ test('raid flow: start on the last lesson of 2-2, roles, free choice each questi
   const raid2=(who,body)=>f.call(`/api/sessions/${s.id}/raid`,'POST',{runId:again.run.id,...body},who);
   assert.notEqual(again.run.id,run.id);assert.equal(again.mine.role,'mage');
   assert.equal(again.mine.prevBest,1,'personal best carried into the next battle');
-  assert.equal(f.data.classes['demo-class'].raidBest['2'],1);
+  assert.equal(f.data.classes['demo-class'].raidBestBy['g8-2-2d']['2'],1,'personal best is kept per lesson');
   // 打倒魔王：記進冒險地圖（難度＋最快時間）
   // （困難魔王有護盾；這裡只測冒險地圖的紀錄，把護盾拿掉）
   f.data.sessions[s.id].session.raid.config.bossHp=5;f.data.sessions[s.id].raidRuns.at(-1).config.bossHp=5;
@@ -1318,6 +1318,125 @@ test('raid flow: start on the last lesson of 2-2, roles, free choice each questi
   // 開全班測驗會收起魔王戰
   await ctl({action:'quiz-class'});
   assert.equal(f.data.sessions[s.id].session.raid,null);
+});
+
+test('raid personal best stays with its own boss: 2-2 best is not shown in the 2-3 raid; a new battle starts clean except the hero',async()=>{
+  const {f}=await setup();
+  await goOnline(f,[2,3]);
+  const banks={};for(const id of ['g8-2-2d','g8-2-3c'])banks[id]=JSON.parse(readFileSync(`content/raids/${id}.json`,'utf8'));
+  // 開一場、出一題、作答（ok=true 答對）
+  const play=async(sid,lessonId,seat,ok,role)=>{
+    await f.call(`/api/sessions/${sid}/control`,'POST',{action:'raid-start',difficulty:'easy',seconds:300});
+    const run=(await f.call(`/api/sessions/${sid}`)).body.raid.run;
+    const raid=(body)=>f.call(`/api/sessions/${sid}/raid`,'POST',{runId:run.id,...body},`seat${seat}`);
+    const before=(await f.call(`/api/sessions/${sid}`,'GET',null,`seat${seat}`)).body.raid;
+    if(role)await raid({op:'role',role});
+    f.data.sessions[sid].session.raid.startedAt-=4000;
+    const q=(await raid({op:'draw',kind:'attack'})).body.question;
+    const it=banks[lessonId].pools.attack.find(x=>x.id===q.id);
+    assert(it,`question ${q.id} comes from the ${lessonId} bank`);
+    const right=q.options.indexOf(it.options[it.answer]);
+    assert.equal((await raid({op:'answer',choice:ok?right:(right+1)%4})).body.correct,ok);
+    await f.call(`/api/sessions/${sid}/control`,'POST',{action:'raid-end'});
+    return {run,before};
+  };
+  // 上次：2-2 魔王戰，2 號答對 1 題
+  const s1=(await f.call('/api/sessions','POST',{lessonId:'g8-2-2d',classId:'demo-class'})).body.session;
+  await play(s1.id,'g8-2-2d',2,true,'mage');
+  // 今天：2-3 魔王戰（另一堂課）。不能把 2-2 的題數當成這一隻魔王的個人最佳
+  const s2=(await f.call('/api/sessions','POST',{lessonId:'g8-2-3c',classId:'demo-class'})).body.session;
+  const a=await play(s2.id,'g8-2-3c',2,false,'knight');
+  assert.equal(a.before.mine.prevBest,undefined,'no 2-2 personal best in the 2-3 raid');
+  assert.equal(a.before.mine.role,undefined,'a new class period picks a hero again');
+  assert.deepEqual(a.before.state.stats,{},'no scores from the 2-2 raid');
+  // 同一堂再開一場：角色留著；傷害、作答、目標、題目都從零開始；個人最佳是這一課上一場的 0 題
+  const b=await play(s2.id,'g8-2-3c',2,true);
+  assert.equal(b.before.mine.role,'knight','hero kept within the same class period');
+  assert.deepEqual(b.before.state.stats,{},'no scores from the previous battle');
+  assert.equal(b.before.state.log.filter(e=>e.seat===2).length,0,'battle log starts clean');
+  assert.equal(b.before.mine.goal,undefined);assert.equal(b.before.mine.question,undefined);
+  assert.equal(b.before.mine.prevBest,0,'best of this boss so far');
+  assert.equal(f.data.sessions[s2.id].raidPlay[b.run.id].actions.length,1,'only this battle answers');
+  const done=(await f.call(`/api/sessions/${s2.id}`,'GET',null,'seat2')).body.raid.results[0];
+  assert.equal(done.correct,1);assert.equal(done.prevBest,0);assert(done.badges.includes('突破個人紀錄'));
+  assert.deepEqual(f.data.classes['demo-class'].raidBestBy,{'g8-2-2d':{'2':1},'g8-2-3c':{'2':1}});
+  // 回到 2-2 再打：仍和 2-2 的紀錄比
+  const s3=(await f.call('/api/sessions','POST',{lessonId:'g8-2-2d',classId:'demo-class'})).body.session;
+  await f.call(`/api/sessions/${s3.id}/control`,'POST',{action:'raid-start',difficulty:'easy',seconds:300});
+  assert.equal((await f.call(`/api/sessions/${s3.id}`,'GET',null,'seat2')).body.raid.mine.prevBest,1);
+});
+test('raid personal best: the first battle of a lesson after the update is backfilled from earlier battles of that lesson, never from the old cross-lesson field',async()=>{
+  const {f}=await setup();
+  await goOnline(f,[2]);
+  const sid=(await f.call('/api/sessions','POST',{lessonId:'g8-2-2d',classId:'demo-class'})).body.session.id;
+  await f.call(`/api/sessions/${sid}/control`,'POST',{action:'raid-start',difficulty:'easy',seconds:300});
+  const run=f.data.sessions[sid].session.raid;
+  // 模擬更新前的資料：一場已結束的 2-2 魔王戰（2 號答對 2 題），只有舊版不分課的 raidBest
+  f.data.sessions[sid].raidPlay[run.id].actions.push({t:100,seat:2,kind:'attack',ok:true},{t:200,seat:2,kind:'attack',ok:true});
+  f.data.sessions[sid].session.raid.startedAt-=10000;f.data.sessions[sid].raidRuns.at(-1).startedAt-=10000;
+  await f.call(`/api/sessions/${sid}/control`,'POST',{action:'raid-end'});
+  const cl=f.data.classes['demo-class'];
+  delete cl.raidBestBy;cl.raidBest={'2':9};
+  await f.call(`/api/sessions/${sid}/control`,'POST',{action:'raid-start',difficulty:'easy',seconds:300});
+  assert.equal((await f.call(`/api/sessions/${sid}`,'GET',null,'seat2')).body.raid.mine.prevBest,2,'from the earlier 2-2 battle, not the old 9');
+  assert.deepEqual(cl.raidBest,{'2':9},'old field left untouched');
+});
+test('raid personal best is recorded when the teacher goes straight to a quiz, PK or a new battle without pressing end',async()=>{
+  const {f}=await setup();
+  await goOnline(f,[2]);
+  const sid=(await f.call('/api/sessions','POST',{lessonId:'g8-2-2d',classId:'demo-class'})).body.session.id;
+  const ctl=(body)=>f.call(`/api/sessions/${sid}/control`,'POST',body);
+  const best=()=>f.data.classes['demo-class'].raidBestBy?.['g8-2-2d']?.['2'];
+  // 一場打完（時間到）沒按結束：k 號答對 n 題
+  const battle=async(n)=>{
+    await ctl({action:'raid-start',difficulty:'easy',seconds:300});
+    const s=f.data.sessions[sid];
+    s.raidPlay[s.session.raid.id].actions.push(...Array.from({length:n},(_,i)=>({t:100+i,seat:2,kind:'attack',ok:true})));
+    s.session.raid.startedAt-=400000;s.raidRuns.at(-1).startedAt-=400000;
+  };
+  await battle(1);
+  await ctl({action:'quiz-class'});
+  assert.equal(best(),1,'opening the class quiz records the battle');
+  await battle(2);
+  await ctl({action:'pk-lobby'});
+  assert.equal(best(),2,'opening PK pairing records the battle');
+  await battle(3);
+  await ctl({action:'raid-start',difficulty:'easy',seconds:300});
+  assert.equal(best(),3,'a new battle records the previous one first');
+  assert.equal((await f.call(`/api/sessions/${sid}`,'GET',null,'seat2')).body.raid.mine.prevBest,3,'and compares with it');
+});
+test('homework after raids (real banks): 2-3 plan ignores the 2-2 raid; battles of this lesson are all counted; every 2-3 raid question maps inside 8-2-3',()=>{
+  const r22=JSON.parse(readFileSync('content/raids/g8-2-2d.json','utf8')),r23=JSON.parse(readFileSync('content/raids/g8-2-3c.json','utf8'));
+  const hwBanks=JSON.parse(readFileSync('content/homework.generated.json','utf8')).banks;
+  const base={answers:[],grades:{},lesson:{slides:[]}};
+  const q22=r22.pools.attack[0];
+  const q23=r23.pools.attack.find(q=>q.id.startsWith('g8-2-3c-q5-'));assert(q23,'2-3c raid has textbook-slot questions');
+  // 上次：2-2 魔王戰全部答錯
+  const old=hwReal.sessionRecords({...base,session:{id:'old',lessonId:'g8-2-2d'},raidRuns:[{id:'r0',startedAt:1000}],raidPlay:{r0:{actions:[{t:1,seat:1,kind:'attack',q:q22.id,ok:false},{t:2,seat:1,kind:'attack',q:q22.id,ok:false}]}}});
+  // 今天同一堂兩場：第一場答錯、第二場答對
+  const today=hwReal.sessionRecords({...base,session:{id:'today',lessonId:'g8-2-3c'},raidRuns:[{id:'r1',startedAt:5000},{id:'r2',startedAt:9000}],raidPlay:{r1:{actions:[{t:1,seat:1,kind:'attack',q:q23.id,ok:false}]},r2:{actions:[{t:1,seat:1,kind:'attack',q:q23.id,ok:true}]}}});
+  assert(old.every(x=>x.lessonId.startsWith('g8-2-2')),'2-2 raid records stay on 2-2');
+  assert.deepEqual(today.map(x=>[x.slot,x.correct]),[['g8-2-3c:q5',false],['g8-2-3c:q5',true]],'both battles of today, in order');
+  const host=hwReal.sectionHost('g8-2-3c');
+  assert.deepEqual(host,['g8-2-3a','g8-2-3b','g8-2-3c'],'2-3 raid lesson hosts the whole-section homework');
+  for(const ids of [['g8-2-3c'],host]){
+    const plan=hwReal.homeworkPlan([...old,...today],ids,3,'t',ids.length>1?'section':'lesson',{});
+    const one=plan.seats.find(x=>x.seat===1);
+    assert.equal(one.n,2,'only the two 2-3 answers; the 2-2 raid is not counted');
+    assert.equal(one.acc,0.5,'both battles of this lesson count (by design: all records of the class)');
+    assert.deepEqual(one.weak.map(w=>w.slot),['g8-2-3c:q5']);
+  }
+  // 每一題 2-3 魔王戰題目：對得到題型的都在 8-2-3 這一節裡，課本題 ID 的題型名稱和題庫一致
+  const all=Object.values(r23.pools).flat();
+  const recs=hwReal.sessionRecords({...base,session:{id:'x',lessonId:'g8-2-3c'},raidRuns:[{id:'r',startedAt:0}],raidPlay:{r:{actions:all.map((q,i)=>({t:i,seat:1,kind:'attack',q:q.id,ok:true}))}}});
+  const topicOf=(key)=>{const [l,id]=key.split(':');return hwBanks[l].slots.find(s=>s.id===id).topic;};
+  for(const x of recs){
+    const q=all.find(q=>q.id===x.item);
+    if(x.slot)assert.match(x.slot,/^g8-2-3[abc]:q\d+$/,`${q.id} → ${x.slot}`);
+    if(/^g8-2-3[abc]-q\d+-\d+$/.test(q.id))assert.equal(topicOf(x.slot),q.topic,`${q.id} topic`);
+  }
+  const mapped=recs.filter(x=>x.slot).length;
+  console.log(`  2-3 raid questions mapped to a topic: ${mapped}/${all.length}`);
 });
 
 test('raid analysis: only the hard boss offers analysis; 20-second analysis-only lock, judgement + reason, each question counts once, hints, backup keeps the shield settings',async()=>{
