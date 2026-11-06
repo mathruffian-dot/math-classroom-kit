@@ -462,6 +462,7 @@ export function validateLesson(input: unknown): Lesson {
         if (s.bullets !== undefined) slide.bullets = texts(s.bullets, '重點');
         if (s.quizPage === true) slide.quizPage = true;
         if (s.raidPage === true) slide.raidPage = true;
+        if (s.unitQuizPage === true) slide.unitQuizPage = true;
         if (s.duelPage === true) slide.duelPage = true;
         if (s.visual !== undefined) {
           assert(
@@ -547,6 +548,13 @@ export function validateLesson(input: unknown): Lesson {
     updatedAt: new Date().toISOString(),
   };
   if (l.quiz !== undefined) out.quiz = validateQuiz(l.quiz);
+  if (l.unitQuiz !== undefined) {
+    const u = record(l.unitQuiz);
+    assert(Array.isArray(u.lessons) && u.lessons.length >= 1 && u.lessons.length <= 12, '單元總測驗需要 1–12 堂課');
+    const lessons = u.lessons.map(identifier);
+    assert(new Set(lessons).size === lessons.length && lessons.includes(out.id), '單元總測驗的課程不可重複，且要包含這一堂');
+    out.unitQuiz = { title: str(u.title, '單元總測驗名稱', 90, 1), lessons };
+  }
   return out;
 }
 /** 驗證題庫（課程 JSON 的 quiz 欄位）。 */

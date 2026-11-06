@@ -24,7 +24,7 @@ import catalog from '../content/catalog.generated.json';
 import { normalizeChars, parseNumberAnswer } from '../shared/expr';
 import { PRACTICE_GRACE_MS, practiceStatus, practiceTotal } from '../shared/practice';
 import { PK_COUNTDOWN_MS, decide, quizLocked, quizOver } from '../shared/quiz';
-import { drawPaper, drawReview, instantFeedback, isCorrect, levelPairs, makeBot, newMatch, paperFor, quizRecord, quizView, restoreQuiz, runBank, score, sheetResult, viewRun, type QuizStore } from './quiz';
+import { drawPaper, drawReview, drawUnit, instantFeedback, isCorrect, levelPairs, makeBot, newMatch, paperFor, quizRecord, quizView, restoreQuiz, runBank, score, sheetResult, viewRun, type QuizStore } from './quiz';
 import { analysisContext, analysisTaken, answerRaid, newQuestion, questionFor, raidBank, raidCorrect, raidHasAnalysis, skipRaid, raidCsvRows, raidOver, raidState, raidView, restoreRaid, type RaidStore } from './raid';
 import { RAID_ALL_KINDS, RAID_COUNTDOWN_MS, RAID_ROLES, raidConfig, type RaidDifficulty, type RaidKind, type RaidRole } from '../shared/raid';
 import { answerDuel, duelBank, duelCsvRows, duelJoin, duelOver, duelState, duelTeams, duelView, problemView, restoreDuel, startProblem, type DuelStore } from './duel';
@@ -247,7 +247,7 @@ function quizCsvRows(s: StoredSession): (string | number)[][] {
       sheet.answers.forEach((x, q) => {
         if (x === null) return;
         const it = bank.slots[q].variants[own.picks[q].variant];
-        const kind = run.mode === 'pk' ? 'PK戰' : run.mode === 'review' ? '錯題練習' : run.mode === 'spaced' ? `間隔複習（${run.from || '上一課'}）` : '形成性評量';
+        const kind = run.unit ? (run.mode === 'pk' ? '單元總測驗PK戰' : '單元總測驗') : run.mode === 'pk' ? 'PK戰' : run.mode === 'review' ? '錯題練習' : run.mode === 'spaced' ? `間隔複習（${run.from || '上一課'}）` : '形成性評量';
         const conf = sheet.conf?.[q] === 1 ? '有把握' : sheet.conf?.[q] === 0 ? '不太確定' : '';
         rows.push([kind, seat, bank.slots[q].id, q + 1, it.options[x], isCorrect(bank, own.picks, q, x) ? 'Y' : 'N', mine.correct, own.slots.length, [note, conf].filter(Boolean).join('・'), new Date(run.startedAt + (sheet.times[q] || 0)).toISOString()]);
       });
@@ -262,6 +262,28 @@ function quizBank(state: State, s: StoredSession) {
   }
   assert(s.lesson.quiz, '這一課還沒有形成性評量題庫', 409);
   return s.lesson.quiz;
+}
+/**
+ * 單元總測驗的題庫來源：這一課 unitQuiz 列的各堂課後檢核題庫（這一堂用課堂裡的題庫，其他堂用目前的課程；
+ * 只用同一位老師的課程）。每次開測驗都重新從這些題庫抽 12 題。
+ */
+function unitSources(state: State, s: StoredSession) {
+  const host = state.lessons[s.session.lessonId],
+    unit = s.lesson.unitQuiz ?? host?.unitQuiz;
+  assert(unit, '這一課沒有單元總測驗', 409);
+  const sources = unit.lessons.flatMap((id) => {
+    const lesson = state.lessons[id];
+    const own = lesson && lesson.ownerId === s.ownerId ? lesson.quiz : undefined;
+    const bank = id === s.session.lessonId ? (s.lesson.quiz ?? own) : own;
+    return bank ? [{ lessonId: id, bank }] : [];
+  });
+  // 少了任何一堂就不開（否則會開出不到整個單元、題數也不對的測驗）
+  assert(sources.length === unit.lessons.length, '單元總測驗有一堂課找不到課後檢核題庫', 409);
+  return { title: unit.title, sources };
+}
+function drawUnitRun(state: State, s: StoredSession) {
+  const { title, sources } = unitSources(state, s);
+  return drawUnit(title, sources);
 }
 /** 結束目前這一次（開新的一次、關閉時）：沒結束的記上結束時間，錯題紀錄與戰績才算得到。 */
 function endQuiz(s: StoredSession, state?: State) {
@@ -752,7 +774,8 @@ export function sessionView(state: State, stored: StoredSession, user: User, onl
   if (session.quiz) {
     const q = quizView(stored.lesson, stored, session.quiz, user, view.serverNow);
     if (q) view.quiz = q;
-    if (q && session.quiz.mode === 'class') {
+    // 單元總測驗不和單堂的全班測驗比進步（題目範圍、題數都不同）
+    if (q && session.quiz.mode === 'class' && !session.quiz.unit) {
       const prev = quizPrev(state.classes[session.classId], session.quiz, teacher ? undefined : String(user.seat));
       if (Object.keys(prev).length) q.prev = prev;
     }
@@ -1630,6 +1653,12 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
             break;
           // ── 課後形成性評量：全班同一份卷子（每個題位從 3 題裡抽 1 題） ──
           case 'quiz-class': {
+            if (body.unit === true) {
+              // 單元總測驗：整個單元各堂的課後檢核題庫抽 12 題（題庫存在這一次裡，只在伺服器）
+              const { bank, paper } = drawUnitRun(state, s);
+              startQuiz(s, { id: uuid(), mode: 'class', unit: true, paper, bank, startedAt: Date.now(), seconds: integer(body.seconds ?? 600, 60, 3600) }, state);
+              break;
+            }
             const bank = quizBank(state, s);
             const run: QuizRun = { id: uuid(), mode: 'class', paper: drawPaper(bank), startedAt: Date.now(), seconds: integer(body.seconds ?? 600, 60, 3600) };
             startQuiz(s, run, state);
@@ -1668,14 +1697,17 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
             session.pkLobby = null;
             break;
           // ── PK 戰：先配對（隨機、點選、抽籤、搶答、配電腦），再一起開始，所有組與觀眾同一份卷子 ──
-          case 'pk-lobby':
-            quizBank(state, s);
+          case 'pk-lobby': {
+            const unit = body.unit === true;
+            if (unit) unitSources(state, s);
+            else quizBank(state, s);
             endQuiz(s, state);
             closeRaid(s, state);
             closeDuel(s);
             session.quiz = null;
-            session.pkLobby = { pairs: [], waiting: null, buzz: false };
+            session.pkLobby = { pairs: [], waiting: null, buzz: false, ...(unit ? { unit } : {}) };
             break;
+          }
           case 'pk-random': {
             const lobby = pkLobby(session);
             const taken = pkTaken(lobby);
@@ -1732,10 +1764,13 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
             const pairs: [number, number][] =
               body.action === 'pk-again' ? (session.quiz?.matches || []).map((m) => [m.a, m.b]) : pkLobby(session).pairs;
             assert(pairs.length, '還沒有配好的組', 409);
-            const bank = quizBank(state, s),
-              paper = drawPaper(bank),
+            // 單元總測驗的 PK：每一場都重新從整個單元抽 12 題
+            const unit = body.action === 'pk-again' ? !!session.quiz?.unit : !!session.pkLobby?.unit;
+            const drawn = unit ? drawUnitRun(state, s) : undefined;
+            const bank = drawn?.bank ?? quizBank(state, s),
+              paper = drawn?.paper ?? drawPaper(bank),
               seconds = integer(body.seconds ?? session.quiz?.seconds ?? 180, 30, 1800);
-            const run: QuizRun = { id: uuid(), mode: 'pk', paper, startedAt: Date.now() + PK_COUNTDOWN_MS, seconds, matches: pairs.map(([a, b]) => newMatch(a, b)) };
+            const run: QuizRun = { id: uuid(), mode: 'pk', paper, ...(drawn ? { bank, unit: true } : {}), startedAt: Date.now() + PK_COUNTDOWN_MS, seconds, matches: pairs.map(([a, b]) => newMatch(a, b)) };
             startQuiz(s, run, state);
             if (pairs.some(([, b]) => b === 0)) s.quizSheets![run.id]['0'] = makeBot(bank, paper, seconds);
             break;

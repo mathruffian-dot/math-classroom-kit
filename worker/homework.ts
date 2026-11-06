@@ -20,7 +20,7 @@ import type {
 } from '../shared/types';
 import { STEP_TEXT_MAX, parseStepBox, stepText } from '../shared/homework-step';
 import type { StoredSession } from './app';
-import { isCorrect, paperFor, runBank } from './quiz';
+import { isCorrect, paperFor, runBank, UNIT_SLOT_SEP } from './quiz';
 import { raidBank } from './raid';
 import { duelBank } from './duel';
 
@@ -152,7 +152,10 @@ export function sessionRecords(s: StoredSession): LearningRecord[] {
         const x = sheet.answers[q];
         if (x === null || x === undefined) continue;
         const topic = bank.slots[q].topic;
-        const direct = run.bank ? undefined : BANKS[lessonId]?.slots.some((sl) => sl.id === bank.slots[q].id) ? slotKey(lessonId, bank.slots[q].id) : undefined;
+        // 單元總測驗的題位 ID 是「課程 ID__原題位 ID」：對回原本那一堂的題型
+        const cut = run.unit ? bank.slots[q].id.indexOf(UNIT_SLOT_SEP) : -1;
+        const [from, slotId] = cut > 0 ? [bank.slots[q].id.slice(0, cut), bank.slots[q].id.slice(cut + UNIT_SLOT_SEP.length)] : [lessonId, bank.slots[q].id];
+        const direct = run.bank && !run.unit ? undefined : BANKS[from]?.slots.some((sl) => sl.id === slotId) ? slotKey(from, slotId) : undefined;
         const slot = direct ?? slotByTopic(section, topic);
         push({ at: run.startedAt + (sheet.times[q] || 0), seat: Number(seat), source, item: bank.slots[q].id, ...(slot ? { slot } : {}), correct: isCorrect(bank, own.picks, q, x) });
       }

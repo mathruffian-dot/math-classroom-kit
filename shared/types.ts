@@ -220,6 +220,8 @@ export interface Slide {
   title: string;
   /** 課後檢核・PK 戰頁（每堂課最後一頁）：投影片區是對戰／測驗畫面，右側是派題與配對。 */
   quizPage?: boolean;
+  /** 單元總測驗頁（有魔王戰的那一堂，放在魔王戰前面）：玩法同課後檢核・PK 戰，題目從整個單元各堂的課後檢核題庫抽 12 題。 */
+  unitQuizPage?: boolean;
   /** 魔王戰頁（一節的最後一堂課才有）：投影片區是戰場，右側是開戰設定。 */
   raidPage?: boolean;
   /** 步驟格鬥頁（根式運算步驟練習）：投影片區是紅藍兩隊的戰況，右側是開戰設定。 */
@@ -253,6 +255,12 @@ export interface Lesson {
   updatedAt?: string;
   /** 課後形成性評量題庫（10 個題位 × 3 題換數字）；學生端看不到。 */
   quiz?: QuizBank;
+  /** 單元總測驗：同一單元各堂課的課程 ID（依上課順序，含這一堂）。只有題庫來源，不含題目；開測驗時伺服器才抽題。 */
+  unitQuiz?: UnitQuiz;
+}
+export interface UnitQuiz {
+  title: string;
+  lessons: string[];
 }
 /** 課後形成性評量題庫：每個題位有 3 題同類型換數字的四選一題目。 */
 export interface QuizBank {
@@ -378,6 +386,8 @@ export interface QuizRun {
   bank?: QuizBank;
   /** 間隔複習：上一課的名稱。 */
   from?: string;
+  /** 單元總測驗（class 或 pk）：題庫是開測驗時從單元各堂抽出的 12 題，存在 bank。 */
+  unit?: boolean;
   /** 錯題練習：每個人自己的卷子（picks 依題位、slots 是要做的題位）。 */
   personal?: Record<string, { picks: QuizPaper['picks']; slots: number[] }>;
   /** 開始作答的時間（PK 有 3 秒倒數，所以比建立時間晚）。 */
@@ -413,6 +423,8 @@ export interface PkLobby {
   waiting: number | null;
   /** 開放搶答上場。 */
   buzz: boolean;
+  /** 單元總測驗的 PK 配對（開始對戰時用單元題庫）。 */
+  unit?: boolean;
 }
 export interface QuizView {
   run: ViewQuizRun;

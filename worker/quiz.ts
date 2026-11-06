@@ -29,6 +29,61 @@ function pick(bank: QuizBank, slot: number, variant: number) {
 export function drawPaper(bank: QuizBank): QuizPaper {
   return { picks: bank.slots.map((slot, q) => pick(bank, q, randomInt(slot.variants.length))) };
 }
+/** 單元總測驗的題數。 */
+export const UNIT_QUIZ_SIZE = 12;
+/** 單元總測驗的一堂來源：課程 ID 與那一堂的課後檢核題庫。 */
+export interface UnitSource {
+  lessonId: string;
+  bank: QuizBank;
+}
+/** 單元總測驗題位 ID：「課程 ID__原題位 ID」（學習紀錄用它對回原本那一堂的題型）。 */
+export const UNIT_SLOT_SEP = '__';
+/**
+ * 單元總測驗要抽哪些題位：各堂平均分（12 ÷ 堂數，除不盡的幾題隨機給不同堂），
+ * 某一堂題位不夠就由其他堂補；同一題位不重複。總題位不到 12 就全部出。依上課順序、同一堂依原題號排。
+ */
+export function drawUnitSlots(sources: UnitSource[], size = UNIT_QUIZ_SIZE): { lesson: number; slot: number }[] {
+  const cap = sources.map((x) => x.bank.slots.length);
+  const quota = cap.map(() => 0);
+  let left = Math.min(size, cap.reduce((n, c) => n + c, 0));
+  while (left > 0) {
+    const open = cap.flatMap((c, i) => (quota[i] < c ? [i] : []));
+    const each = Math.floor(left / open.length);
+    if (each === 0) {
+      for (const i of shuffle(open).slice(0, left)) quota[i]++;
+      break;
+    }
+    for (const i of open) {
+      const add = Math.min(each, cap[i] - quota[i]);
+      quota[i] += add;
+      left -= add;
+    }
+  }
+  return quota.flatMap((n, lesson) =>
+    shuffle(cap[lesson] ? Array.from({ length: cap[lesson] }, (_, i) => i) : [])
+      .slice(0, n)
+      .sort((a, b) => a - b)
+      .map((slot) => ({ lesson, slot })),
+  );
+}
+/**
+ * 開一次單元總測驗：抽 12 個題位，每個題位再從換數字的題目抽 1 題、打亂選項（同 drawPaper）。
+ * 存進這一次的題庫只留抽到的那一題（卷子 variant 都是 0），紀錄才不會太大；題庫只在伺服器。
+ */
+export function drawUnit(title: string, sources: UnitSource[], size = UNIT_QUIZ_SIZE): { bank: QuizBank; paper: QuizPaper } {
+  const chosen = drawUnitSlots(sources, size);
+  assert(chosen.length, '這個單元還沒有課後檢核題庫');
+  const slots = chosen.map(({ lesson, slot }) => {
+    const src = sources[lesson],
+      it = src.bank.slots[slot];
+    const variant = it.variants[randomInt(it.variants.length)];
+    const id = `${src.lessonId}${UNIT_SLOT_SEP}${it.id}`;
+    assert(id.length <= 100, `題位 ID 太長：${id}`);
+    return { id, topic: it.topic, variants: [structuredClone(variant)] };
+  });
+  const bank: QuizBank = { title: `${title.slice(0, 90)}（${slots.length} 題）`, slots };
+  return { bank, paper: { picks: slots.map((_, q) => pick(bank, q, 0)) } };
+}
 /** 這位同學在這一次的卷子：錯題練習每人不同，其他模式全班同一份。 */
 export function paperFor(bank: QuizBank, run: QuizRun, seat: string | number): { picks: Picks; slots: number[] } {
   const own = run.personal?.[String(seat)];
@@ -98,8 +153,8 @@ export function viewRun(run: QuizRun, teacher: boolean): ViewQuizRun {
     const { bank: _bank, ...shown } = run;
     return shown;
   }
-  const { id, mode, from, startedAt, seconds, endedAt, matches } = run;
-  return { id, mode, ...(from !== undefined ? { from } : {}), startedAt, seconds, ...(endedAt !== undefined ? { endedAt } : {}), ...(matches ? { matches } : {}) };
+  const { id, mode, from, unit, startedAt, seconds, endedAt, matches } = run;
+  return { id, mode, ...(from !== undefined ? { from } : {}), ...(unit ? { unit } : {}), startedAt, seconds, ...(endedAt !== undefined ? { endedAt } : {}), ...(matches ? { matches } : {}) };
 }
 
 /** 老師看得到所有人的成績、選項分布、每題對錯；學生只看到自己的作答，PK 時看得到各組的題數進度（不含答案）。 */
@@ -205,9 +260,11 @@ export function quizRecord(bank: QuizBank, store: QuizStore, now: number): QuizR
   };
   for (const run of runs) {
     if (run.mode !== 'pk' || !run.matches) continue;
+    // 單元總測驗的 PK 用它自己的題庫（題位和這一課的不一樣）
+    const b = runBank(bank, run)!;
     const sheets = store.quizSheets?.[run.id] || {};
     const sc = (seat: number) =>
-      seat === 0 && sheets['0'] ? botScore(botTimeline(bank, run, sheets['0']), run, now) : score(bank, run, sheets[String(seat)], now, seat);
+      seat === 0 && sheets['0'] ? botScore(botTimeline(b, run, sheets['0']), run, now) : score(b, run, sheets[String(seat)], now, seat);
     for (const m of run.matches) {
       const a = sc(m.a),
         b = sc(m.b);
@@ -262,6 +319,7 @@ export function restoreQuiz(runsInput: unknown, sheetsInput: unknown, seats: num
       paper: { picks: picksOf(record(r.paper).picks) },
       ...(r.bank !== undefined ? { bank: validateQuiz(r.bank) } : {}),
       ...(typeof r.from === 'string' ? { from: r.from.slice(0, 100) } : {}),
+      ...(r.unit === true && r.bank !== undefined ? { unit: true } : {}),
       ...(personal
         ? {
             personal: Object.fromEntries(

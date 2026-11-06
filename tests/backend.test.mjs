@@ -1236,7 +1236,7 @@ test('raid flow: start on the last lesson of 2-2, roles, free choice each questi
   const lesson=(await f.call(`/api/sessions/${s.id}`)).body.lesson;
   assert(lesson.slides.at(-1).raidPage,'last page is the boss battle');
   assert.deepEqual((await f.call(`/api/sessions/${s.id}`)).body.raidMap.wins,{},'adventure map for the teacher');
-  assert(lesson.slides.at(-2).quizPage);
+  assert(lesson.slides.at(-2).unitQuizPage,'unit quiz right before the boss battle');assert(lesson.slides.at(-3).quizPage);
   await goOnline(f,[1,2,3,4]);
   const ctl=(body)=>f.call(`/api/sessions/${s.id}/control`,'POST',body);
   assert.equal((await ctl({action:'raid-start',difficulty:'easy',seconds:300})).status,200);

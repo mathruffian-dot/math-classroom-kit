@@ -37,7 +37,7 @@ function lint(lesson) {
   if (!lesson.slides.some((s) => s.activity?.type === 'canvas')) warnings.push('沒有手寫／拍照（canvas）題，無法看到學生的推理過程。');
   for (const [i, s] of lesson.slides.entries()) {
     const where = `第 ${i + 1} 頁「${s.title}」`;
-    if (!s.activity && !s.quizPage && !s.raidPage && !s.duelPage) warnings.push(`${where}沒有 IRS 題目。`);
+    if (!s.activity && !s.quizPage && !s.unitQuizPage && !s.raidPage && !s.duelPage) warnings.push(`${where}沒有 IRS 題目。`);
     if ((s.body || '').length > 90) warnings.push(`${where}內文 ${s.body.length} 字，超過 90 字（分段原則：一頁一重點）。`);
     if (!s.phase) warnings.push(`${where}沒有標 phase（認知設計階段）。`);
     if (s.interactive?.steps?.length && !s.interactive.shapes.some((x) => x.step !== undefined || x.focus))
@@ -87,6 +87,16 @@ for (const file of (await readdir(join(root, 'content/duels')).catch(() => [])).
     raidErrors++;
   }
 }
+
+// 有課後檢核題庫的課程 ID（單元總測驗彙整同單元各堂用）
+const quizIds = (await readdir(join(root, 'content/quizzes')).catch(() => [])).filter((f) => f.endsWith('.json')).map((f) => f.slice(0, -5)).sort();
+/** 同一單元、到這一堂為止（含）有課後檢核題庫的各堂：g8-2-3c → g8-2-3a、g8-2-3b、g8-2-3c。 */
+function unitLessons(id) {
+  const m = id.match(/^(.*\d)([a-z])$/);
+  if (!m) return quizIds.includes(id) ? [id] : [];
+  return quizIds.filter((x) => x.length === id.length && x.startsWith(m[1]) && /[a-z]$/.test(x) && x <= id);
+}
+const unitHosts = [];
 
 const lessonDir = join(root, 'content/lessons');
 const files = (await readdir(lessonDir)).filter((f) => f.endsWith('.json')).sort();
@@ -212,6 +222,25 @@ for (const file of files) {
   let raidNote = '';
   const raid = raids[raw.id];
   if (raid) {
+    // 單元總測驗：魔王戰前一頁，玩法同課後檢核・PK 戰，題目從整個單元各堂的課後檢核題庫抽 12 題（開測驗時伺服器才抽）
+    const unit = raw.quiz ? unitLessons(raw.id) : [];
+    if (unit.length) {
+      raw.unitQuiz = { title: `${raid.section ? `${raid.section} ` : ''}單元總測驗`, lessons: unit };
+      unitHosts.push(raw.id);
+      if (!raw.slides.some((s) => s.unitQuizPage)) {
+        const page = {
+          id: 'unit-quiz',
+          phase: '單元總測驗',
+          eyebrow: `${raid.section || ''} 總複習 / 單元總測驗`,
+          title: raw.unitQuiz.title,
+          body: `整個單元（${unit.length} 堂）的課後檢核題庫抽 12 題四選一，各堂平均出題。老師可以派全班測驗，或開 PK 戰兩兩對戰；考完再打魔王。`,
+          unitQuizPage: true,
+        };
+        const at = raw.slides.findIndex((s) => s.raidPage);
+        raw.slides.splice(at < 0 ? raw.slides.length : at, 0, page);
+      }
+      raidNote = `，單元總測驗 ${unit.join('＋')}`;
+    }
     if (!raw.slides.some((s) => s.raidPage))
       raw.slides.push({
         id: 'raid',
@@ -221,7 +250,7 @@ for (const file of files) {
         body: '全班合作打倒魔王：記憶題＝普通攻擊、理解題＝防護罩、應用題＝大招。每一題自己選要做哪一類。',
         raidPage: true,
       });
-    raidNote = `，魔王戰 ${raid.pools.attack.length}＋${raid.pools.shield.length}＋${raid.pools.ultimate.length} 題`;
+    raidNote = `${raidNote}，魔王戰 ${raid.pools.attack.length}＋${raid.pools.shield.length}＋${raid.pools.ultimate.length} 題`;
   }
   // 補救練習題另外放在 content/practice/<課程 id>.json（{ 題目 ID: [第 1、2、3 輪] }），在這裡併進課程。
   let practiceNote = '';
@@ -268,6 +297,13 @@ for (const id of Object.keys(raids))
     console.error(`✗ 魔王戰 ${id}.json：找不到課程 ${id}`);
     errors++;
   }
+// 單元總測驗的每一堂都要在課程裡、有課後檢核題庫（題目在伺服器開測驗時才從各堂的 quiz 抽）
+for (const id of unitHosts)
+  for (const x of lessons.find((l) => l.id === id)?.unitQuiz?.lessons || [])
+    if (!lessons.some((l) => l.id === x && l.quiz)) {
+      console.error(`✗ 單元總測驗 ${id}：找不到有課後檢核題庫的課程 ${x}`);
+      errors++;
+    }
 await writeFile(join(root, 'content/raids.generated.json'), JSON.stringify({ banks: raids }) + '\n');
 for (const id of Object.keys(duels))
   if (!ids.has(id)) {
