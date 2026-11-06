@@ -5312,9 +5312,14 @@ button.link {
   z-index: 1;
   background: #fff;
 }
-.hw-plan {
+.hw-plan,
+.hw-done {
   display: grid;
   gap: 12px;
+}
+.hw-plan-note,
+.hw-done p {
+  margin: 0;
 }
 .hw-plan-tools,
 .hw-plan-foot {

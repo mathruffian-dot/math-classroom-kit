@@ -63,7 +63,7 @@ function planHtml() {
     })
     .join('');
   const n = plan!.picked.size;
-  return `<div class="hw-plan" data-testid="hw-plan"><p class="muted">${esc(p.title)}。依課堂上的作答（IRS、課後檢核、PK、魔王戰、步驟格鬥、補救練習）算答對率，預設勾選答對率最低的 1/3；每人 10 題，從自己最需要練習的題型出題。</p>${scopes}<div class="hw-plan-tools">${btn('預設（後 1/3）', 'hw-pick', 'quiet', '', 'data-pick="suggested"')}${btn('全選', 'hw-pick', 'quiet', '', 'data-pick="all"')}${btn('清除', 'hw-pick', 'quiet', '', 'data-pick="none"')}<span class="hw-count" data-testid="hw-count">已選 ${n} 人</span></div><div class="table-wrap hw-plan-table"><table><thead><tr><th>座號</th><th>答對率</th><th>作答數</th><th>最需要練習</th></tr></thead><tbody>${rows}</tbody></table></div><div class="hw-plan-foot"><span id="hw-progress" class="muted" role="status"></span>${btn(`產生 ${n} 份作業並下載 zip`, 'hw-create', 'primary', 'download', `data-testid="hw-create" ${n ? '' : 'disabled'}`)}</div></div>`;
+  return `<div class="hw-plan" data-testid="hw-plan"><p class="muted">${esc(p.title)}。依課堂上的作答（IRS、課後檢核、PK、魔王戰、步驟格鬥、補救練習）算答對率，預設勾選答對率最低的 1/3；每人 10 題，從自己最需要練習的題型出題。</p>${scopes}<div class="hw-plan-tools">${btn('預設（後 1/3）', 'hw-pick', 'quiet', '', 'data-pick="suggested"')}${btn('全選', 'hw-pick', 'quiet', '', 'data-pick="all"')}${btn('清除', 'hw-pick', 'quiet', '', 'data-pick="none"')}<span class="hw-count" data-testid="hw-count">已選 ${n} 人</span></div><div class="table-wrap hw-plan-table"><table><thead><tr><th>座號</th><th>答對率</th><th>作答數</th><th>最需要練習</th></tr></thead><tbody>${rows}</tbody></table></div><p class="muted hw-plan-note">zip 裡有每人一份 PDF、<b>00_解答總表（老師用）</b>和 <b>01_全班作業（合併）</b>（全部同學接成一個檔，依座號排，整本印用）；產生完也可以直接下載合併 PDF。</p><div class="hw-plan-foot"><span id="hw-progress" class="muted" role="status"></span>${btn(`產生 ${n} 份作業並下載 zip`, 'hw-create', 'primary', 'download', `data-testid="hw-create" ${n ? '' : 'disabled'}`)}</div></div>`;
 }
 function refreshPlan() {
   const body = document.querySelector('.modal-body');
@@ -134,15 +134,33 @@ function waitImages(el: HTMLElement) {
     ),
   );
 }
-async function pagesToPdf(pages: HTMLElement[]) {
-  const [{ jsPDF }, { default: html2canvas }] = await Promise.all([import('jspdf'), import('html2canvas')]);
+/** 一份 A4 PDF；add() 一次加一頁（JPEG）。 */
+async function pdfDoc() {
+  const { jsPDF } = await import('jspdf');
   const pdf = new jsPDF({ orientation: 'p', unit: 'pt', format: 'a4', compress: true });
-  for (const [i, page] of pages.entries()) {
+  let n = 0;
+  return {
+    add(jpeg: string) {
+      if (n++) pdf.addPage('a4', 'p');
+      pdf.addImage(jpeg, 'JPEG', 0, 0, 595.28, 841.89);
+    },
+    blob: () => pdf.output('blob') as Blob,
+  };
+}
+/** 把排好的頁面一頁一頁截圖，交給每一份 PDF（同一頁只截一次，就能同時放進個人卷和全班合併卷）。 */
+async function renderPages(pages: HTMLElement[], docs: Awaited<ReturnType<typeof pdfDoc>>[]) {
+  const { default: html2canvas } = await import('html2canvas');
+  for (const page of pages) {
     const canvas = await html2canvas(page, { scale: 2, backgroundColor: '#ffffff', logging: false, width: PAGE_W, height: PAGE_H, windowWidth: PAGE_W });
-    if (i) pdf.addPage('a4', 'p');
-    pdf.addImage(canvas.toDataURL('image/jpeg', 0.88), 'JPEG', 0, 0, 595.28, 841.89);
+    const jpeg = canvas.toDataURL('image/jpeg', 0.88);
+    canvas.width = canvas.height = 0; // 早點放掉畫布記憶體（全班 35 人以上時）
+    for (const d of docs) d.add(jpeg);
   }
-  return pdf.output('blob');
+}
+async function pagesToPdf(pages: HTMLElement[]) {
+  const doc = await pdfDoc();
+  await renderPages(pages, [doc]);
+  return doc.blob();
 }
 function printHost() {
   const host = document.createElement('div');
@@ -160,15 +178,48 @@ export async function sheetPdf(v: HomeworkSheetView): Promise<Blob> {
     host.remove();
   }
 }
-/** 全部同學的作業卷（每人一份 PDF）加上解答總表，打包成 zip 下載。 */
-export async function downloadZip(sheets: HomeworkSheetView[], progress?: (text: string) => void) {
+const today = () => new Date().toISOString().slice(0, 10);
+export const MERGED_IN_ZIP = '01_全班作業（合併）.pdf';
+const mergedName = (v: HomeworkSheetView) => `${safeName(v.className)}_${safeName(v.title)}_${today()}_全班合併.pdf`;
+function save(blob: Blob, name: string) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+}
+/** 依座號把每位同學的作業卷排版、截圖；each 收到每位同學的頁面（解答不在這裡，合併卷不含解答）。 */
+async function eachSheet(sheets: HomeworkSheetView[], merged: Awaited<ReturnType<typeof pdfDoc>>, progress?: (text: string) => void, each?: (v: HomeworkSheetView, pdf: Blob) => void) {
+  const sorted = [...sheets].sort((a, b) => a.seat - b.seat);
+  for (const [i, v] of sorted.entries()) {
+    progress?.(`正在產生 PDF ${i + 1} / ${sorted.length}…`);
+    const host = printHost();
+    try {
+      const pages = await layoutPages(host, v, v.questions.map((q) => questionHtml(q)));
+      const own = each ? await pdfDoc() : null;
+      await renderPages(pages, own ? [own, merged] : [merged]);
+      if (own) each!(v, own.blob());
+    } finally {
+      host.remove();
+    }
+  }
+}
+/** 全班合併 PDF：被選同學的作業卷依座號接在一起（每人頁首仍有班級／座號／QR code），不含解答。 */
+export async function downloadMergedPdf(sheets: HomeworkSheetView[], progress?: (text: string) => void) {
+  const merged = await pdfDoc();
+  await eachSheet(sheets, merged, progress);
+  save(merged.blob(), mergedName(sheets[0]));
+  progress?.('');
+}
+/** 全部同學的作業卷（每人一份 PDF）、全班合併 PDF 加上解答總表，打包成 zip 下載。回傳合併 PDF，讓畫面另外提供下載。 */
+export async function downloadZip(sheets: HomeworkSheetView[], progress?: (text: string) => void): Promise<{ blob: Blob; name: string }> {
   const { default: JSZip } = await import('jszip');
   const zip = new JSZip();
   const first = sheets[0];
-  for (const [i, v] of sheets.entries()) {
-    progress?.(`正在產生 PDF ${i + 1} / ${sheets.length}…`);
-    zip.file(`${safeName(v.className)}_${String(v.seat).padStart(2, '0')}號_${safeName(v.title)}.pdf`, await sheetPdf(v));
-  }
+  const merged = await pdfDoc();
+  await eachSheet(sheets, merged, progress, (v, pdf) => zip.file(`${safeName(v.className)}_${String(v.seat).padStart(2, '0')}號_${safeName(v.title)}.pdf`, pdf));
+  const all = merged.blob();
+  zip.file(MERGED_IN_ZIP, all);
   progress?.('正在產生解答…');
   const host = printHost();
   try {
@@ -179,13 +230,9 @@ export async function downloadZip(sheets: HomeworkSheetView[], progress?: (text:
     host.remove();
   }
   progress?.('正在打包…');
-  const blob = await zip.generateAsync({ type: 'blob' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `${safeName(first.className)}_${safeName(first.title)}_${new Date().toISOString().slice(0, 10)}.zip`;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+  save(await zip.generateAsync({ type: 'blob' }), `${safeName(first.className)}_${safeName(first.title)}_${today()}.zip`);
   progress?.('');
+  return { blob: all, name: mergedName(first) };
 }
 
 /* ───────────── 紅筆（照片上的對錯與評語） ───────────── */
@@ -593,7 +640,7 @@ export async function renderHomeworkDetail(id: string) {
   const rows = r.sheets
     .map((s) => `<tr><td>${s.seat} 號</td><td>${tag(STATUS_LABEL[s.status], STATUS_CLASS[s.status])}</td><td>${s.result ? `${s.result.score} / ${s.result.max}` : '—'}</td><td>${s.submittedAt ? dateTime(s.submittedAt) : '—'}</td><td class="chips">${[...new Set(s.questions.map((q) => q.topic))].map((t) => `<span class="chip">${esc(t)}</span>`).join('')}</td><td><div class="actions">${s.photos.length ? btn('查看', 'hw-seat', 'quiet', 'eye', `data-seat="${s.seat}" data-testid="hw-seat-${s.seat}"`) : ''}${s.photos.length && s.status !== 'queued' && s.status !== 'grading' ? btn('重新批改', 'hw-regrade', 'quiet', 'stamp', `data-seat="${s.seat}"`) : ''}${btn('PDF', 'hw-seat-pdf', 'quiet', 'download', `data-seat="${s.seat}"`)}</div></td></tr>`)
     .join('');
-  H.shell('homework', esc(r.homework.title), `<p class="muted">${esc(r.homework.className)}・${dateTime(r.homework.createdAt)} 派發・${r.sheets.length} 人</p><section class="panel"><div class="table-wrap"><table data-testid="hw-detail"><thead><tr><th>座號</th><th>狀態</th><th>答對</th><th>繳交時間</th><th>題型</th><th>操作</th></tr></thead><tbody>${rows}</tbody></table></div></section>`, `${btn('返回', 'hw-back', 'secondary', 'back')}${btn('下載 zip', 'hw-zip', 'primary', 'download', `data-id="${id}"`)}`);
+  H.shell('homework', esc(r.homework.title), `<p class="muted">${esc(r.homework.className)}・${dateTime(r.homework.createdAt)} 派發・${r.sheets.length} 人</p><section class="panel"><div class="table-wrap"><table data-testid="hw-detail"><thead><tr><th>座號</th><th>狀態</th><th>答對</th><th>繳交時間</th><th>題型</th><th>操作</th></tr></thead><tbody>${rows}</tbody></table></div></section>`, `${btn('返回', 'hw-back', 'secondary', 'back')}${btn('下載 zip', 'hw-zip', 'primary', 'download', `data-id="${id}" data-testid="hw-zip"`)}${btn('下載全班合併 PDF', 'hw-merged', 'secondary', 'download', `data-id="${id}" data-testid="hw-merged"`)}`);
 }
 function seatModal(seat: number) {
   const v = detail!.sheets.find((s) => s.seat === seat)!;
@@ -692,6 +739,8 @@ document.addEventListener('change', (e) => {
 });
 
 /* ───────────── 按鈕 ───────────── */
+/** 剛派發完的全班合併 PDF（派發視窗「下載全班合併 PDF」用）。 */
+let lastMerged: { blob: Blob; name: string } | null = null;
 /** 這個模組的按鈕；不是的話回傳 false。 */
 export async function homeworkAction(el: HTMLElement): Promise<boolean> {
   const act = el.dataset.action;
@@ -713,9 +762,19 @@ export async function homeworkAction(el: HTMLElement): Promise<boolean> {
       };
       progress('正在出題…');
       const r = await api<{ homework: HomeworkMeta; sheets: HomeworkSheetView[] }>('/homework', 'POST', { classId: p.classId, lessonId: p.lessonId, scope: p.plan.scope, seats: [...p.picked] });
-      await downloadZip(r.sheets, progress);
-      H.closeModal();
+      lastMerged = await downloadZip(r.sheets, progress);
+      const body = document.querySelector('[data-testid="hw-plan"]')?.closest('.modal-body'); // 老師中途關掉視窗就不顯示（zip 已下載，作業頁也能再下）
+      if (body)
+        body.innerHTML = `<div class="hw-done" data-testid="hw-done"><p><strong>已派發 ${r.sheets.length} 份作業</strong>，zip 已經下載：每人一份 PDF、<code>00_解答總表（老師用）.pdf</code>、<code>${MERGED_IN_ZIP}</code>。</p><p class="muted">要整本印的話，也可以直接下載全班合併 PDF（不含解答）。之後到「作業」頁看繳交與批改，也能重新下載。</p><div class="hw-plan-foot">${btn('下載全班合併 PDF', 'hw-merged-save', 'secondary', 'download', 'data-testid="hw-merged-save"')}${btn('完成', 'close-modal', 'primary')}</div></div>`;
       H.toast(`已派發 ${r.sheets.length} 份作業；到「作業」頁看繳交與批改`);
+      return true;
+    }
+    case 'hw-merged-save':
+      if (lastMerged) save(lastMerged.blob, lastMerged.name);
+      return true;
+    case 'hw-merged': {
+      const r = await api<{ sheets: HomeworkSheetView[] }>(`/homework/${el.dataset.id}`);
+      await downloadMergedPdf(r.sheets, (t) => t && H.toast(t));
       return true;
     }
     case 'hw-open':

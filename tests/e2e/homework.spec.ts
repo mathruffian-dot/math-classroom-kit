@@ -1,4 +1,4 @@
-// 回家作業：老師在課堂上派發（預設答對率最低的 1/3）→ 下載 zip（每人一份 A4 PDF＋解答）→ 學生掃 QR code 拍照上傳 → 批改發回（紅筆）→ 老師看結果、改判；學習紀錄頁。
+// 回家作業：老師在課堂上派發（預設答對率最低的 1/3）→ 下載 zip（每人一份 A4 PDF＋全班合併 PDF＋解答）→ 學生掃 QR code 拍照上傳 → 批改發回（紅筆）→ 老師看結果、改判；學習紀錄頁。
 import { test, expect, type Browser, type BrowserContext, type APIRequestContext, type Page, type Request } from '@playwright/test';
 import JSZip from 'jszip';
 import { readFile, writeFile } from 'node:fs/promises';
@@ -66,11 +66,24 @@ test('teacher assigns differentiated homework; a student uploads the sheet and g
   const [dl] = await Promise.all([tp.waitForEvent('download', { timeout: 120_000 }), tp.getByTestId('hw-create').click()]);
   const zip = await JSZip.loadAsync(await readFile((await dl.path())!));
   const names = Object.keys(zip.files).sort();
-  expect(names).toHaveLength(4);
+  expect(names).toHaveLength(5);
   expect(names[0]).toMatch(/^00_解答總表/);
-  expect(names[1]).toMatch(/_01號_.*\.pdf$/);
+  expect(names[1]).toBe('01_全班作業（合併）.pdf');
+  expect(names[2]).toMatch(/_01號_.*\.pdf$/);
   for (const n of names) expect((await zip.file(n)!.async('uint8array')).slice(0, 5)).toEqual(new TextEncoder().encode('%PDF-'));
-  if (shots) for (const n of names.slice(0, 2)) await writeFile(join(shots, n.startsWith('00') ? 'hw-key.pdf' : 'hw-seat1.pdf'), await zip.file(n)!.async('uint8array'));
+  // 合併檔的頁數＝三位同學個人卷的頁數加起來（不含解答總表）
+  const pdfPages = (b: Uint8Array) => (new TextDecoder('latin1').decode(b).match(/\/Type \/Page(?!s)/g) || []).length;
+  const seatPages = await Promise.all(names.slice(2).map(async (n) => pdfPages(await zip.file(n)!.async('uint8array'))));
+  const mergedBytes = await zip.file(names[1])!.async('uint8array');
+  expect(seatPages.every((n) => n >= 1)).toBe(true);
+  expect(pdfPages(mergedBytes)).toBe(seatPages.reduce((a, b) => a + b, 0));
+  if (shots) for (const n of [names[0], names[2]]) await writeFile(join(shots, n.startsWith('00') ? 'hw-key.pdf' : 'hw-seat1.pdf'), await zip.file(n)!.async('uint8array'));
+  // 產生完，派發視窗留著「下載全班合併 PDF」
+  await expect(tp.getByTestId('hw-done')).toContainText('01_全班作業（合併）.pdf');
+  const [mdl] = await Promise.all([tp.waitForEvent('download'), tp.getByTestId('hw-merged-save').click()]);
+  expect(mdl.suggestedFilename()).toMatch(/_全班合併\.pdf$/);
+  expect(pdfPages(await readFile((await mdl.path())!))).toBe(pdfPages(mergedBytes));
+  await tp.getByRole('button', { name: '完成' }).click();
 
   const list = (await (await tp.request.get('/api/homework')).json()).homework;
   homeworkId = list[0].id;
@@ -104,6 +117,10 @@ test('teacher assigns differentiated homework; a student uploads the sheet and g
   // 老師：作業頁、改判
   await tp.goto(`/#/homework/${homeworkId}`);
   await expect(tp.getByTestId('hw-detail')).toContainText('已批改');
+  // 作業頁也能重新下載全班合併 PDF
+  const [ddl] = await Promise.all([tp.waitForEvent('download', { timeout: 120_000 }), tp.getByTestId('hw-merged').click()]);
+  expect(ddl.suggestedFilename()).toMatch(/_全班合併\.pdf$/);
+  expect(pdfPages(await readFile((await ddl.path())!))).toBe(pdfPages(mergedBytes));
   await tp.getByTestId('hw-seat-1').click();
   await expect(tp.getByTestId('hw-seat-modal')).toBeVisible();
   const score = Number((await tp.locator('.hw-score strong').innerText()).split('/')[0]);
