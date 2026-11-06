@@ -118,7 +118,7 @@ interface StoredClass {
   students: { seat: number; codeHash: string }[];
   /** 舊版魔王戰個人最佳（不分課，會把別課魔王的題數拿來比）；只留著不再讀寫，改用 raidBestBy。 */
   raidBest?: Record<string, number>;
-  /** 魔王戰個人最佳：課程 ID → 座號 → 一場最多答對幾題（同一隻魔王跨課堂保留，不同魔王不互比）。 */
+  /** 魔王戰個人最佳：課程 ID → 座號 → 一場最多答對幾題（同一班跨課堂保留，不同課互不影響）。 */
   raidBestBy?: Record<string, Record<string, number>>;
   /** 冒險地圖：課程 ID → 難度 → 第一次打倒的時間與最快幾毫秒。 */
   raidWins?: Record<string, Partial<Record<RaidDifficulty, { at: number; ms: number }>>>;
@@ -344,17 +344,17 @@ function spacedSource(state: State, s: StoredSession) {
   }
   return undefined;
 }
+/** 把這一場每個人答對的題數記進班級的個人最佳（已經結束的才記；重複記不影響）。 */
 /**
- * 這個班這一課魔王戰的個人最佳（會建立）。第一次用到時，從已載入的同班同課課堂裡已經結束的場次補算
- * （封存未載入的課堂補不到；舊版不分課的 raidBest 分不出是哪一課，不拿來用）。
+ * 這個班這一課魔王戰的個人最佳。每次呼叫都把已載入、同班同課、已結束場次的成績併入快取
+ * （進行中後來自然逾時、或封存後又載入的課堂，下一次開戰也能補上；舊版不分課的 raidBest 不拿來用）。
  */
 function lessonRaidBest(state: State, classId: string, lessonId: string): Record<string, number> {
   const cl = state.classes[classId];
   if (!cl) return {};
   const by = (cl.raidBestBy ||= {});
-  if (by[lessonId]) return by[lessonId];
-  const best: Record<string, number> = {},
-    now = Date.now();
+  const best = (by[lessonId] ||= {});
+  const now = Date.now();
   for (const s of Object.values(state.sessions)) {
     if (s.session.classId !== classId || s.session.lessonId !== lessonId) continue;
     for (const run of s.raidRuns || []) {
@@ -363,9 +363,8 @@ function lessonRaidBest(state: State, classId: string, lessonId: string): Record
       for (const [seat, x] of Object.entries(st.stats)) best[seat] = Math.max(best[seat] ?? 0, raidCorrect(x));
     }
   }
-  return (by[lessonId] = best);
+  return best;
 }
-/** 把這一場每個人答對的題數記進班級的個人最佳（已經結束的才記；重複記不影響）。 */
 function recordRaidBest(state: State, s: StoredSession) {
   const run = s.session.raid;
   const cl = state.classes[s.session.classId];
@@ -373,7 +372,7 @@ function recordRaidBest(state: State, s: StoredSession) {
   const st = raidState(run, s, Date.now());
   if (!raidOver(run, st)) return;
   const best = lessonRaidBest(state, s.session.classId, s.session.lessonId);
-  for (const [seat, x] of Object.entries(st.stats)) best[seat] = Math.max(best[seat] || 0, raidCorrect(x));
+  for (const [seat, x] of Object.entries(st.stats)) best[seat] = Math.max(best[seat] ?? 0, raidCorrect(x));
   // 冒險地圖：打倒這一隻魔王（記最快的時間）
   if (st.result === 'win' && st.endAt !== undefined) {
     const wins = ((cl.raidWins ||= {})[s.session.lessonId] ||= {});
@@ -1574,7 +1573,7 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
             closeRaid(s, state);
             closeDuel(s);
             // 開戰時記下每個人之前的個人最佳（結算時比較有沒有突破）
-            // 只和同一課（同一隻魔王）比：別課的魔王題庫、難度不同，題數不能互比
+            // 只用這一課的紀錄來比；別課的題庫、難度、答對題數不能互比
             const prevBest = { ...lessonRaidBest(state, session.classId, session.lessonId) };
             // 困難魔王＋題庫有分析題：有護盾（設定存在這一場的紀錄裡，之後改規則也不影響已開戰的場次）
             const analysisN = raidBank(session.lessonId)!.pools.analysis?.length || 0;
