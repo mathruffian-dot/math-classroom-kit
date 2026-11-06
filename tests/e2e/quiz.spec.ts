@@ -72,6 +72,20 @@ test('formative quiz for the class, then PK battles picked on the seat map and b
   // 同一份卷子：兩位同學第 1 題題目相同
   await answerTab(s22);
   await expect(s22.locator('.quiz-stem')).toHaveText((await s21.locator('.quiz-stem').textContent())!);
+  // 同一個答案再點一次（畫面指紋不變、不重畫）、送出失敗：選項都要恢復可點
+  const opts = s21.locator('[data-action="quiz-choose"]');
+  const allEnabled = async () => expect.poll(() => opts.evaluateAll((bs) => bs.map((b) => (b as HTMLButtonElement).disabled))).toEqual(Array(await opts.count()).fill(false));
+  await s21.getByTestId('quiz-option-0').click();
+  await expect(s21.getByTestId('quiz-option-0')).toHaveClass(/chosen/);
+  await s21.waitForTimeout(500);
+  await s21.getByTestId('quiz-option-0').click();
+  await allEnabled();
+  await s21.route(/\/api\/sessions\/[^/]+\/quiz$/, (r) => r.abort());
+  await s21.waitForTimeout(500);
+  await s21.getByTestId('quiz-option-1').click();
+  await allEnabled();
+  await s21.unroute(/\/api\/sessions\/[^/]+\/quiz$/);
+  await s21.waitForTimeout(500);
   for (let i = 0; i < 10; i++) {
     await s21.getByTestId('quiz-option-0').click();
     // 信心下注：選完答案要選把握程度，才會跳下一題

@@ -3346,6 +3346,8 @@ async function action(el: HTMLElement) {
       } finally {
         quizSending = false;
         refreshQuiz();
+        // 只有比分變（同一題重選、送出失敗）不會重畫：自己把選項解鎖（重畫出來的選項本來就可點；PK 答過的由上面的檢查擋）
+        document.querySelectorAll<HTMLButtonElement>('[data-action="quiz-choose"]').forEach((b) => (b.disabled = false));
       }
       return;
     }

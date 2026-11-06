@@ -22,7 +22,7 @@ async function login(playwright: typeof import('@playwright/test'), data: Record
 }
 
 /** 背景的同學：一題一題作答（每人每 1～2 秒一題），比分一直變、推送一直來。37 號（對手）慢一點，題目不會先做完。 */
-function classmates(cs: { seat: number; c: APIRequestContext }[], sessionId: string) {
+function classmates(cs: { seat: number; c: APIRequestContext }[], sessionId: string, ok: Map<number, number>) {
   let stop = false;
   const loops = cs.map(async ({ seat, c }, k) => {
     await new Promise((r) => setTimeout(r, 300 * k));
@@ -32,7 +32,10 @@ function classmates(cs: { seat: number; c: APIRequestContext }[], sessionId: str
         const q = view.quiz;
         if (q && q.run.startedAt <= Date.now()) {
           const i = (q.mine?.answers || q.questions.map(() => null)).findIndex((x: number | null) => x === null);
-          if (i >= 0) await c.post(`/api/sessions/${sessionId}/quiz`, { headers, data: { runId: q.run.id, q: q.questions[i].slot, choice: (seat + i) % 2 } });
+          if (i >= 0) {
+            const r = await c.post(`/api/sessions/${sessionId}/quiz`, { headers, data: { runId: q.run.id, q: q.questions[i].slot, choice: (seat + i) % 2 } });
+            if (r.ok()) ok.set(seat, (ok.get(seat) || 0) + 1);
+          }
         }
       } catch {
         /* 下一輪再試 */
@@ -114,7 +117,9 @@ test('PK phone: classmates answering does not make the question jump while the s
     await control('pk-lobby', { unit: true });
     for (const seat of [ME, ...MATES]) await control('pk-pick', { seat });
     await control('pk-start', { seconds: 600 });
-    stopMates = classmates(mates, sessionId);
+    // 每位同學成功作答幾次（背景作答失敗會被吞掉，要另外確認真的有推送）
+    const answered = new Map<number, number>();
+    stopMates = classmates(mates, sessionId, answered);
 
     const tab = page.locator('.phone-tabs [data-tab="answer"]');
     if (await tab.isVisible().catch(() => false)) await tab.click();
@@ -161,7 +166,8 @@ test('PK phone: classmates answering does not make the question jump while the s
       await scroller.evaluate((el) => {
         (window as unknown as { __mckStem: Element | null }).__mckStem = el.querySelector('.quiz-stem');
       });
-      const t0 = Date.now(),
+      const before37 = answered.get(37) || 0,
+        t0 = Date.now(),
         progress = new Set<string>(),
         samples: number[] = [];
       while (Date.now() - t0 < HOLD_MS) {
@@ -169,18 +175,23 @@ test('PK phone: classmates answering does not make the question jump while the s
         progress.add((await page.locator('#pk-progress').textContent()) || '');
         await page.waitForTimeout(100);
       }
+      const did37 = (answered.get(37) || 0) - before37;
       const kept = await page.evaluate(() => !!(window as unknown as { __mckStem: Element | null }).__mckStem?.isConnected);
       const after = await writes();
-      console.log(`question ${round}: scrolled to ${set}, then ${Math.min(...samples)}~${Math.max(...samples)}; progress texts ${progress.size}; app scroll writes ${after.length}; card kept ${kept}`);
+      console.log(`question ${round}: scrolled to ${set}, then ${Math.min(...samples)}~${Math.max(...samples)}; progress texts ${progress.size}; opponent answered ${did37}; app scroll writes ${after.length}; card kept ${kept}`);
       for (const w of after.slice(0, 8)) console.log('  ' + w);
       await expect(page.locator('.mini-label')).toContainText(`第 ${round}／`);
       if (samples.some((s) => Math.abs(s - set) > 4)) fails.push(`question ${round}: ${set} -> ${Math.min(...samples)}~${Math.max(...samples)}`);
+      // 對手（37）在這段時間內真的作答成功、#pk-progress 真的變了：否則這輪沒有測到比分推送
+      expect(did37, `question ${round}: opponent 37 answered during the hold`).toBeGreaterThan(0);
+      expect(progress.size, `question ${round}: #pk-progress changed during the hold`).toBeGreaterThan(1);
       if (!kept) fails.push(`question ${round}: quiz card was re-rendered while only scores changed`);
       if (after.length) fails.push(`question ${round}: app wrote scroll ${after.length}x: ${after[0]}`);
       // 作答換下一題：點最後一個選項（在下面，要捲過去才點得到）
       await page.locator('[data-action="quiz-choose"]').last().tap();
     }
     expect(fails, 'question jumped while classmates answered').toEqual([]);
+    expect([...answered.values()].reduce((a, b) => a + b, 0), 'background classmates answered').toBeGreaterThan(0);
   } finally {
     await stopMates();
     await t.delete(`/api/sessions/${sessionId}`, { headers, data: {} }).catch(() => undefined);
