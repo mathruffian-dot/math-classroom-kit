@@ -39,6 +39,8 @@ export interface RaidHelpers {
   icon(name: string): string;
   figure(svg: string | undefined): string;
   serverTime(): number;
+  /** 換畫面就加一（main.ts 的 routeVersion）：送出中的鎖只算在送出它的那個畫面。 */
+  route(): number;
 }
 let H: RaidHelpers;
 export function initRaidUi(h: RaidHelpers) {
@@ -515,27 +517,35 @@ export function raidPanelHtml(v: RaidView | undefined, prefs: { difficulty: stri
 /* ───────── 學生：作答卡 ───────── */
 export interface RaidLocal {
   flash: string;
+  /** 放上 flash 的那一次操作的序號（src/raid-act.ts）：比它早送出的回應晚到不蓋掉。 */
+  flashGen: number;
   /**
    * 送出中的請求（沒有就 null）：只鎖它自己那一場（作答再限那一題），換場、換題後新的畫面不被舊請求鎖住。
    * 作答時 q＋choice 是剛點的選項（先顯示再同步）：先標成已選、整排鎖住，只代表「我選了這個」，不猜對錯、不動血量。
    * 回應回來（成功或失敗）由送出它的那一次拿掉；舊請求晚到不會清掉新的。
+   * route：送出時的畫面（routeVersion）。離開再回來同一場，舊請求還沒回來也不鎖新畫面（和回應的套用條件一樣）。
    */
-  sending: { run: string; q?: string; choice?: number } | null;
+  sending: { run: string; route: number; gen: number; q?: string; choice?: number } | null;
   /** 學生按了「先不設定目標」（這一場）。 */
   noGoal: string;
   /** 分析題「判斷＋理由」：兩段各選了哪一個（q＝題目 id）。 */
   pick: { q: string; a?: number; r?: number };
 }
-export const raidLocal: RaidLocal = { flash: '', sending: null, noGoal: '', pick: { q: '' } };
+export const raidLocal: RaidLocal = { flash: '', flashGen: 0, sending: null, noGoal: '', pick: { q: '' } };
+/** 這個畫面送出中的請求（同一場、同一個畫面；離開過再回來就不算）。 */
+function pendingHere(v: RaidView) {
+  const p = raidLocal.sending;
+  return p && p.run === v.run.id && p.route === H.route() ? p : null;
+}
 /** 這個畫面有請求在送（同一場；作答的請求只算它那一題還在畫面上的時候）。 */
 export function raidBusy(v: RaidView) {
-  const p = raidLocal.sending;
-  return !!p && p.run === v.run.id && (p.q === undefined || p.q === v.mine?.question?.id);
+  const p = pendingHere(v);
+  return !!p && (p.q === undefined || p.q === v.mine?.question?.id);
 }
-/** 這一題送出中的選擇（別場、別題不算）。 */
+/** 這一題送出中的選擇（別場、別題、別的畫面不算）。 */
 function pendingChoice(v: RaidView, qid: string) {
-  const p = raidLocal.sending;
-  return p && p.run === v.run.id && p.q === qid ? p.choice : undefined;
+  const p = pendingHere(v);
+  return p && p.q === qid ? p.choice : undefined;
 }
 /** 一般選項（點了就送出）：送出中的那一個標成已選。 */
 function answerOption(v: RaidView, qid: string, o: string, i: number) {

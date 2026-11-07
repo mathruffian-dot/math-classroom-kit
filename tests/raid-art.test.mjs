@@ -11,7 +11,7 @@ const dir = await mkdtemp(join(tmpdir(), 'raid-art-'));
 test.after(() => rm(dir, { recursive: true, force: true }));
 await build({ entryPoints: [resolve('src/raid-ui.ts')], outdir: dir, bundle: true, platform: 'node', format: 'esm', outExtension: { '.js': '.mjs' }, loader: { '.css': 'empty' }, logLevel: 'silent' });
 const ui = await import(pathToFileURL(join(dir, 'raid-ui.mjs')).href);
-ui.initRaidUi({ esc: (s) => String(s), md: (s) => s, btn: () => '', icon: () => '', figure: () => '', serverTime: () => Date.now() });
+ui.initRaidUi({ esc: (s) => String(s), md: (s) => s, btn: () => '', icon: () => '', figure: () => '', serverTime: () => Date.now(), route: () => 0 });
 
 const G9 = { easy: '縮放史萊姆', normal: '影長巨像', hard: '相似三角龍' };
 const G8 = { easy: '根號史萊姆王', normal: '無理數魔像', hard: '混沌根式龍' };

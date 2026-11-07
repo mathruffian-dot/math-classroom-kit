@@ -13,7 +13,7 @@ test.after(() => rm(dir, { recursive: true, force: true }));
 await build({ entryPoints: [resolve('src/raid-ui.ts'), resolve('shared/raid.ts')], outdir: dir, bundle: true, platform: 'node', format: 'esm', outExtension: { '.js': '.mjs' }, loader: { '.css': 'empty' }, logLevel: 'silent' });
 const ui = await import(pathToFileURL(join(dir, 'src', 'raid-ui.mjs')).href);
 const raid = await import(pathToFileURL(join(dir, 'shared', 'raid.mjs')).href);
-ui.initRaidUi({ esc: (s) => String(s), md: (s) => s, btn: () => '', icon: () => '', figure: () => '', serverTime: () => Date.now() });
+ui.initRaidUi({ esc: (s) => String(s), md: (s) => s, btn: () => '', icon: () => '', figure: () => '', serverTime: () => Date.now(), route: () => 0 });
 
 const NOW = 1_800_000_000_000;
 const T = 10_000;
