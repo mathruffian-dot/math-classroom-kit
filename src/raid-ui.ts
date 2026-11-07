@@ -515,27 +515,32 @@ export function raidPanelHtml(v: RaidView | undefined, prefs: { difficulty: stri
 /* ───────── 學生：作答卡 ───────── */
 export interface RaidLocal {
   flash: string;
-  sending: boolean;
+  /**
+   * 送出中的請求（沒有就 null）：只鎖它自己那一場（作答再限那一題），換場、換題後新的畫面不被舊請求鎖住。
+   * 作答時 q＋choice 是剛點的選項（先顯示再同步）：先標成已選、整排鎖住，只代表「我選了這個」，不猜對錯、不動血量。
+   * 回應回來（成功或失敗）由送出它的那一次拿掉；舊請求晚到不會清掉新的。
+   */
+  sending: { run: string; q?: string; choice?: number } | null;
   /** 學生按了「先不設定目標」（這一場）。 */
   noGoal: string;
   /** 分析題「判斷＋理由」：兩段各選了哪一個（q＝題目 id）。 */
   pick: { q: string; a?: number; r?: number };
-  /**
-   * 作答送出中（先顯示再同步）：剛點的選項先標成已選、整排鎖住，只代表「我選了這個」，不猜對錯、不動血量。
-   * run＋q（題目 id）對得上才顯示；回應回來（成功或失敗）就拿掉。
-   */
-  pending?: { run: string; q: string; choice: number };
 }
-export const raidLocal: RaidLocal = { flash: '', sending: false, noGoal: '', pick: { q: '' } };
+export const raidLocal: RaidLocal = { flash: '', sending: null, noGoal: '', pick: { q: '' } };
+/** 這個畫面有請求在送（同一場；作答的請求只算它那一題還在畫面上的時候）。 */
+export function raidBusy(v: RaidView) {
+  const p = raidLocal.sending;
+  return !!p && p.run === v.run.id && (p.q === undefined || p.q === v.mine?.question?.id);
+}
 /** 這一題送出中的選擇（別場、別題不算）。 */
 function pendingChoice(v: RaidView, qid: string) {
-  const p = raidLocal.pending;
+  const p = raidLocal.sending;
   return p && p.run === v.run.id && p.q === qid ? p.choice : undefined;
 }
 /** 一般選項（點了就送出）：送出中的那一個標成已選。 */
 function answerOption(v: RaidView, qid: string, o: string, i: number) {
   const on = pendingChoice(v, qid) === i;
-  return `<button type="button" class="answer-option ${on ? 'selected' : ''}" data-action="raid-answer" data-choice="${i}" data-testid="raid-option-${i}" aria-pressed="${on}" ${raidLocal.sending ? 'disabled' : ''}><span class="option-letter">${String.fromCharCode(65 + i)}</span><span>${H.md(o)}</span></button>`;
+  return `<button type="button" class="answer-option ${on ? 'selected' : ''}" data-action="raid-answer" data-choice="${i}" data-testid="raid-option-${i}" aria-pressed="${on}" ${raidBusy(v) ? 'disabled' : ''}><span class="option-letter">${String.fromCharCode(65 + i)}</span><span>${H.md(o)}</span></button>`;
 }
 /** 目標的建議：有個人最佳就追平、突破、挑戰；沒有就 3、5、8 題。 */
 function goalChoices(prev?: number): [number, string][] {
@@ -634,7 +639,7 @@ export function raidCardKey(v: RaidView, now: number) {
   const ph = phaseInfo(v, s);
   const aLock = v.mine?.analysisLockUntil && v.mine.analysisLockUntil > now ? 'alock' : '';
   const ana = !ph ? '' : choosing ? `${ph.p ? `${ph.p.cracks}/${ph.need}/${ph.p.by[mySeat(v)] || 0}` : ph.brk ? 'brk' : 'off'}${aLock}` : v.mine?.question?.kind === 'analysis' ? `${raidLocal.pick.q === v.mine.question.id ? `${raidLocal.pick.a ?? ''},${raidLocal.pick.r ?? ''}` : ''}${v.mine.question.hint ? 'h' : ''}${v.mine.question.taken ? 't' : ''}` : '';
-  const sending = raidLocal.sending ? `s${pendingChoice(v, v.mine?.question?.id || '') ?? ''}` : '';
+  const sending = raidBusy(v) ? `s${pendingChoice(v, v.mine?.question?.id || '') ?? ''}` : '';
   return [v.run.id, raidPhase(v, s, now), v.mine?.role || '', v.mine?.goal || raidLocal.noGoal, v.mine?.question?.id || '', lock, raidLocal.flash, v.results ? 'r' : '', eff, skipReady, ana, sending].join('|');
 }
 export function raidCardHtml(v: RaidView, now: number): string {
@@ -665,7 +670,7 @@ export function raidCardHtml(v: RaidView, now: number): string {
     const wait = v.mine.skipAt ? Math.max(0, Math.ceil((v.mine.skipAt + RAID_SKIP_COOLDOWN_MS - now) / 1000)) : 0;
     const skip =
       q.kind === 'ultimate'
-        ? `<div class="raid-skip"><span>不會做也沒關係：</span>${H.btn(wait ? `換一題（${wait} 秒後）` : '換一題', 'raid-skip', 'quiet', 'dice', `data-testid="raid-skip" ${wait || raidLocal.sending ? 'disabled' : ''}`)}<small>不算答錯；也可以先做理解題幫忙存防護罩</small></div>`
+        ? `<div class="raid-skip"><span>不會做也沒關係：</span>${H.btn(wait ? `換一題（${wait} 秒後）` : '換一題', 'raid-skip', 'quiet', 'dice', `data-testid="raid-skip" ${wait || raidBusy(v) ? 'disabled' : ''}`)}<small>不算答錯；也可以先做理解題幫忙存防護罩</small></div>`
         : '';
     body =
       q.kind === 'analysis'
@@ -712,14 +717,14 @@ function analysisButton(v: RaidView, s: RaidState, now: number) {
 /** 分析題作答：步驟分行；「判斷＋理由」兩段各選一個再送出；3 分鐘提示；被同學解出時換一題。 */
 function analysisHtml(v: RaidView, q: NonNullable<NonNullable<RaidView['mine']>['question']>) {
   const pick = raidLocal.pick.q === q.id ? raidLocal.pick : { q: q.id };
-  const dis = raidLocal.sending ? 'disabled' : '';
+  const dis = raidBusy(v) ? 'disabled' : '';
   const head = `<div class="raid-q-head"><span class="raid-kind k-analysis">${KIND_LEVEL.analysis}・${KIND_NAME.analysis}</span>${kindSwitch('analysis', v)}</div>`;
   const taken = q.taken ? `<div class="raid-taken" data-testid="raid-taken">✓ 這題剛被同學解出了！${H.btn('換一題新的', 'raid-draw', 'quiet', 'dice', 'data-kind="analysis" data-testid="raid-taken-next"')}</div>` : '';
   const hint = q.hint ? `<div class="raid-hint" data-testid="raid-hint">💡 提示：${H.md(q.hint)}</div>` : '';
   const opt = (o: string, i: number, part: 'a' | 'r') =>
     `<button type="button" class="answer-option ${pick[part] === i ? 'selected' : ''}" data-action="raid-pick" data-part="${part}" data-choice="${i}" data-testid="raid-${part === 'a' ? 'option' : 'reason'}-${i}" aria-pressed="${pick[part] === i}" ${dis}><span class="option-letter">${part === 'a' ? String.fromCharCode(65 + i) : i + 1}</span><span>${H.md(o)}</span></button>`;
   const choices = q.reason
-    ? `<p class="raid-part">① 判斷</p><div class="quiz-options">${q.options.map((o, i) => opt(o, i, 'a')).join('')}</div><p class="raid-part">② 理由</p><div class="quiz-options">${q.reason.map((o, i) => opt(o, i, 'r')).join('')}</div>${H.btn(pick.a === undefined || pick.r === undefined ? '兩段都選好才能送出' : raidLocal.sending && raidLocal.pending?.q === q.id ? '送出中…' : '送出（判斷和理由都對才算對）', 'raid-answer', 'primary', 'check', `data-testid="raid-submit" ${pick.a === undefined || pick.r === undefined || raidLocal.sending ? 'disabled' : ''}`)}`
+    ? `<p class="raid-part">① 判斷</p><div class="quiz-options">${q.options.map((o, i) => opt(o, i, 'a')).join('')}</div><p class="raid-part">② 理由</p><div class="quiz-options">${q.reason.map((o, i) => opt(o, i, 'r')).join('')}</div>${H.btn(pick.a === undefined || pick.r === undefined ? '兩段都選好才能送出' : pendingChoice(v, q.id) !== undefined ? '送出中…' : '送出（判斷和理由都對才算對）', 'raid-answer', 'primary', 'check', `data-testid="raid-submit" ${pick.a === undefined || pick.r === undefined || raidBusy(v) ? 'disabled' : ''}`)}`
     : `<div class="quiz-options">${q.options.map((o, i) => answerOption(v, q.id, o, i)).join('')}</div>`;
   return `${head}${taken}<div class="quiz-stem raid-a-stem">${H.md(q.stem)}</div>${H.figure(q.figure)}${hint}${choices}<p class="raid-a-note">時間寬裕、不計速度，想清楚再作答。答錯不扣血，但 20 秒內不能再抽分析題。</p>`;
 }

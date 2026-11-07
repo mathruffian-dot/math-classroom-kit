@@ -42,7 +42,7 @@ import type {
 } from '../shared/types';
 import { parseNumberAnswer, type Vars } from '../shared/expr';
 import { md, plain, answerHtml } from './math';
-import { initRaidUi, liveState, raidMapHtml, raidBoardHtml, raidCardHtml, raidCardKey, raidFlashHtml, raidLocal, raidMiniHtml, raidPanelHtml, raidPhase, patchHtml, updateRaidBoard, wireArt, raidTakenHtml, type RaidAnswerResult } from './raid-ui';
+import { initRaidUi, liveState, raidMapHtml, raidBoardHtml, raidCardHtml, raidCardKey, raidFlashHtml, raidLocal, raidMiniHtml, raidPanelHtml, raidPhase, raidBusy, patchHtml, updateRaidBoard, wireArt, raidTakenHtml, type RaidAnswerResult } from './raid-ui';
 import type { RaidKind } from '../shared/raid';
 import { RAID_SKIP_COOLDOWN_MS } from '../shared/raid';
 import { duelBlanks, duelBoardHtml, duelCardHtml, duelCardKey, duelLocal, duelPanelHtml, duelPhase, duelPutTile, initDuelUi, updateDuelBoard } from './duel-ui';
@@ -1286,14 +1286,15 @@ let quizBoardOpen = true;
 let quizIndex = 0;
 /** 學生：PK、錯題練習上一題的對錯（錯題練習附解析）。 */
 let quizFlash = '';
-/** 學生：作答送出中（避免重複點、點到還沒換掉的舊題目）。 */
-let quizSending = false;
 /**
- * 學生：剛點的選項（先顯示再同步）。送出前就標成「已選」並鎖住選項；只代表「我選了這個」，不猜對錯、不動比分。
- * 範圍是「課堂＋這一場＋題位」：推送重畫時照樣顯示；回應回來（成功或失敗）才拿掉，換場、換題不套用。
+ * 學生：剛點的選項（先顯示再同步），也是「作答送出中」的鎖（避免重複點、點到還沒換掉的舊題目）。
+ * 送出前就標成「已選」並鎖住選項；只代表「我選了這個」，不猜對錯、不動比分。
+ * 範圍是「畫面＋課堂＋這一場＋題位」：推送重畫時照樣顯示；回應回來（成功或失敗）才拿掉。
+ * 換畫面、換課堂、換一場就不算（新的一場不被舊的請求鎖住，舊請求晚到也不會解開或清掉新的）。
  */
-let quizPending: { session: string; run: string; slot: number; choice: number } | null = null;
-const quizPendingFor = (q: QuizView) => (quizPending && quizPending.session === view?.session.id && quizPending.run === q.run.id ? quizPending : null);
+let quizPending: { route: number; session: string; run: string; slot: number; choice: number } | null = null;
+const quizPendingFor = (q: QuizView) =>
+  quizPending && quizPending.route === routeVersion && quizPending.session === view?.session.id && quizPending.run === q.run.id ? quizPending : null;
 const EMPTY_SCORE: QuizScore = { answered: 0, correct: 0, timeMs: null, finished: false };
 const quizClassSeconds = () => prefs.get<number>('quizSeconds', 600);
 const pkSeconds = () => prefs.get<number>('pkSeconds', 180);
@@ -1736,7 +1737,7 @@ function refreshRaid() {
     const sk = card.querySelector<HTMLButtonElement>('[data-action="raid-skip"]');
     if (sk) {
       const skipAt = v.raid.mine?.skipAt;
-      const dis = (!!skipAt && now - skipAt < RAID_SKIP_COOLDOWN_MS) || !!raidLocal.sending;
+      const dis = (!!skipAt && now - skipAt < RAID_SKIP_COOLDOWN_MS) || raidBusy(v.raid);
       if (sk.disabled !== dis) sk.disabled = dis;
     }
   }
@@ -1747,36 +1748,46 @@ setInterval(() => {
 /** 學生：選角色、選題型（抽題）、作答。 */
 async function raidAct(act: string, el: HTMLElement) {
   const v = view?.raid;
-  if (!v || !view || raidLocal.sending) return;
-  const sessionId = view.session.id;
+  if (!v || !view || raidBusy(v)) return;
+  const sessionId = view.session.id,
+    route = routeVersion;
   const path = `/sessions/${sessionId}/raid`;
   // 等回應時畫面可能已經換成別的推送：結果寫進「現在的」畫面（同一場）
   const mineNow = () => ((view?.raid?.run.id === v.run.id ? view.raid : v).mine ||= {});
-  raidLocal.sending = true;
+  // 回應晚到時已經換畫面、換課堂或換一場：結果不套用到別的魔王戰
+  const live = () => route === routeVersion && view?.session.id === sessionId && !(view.raid && view.raid.run.id !== v.run.id);
+  // 回應比畫面上的正式狀態舊（較新的推送先到，例如另一個分頁已經換題）：以推送為準
+  const fresh = (rev: number) => {
+    const ok = rev >= view!.session.revision;
+    raidRevision = Math.max(raidRevision, rev);
+    return ok;
+  };
+  const req: NonNullable<typeof raidLocal.sending> = { run: v.run.id };
+  raidLocal.sending = req;
   try {
     if (act === 'raid-role') {
       const r = await api<{ revision: number }>(path, 'POST', { runId: v.run.id, op: 'role', role: el.dataset.role });
-      raidRevision = Math.max(raidRevision, r.revision);
-      mineNow().role = el.dataset.role as NonNullable<typeof v.mine>['role'];
+      if (live() && fresh(r.revision)) mineNow().role = el.dataset.role as NonNullable<typeof v.mine>['role'];
     } else if (act === 'raid-goal') {
       const goal = Number(el.dataset.goal);
       if (!goal) raidLocal.noGoal = v.run.id;
       else {
         const r = await api<{ goal: number; revision: number }>(path, 'POST', { runId: v.run.id, op: 'goal', goal });
-        raidRevision = Math.max(raidRevision, r.revision);
-        mineNow().goal = r.goal;
+        if (live() && fresh(r.revision)) mineNow().goal = r.goal;
       }
     } else if (act === 'raid-skip') {
       const r = await api<{ question: NonNullable<NonNullable<typeof v.mine>['question']>; skipAt: number; revision: number }>(path, 'POST', { runId: v.run.id, op: 'skip' });
-      raidRevision = Math.max(raidRevision, r.revision);
-      mineNow().question = r.question;
-      mineNow().skipAt = r.skipAt;
+      if (live() && fresh(r.revision)) {
+        mineNow().question = r.question;
+        mineNow().skipAt = r.skipAt;
+      }
     } else if (act === 'raid-draw') {
       const r = await api<{ question: NonNullable<NonNullable<typeof v.mine>['question']>; revision: number }>(path, 'POST', { runId: v.run.id, op: 'draw', kind: el.dataset.kind as RaidKind });
-      raidRevision = Math.max(raidRevision, r.revision);
-      mineNow().question = r.question;
-      if (raidLocal.pick.q !== r.question.id) raidLocal.pick = { q: r.question.id };
-      raidLocal.flash = '';
+      if (live() && fresh(r.revision)) {
+        mineNow().question = r.question;
+        if (raidLocal.pick.q !== r.question.id) raidLocal.pick = { q: r.question.id };
+        raidLocal.flash = '';
+      }
     } else {
       const q = v.mine?.question;
       if (!q) return;
@@ -1785,36 +1796,43 @@ async function raidAct(act: string, el: HTMLElement) {
       const pick = raidLocal.pick.q === q.id ? raidLocal.pick : { q: q.id };
       if (two && (pick.a === undefined || pick.r === undefined)) return;
       const choice = two ? pick.a! : Number(el.dataset.choice);
-      // 先顯示再同步：送出前就把選的標成已選、鎖住選項（分析題兩段本來就標著）；對錯、傷害等伺服器
-      raidLocal.pending = { run: v.run.id, q: q.id, choice };
+      // 先顯示再同步：送出前就把選的標成已選、鎖住這一題的選項（分析題兩段本來就標著）；對錯、傷害等伺服器
+      Object.assign(req, { q: q.id, choice });
       refreshRaid();
       const r = await api<RaidAnswerResult & { lockUntil?: number; revision: number; taken?: boolean; question?: NonNullable<NonNullable<typeof v.mine>['question']> }>(path, 'POST', { runId: v.run.id, op: 'answer', choice, ...(two ? { reason: pick.r } : {}) });
-      raidLocal.pending = undefined;
-      // 已經換課堂或換一場：結果不套用到別的魔王戰
-      if (view?.session.id !== sessionId || (view.raid && view.raid.run.id !== v.run.id)) return;
-      raidRevision = Math.max(raidRevision, r.revision);
+      if (!live()) return;
+      const ok = fresh(r.revision);
+      const cur = mineNow().question?.id;
+      // 畫面上還是這一題、也沒有更新的正式狀態：題目、鎖住時間照回應改
+      const own = ok && cur === q.id;
       if (r.taken) {
         // 分析題已經不能計入（同學先解開、或開新護盾前抽到的）：不算錯、不鎖，直接換一題
+        if (!own) return; // 已經是別的題目（另一個分頁換了、較新的推送）：不蓋掉
         raidLocal.flash = raidTakenHtml(!!r.question);
         raidLocal.pick = { q: '' };
         if (r.question) mineNow().question = r.question;
         else delete mineNow().question;
         return;
       }
+      // 畫面上已經是別的題目：這題的結果不蓋上去、不刪掉新題目
+      if (!own && cur !== undefined) return;
+      // 較新的推送已經把這題收掉（同一次作答）：照樣顯示對錯，題目與鎖住時間以推送為準
       raidLocal.flash = raidFlashHtml(r, q.options, q.reason);
       raidLocal.pick = { q: '' };
       if (r.correct) playCorrect();
-      delete mineNow().question;
-      if (r.lockUntil) mineNow().lockUntil = r.lockUntil;
-      if (r.analysisLockUntil) mineNow().analysisLockUntil = r.analysisLockUntil;
+      if (own) {
+        delete mineNow().question;
+        if (r.lockUntil) mineNow().lockUntil = r.lockUntil;
+        if (r.analysisLockUntil) mineNow().analysisLockUntil = r.analysisLockUntil;
+      }
     }
   } catch (e) {
-    toast(e instanceof Error ? e.message : '送出失敗，請再試一次');
+    if (live()) toast(e instanceof Error ? e.message : '送出失敗，請再試一次');
     void refreshSession();
   } finally {
     // 失敗、逾時：拿掉剛才的已選（分析題兩段的選擇留著，直接再按送出），選項解鎖可以再點
-    raidLocal.pending = undefined;
-    raidLocal.sending = false;
+    // 只拿掉自己這一次：已經換場後新的請求不被舊請求解開
+    if (raidLocal.sending === req) raidLocal.sending = null;
     refreshRaid();
   }
 }
@@ -3309,7 +3327,7 @@ async function action(el: HTMLElement) {
     case 'raid-pick': {
       // 分析題「判斷＋理由」：先選兩段，再按送出（只改本機的選擇，不送伺服器）
       const q = view?.raid?.mine?.question;
-      if (!q || raidLocal.sending) return;
+      if (!q || raidBusy(view!.raid!)) return;
       if (raidLocal.pick.q !== q.id) raidLocal.pick = { q: q.id };
       raidLocal.pick[el.dataset.part === 'r' ? 'r' : 'a'] = Number(el.dataset.choice);
       return refreshRaid();
@@ -3355,24 +3373,25 @@ async function action(el: HTMLElement) {
       return refreshQuiz();
     case 'quiz-choose': {
       const q = view.quiz;
-      if (!q || quizSending) return;
+      if (!q || quizPendingFor(q)) return;
       const i = Number(el.dataset.q),
         choice = Number(el.dataset.choice);
       const n = q.questions.length;
       q.mine ||= { answers: Array(n).fill(null), correct: Array(n).fill(null) };
       if (q.run.mode !== 'class' && q.mine.answers[i] !== null) return; // 已經答過（畫面還沒換）
       if (!q.questions[i]) return;
-      quizSending = true;
       // 先顯示再同步：送出前就把點的選項標成已選、整排鎖住（只是「我選了這個」，對錯等伺服器）
-      const pend = (quizPending = { session: s.id, run: q.run.id, slot: q.questions[i].slot, choice });
+      const pend = (quizPending = { route: routeVersion, session: s.id, run: q.run.id, slot: q.questions[i].slot, choice });
       refreshQuiz();
       document.querySelectorAll<HTMLButtonElement>('[data-action="quiz-choose"]').forEach((b) => (b.disabled = true));
       try {
         // 送題位（錯題練習每人的題目不同；全班測驗與 PK 題位就是第幾題）
         const r = await api<{ correct?: boolean; answer?: number; explanation?: string; revision: number }>(`/sessions/${s.id}/quiz`, 'POST', { runId: q.run.id, q: q.questions[i].slot, choice });
         if (quizPending === pend) quizPending = null;
-        // 已經換課堂、換場（例如老師開了新的測驗）：這個回應不套用到別的畫面
-        if (view?.session.id !== s.id || (view.quiz && view.quiz.run.id !== q.run.id)) return;
+        // 已經換畫面、換課堂、換場（例如老師開了新的測驗）：這個回應不套用到別的畫面
+        if (pend.route !== routeVersion || view?.session.id !== s.id || (view.quiz && view.quiz.run.id !== q.run.id)) return;
+        // 回應晚到、畫面已經是更新的正式狀態（例如另一個分頁改選了別的、推送先到）：以那個為準，不蓋回這次的選擇
+        const stale = r.revision < view.session.revision;
         // 比這次作答更舊的畫面（送出前就在路上的推送或輪詢）一律丟掉
         view.session.revision = Math.max(view.session.revision, r.revision);
         // 等回應時畫面可能已經換成較舊的推送：結果寫進「現在的」畫面
@@ -3380,11 +3399,16 @@ async function action(el: HTMLElement) {
         const k = cur.questions.findIndex((x) => x.slot === q.questions[i].slot);
         if (k < 0) return;
         cur.mine ||= { answers: cur.questions.map(() => null), correct: cur.questions.map(() => null) };
-        cur.mine.answers[k] = choice;
+        // 較新的正式狀態裡這題已經不是這次的選擇：這個回應過時了，什麼都不改（不跳題、不顯示對錯）
+        if (stale && cur.mine.answers[k] !== choice) return;
+        // 推送先到、帶來的就是同一個作答：照樣算成功（跳題、顯示對錯），只是不重寫已確認的資料
+        if (!stale) cur.mine.answers[k] = choice;
         if (q.run.mode !== 'class') {
-          cur.mine.correct[k] = r.correct ?? null;
-          if (cur.mine.answers.every((x) => x !== null)) cur.mine.done ??= 0;
-          if (r.answer !== undefined) Object.assign(cur.questions[k], { answer: r.answer, ...(r.explanation ? { explanation: r.explanation } : {}) });
+          if (!stale) {
+            cur.mine.correct[k] = r.correct ?? null;
+            if (cur.mine.answers.every((x) => x !== null)) cur.mine.done ??= 0;
+            if (r.answer !== undefined) Object.assign(cur.questions[k], { answer: r.answer, ...(r.explanation ? { explanation: r.explanation } : {}) });
+          }
           if (r.correct) playCorrect();
           const x = cur.questions[k];
           // 錯題練習附上正解與解析，看懂再做下一題；PK 只說對錯（節奏快）
@@ -3400,10 +3424,10 @@ async function action(el: HTMLElement) {
       } finally {
         // 失敗、逾時：拿掉剛才的已選，回到伺服器確認過的選擇（推送若已經帶來確認的作答就照推送），可以再點一次
         if (quizPending === pend) quizPending = null;
-        quizSending = false;
         refreshQuiz();
         // 只有比分變（同一題重選、送出失敗）不會重畫：自己把選項解鎖（重畫出來的選項本來就可點；PK 答過的由上面的檢查擋）
-        if (!quizPending) document.querySelectorAll<HTMLButtonElement>('[data-action="quiz-choose"]').forEach((b) => (b.disabled = false));
+        // 現在畫面上有別的請求在送（例如新的一場）：舊請求不解開它的鎖
+        if (!(view?.quiz && quizPendingFor(view.quiz))) document.querySelectorAll<HTMLButtonElement>('[data-action="quiz-choose"]').forEach((b) => (b.disabled = false));
       }
       return;
     }
