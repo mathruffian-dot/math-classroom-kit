@@ -1,0 +1,400 @@
+{
+  "lessonId": "g8-3-1b",
+  "title": "3-1 因式分解（2）提公因式法 課後檢核",
+  "source": "依課本 3-1 p.117–119（公因式、提公因式法、例 2、例 3 與隨堂）自編換數字題",
+  "slots": [
+    {
+      "id": "q1",
+      "topic": "找出兩項的公因式（單項式）",
+      "variants": [
+        {
+          "stem": "把 $12x^2+18x$ 提出所有公因式（係數提到最大），要提出的是？",
+          "options": [
+            "$6x$",
+            "$6x^2$",
+            "$3x$",
+            "$6$"
+          ],
+          "answer": 0,
+          "explanation": "$12$ 和 $18$ 的最大公因數是 $6$，兩項都有 $x$：公因式 $6x$，$12x^2+18x=6x(2x+3)$。$6x^2$ 不是 $18x$ 的因式。"
+        },
+        {
+          "stem": "把 $8x^2+20x$ 提出所有公因式（係數提到最大），要提出的是？",
+          "options": [
+            "$4x$",
+            "$4x^2$",
+            "$2x$",
+            "$4$"
+          ],
+          "answer": 0,
+          "explanation": "$8$ 和 $20$ 的最大公因數是 $4$，兩項都有 $x$：公因式 $4x$，$8x^2+20x=4x(2x+5)$。$4x^2$ 不是 $20x$ 的因式。"
+        },
+        {
+          "stem": "把 $9x^2-6x$ 提出所有公因式（係數提到最大），要提出的是？",
+          "options": [
+            "$3x$",
+            "$3x^2$",
+            "$x$",
+            "$3$"
+          ],
+          "answer": 0,
+          "explanation": "$9$ 和 $6$ 的最大公因數是 $3$，兩項都有 $x$：公因式 $3x$，$9x^2-6x=3x(3x-2)$。$3x^2$ 不是 $-6x$ 的因式。"
+        }
+      ]
+    },
+    {
+      "id": "q2",
+      "topic": "提單項公因式：括號內的常數",
+      "variants": [
+        {
+          "stem": "$6x^2-15x=3x(2x-\\square)$，□ 是多少？",
+          "options": [
+            "$5$",
+            "$15$",
+            "$-5$",
+            "$12$"
+          ],
+          "answer": 0,
+          "explanation": "$-15x=3x\\times(-5)$，所以 □＝$5$。每一項都要除以公因式 $3x$，可以展開檢查。"
+        },
+        {
+          "stem": "$10x^2+4x=2x(5x+\\square)$，□ 是多少？",
+          "options": [
+            "$2$",
+            "$4$",
+            "$-2$",
+            "$5$"
+          ],
+          "answer": 0,
+          "explanation": "$4x=2x\\times(2)$，所以 □＝$2$。每一項都要除以公因式 $2x$，可以展開檢查。"
+        },
+        {
+          "stem": "$8x^2+12x=4x(2x+\\square)$，□ 是多少？",
+          "options": [
+            "$3$",
+            "$12$",
+            "$-3$",
+            "$8$"
+          ],
+          "answer": 0,
+          "explanation": "$12x=4x\\times(3)$，所以 □＝$3$。每一項都要除以公因式 $4x$，可以展開檢查。"
+        }
+      ]
+    },
+    {
+      "id": "q3",
+      "topic": "提出 x 後括號內合併",
+      "variants": [
+        {
+          "stem": "$3x^2+x(2x-4)=x(\\square x-4)$，□ 是多少？",
+          "options": [
+            "$5$",
+            "$3$",
+            "$2$",
+            "$6$"
+          ],
+          "answer": 0,
+          "explanation": "兩項都有 $x$：$3x^2+x(2x-4)=x[3x+(2x-4)]=x(5x-4)$，□＝$5$。"
+        },
+        {
+          "stem": "$5x^2+x(2x+3)=x(\\square x+3)$，□ 是多少？",
+          "options": [
+            "$7$",
+            "$5$",
+            "$2$",
+            "$10$"
+          ],
+          "answer": 0,
+          "explanation": "兩項都有 $x$：$5x^2+x(2x+3)=x[5x+(2x+3)]=x(7x+3)$，□＝$7$。"
+        },
+        {
+          "stem": "$4x^2+x(3x-1)=x(\\square x-1)$，□ 是多少？",
+          "options": [
+            "$7$",
+            "$4$",
+            "$3$",
+            "$12$"
+          ],
+          "answer": 0,
+          "explanation": "兩項都有 $x$：$4x^2+x(3x-1)=x[4x+(3x-1)]=x(7x-1)$，□＝$7$。"
+        }
+      ]
+    },
+    {
+      "id": "q4",
+      "topic": "括號前是減號：每一項都變號",
+      "variants": [
+        {
+          "stem": "$x(4x+1)-x(x+2)=x(3x-\\square)$，□ 是多少？",
+          "options": [
+            "$1$",
+            "$-3$",
+            "$-1$",
+            "$-2$"
+          ],
+          "answer": 0,
+          "explanation": "$x[(4x+1)-(x+2)]=x(4x+1-x-2)=x(3x-1)$。減去括號，$x$ 和 $2$ 都要變號。"
+        },
+        {
+          "stem": "$x(5x+3)-x(2x+7)=x(3x-\\square)$，□ 是多少？",
+          "options": [
+            "$4$",
+            "$-10$",
+            "$-4$",
+            "$-7$"
+          ],
+          "answer": 0,
+          "explanation": "$x[(5x+3)-(2x+7)]=x(5x+3-2x-7)=x(3x-4)$。減去括號，$2x$ 和 $7$ 都要變號。"
+        },
+        {
+          "stem": "$x(7x+2)-x(3x+5)=x(4x-\\square)$，□ 是多少？",
+          "options": [
+            "$3$",
+            "$-7$",
+            "$-3$",
+            "$-5$"
+          ],
+          "answer": 0,
+          "explanation": "$x[(7x+2)-(3x+5)]=x(7x+2-3x-5)=x(4x-3)$。減去括號，$3x$ 和 $5$ 都要變號。"
+        }
+      ]
+    },
+    {
+      "id": "q5",
+      "topic": "公因式要提完整",
+      "variants": [
+        {
+          "stem": "$14x^2+4x$ 提出所有公因式後，是哪一個？",
+          "options": [
+            "$2x(7x+2)$",
+            "$x(14x+4)$",
+            "$2(7x^2+2x)$",
+            "$2x(7x+4)$"
+          ],
+          "answer": 0,
+          "explanation": "兩項都有 $2$ 和 $x$：$14x^2+4x=2x(7x+2)$。$x(14x+4)$、$2(7x^2+2x)$ 的值相等，但括號內還有公因式，沒有提完整；$2x(7x+4)$ 展開是 $14x^2+8x$，不等於原式。"
+        },
+        {
+          "stem": "$10x^2+15x$ 提出所有公因式後，是哪一個？",
+          "options": [
+            "$5x(2x+3)$",
+            "$x(10x+15)$",
+            "$5(2x^2+3x)$",
+            "$5x(2x+15)$"
+          ],
+          "answer": 0,
+          "explanation": "兩項都有 $5$ 和 $x$：$10x^2+15x=5x(2x+3)$。$x(10x+15)$、$5(2x^2+3x)$ 的值相等，但括號內還有公因式，沒有提完整；$5x(2x+15)$ 展開是 $10x^2+75x$，不等於原式。"
+        },
+        {
+          "stem": "$12x^2-8x$ 提出所有公因式後，是哪一個？",
+          "options": [
+            "$4x(3x-2)$",
+            "$x(12x-8)$",
+            "$4(3x^2-2x)$",
+            "$4x(3x-8)$"
+          ],
+          "answer": 0,
+          "explanation": "兩項都有 $4$ 和 $x$：$12x^2-8x=4x(3x-2)$。$x(12x-8)$、$4(3x^2-2x)$ 的值相等，但括號內還有公因式，沒有提完整；$4x(3x-8)$ 展開是 $12x^2-32x$，不等於原式。"
+        }
+      ]
+    },
+    {
+      "id": "q6",
+      "topic": "公因式是一整個括號（相加）",
+      "variants": [
+        {
+          "stem": "$x(2x+5)+4(2x+5)=(2x+5)(x+\\square)$，□ 是多少？",
+          "options": [
+            "$4$",
+            "$5$",
+            "$9$",
+            "$-4$"
+          ],
+          "answer": 0,
+          "explanation": "把 $(2x+5)$ 看成一整塊 $C$：$x\\cdot C+4\\cdot C=C(x+4)$，所以 □＝$4$。"
+        },
+        {
+          "stem": "$2x(3x+1)+7(3x+1)=(3x+1)(2x+\\square)$，□ 是多少？",
+          "options": [
+            "$7$",
+            "$1$",
+            "$8$",
+            "$14$"
+          ],
+          "answer": 0,
+          "explanation": "把 $(3x+1)$ 看成一整塊 $C$：$2x\\cdot C+7\\cdot C=C(2x+7)$，所以 □＝$7$。"
+        },
+        {
+          "stem": "$4x(x-6)+3(x-6)=(x-6)(4x+\\square)$，□ 是多少？",
+          "options": [
+            "$3$",
+            "$-6$",
+            "$-3$",
+            "$12$"
+          ],
+          "answer": 0,
+          "explanation": "把 $(x-6)$ 看成一整塊 $C$：$4x\\cdot C+3\\cdot C=C(4x+3)$，所以 □＝$3$。"
+        }
+      ]
+    },
+    {
+      "id": "q7",
+      "topic": "找出兩個乘積的公因式",
+      "variants": [
+        {
+          "stem": "$(x+5)(x-3)$ 與 $(x-3)(2x+1)$ 的公因式是？",
+          "options": [
+            "$x-3$",
+            "$x+5$",
+            "$2x+1$",
+            "$(x+5)(2x+1)$"
+          ],
+          "answer": 0,
+          "explanation": "把兩項拆開，兩項都有的是 $(x-3)$，位置可以不同；$(x+5)$、$(2x+1)$ 只出現在其中一項。"
+        },
+        {
+          "stem": "$(x-1)(3x+2)$ 與 $(3x+2)(x+4)$ 的公因式是？",
+          "options": [
+            "$3x+2$",
+            "$x-1$",
+            "$x+4$",
+            "$3x$"
+          ],
+          "answer": 0,
+          "explanation": "把兩項拆開，兩項都有的是 $(3x+2)$，位置可以不同；$(x-1)$、$(x+4)$ 只出現在其中一項。"
+        },
+        {
+          "stem": "$(x+6)(x-2)$ 與 $(x-2)(x-6)$ 的公因式是？",
+          "options": [
+            "$x-2$",
+            "$x+6$",
+            "$x-6$",
+            "$(x+6)(x-6)$"
+          ],
+          "answer": 0,
+          "explanation": "把兩項拆開，兩項都有的是 $(x-2)$，位置可以不同；$(x+6)$、$(x-6)$ 只出現在其中一項。"
+        }
+      ]
+    },
+    {
+      "id": "q8",
+      "topic": "公因式是一整個括號（相減）",
+      "variants": [
+        {
+          "stem": "$5x(2x+3)-7(2x+3)$ 因式分解的結果是？",
+          "options": [
+            "$(2x+3)(5x-7)$",
+            "$(2x+3)(5x+7)$",
+            "$(2x+3)\\cdot(-35x)$",
+            "$(2x+3)^2(5x-7)$"
+          ],
+          "answer": 0,
+          "explanation": "把 $(2x+3)$ 看成 $C$：$5xC-7C=C(5x-7)$，答案是 $(2x+3)(5x-7)$。$5x$ 和 $7$ 是相減，不是相乘。"
+        },
+        {
+          "stem": "$4x(x-6)-3(x-6)$ 因式分解的結果是？",
+          "options": [
+            "$(x-6)(4x-3)$",
+            "$(x-6)(4x+3)$",
+            "$(x-6)\\cdot(-12x)$",
+            "$(x-6)^2(4x-3)$"
+          ],
+          "answer": 0,
+          "explanation": "把 $(x-6)$ 看成 $C$：$4xC-3C=C(4x-3)$，答案是 $(x-6)(4x-3)$。$4x$ 和 $3$ 是相減，不是相乘。"
+        },
+        {
+          "stem": "$2x(5x-1)-9(5x-1)$ 因式分解的結果是？",
+          "options": [
+            "$(5x-1)(2x-9)$",
+            "$(5x-1)(2x+9)$",
+            "$(5x-1)\\cdot(-18x)$",
+            "$(5x-1)^2(2x-9)$"
+          ],
+          "answer": 0,
+          "explanation": "把 $(5x-1)$ 看成 $C$：$2xC-9C=C(2x-9)$，答案是 $(5x-1)(2x-9)$。$2x$ 和 $9$ 是相減，不是相乘。"
+        }
+      ]
+    },
+    {
+      "id": "q9",
+      "topic": "展開檢查：哪一個提公因式正確",
+      "variants": [
+        {
+          "stem": "下列哪一個提公因式的結果是正確的？（可以展開檢查）",
+          "options": [
+            "$6x^2+9x=3x(2x+3)$",
+            "$8x^2-4x=4x(2x-4)$",
+            "$5x^2+10x=5x(x+10)$",
+            "$x^2+4x=x(x+4x)$"
+          ],
+          "answer": 0,
+          "explanation": "把右式展開和左式比對：只有 $6x^2+9x=3x(2x+3)$ 展開後和原式相同。提出公因式後，括號內每一項都要除以公因式。"
+        },
+        {
+          "stem": "下列哪一個提公因式的結果是正確的？（可以展開檢查）",
+          "options": [
+            "$10x^2-15x=5x(2x-3)$",
+            "$4x^2+6x=2x(2x+6)$",
+            "$7x^2+14x=7x(x+14)$",
+            "$3x^2-6x=3x(x-6)$"
+          ],
+          "answer": 0,
+          "explanation": "把右式展開和左式比對：只有 $10x^2-15x=5x(2x-3)$ 展開後和原式相同。提出公因式後，括號內每一項都要除以公因式。"
+        },
+        {
+          "stem": "下列哪一個提公因式的結果是正確的？（可以展開檢查）",
+          "options": [
+            "$12x^2+8x=4x(3x+2)$",
+            "$9x^2-6x=3x(3x-6)$",
+            "$2x^2+6x=2x(x+6)$",
+            "$x^2-5x=x(x+5)$"
+          ],
+          "answer": 0,
+          "explanation": "把右式展開和左式比對：只有 $12x^2+8x=4x(3x+2)$ 展開後和原式相同。提出公因式後，括號內每一項都要除以公因式。"
+        }
+      ]
+    },
+    {
+      "id": "q10",
+      "topic": "長方形面積求長",
+      "variants": [
+        {
+          "stem": "如圖，長方形的面積是 $3x^2+12x$，寬是 $3x$，長是多少？（圖不按比例）",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 440 230\" width=\"440\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"69.1,184.0 370.9,184.0 370.9,46.0 69.1,46.0\" fill=\"#fbf3c4\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"60.1\" y=\"120.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"end\" fill=\"#1b1b1b\" font-weight=\"600\">3x</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"220.0\" y=\"37.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"220.0\" y=\"126.5\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">3x²+12x</text></svg>",
+          "options": [
+            "$x+4$",
+            "$x+12$",
+            "$3x+4$",
+            "$x+9$"
+          ],
+          "answer": 0,
+          "explanation": "面積＝長×寬：$3x^2+12x=3x(x+4)$，所以長是 $x+4$。兩項都要除以 $3x$。"
+        },
+        {
+          "stem": "如圖，長方形的面積是 $6x^2-10x$，寬是 $2x$，長是多少？（圖不按比例）",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 440 230\" width=\"440\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"69.1,184.0 370.9,184.0 370.9,46.0 69.1,46.0\" fill=\"#fbf3c4\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"60.1\" y=\"120.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"end\" fill=\"#1b1b1b\" font-weight=\"600\">2x</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"220.0\" y=\"37.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"220.0\" y=\"126.5\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">6x²-10x</text></svg>",
+          "options": [
+            "$3x-5$",
+            "$3x-10$",
+            "$6x-5$",
+            "$3x+5$"
+          ],
+          "answer": 0,
+          "explanation": "面積＝長×寬：$6x^2-10x=2x(3x-5)$，所以長是 $3x-5$。兩項都要除以 $2x$。"
+        },
+        {
+          "stem": "如圖，長方形的面積是 $10x^2+5x$，寬是 $5x$，長是多少？（圖不按比例）",
+          "figure": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 440 230\" width=\"440\" height=\"230\"><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><polygon points=\"69.1,184.0 370.9,184.0 370.9,46.0 69.1,46.0\" fill=\"#fbf3c4\" stroke=\"#1b1b1b\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"60.1\" y=\"120.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"end\" fill=\"#1b1b1b\" font-weight=\"600\">5x</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"220.0\" y=\"37.0\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1b1b1b\" font-weight=\"600\">?</text><text stroke=\"#ffffff\" stroke-width=\"4\" stroke-linejoin=\"round\" paint-order=\"stroke\" x=\"220.0\" y=\"126.5\" font-family=\"'Noto Sans TC','Microsoft JhengHei',sans-serif\" font-size=\"18\" text-anchor=\"middle\" fill=\"#1b1b1b\">10x²+5x</text></svg>",
+          "options": [
+            "$2x+1$",
+            "$2x+5$",
+            "$10x+1$",
+            "$2x$"
+          ],
+          "answer": 0,
+          "explanation": "面積＝長×寬：$10x^2+5x=5x(2x+1)$，所以長是 $2x+1$。兩項都要除以 $5x$。"
+        }
+      ]
+    }
+  ]
+}
