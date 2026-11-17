@@ -48,6 +48,7 @@ import { RAID_SKIP_COOLDOWN_MS } from '../shared/raid';
 import { duelBlanks, duelBoardHtml, duelCardHtml, duelCardKey, duelLocal, duelPanelHtml, duelPhase, duelPutTile, initDuelUi, updateDuelBoard } from './duel-ui';
 import { DUEL_TEAM_NAME, type DuelTok } from '../shared/duel';
 import QRCode from 'qrcode';
+import { crossGameCardHtml, renderCrossBoard } from './cross-board';
 import { homeworkAction, initHomeworkUi, leaveStudentSheet, openPlan, renderHomeworkDetail, renderHomeworkList, renderLearning, renderStudentSheet, studentHomeworkHtml } from './homework';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
@@ -172,6 +173,7 @@ const NAV: [string, string, string][] = [
   ['records', 'chart', '紀錄'],
   ['learning', 'target', '學習'],
   ['homework', 'pen', '作業'],
+  ['games', 'dice', '遊戲'],
   ['settings', 'settings', '設定'],
 ];
 function shell(active: string, title: string, body: string, actions = '') {
@@ -213,6 +215,14 @@ function renderDashboard() {
     '我的課程',
     body,
     `${btn('匯入 JSON', 'import', 'secondary', 'upload', 'data-testid="import-lesson"')}${btn('新增課程', 'new-lesson', 'primary', 'plus')}`,
+  );
+}
+/** 遊戲活動：獨立於課程頁的課堂活動（老師畫面操作） */
+function renderGames() {
+  shell(
+    'games',
+    '遊戲活動',
+    `<p class="page-description">不屬於任何一堂課的課堂活動，在老師的大螢幕或 iPad 上直接操作，學生不用登入。</p><div class="games-grid">${crossGameCardHtml()}</div>`,
   );
 }
 function renderClasses() {
@@ -2723,9 +2733,15 @@ async function renderRoute() {
       return;
     }
     view = null;
+    if (currentRoute.startsWith('/games/cross')) {
+      // 十字交乘大板：純前端，不必讀課程資料
+      renderCrossBoard(app, currentRoute);
+      return;
+    }
     await loadDashboard();
     if (version !== routeVersion) return;
-    if (currentRoute === '/classes') renderClasses();
+    if (currentRoute === '/games') renderGames();
+    else if (currentRoute === '/classes') renderClasses();
     else if (currentRoute === '/records') renderRecords();
     else if (currentRoute === '/learning') await renderLearning();
     else if (currentRoute === '/homework') await renderHomeworkList();
