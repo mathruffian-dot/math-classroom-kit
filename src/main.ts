@@ -49,7 +49,8 @@ import { duelBlanks, duelBoardHtml, duelCardHtml, duelCardKey, duelLocal, duelPa
 import { DUEL_TEAM_NAME, type DuelTok } from '../shared/duel';
 import QRCode from 'qrcode';
 import { crossGameCardHtml, renderCrossBoard } from './cross-board';
-import { crossAct, crossBoardHtml, crossCardHtml, crossEnsureScope, crossCardKey, crossLiveGameCardHtml, crossLocal, crossPanelHtml, crossPanelKey, fetchNext, initCrossLive, maybeSettle, mergeCrossPush, resetCrossLocal, updateCrossBoard, updateCrossCard } from './cross-live';
+import { crossAct, crossBoardHtml, crossCardHtml, crossEnsureScope, crossCardKey, crossFocusChanged, crossFocusValue, crossLiveGameCardHtml, crossLocal, crossPanelHtml, crossPanelKey, fetchNext, initCrossLive, maybeSettle, mergeCrossPush, resetCrossLocal, updateCrossBoard, updateCrossCard } from './cross-live';
+import { isCrossFocus } from '../shared/game-focus';
 import { homeworkAction, initHomeworkUi, leaveStudentSheet, openPlan, renderHomeworkDetail, renderHomeworkList, renderLearning, renderStudentSheet, studentHomeworkHtml } from './homework';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
@@ -1582,7 +1583,8 @@ let crossPanelOpen = false,
   crossPanelKeyNow = '';
 function crossPanel() {
   const v = view!;
-  return crossPanelHtml(v.cross && v.session.cross ? v.cross : undefined, { level: prefs.get('xlLevel', 1), seconds: prefs.get('xlSeconds', 0), team: prefs.get('xlTeam', false), lock: prefs.get('xlLock', false), margin: prefs.get('xlMargin', 300) });
+  const focus = prefs.get('xlFocus', 'a1');
+  return crossPanelHtml(v.cross && v.session.cross ? v.cross : undefined, { focus: isCrossFocus(focus) ? focus : 'a1', seconds: prefs.get('xlSeconds', 0), team: prefs.get('xlTeam', false), escalate: prefs.get('xlEscalate', false), margin: prefs.get('xlMargin', 300) });
 }
 function renderCrossCard() {
   const card = document.querySelector<HTMLElement>('#student-answer[data-xl-key]');
@@ -1636,7 +1638,7 @@ async function crossAction(act: string, el: HTMLElement): Promise<boolean> {
     case 'xl-game-start': {
       const id = val<HTMLSelectElement>('xl-game-session')?.value;
       if (!id) return true;
-      await api(`/sessions/${id}/control`, 'POST', { action: 'cross-start', level: Number(val<HTMLSelectElement>('xl-game-level')?.value || 1), team: !!val<HTMLInputElement>('xl-game-team')?.checked, seconds: 0 });
+      await api(`/sessions/${id}/control`, 'POST', { action: 'cross-start', ...crossFocusValue('xl-game-focus'), team: !!val<HTMLInputElement>('xl-game-team')?.checked, seconds: 0 });
       navigate(`/session/${id}`);
       return true;
     }
@@ -1645,17 +1647,16 @@ async function crossAction(act: string, el: HTMLElement): Promise<boolean> {
       renderSession();
       return true;
     case 'xl-start': {
-      const level = Number(val<HTMLSelectElement>('xl-level')?.value || 1),
+      const { focus, escalate } = crossFocusValue('xl-focus'),
         seconds = Number(val<HTMLSelectElement>('xl-seconds')?.value || 0),
         margin = Number(val<HTMLSelectElement>('xl-margin')?.value || 300),
-        team = !!val<HTMLInputElement>('xl-team')?.checked,
-        lock = !!val<HTMLInputElement>('xl-lock')?.checked;
-      prefs.set('xlLevel', level);
+        team = !!val<HTMLInputElement>('xl-team')?.checked;
+      prefs.set('xlFocus', focus);
       prefs.set('xlSeconds', seconds);
       prefs.set('xlMargin', margin);
       prefs.set('xlTeam', team);
-      prefs.set('xlLock', lock);
-      await control('cross-start', { level, seconds, margin, team, lock });
+      prefs.set('xlEscalate', escalate);
+      await control('cross-start', { focus, escalate, seconds, margin, team });
       return true;
     }
     case 'xl-pause':
@@ -3997,6 +3998,8 @@ document.addEventListener('submit', (e) => {
     });
 });
 document.addEventListener('change', (e) => {
+  // 十字交乘對戰的重點選項：標出選中的、混合時停用「自動進到下一個重點」
+  if (crossFocusChanged(e.target as HTMLInputElement)) return;
   const el = e.target as HTMLSelectElement;
   if (el.name !== 'provider' || el.form?.id !== 'ai-form') return;
   const presets: Record<string, [string, string]> = {

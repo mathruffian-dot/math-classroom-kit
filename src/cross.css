@@ -17,9 +17,10 @@
 }
 .cx-top {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 12px;
-  padding: 8px 18px;
+  gap: 6px 12px;
+  padding: 6px 18px;
   background: #fff;
   border-bottom: 1px solid var(--line);
 }
@@ -46,12 +47,35 @@
   min-height: 44px;
   border-radius: 10px;
   font-weight: 800;
-  font-size: 18px;
+  font-size: 15px;
   color: var(--ink-2);
+  padding: 2px 10px;
 }
 .cx-levels button.selected {
   background: var(--ink);
   color: #fff;
+}
+.cx-levels .fx-example {
+  font-size: 12px;
+}
+.cx-levels button.selected .fx-example,
+.cx-levels button.selected .fx-note {
+  color: #dfe4f2;
+}
+/* 混合沒有「下一個重點」：開關收起來 */
+.cx-auto[hidden] {
+  display: none;
+}
+/* 這一題的重點（混合時每題不同） */
+.cx-item-focus {
+  align-self: center;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: #eef1f8;
+  color: var(--ink-2);
+  font-size: 15px;
+  font-weight: 800;
+  white-space: nowrap;
 }
 .cx-auto {
   display: inline-flex;
@@ -484,4 +508,60 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 18px;
+}
+
+/* 重點選項：名稱＋一行例子（遊戲卡片、板子切換列、對戰的開始設定共用） */
+.fx-option {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  line-height: 1.2;
+  text-align: center;
+}
+.fx-label {
+  font-weight: 800;
+  white-space: nowrap;
+}
+.fx-example {
+  font-weight: 500;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.fx-note {
+  display: block;
+  font-size: 0.85em;
+  color: var(--muted);
+}
+.fx-picker {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: auto;
+}
+.fx-picker .fx-option {
+  min-height: 64px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--ink);
+  text-decoration: none;
+  font-size: 16px;
+}
+.fx-picker .fx-option:hover,
+.fx-picker .fx-option:focus-visible {
+  border-color: var(--ink);
+}
+.fx-picker .fx-option.primary {
+  background: var(--ink);
+  color: #fff;
+}
+.fx-picker .fx-option.primary .fx-example,
+.fx-picker .fx-option.primary .fx-note {
+  color: #dfe4f2;
+}
+.fx-picker .fx-example {
+  font-size: 14px;
 }

@@ -18,11 +18,7 @@
 
 export type CrossLevel = 1 | 2 | 3;
 export const CROSS_LEVELS: CrossLevel[] = [1, 2, 3];
-export const CROSS_LEVEL_NAME: Record<CrossLevel, string> = {
-  1: 'L1　x² 係數是 1',
-  2: 'L2　x² 係數不是 1',
-  3: 'L3　先提公因數',
-};
+// 老師、學生看到的名稱不用等級數字，用單元重點（shared/game-focus.ts 的 CROSS_FOCUS）。
 
 export type CrossSlot = 'lead0' | 'lead1' | 'const0' | 'const1';
 export const CROSS_SLOTS: CrossSlot[] = ['lead0', 'lead1', 'const0', 'const1'];
@@ -191,6 +187,28 @@ export function crossSequence(base: number, level: CrossLevel, count: number): C
     out.push(item);
   }
   return out;
+}
+
+/**
+ * 產生器的分類規則（一題屬於哪一級）：要提公因數（k ≠ 1）→ 3；x² 係數是 1 → 1；其他 → 2。
+ * crossItem(seed, level) 出的題一定落在同一級（單元測試核對）；重點的例子也用這個規則核對。
+ */
+export function crossClassify(item: { poly: Trinomial }): CrossLevel {
+  const { a, b, c } = item.poly;
+  const g = gcd(gcd(a, b), c);
+  if (g !== 1 || a < 0) return 3;
+  return a === 1 ? 1 : 2;
+}
+/**
+ * 混合：第 index 題（從 0 起）出哪一級。每 3 題一組是 1、2、3 的一個排列（由 base 決定），
+ * 所以同一個種子一定得到同一串、每 3 題三種都會出現。
+ * 只給老師大板用（種子本來就公開在網址上）；直播對戰的混合順序在伺服器用獨立秘密＋SHA-256（worker/cross.ts crossMixOrder），
+ * 不能用這個函式，否則學生看得到的重點順序會洩漏出題種子。
+ */
+export function crossMixLevel(base: number, index: number): CrossLevel {
+  const block = Math.floor(index / 3);
+  const rnd = crossRng(crossSeed(base, 1, 2_000_000 + block));
+  return shuffle(rnd, [1, 2, 3] as CrossLevel[])[index % 3];
 }
 
 /** 各等級一輪的題池大小（L1 在範圍內一共 200 種，全部都放進題池）。 */

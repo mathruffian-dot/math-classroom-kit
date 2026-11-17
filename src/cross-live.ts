@@ -1,7 +1,7 @@
 /**
  * 十字交乘・全班連線對戰（課堂裡的畫面）：
  * - 老師大螢幕：排行榜、全班答對／作答數、紅藍拔河、最近送出的題目（按「公布」才看到因式分解）。
- * - 老師控制區：起始等級、鎖定等級、限時、紅藍拔河；暫停／繼續、結束、重新開始。
+ * - 老師控制區：重點（x² 係數為 1／不為 1／先提公因式／混合）、要不要自動進到下一個重點、限時、紅藍拔河；暫停／繼續、結束、重新開始。
  * - 學生 iPad：原式、十字圖四格、卡片匣、送出。點卡片 → 點格子；點已放的格子收回。
  *   送出後先顯示中性的「已送出／判定中」並鎖住，不在本機猜對錯；伺服器回來才換成 ✓／✗。
  *   同學得分的推送只更新分數、名次、拔河這幾個小元素，不重畫題目。
@@ -9,7 +9,9 @@
  */
 import './cross-live.css';
 import type { CrossLiveItem, CrossLiveResult, CrossLiveView, SessionView, Session } from '../shared/types';
-import { CROSS_LEVEL_NAME, leadText, polyTex, signed, numText, type CrossLevel, type CrossSlot } from '../shared/cross';
+import { leadText, polyTex, signed, numText, type CrossLevel, type CrossSlot } from '../shared/cross';
+import { CROSS_FOCUS, crossFocusById, crossLevelLabel, crossNextFocus, crossRunFocus, type CrossFocusId } from '../shared/game-focus';
+import { focusLabelHtml, focusOptionHtml } from './cross-board';
 import { DUEL_TEAM_NAME, type DuelTeam } from '../shared/duel';
 
 export interface CrossLiveHelpers {
@@ -79,6 +81,14 @@ const clock = (ms: number) => {
   return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`;
 };
 const seatLabel = (n: number) => `${String(n).padStart(2, '0')} 號`;
+/** 這一場的重點設定（一行文字）：固定在某個重點、從某個重點起自動前進、或混合。舊場次（只有 level／lock）也對得上。 */
+export function crossRunFocusText(run: CrossLiveView['run']) {
+  const f = crossFocusById(crossRunFocus(run));
+  if (f.id === 'mix') return `重點：混合（三種隨機出現）`;
+  return run.lock || !crossNextFocus(f.id) ? `重點：${f.label}（固定）` : `重點：從「${f.label}」起，答對 3 題自動進到下一個重點`;
+}
+/** 學生、排行榜的「重點」欄：混合的場次寫「混合」，其他寫目前這一級的重點名稱。 */
+const mineFocusText = (run: CrossLiveView['run'], level: CrossLevel) => (crossRunFocus(run) === 'mix' ? '混合' : crossLevelLabel(level));
 /** 本機推算剩下的時間（伺服器給的 left 是送出畫面那一刻的）。 */
 function leftNow(v: CrossLiveView, now: number) {
   const r = v.run;
@@ -156,7 +166,7 @@ export function updateCrossBoard(root: HTMLElement, v: CrossLiveView, now: numbe
   [...list.children].forEach((li, i) => {
     const r = rows[i];
     const html = r
-      ? `<span class="xl-rank">${i + 1}</span><span class="xl-seat">${r.team ? `<i class="xl-dot ${r.team}"></i>` : ''}${seatLabel(r.seat)}</span><span class="xl-lv">L${r.level}</span><span class="xl-acc">${r.correct}/${r.attempts}</span><span class="xl-streak">${r.streak >= 2 ? `🔥${r.streak}` : ''}</span><b class="xl-score">${r.score}</b>`
+      ? `<span class="xl-rank">${i + 1}</span><span class="xl-seat">${r.team ? `<i class="xl-dot ${r.team}"></i>` : ''}${seatLabel(r.seat)}</span><span class="xl-lv">${H.esc(crossLevelLabel(r.level))}</span><span class="xl-acc">${r.correct}/${r.attempts}</span><span class="xl-streak">${r.streak >= 2 ? `🔥${r.streak}` : ''}</span><b class="xl-score">${r.score}</b>`
       : '';
     if (li.innerHTML !== html) li.innerHTML = html;
     li.className = `xl-row ${r ? '' : 'empty'} ${i < 3 && r ? `top${i + 1}` : ''}`;
@@ -178,15 +188,45 @@ export function updateCrossBoard(root: HTMLElement, v: CrossLiveView, now: numbe
 }
 
 /* ───────── 老師控制區 ───────── */
-export function crossPanelHtml(v: CrossLiveView | undefined, prefs: { level: number; seconds: number; team: boolean; lock: boolean; margin: number }): string {
+/**
+ * 重點選擇（單選）：名稱＋一行例子；底下「答對 3 題自動進到下一個重點」只對有下一個重點的選項有效
+ * （和大板一樣：先提公因式沒有下一個 → 停用並取消勾選；混合 → 隱藏）。
+ * name：表單名稱（課堂控制區 xl-focus、遊戲活動頁 xl-game-focus）。
+ */
+export function crossFocusPickerHtml(name: string, focus: CrossFocusId, escalate: boolean): string {
+  const can = !!crossNextFocus(focus);
+  return `<fieldset class="xl-focus" data-testid="${name}"><legend>重點</legend>${CROSS_FOCUS.map((f) => `<label class="xl-focus-opt fx-option ${f.id === focus ? 'on' : ''}" data-testid="${name}-${f.id}"><input type="radio" name="${name}" value="${f.id}" data-xl-focus="${name}" ${f.id === focus ? 'checked' : ''}>${focusOptionHtml(f)}</label>`).join('')}</fieldset><label class="xl-check" id="${name}-escalate-wrap" ${focus === 'mix' ? 'hidden' : ''}><input type="checkbox" id="${name}-escalate" data-testid="${name}-escalate" ${escalate && can ? 'checked' : ''} ${can ? '' : 'disabled'}>答對 3 題自動進到下一個重點</label>`;
+}
+/** 重點選項換了：標出選中的那一個；沒有下一個重點時停用並取消「自動進到下一個重點」，混合時隱藏。 */
+export function crossFocusChanged(el: HTMLInputElement) {
+  const name = el.dataset.xlFocus;
+  if (!name) return false;
+  document.querySelectorAll<HTMLInputElement>(`input[data-xl-focus="${name}"]`).forEach((x) => x.closest('label')?.classList.toggle('on', x.checked));
+  const box = document.querySelector<HTMLInputElement>(`#${name}-escalate`);
+  if (box) {
+    box.disabled = !crossNextFocus(el.value as CrossFocusId);
+    if (box.disabled) box.checked = false;
+  }
+  const wrap = document.querySelector<HTMLElement>(`#${name}-escalate-wrap`);
+  if (wrap) wrap.hidden = el.value === 'mix';
+  return true;
+}
+/** 表單上選的重點與「自動進到下一個重點」。 */
+export function crossFocusValue(name: string): { focus: CrossFocusId; escalate: boolean } {
+  const focus = (document.querySelector<HTMLInputElement>(`input[data-xl-focus="${name}"]:checked`)?.value || 'a1') as CrossFocusId;
+  const box = document.querySelector<HTMLInputElement>(`#${name}-escalate`);
+  return { focus, escalate: !!crossNextFocus(focus) && !!box?.checked };
+}
+
+export function crossPanelHtml(v: CrossLiveView | undefined, prefs: { focus: CrossFocusId; seconds: number; team: boolean; escalate: boolean; margin: number }): string {
   const head = `<header><strong>${H.icon('grid')}十字交乘對戰</strong></header>`;
   if (!v) {
     const opt = (list: [number, string][], cur: number) => list.map(([x, l]) => `<option value="${x}" ${x === cur ? 'selected' : ''}>${l}</option>`).join('');
-    return `${head}<p class="muted small-text">每位同學各自一題（數字都不一樣），在 iPad 上把卡片放進十字圖再送出；伺服器判定，答對看速度與連對加分。同一級連對 3 題自動升級。</p><div class="xl-form"><label>起始等級<select id="xl-level" data-testid="xl-level">${opt([[1, CROSS_LEVEL_NAME[1]], [2, CROSS_LEVEL_NAME[2]], [3, CROSS_LEVEL_NAME[3]]], prefs.level)}</select></label><label>限時<select id="xl-seconds" data-testid="xl-seconds">${opt([[0, '不限時'], [180, '3 分鐘'], [300, '5 分鐘'], [480, '8 分鐘']], prefs.seconds)}</select></label><label class="xl-check"><input type="checkbox" id="xl-lock" data-testid="xl-lock" ${prefs.lock ? 'checked' : ''}>鎖定等級（不自動升級）</label><label class="xl-check"><input type="checkbox" id="xl-team" data-testid="xl-team" ${prefs.team ? 'checked' : ''}>紅藍兩隊拔河</label><label>拔河勝負門檻（平均分差）<select id="xl-margin">${opt([[200, '200 分'], [300, '300 分'], [500, '500 分'], [800, '800 分']], prefs.margin)}</select></label></div><div class="tool-row">${H.btn('開始對戰', 'xl-start', 'primary', 'bolt', 'data-testid="xl-start"')}</div>`;
+    return `${head}<p class="muted small-text">每位同學各自一題（數字都不一樣），在 iPad 上把卡片放進十字圖再送出；伺服器判定，答對看速度與連對加分。題目固定在選的重點；要逐步加深就勾「自動進到下一個重點」。</p><div class="xl-form">${crossFocusPickerHtml('xl-focus', prefs.focus, prefs.escalate)}<label>限時<select id="xl-seconds" data-testid="xl-seconds">${opt([[0, '不限時'], [180, '3 分鐘'], [300, '5 分鐘'], [480, '8 分鐘']], prefs.seconds)}</select></label><label class="xl-check"><input type="checkbox" id="xl-team" data-testid="xl-team" ${prefs.team ? 'checked' : ''}>紅藍兩隊拔河</label><label>拔河勝負門檻（平均分差）<select id="xl-margin">${opt([[200, '200 分'], [300, '300 分'], [500, '500 分'], [800, '800 分']], prefs.margin)}</select></label></div><div class="tool-row">${H.btn('開始對戰', 'xl-start', 'primary', 'bolt', 'data-testid="xl-start"')}</div>`;
   }
   const now = H.serverTime();
   const phase = crossPhase(v, now);
-  const status = `<p class="quiz-status" data-testid="xl-panel-status">${phase === 'on' ? '進行中' : phase === 'paused' ? '暫停中' : v.run.team ? winnerText(v) : '已結束'}｜${H.esc(CROSS_LEVEL_NAME[v.run.level])}${v.run.lock ? '（鎖定）' : '起，自動升級'}${v.run.team && v.teams ? `｜紅隊 ${v.teams.size.red} 人・藍隊 ${v.teams.size.blue} 人` : ''}</p>`;
+  const status = `<p class="quiz-status" data-testid="xl-panel-status">${phase === 'on' ? '進行中' : phase === 'paused' ? '暫停中' : v.run.team ? winnerText(v) : '已結束'}｜${H.esc(crossRunFocusText(v.run))}${v.run.team && v.teams ? `｜紅隊 ${v.teams.size.red} 人・藍隊 ${v.teams.size.blue} 人` : ''}</p>`;
   if (phase === 'over') return `${head}${status}<div class="tool-row">${H.btn('重新開始', 'xl-reset', 'primary', 'dice', 'data-testid="xl-reset"')}${H.btn('關閉', 'xl-close', 'quiet', 'x', 'data-testid="xl-close"')}</div>`;
   return `${head}${status}<div class="tool-row">${phase === 'paused' ? H.btn('繼續', 'xl-resume', 'primary', 'play', 'data-testid="xl-resume"') : H.btn('暫停', 'xl-pause', 'secondary', 'clock', 'data-testid="xl-pause"')}${H.btn(v.run.team ? '關閉拔河' : '開啟紅藍拔河', 'xl-team', 'secondary', 'users', `data-value="${v.run.team ? '0' : '1'}" data-testid="xl-team-toggle"`)}</div><div class="tool-row">${H.btn('重新開始', 'xl-reset', 'quiet', 'dice', 'data-testid="xl-reset"')}${H.btn('結束這一場', 'xl-end', 'quiet danger', 'x', 'data-testid="xl-end"')}</div>`;
 }
@@ -198,7 +238,7 @@ export function crossPanelKey(v: CrossLiveView | undefined, now: number) {
 export function crossLiveGameCardHtml(sessions: Session[]): string {
   const live = sessions.filter((s) => !s.ended);
   const pick = live.length
-    ? `<label class="xl-game-pick">上課中的課堂<select id="xl-game-session" data-testid="xl-game-session">${live.map((s) => `<option value="${H.esc(s.id)}">${H.esc(s.className)}・${H.esc(s.title)}</option>`).join('')}</select></label><label class="xl-game-pick">起始等級<select id="xl-game-level">${([1, 2, 3] as CrossLevel[]).map((l) => `<option value="${l}">${H.esc(CROSS_LEVEL_NAME[l])}</option>`).join('')}</select></label><label class="xl-check"><input type="checkbox" id="xl-game-team">紅藍兩隊拔河</label><div class="course-actions">${H.btn('開始對戰', 'xl-game-start', 'primary', 'bolt', 'data-testid="xl-game-start"')}</div>`
+    ? `<label class="xl-game-pick">上課中的課堂<select id="xl-game-session" data-testid="xl-game-session">${live.map((s) => `<option value="${H.esc(s.id)}">${H.esc(s.className)}・${H.esc(s.title)}</option>`).join('')}</select></label>${crossFocusPickerHtml('xl-game-focus', 'a1', false)}<label class="xl-check"><input type="checkbox" id="xl-game-team">紅藍兩隊拔河</label><div class="course-actions">${H.btn('開始對戰', 'xl-game-start', 'primary', 'bolt', 'data-testid="xl-game-start"')}</div>`
     : `<p class="muted small-text">目前沒有上課中的課堂。先到「我的課程」按「開始上課」，學生登入後再回來開對戰（或在課堂的老師工具列按「十字交乘對戰」）。</p>`;
   return `<article class="course-card cx-game-card xl-game-card" data-testid="game-cross-live"><div class="course-thumb cx-thumb xl-thumb"><span>八年級 3-2</span><strong>十字<small>對戰</small></strong><em>全班連線・每人一題</em></div><div class="course-details"><h3>十字交乘（全班連線對戰）</h3><p>每位同學在 iPad 上拿到不同的題目，把卡片放進十字圖送出，伺服器判定；大螢幕顯示排行榜，可開紅藍兩隊拔河。</p><div class="course-meta">${H.icon('users')}學生用平常的課堂登入加入</div>${pick}</div></article>`;
 }
@@ -243,7 +283,7 @@ export function crossCardHtml(v: CrossLiveView, now: number): string {
   if (m === 'item') syncLocal(it);
   const team = v.mine?.team;
   const tag = team ? `<span class="xl-team-tag ${team}" data-testid="xl-team">你是${DUEL_TEAM_NAME[team]}</span>` : '';
-  const head = `<div class="xl-card-head"><h2>✚ 十字交乘對戰</h2>${tag}<span class="xl-clock small" data-xl="clock"></span></div><div class="xl-stats" data-testid="xl-stats"><span>分數 <b data-xl="score" data-testid="xl-score">0</b></span><span>連對 <b data-xl="streak" data-testid="xl-streak">0</b></span><span>等級 <b data-xl="level" data-testid="xl-level-now">L1</b></span><span>名次 <b data-xl="rank" data-testid="xl-rank">—</b></span><span>答對 <b data-xl="ratio" data-testid="xl-mine-ratio">0/0</b></span></div>${v.run.team ? ropeHtml(true) : ''}`;
+  const head = `<div class="xl-card-head"><h2>✚ 十字交乘對戰</h2>${tag}<span class="xl-clock small" data-xl="clock"></span></div><div class="xl-stats" data-testid="xl-stats"><span>分數 <b data-xl="score" data-testid="xl-score">0</b></span><span>連對 <b data-xl="streak" data-testid="xl-streak">0</b></span><span class="xl-stat-focus">重點 <b data-xl="level" data-testid="xl-level-now">${H.esc(mineFocusText(v.run, v.mine?.level ?? v.run.level))}</b></span><span>名次 <b data-xl="rank" data-testid="xl-rank">—</b></span><span>答對 <b data-xl="ratio" data-testid="xl-mine-ratio">0/0</b></span></div>${v.run.team ? ropeHtml(true) : ''}`;
   let body = '';
   if (m === 'over') body = `<div class="xl-over" data-testid="xl-over"><h3>${H.esc(v.run.team ? winnerText(v) : '這一場結束')}</h3><p>你答對 <b>${v.mine?.correct || 0}</b> 題（作答 ${v.mine?.attempts || 0} 題），得 <b>${v.mine?.score || 0}</b> 分。</p></div>`;
   else if (m === 'paused') body = `<div class="xl-over" data-testid="xl-paused"><h3>老師暫停中</h3><p>等老師按「繼續」。</p></div>`;
@@ -267,7 +307,7 @@ function questionHtml(it: CrossLiveItem, m: 'item' | 'pending' | 'result') {
     m === 'result'
       ? `<button type="button" class="btn primary xl-big" data-action="xl-next" data-testid="xl-next" data-xl="next">${H.icon('next')}<span data-xl="next-label">下一題</span></button>`
       : `<button type="button" class="btn primary xl-big xl-submit" data-action="xl-submit" data-testid="xl-submit" ${m !== 'item' ? 'disabled' : ''}>${H.icon('check')}<span>${m === 'pending' ? '判定中…' : '送出'}</span></button>`;
-  return `<div class="xl-q" data-testid="xl-question" data-item="${H.esc(it.id)}"><span class="xl-lvtag">L${it.level}</span><div class="xl-poly" data-testid="xl-poly" data-a="${it.poly.a}" data-b="${it.poly.b}" data-c="${it.poly.c}">${H.tex(polyTex(it.poly))}</div>${kText ? `<div class="xl-inner">＝ ${H.esc(kText)}(　　)(　　)</div>` : ''}</div>${kStep}<div class="xl-work ${lockedK ? 'locked' : ''}" data-xl="work"><div class="xl-cross" data-testid="xl-cross"><div class="xl-colhead">x 係數</div><div></div><div class="xl-colhead">常數</div>${lead('lead0')}<svg class="xl-x" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><line x1="6" y1="10" x2="94" y2="90"/><line x1="6" y1="90" x2="94" y2="10"/></svg>${lead('const0')}${lead('lead1')}${lead('const1')}</div>${lockedK ? '<div class="xl-lock">先選公因數</div>' : ''}</div><div class="xl-tray" data-xl="tray" data-testid="xl-tray">${it.cards.map((c) => trayCardHtml(it, c.id, placed, m)).join('')}</div>${verdict}<div class="xl-actions">${action}</div>`;
+  return `<div class="xl-q" data-testid="xl-question" data-item="${H.esc(it.id)}"><span class="xl-lvtag" data-testid="xl-item-focus" data-level="${it.level}">${focusLabelHtml(crossLevelLabel(it.level))}</span><div class="xl-poly" data-testid="xl-poly" data-a="${it.poly.a}" data-b="${it.poly.b}" data-c="${it.poly.c}">${H.tex(polyTex(it.poly))}</div>${kText ? `<div class="xl-inner">＝ ${H.esc(kText)}(　　)(　　)</div>` : ''}</div>${kStep}<div class="xl-work ${lockedK ? 'locked' : ''}" data-xl="work"><div class="xl-cross" data-testid="xl-cross"><div class="xl-colhead">x 係數</div><div></div><div class="xl-colhead">常數</div>${lead('lead0')}<svg class="xl-x" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><line x1="6" y1="10" x2="94" y2="90"/><line x1="6" y1="90" x2="94" y2="10"/></svg>${lead('const0')}${lead('lead1')}${lead('const1')}</div>${lockedK ? '<div class="xl-lock">先選公因數</div>' : ''}</div><div class="xl-tray" data-xl="tray" data-testid="xl-tray">${it.cards.map((c) => trayCardHtml(it, c.id, placed, m)).join('')}</div>${verdict}<div class="xl-actions">${action}</div>`;
 }
 function slotHtml(it: CrossLiveItem, slot: CrossSlot, placed: Placed, m: string) {
   const kind = slot.startsWith('lead') ? 'lead' : 'const';
@@ -287,7 +327,7 @@ function verdictHtml(r: CrossLiveResult) {
   const why: Record<string, string> = { k: '公因數選錯了', sign: '左欄要是正的', lead: '左欄相乘不等於 x² 係數', const: '右欄相乘不等於常數項', sum: '交叉相乘的和不對', card: '卡片放錯了', incomplete: '四格還沒放滿', invalid: '卡片不正確' };
   const [ps, rq] = r.products;
   const products = ps !== null && rq !== null ? `交叉相乘 ${numText(ps)} ＋ ${numText(rq)} ＝ ${numText(ps + rq)}（目標 ${numText(r.target)}）` : '';
-  return `<div class="xl-flash ${r.ok ? 'ok' : 'no'}" data-testid="xl-flash" data-ok="${r.ok}"><b>${r.ok ? `✓ 答對！＋${r.points.total} 分` : `✗ ${H.esc(why[r.reason || ''] || '不對')}`}</b>${r.ok ? `<small>基本 ${r.points.base}・速度 ${r.points.speed}・連對 ${r.points.streak}${r.levelUp ? `・升到 L${r.level}！` : ''}</small>` : ''}<small>${products}</small><span class="xl-answer" data-testid="xl-answer">${H.tex(`${r.poly}=${r.factored}`)}</span></div>`;
+  return `<div class="xl-flash ${r.ok ? 'ok' : 'no'}" data-testid="xl-flash" data-ok="${r.ok}"><b>${r.ok ? `✓ 答對！＋${r.points.total} 分` : `✗ ${H.esc(why[r.reason || ''] || '不對')}`}</b>${r.ok ? `<small>基本 ${r.points.base}・速度 ${r.points.speed}・連對 ${r.points.streak}${r.levelUp ? `・進到「${H.esc(crossLevelLabel(r.level))}」！` : ''}</small>` : ''}<small>${products}</small><span class="xl-answer" data-testid="xl-answer">${H.tex(`${r.poly}=${r.factored}`)}</span></div>`;
 }
 /** 同學得分、時間：只更新這幾個小元素，不重畫題目。 */
 export function updateCrossCard(root: HTMLElement, v: CrossLiveView, now: number) {
@@ -298,7 +338,7 @@ export function updateCrossCard(root: HTMLElement, v: CrossLiveView, now: number
   const mine = v.mine;
   set('score', String(mine?.score ?? 0));
   set('streak', String(mine?.streak ?? 0));
-  set('level', `L${mine?.level ?? v.run.level}`);
+  set('level', mineFocusText(v.run, mine?.level ?? v.run.level));
   set('rank', mine?.rank ? `${mine.rank} / ${mine.players}` : '—');
   set('ratio', `${mine?.correct ?? 0}/${mine?.attempts ?? 0}`);
   const left = leftNow(v, now);

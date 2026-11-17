@@ -31,7 +31,7 @@ import { answerDuel, duelBank, duelCsvRows, duelJoin, duelOver, duelState, duelT
 import { DUEL_COUNTDOWN_MS } from '../shared/duel';
 import { CROSS_MARGIN, CROSS_MIN_GAP, crossCheckOver, crossCsvRows, crossOver, crossExport, crossJoin, crossLeader, crossMine, crossNextThrottle, crossPause, crossPlayOf, crossPrune, crossReveal, crossView, issueItem, itemView, submitCross, type CrossStore } from './cross';
 export { crossThrottleReset } from './cross';
-import type { CrossLevel } from '../shared/cross';
+import { CROSS_LEVEL_FOCUS, crossFocusLevel, crossNextFocus, isCrossFocus, type CrossFocusId } from '../shared/game-focus';
 import {
   HttpError,
   assert,
@@ -1711,7 +1711,26 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
             break;
           // ── 十字交乘對戰：每位同學各自的題目（伺服器出題、判定），排行榜與紅藍拔河 ──
           case 'cross-start': {
-            const level = integer(body.level ?? 1, 1, 3) as CrossLevel;
+            // 重點：新的畫面送 focus（a1／a-not-1／gcf／mix）＋ escalate（答對 3 題自動進到下一個重點，預設不前進）。
+            // 舊的畫面（8ccf588）送 level＋lock：照舊對應到同一級的重點，沒勾鎖定就照舊自動前進。
+            // 每個欄位只要有送就先驗證型別（不認得的一律 400）。只要有 focus 或 escalate 就是新格式：
+            //   重點 = focus（沒有 focus 時用 level 對應）；是否前進只看 escalate（沒送 = 不前進），lock 不再採用；
+            //   混合、先提公因式（沒有下一個重點）一律不前進。只有純 level／lock 的請求才走舊邏輯（沒勾 lock 就前進）；
+            //   什麼都沒送 = 新的預設（x² 係數為 1、不前進）。
+            assert(body.focus === undefined || isCrossFocus(body.focus), '重點不正確');
+            assert(body.escalate === undefined || typeof body.escalate === 'boolean', '自動前進的設定不正確');
+            assert(body.lock === undefined || typeof body.lock === 'boolean', '鎖定的設定不正確');
+            const legacyLevel = body.level === undefined ? 1 : (integer(body.level, 1, 3) as 1 | 2 | 3);
+            let focus: CrossFocusId, lock: boolean;
+            const legacy = body.focus === undefined && body.escalate === undefined && (body.level !== undefined || body.lock !== undefined);
+            if (!legacy) {
+              focus = (body.focus as CrossFocusId | undefined) ?? CROSS_LEVEL_FOCUS[legacyLevel];
+              lock = body.escalate !== true || !crossNextFocus(focus);
+            } else {
+              focus = CROSS_LEVEL_FOCUS[legacyLevel];
+              lock = body.lock === true;
+            }
+            const level = crossFocusLevel(focus) ?? 1;
             const seconds = integer(body.seconds ?? 0, 0, 1800);
             const margin = integer(body.margin ?? CROSS_MARGIN, 50, 5000);
             endQuiz(s, state);
@@ -1726,7 +1745,7 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
             const at = Date.now();
             const team = body.team === true;
             const online = [...onlineSeats(state, s, ctx.online?.())];
-            const run = { id: uuid(), startedAt: at, level, lock: body.lock === true, seconds, deadline: seconds ? at + seconds * 1000 : null, pausedAt: null, team, margin, teams: team ? duelTeams(online, (n) => seatLevel(state, s, n)) : {}, winner: null };
+            const run = { id: uuid(), startedAt: at, focus, level, lock, seconds, deadline: seconds ? at + seconds * 1000 : null, pausedAt: null, team, margin, teams: team ? duelTeams(online, (n) => seatLevel(state, s, n)) : {}, winner: null };
             session.cross = run;
             (s.crossRuns ||= []).push(clone(run));
             crossPrune(s);

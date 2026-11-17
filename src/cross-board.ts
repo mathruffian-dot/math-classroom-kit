@@ -1,5 +1,7 @@
 /**
- * 十字交乘・大板操作（教師大螢幕／iPad）：#/games/cross?level=1&seed=123
+ * 十字交乘・大板操作（教師大螢幕／iPad）：#/games/cross?focus=a1&seed=123
+ * 老師選的是單元重點（shared/game-focus.ts 的 CROSS_FOCUS）：x² 係數為 1／不為 1／先提公因式／混合。
+ * 舊網址 ?level=1/2/3 照樣能開（對應到 a1／a-not-1／gcf；兩個都有時 focus 優先）。
  *
  * 老師在大螢幕上把數字卡拖進十字圖四格（Pointer Events：觸控、滑鼠、觸控筆），
  * 或先點卡片再點格子。每放一張只更新受影響的部分（卡片搬家、讀數、回饋），不重畫整個板子，
@@ -11,12 +13,11 @@ import { escape as esc } from './api';
 import { icon } from './icons';
 import { tex } from './math';
 import {
-  CROSS_LEVELS,
-  CROSS_LEVEL_NAME,
   CROSS_SLOTS,
   CROSS_POOL_SIZE,
   crossAnswer,
   crossJudge,
+  crossMixLevel,
   crossPool,
   crossSeed,
   factoredTex,
@@ -31,13 +32,19 @@ import {
   type CrossLevel,
   type CrossSlot,
 } from '../shared/cross';
+import { CROSS_FOCUS, crossFocusFromParams, crossFocusLevel, crossLevelLabel, crossNextFocus, type CrossFocusId, type GameFocus } from '../shared/game-focus';
 
-/** 連續答對幾題自動升級 */
+/** 勾「自動進到下一個重點」時，連續答對幾題換到下一個重點 */
 export const CROSS_AUTO_STREAK = 3;
 const DRAG_START_PX = 8;
 
 interface BoardState {
+  /** 老師選的重點；混合時每題的等級由 crossMixLevel 決定 */
+  focus: CrossFocusId;
+  /** 目前這一題的等級（產生器用） */
   level: CrossLevel;
+  /** 混合：已經出到第幾題（決定下一題的等級） */
+  mix: number;
   base: number;
   /** 第幾題（整場累計）；卡片 id 加上這個序號，舊題的指標永遠碰不到新題的卡 */
   serial: number;
@@ -69,24 +76,37 @@ interface Drag {
 const cardText = (c: CrossCard) => (c.kind === 'lead' ? leadText(c.value) : signed(c.value));
 const slotKind = (slot: CrossSlot) => (slot.startsWith('lead') ? 'lead' : 'const');
 
-/** 遊戲活動頁的卡片（在 main.ts 的 shell 裡顯示） */
+/** 重點名稱（x² 換成 KaTeX 排版） */
+export function focusLabelHtml(label: string): string {
+  return label
+    .split('x²')
+    .map((part) => esc(part))
+    .join(tex('x^2'));
+}
+/** 重點選項的內容：名稱＋一行例子（KaTeX）＋補充說明。遊戲卡片、板子切換列、對戰的開始設定共用。 */
+export function focusOptionHtml(f: GameFocus): string {
+  const example = f.example ? tex(f.example) : esc(f.exampleText || '');
+  return `<span class="fx-label">${focusLabelHtml(f.label)}</span><span class="fx-example">${example}${f.note ? `<small class="fx-note">${esc(f.note)}</small>` : ''}</span>`;
+}
+
+/** 遊戲活動頁的卡片（在 main.ts 的 shell 裡顯示）：老師先挑這一節課的重點 */
 export function crossGameCardHtml(): string {
-  return `<article class="course-card cx-game-card" data-testid="game-cross"><div class="course-thumb cx-thumb"><span>八年級 3-2</span><strong>十字<small>交乘</small></strong><em>大板操作・拖曳數字卡</em></div><div class="course-details"><h3>十字交乘（大板操作）</h3><p>在大螢幕或 iPad 上把數字卡拖進十字圖，交叉相乘的和即時顯示；答對變綠色並寫出因式分解。三個等級：${tex('x^2')} 係數是 1、不是 1、先提公因數（含負的首項）。</p><div class="course-meta">${icon('screen')}老師畫面操作，學生不用登入</div><div class="course-actions">${CROSS_LEVELS.map((l) => `<a class="btn ${l === 1 ? 'primary' : 'secondary'}" href="#/games/cross?level=${l}" data-testid="open-cross-${l}">${icon('play')}<span>L${l}</span></a>`).join('')}</div></div></article>`;
+  return `<article class="course-card cx-game-card" data-testid="game-cross"><div class="course-thumb cx-thumb"><span>八年級 3-2</span><strong>十字<small>交乘</small></strong><em>大板操作・拖曳數字卡</em></div><div class="course-details"><h3>十字交乘（大板操作）</h3><p>在大螢幕或 iPad 上把數字卡拖進十字圖，交叉相乘的和即時顯示；答對變綠色並寫出因式分解。先選這節課要練的重點：</p><div class="course-meta">${icon('screen')}老師畫面操作，學生不用登入</div><div class="fx-picker" role="group" aria-label="選擇重點">${CROSS_FOCUS.map((f, i) => `<a class="fx-option ${i === 0 ? 'primary' : ''}" href="#/games/cross?focus=${f.id}" data-testid="open-cross-${f.id}" aria-label="${esc(f.label)}">${focusOptionHtml(f)}</a>`).join('')}</div></div></article>`;
 }
 
 export function renderCrossBoard(app: HTMLElement, route: string): void {
   const params = new URLSearchParams(route.split('?')[1] || '');
-  const lv = Number(params.get('level'));
-  const level: CrossLevel = lv === 2 || lv === 3 ? lv : 1;
+  // ?focus= 優先；舊網址 ?level=1/2/3 對應到 a1／a-not-1／gcf
+  const focus = crossFocusFromParams(params);
   const seedParam = Number(params.get('seed'));
   const base = Number.isFinite(seedParam) && params.has('seed') ? seedParam >>> 0 : (Date.now() ^ Math.floor(Math.random() * 2 ** 31)) >>> 0;
   // ?pool=N：把每一輪的題池縮小成 N 題（示範「題目出完重新開始」與測試用）
   const poolParam = Math.floor(Number(params.get('pool')));
   const poolSize = (l: CrossLevel) => (poolParam >= 1 ? Math.min(poolParam, CROSS_POOL_SIZE[l]) : CROSS_POOL_SIZE[l]);
-  const st: BoardState = { level, base, serial: 0, item: null as unknown as CrossItem, placed: emptyPlaced(), selected: null, hint: 0, extracted: false, done: 'none', counted: false, score: 0, streak: 0, auto: false, pools: {} };
+  const st: BoardState = { focus, level: crossFocusLevel(focus) || 1, mix: 0, base, serial: 0, item: null as unknown as CrossItem, placed: emptyPlaced(), selected: null, hint: 0, extracted: false, done: 'none', counted: false, score: 0, streak: 0, auto: false, pools: {} };
 
   app.className = 'cross-app';
-  app.innerHTML = `<div class="cx-root" id="cx-root" data-testid="cross-board"><header class="cx-top"><a class="icon-btn" href="#/games" aria-label="返回遊戲活動" title="返回遊戲活動">${icon('back')}</a><h1>十字交乘<small>大板操作</small></h1><div class="cx-levels" role="group" aria-label="等級">${CROSS_LEVELS.map((l) => `<button type="button" data-cx="level" data-level="${l}" data-testid="cx-level-${l}" aria-label="${esc(CROSS_LEVEL_NAME[l])}" title="${esc(CROSS_LEVEL_NAME[l])}">L${l}</button>`).join('')}</div><label class="cx-auto"><input type="checkbox" data-cx="auto" data-testid="cx-auto"><span title="連對 ${CROSS_AUTO_STREAK} 題自動升到下一級">自動升級</span></label><span class="cx-score" id="cx-score" data-testid="cx-score" aria-live="polite"></span><button type="button" class="icon-btn" data-cx="fullscreen" aria-label="全螢幕" title="全螢幕">${icon('expand')}</button></header><main class="cx-main" id="cx-main"><section class="cx-question" id="cx-question" aria-label="題目"></section><section class="cx-work"><div class="cx-cross" id="cx-cross" data-testid="cx-diagram" aria-label="十字圖"><div class="cx-colhead">x 係數</div><div></div><div class="cx-colhead">常數</div>${slotHtml('lead0')}<svg class="cx-x" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><line class="cx-d1" x1="6" y1="10" x2="94" y2="90"/><line class="cx-d2" x1="6" y1="90" x2="94" y2="10"/></svg>${slotHtml('const0')}${slotHtml('lead1')}${slotHtml('const1')}<div class="cx-colprod" id="cx-leadprod" data-testid="cx-leadprod"></div><div></div><div class="cx-colprod" id="cx-constprod" data-testid="cx-constprod"></div><div class="cx-lock" id="cx-lock">先提出公因數</div></div><div class="cx-readout" aria-label="交叉相乘"><div class="cx-row-f"><span>因式</span><b id="cx-f0" data-testid="cx-f0"></b><b id="cx-f1" data-testid="cx-f1"></b></div><div class="cx-prod d1"><span>左上 × 右下</span><b id="cx-ps" data-testid="cx-ps">?</b></div><div class="cx-prod d2"><span>左下 × 右上</span><b id="cx-rq" data-testid="cx-rq">?</b></div><div class="cx-sum"><span>交叉相乘和</span><b id="cx-sum" data-testid="cx-sum">?</b><em id="cx-target" data-testid="cx-target"></em></div></div></section><section class="cx-tray" id="cx-tray" data-testid="cx-tray" aria-label="數字卡（格子裡的卡按 Delete 放回這裡）"></section><p class="cx-feedback" id="cx-feedback" data-testid="cx-feedback" role="status" aria-live="polite"></p></main><footer class="cx-actions"><button type="button" class="btn secondary" data-cx="clear" data-testid="cx-clear" aria-label="清空，卡片放回">${icon('undo')}<span>清空</span></button><button type="button" class="btn secondary" data-cx="hint" data-testid="cx-hint" aria-label="提示（再按一次給更多提示）">${icon('spark')}<span>提示</span></button><button type="button" class="btn secondary" data-cx="reveal" id="cx-reveal" data-testid="cx-reveal" aria-label="公布答案">${icon('eye')}<span>公布答案</span></button><button type="button" class="btn primary" data-cx="next" data-testid="cx-next" aria-label="下一題">${icon('next')}<span>下一題</span></button></footer></div>`;
+  app.innerHTML = `<div class="cx-root" id="cx-root" data-testid="cross-board"><header class="cx-top"><a class="icon-btn" href="#/games" aria-label="返回遊戲活動" title="返回遊戲活動">${icon('back')}</a><h1>十字交乘<small>大板操作</small></h1><div class="cx-levels" role="group" aria-label="重點">${CROSS_FOCUS.map((f) => `<button type="button" class="fx-option" data-cx="focus" data-focus="${f.id}" data-testid="cx-focus-${f.id}" aria-label="${esc(f.label)}" title="${esc(f.label)}${f.note ? `（${esc(f.note)}）` : ''}">${focusOptionHtml(f)}</button>`).join('')}</div><label class="cx-auto" id="cx-auto-wrap"><input type="checkbox" data-cx="auto" data-testid="cx-auto"><span>答對 ${CROSS_AUTO_STREAK} 題自動進到下一個重點</span></label><span class="cx-score" id="cx-score" data-testid="cx-score" aria-live="polite"></span><button type="button" class="icon-btn" data-cx="fullscreen" aria-label="全螢幕" title="全螢幕">${icon('expand')}</button></header><main class="cx-main" id="cx-main"><section class="cx-question" id="cx-question" aria-label="題目"></section><section class="cx-work"><div class="cx-cross" id="cx-cross" data-testid="cx-diagram" aria-label="十字圖"><div class="cx-colhead">x 係數</div><div></div><div class="cx-colhead">常數</div>${slotHtml('lead0')}<svg class="cx-x" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><line class="cx-d1" x1="6" y1="10" x2="94" y2="90"/><line class="cx-d2" x1="6" y1="90" x2="94" y2="10"/></svg>${slotHtml('const0')}${slotHtml('lead1')}${slotHtml('const1')}<div class="cx-colprod" id="cx-leadprod" data-testid="cx-leadprod"></div><div></div><div class="cx-colprod" id="cx-constprod" data-testid="cx-constprod"></div><div class="cx-lock" id="cx-lock">先提出公因數</div></div><div class="cx-readout" aria-label="交叉相乘"><div class="cx-row-f"><span>因式</span><b id="cx-f0" data-testid="cx-f0"></b><b id="cx-f1" data-testid="cx-f1"></b></div><div class="cx-prod d1"><span>左上 × 右下</span><b id="cx-ps" data-testid="cx-ps">?</b></div><div class="cx-prod d2"><span>左下 × 右上</span><b id="cx-rq" data-testid="cx-rq">?</b></div><div class="cx-sum"><span>交叉相乘和</span><b id="cx-sum" data-testid="cx-sum">?</b><em id="cx-target" data-testid="cx-target"></em></div></div></section><section class="cx-tray" id="cx-tray" data-testid="cx-tray" aria-label="數字卡（格子裡的卡按 Delete 放回這裡）"></section><p class="cx-feedback" id="cx-feedback" data-testid="cx-feedback" role="status" aria-live="polite"></p></main><footer class="cx-actions"><button type="button" class="btn secondary" data-cx="clear" data-testid="cx-clear" aria-label="清空，卡片放回">${icon('undo')}<span>清空</span></button><button type="button" class="btn secondary" data-cx="hint" data-testid="cx-hint" aria-label="提示（再按一次給更多提示）">${icon('spark')}<span>提示</span></button><button type="button" class="btn secondary" data-cx="reveal" id="cx-reveal" data-testid="cx-reveal" aria-label="公布答案">${icon('eye')}<span>公布答案</span></button><button type="button" class="btn primary" data-cx="next" data-testid="cx-next" aria-label="下一題">${icon('next')}<span>下一題</span></button></footer></div>`;
   const root = app.querySelector<HTMLElement>('#cx-root')!;
   const $ = <T extends HTMLElement = HTMLElement>(sel: string) => root.querySelector<T>(sel)!;
   const slotEl = (slot: CrossSlot) => $(`[data-slot="${slot}"]`);
@@ -105,7 +125,7 @@ export function renderCrossBoard(app: HTMLElement, route: string): void {
   }
 
   /**
-   * 從這個等級的題池依序抽一題；一輪用完才重新洗一輪（第 2 輪起換場次種子，順序不同）。
+   * 從這個等級的題池依序抽一題（混合時三個等級各有自己的題池）；一輪用完才重新洗一輪（第 2 輪起換場次種子，順序不同）。
    * restarted＝這一題是新一輪的第一題（前一輪已經出完）。
    */
   function draw(level: CrossLevel): { item: CrossItem; restarted: boolean } {
@@ -123,8 +143,11 @@ export function renderCrossBoard(app: HTMLElement, route: string): void {
   }
 
   /* ── 換題：只有這裡會重畫題目、卡片匣與四格內容 ── */
-  function newItem(level: CrossLevel) {
+  function newItem(focus: CrossFocusId) {
     cancelDrag();
+    st.focus = focus;
+    // 混合：這一題出哪一級由場次種子決定（同一個 seed 一定同一串，每 3 題三種都會出現）
+    const level = crossFocusLevel(focus) ?? crossMixLevel(st.base, st.mix++);
     st.level = level;
     const { item: raw, restarted } = draw(level);
     const serial = ++st.serial;
@@ -136,11 +159,15 @@ export function renderCrossBoard(app: HTMLElement, route: string): void {
     st.extracted = false;
     st.done = 'none';
     st.counted = false;
-    root.querySelectorAll<HTMLButtonElement>('[data-cx="level"]').forEach((b) => {
-      const on = Number(b.dataset.level) === level;
+    root.querySelectorAll<HTMLButtonElement>('[data-cx="focus"]').forEach((b) => {
+      const on = b.dataset.focus === focus;
       b.classList.toggle('selected', on);
       b.setAttribute('aria-pressed', String(on));
     });
+    // 沒有下一個重點（先提公因式）時開關停用；混合不適用，整個收起來
+    $<HTMLInputElement>('[data-cx="auto"]').disabled = !crossNextFocus(focus);
+    $('#cx-auto-wrap').hidden = focus === 'mix';
+    root.dataset.focus = focus;
     root.dataset.level = String(level);
     root.dataset.key = item.key;
     root.dataset.round = String(st.pools[level]!.round);
@@ -161,13 +188,13 @@ export function renderCrossBoard(app: HTMLElement, route: string): void {
     if (restarted) {
       const fb = $('#cx-feedback');
       fb.className = 'cx-feedback warn';
-      fb.innerHTML = `<span data-testid="cx-pool-notice">這個等級的 ${poolSize(level)} 題都出過了，重新洗牌開始新的一輪。</span>`;
+      fb.innerHTML = `<span data-testid="cx-pool-notice">「${esc(crossLevelLabel(level))}」的 ${poolSize(level)} 題都出過了，重新洗牌開始新的一輪。</span>`;
     }
   }
   function renderQuestion() {
     const it = st.item;
     const need = it.k !== 1;
-    $('#cx-question').innerHTML = `<div class="cx-poly" data-testid="cx-poly"><span class="cx-label">因式分解</span>${tex(polyTex(it.poly), true)}</div>${need ? `<div class="cx-extract ${st.extracted ? 'done' : ''}" data-testid="cx-extract-step"><span class="cx-step">第 1 步　提出公因數${it.k < 0 ? '（首項是負的，連負號一起提）' : ''}</span>${st.extracted ? `<div class="cx-extract-eq" data-testid="cx-extracted">${tex(`${polyTex(it.poly)}=${it.k === -1 ? '-' : it.k}(${polyTex(it.inner)})`)}</div><span class="cx-step">第 2 步　把括號裡的 ${tex(polyTex(it.inner))} 做十字交乘</span>` : `<button type="button" class="btn primary" data-cx="extract" data-testid="cx-extract" aria-label="提出公因數">${icon('arrow')}<span>提出公因數</span></button>`}</div>` : ''}`;
+    $('#cx-question').innerHTML = `<span class="cx-item-focus" data-testid="cx-item-focus" data-level="${it.level}">${focusLabelHtml(crossLevelLabel(it.level))}</span><div class="cx-poly" data-testid="cx-poly"><span class="cx-label">因式分解</span>${tex(polyTex(it.poly), true)}</div>${need ? `<div class="cx-extract ${st.extracted ? 'done' : ''}" data-testid="cx-extract-step"><span class="cx-step">第 1 步　提出公因數${it.k < 0 ? '（首項是負的，連負號一起提）' : ''}</span>${st.extracted ? `<div class="cx-extract-eq" data-testid="cx-extracted">${tex(`${polyTex(it.poly)}=${it.k === -1 ? '-' : it.k}(${polyTex(it.inner)})`)}</div><span class="cx-step">第 2 步　把括號裡的 ${tex(polyTex(it.inner))} 做十字交乘</span>` : `<button type="button" class="btn primary" data-cx="extract" data-testid="cx-extract" aria-label="提出公因數">${icon('arrow')}<span>提出公因數</span></button>`}</div>` : ''}`;
   }
 
   /* ── 只更新讀數、回饋與狀態 class ── */
@@ -355,7 +382,7 @@ export function renderCrossBoard(app: HTMLElement, route: string): void {
       /* 指標已經不在 */
     }
   }
-  /** 換題、換等級、清空、公布答案、提示、提公因數時呼叫：進行中的拖曳一律作廢 */
+  /** 換題、換重點、清空、公布答案、提示、提公因數時呼叫：進行中的拖曳一律作廢 */
   const cancelDrag = endDrag;
   root.addEventListener('pointerdown', (e) => {
     const el = (e.target as HTMLElement).closest<HTMLElement>('.cx-card[data-card]');
@@ -428,9 +455,10 @@ export function renderCrossBoard(app: HTMLElement, route: string): void {
     if (slot) return tapSlot(slot.dataset.slot as CrossSlot);
     if (t.closest('#cx-tray') && st.selected && whereIs(st.selected)) return toTray(st.selected);
     const act = t.closest<HTMLElement>('[data-cx]')?.dataset.cx;
-    if (act === 'level') {
+    if (act === 'focus') {
       st.streak = 0;
-      newItem(Number(t.closest<HTMLElement>('[data-level]')!.dataset.level) as CrossLevel);
+      st.mix = 0;
+      newItem(t.closest<HTMLElement>('[data-focus]')!.dataset.focus as CrossFocusId);
       syncUrl();
     }
     else if (act === 'next') next();
@@ -470,16 +498,18 @@ export function renderCrossBoard(app: HTMLElement, route: string): void {
 
   function syncUrl() {
     // 有效的 ?pool=N 要留著，重新整理或分享網址才會是同一個題池設定
-    history.replaceState(null, '', `#/games/cross?level=${st.level}&seed=${st.base}${poolParam >= 1 ? `&pool=${poolParam}` : ''}`);
+    history.replaceState(null, '', `#/games/cross?focus=${st.focus}&seed=${st.base}${poolParam >= 1 ? `&pool=${poolParam}` : ''}`);
   }
   function next() {
-    let level = st.level;
+    let focus = st.focus;
     if (st.done !== 'ok') st.streak = 0;
-    if (st.auto && st.streak >= CROSS_AUTO_STREAK && level < 3) {
-      level = (level + 1) as CrossLevel;
+    // 預設停在老師選的重點；勾了「自動進到下一個重點」才在連對 3 題後前進（a1 → a-not-1 → gcf；混合不前進）
+    const after = crossNextFocus(focus);
+    if (st.auto && st.streak >= CROSS_AUTO_STREAK && after) {
+      focus = after;
       st.streak = 0;
     }
-    newItem(level);
+    newItem(focus);
     syncUrl();
   }
   function clear() {
@@ -560,5 +590,5 @@ export function renderCrossBoard(app: HTMLElement, route: string): void {
     update();
   }
 
-  newItem(level);
+  newItem(focus);
 }

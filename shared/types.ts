@@ -1,6 +1,7 @@
 import type { RaidConfig, RaidDifficulty, RaidKind, RaidRole, RaidSeatStats, RaidState } from './raid';
 import type { DuelSeatStats, DuelState, DuelTeam, DuelTok } from './duel';
 import type { CrossCard, CrossJudge, CrossLevel, Trinomial } from './cross';
+import type { CrossFocusId } from './game-focus';
 export type Role = 'teacher' | 'student';
 export interface User {
   id: string;
@@ -812,7 +813,11 @@ export interface DuelView {
 export interface CrossRun {
   id: string;
   startedAt: number;
-  /** 起始等級；lock＝鎖定等級（不自動升級）。 */
+  /**
+   * 老師選的重點（shared/game-focus.ts）。8ccf588 存的舊場次沒有這個欄位：照 level 對應（crossRunFocus）。
+   */
+  focus?: CrossFocusId;
+  /** 起始等級（重點的等級；混合是 1，實際每題由伺服器決定）；lock＝不自動進到下一個重點（混合一律 true）。 */
   level: CrossLevel;
   lock: boolean;
   /** 限時秒數（0＝不限時）與到期時間（暫停的時間會往後延）。 */

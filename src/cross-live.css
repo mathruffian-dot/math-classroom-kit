@@ -85,7 +85,7 @@
 }
 .xl-row {
   display: grid;
-  grid-template-columns: 2.2em 1fr 3em 4em 3.2em 4.4em;
+  grid-template-columns: 2.2em 1fr 6.4em 4em 3.2em 4.4em;
   align-items: center;
   gap: 8px;
   padding: 0 14px;
@@ -663,4 +663,79 @@
 .xl-recent .btn.xl-reveal:focus-visible {
   background: rgba(255, 255, 255, 0.16);
   color: #fff;
+}
+
+/* 重點選擇（課堂控制區、遊戲活動頁）：名稱＋一行例子 */
+.xl-focus {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.xl-focus legend {
+  padding: 0;
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+.xl-focus-opt {
+  position: relative;
+  min-height: 56px;
+  padding: 6px 8px;
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  font-size: 14px;
+  cursor: pointer;
+}
+.xl-focus-opt input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.xl-focus-opt.on {
+  border-color: var(--ink);
+  background: #eef1f8;
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+.xl-focus-opt:focus-within {
+  outline: 2px solid #3d8bff;
+  outline-offset: 1px;
+}
+.xl-focus-opt .fx-example {
+  font-size: 12px;
+}
+.xl-row .xl-lv {
+  font-size: 0.72em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.xl-stats .xl-stat-focus b {
+  font-size: 14px;
+  white-space: nowrap;
+}
+.xl-lvtag {
+  font-size: 13px;
+}
+/* 勾選框：固定大小、文字靠左（不吃一般輸入框的寬度） */
+.xl-check {
+  justify-content: flex-start;
+  text-align: left;
+}
+.xl-check input[type='checkbox'] {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.xl-check:has(input:disabled) {
+  color: var(--muted);
+}
+/* 混合時隱藏「自動進到下一個重點」（.xl-check 是 display:flex !important，要另外蓋過去） */
+.xl-check[hidden] {
+  display: none !important;
 }

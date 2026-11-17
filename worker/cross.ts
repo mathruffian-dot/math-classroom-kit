@@ -2,7 +2,9 @@
 // 出題與判定用 shared/cross.ts（和老師大板同一套）；答案只在伺服器（StoredSession.crossPlay），不進 session 物件。
 import type { CrossLiveItem, CrossLiveResult, CrossLiveRow, CrossLiveView, CrossRun, User } from '../shared/types';
 import { crossItem, crossJudge, crossSeed, factoredTex, polyTex, type CrossCard, type CrossItem, type CrossLevel, type CrossSlot } from '../shared/cross';
+import { CROSS_LEVEL_FOCUS, crossLevelLabel, crossRunFocus } from '../shared/game-focus';
 import { DUEL_TEAMS, type DuelTeam } from '../shared/duel';
+import { sha256 } from './sha256';
 import { assert, HttpError, integer } from './validation';
 
 /** 一位同學在這一場的狀態（只在伺服器）。 */
@@ -17,6 +19,8 @@ export interface CrossSeat {
   attempts: number;
   /** 第幾題（出題種子用）。 */
   n: number;
+  /** 混合：發到第幾題（決定下一題出哪個重點；和 n 分開，n 會因為避開重複多跳幾號）。 */
+  m?: number;
   /** 上一次動作的時間（限速）。 */
   at: number;
   /** 連續答錯幾題（冷卻時間跟著加長）；冷卻到什麼時候（伺服器時間）。 */
@@ -42,7 +46,14 @@ export interface CrossRecord {
   at: number;
 }
 export interface CrossPlay {
+  /** 出題種子（和 8ccf588 相同，舊場次照用）。 */
   secret: number;
+  /**
+   * 混合的出題順序用的秘密（32 bytes 隨機、十六進位；只在伺服器，不進任何畫面、匯出）。
+   * 和出題種子 secret 無關：學生看得到每題的重點，順序不能拿來反推 secret（見 crossMixOrder）。
+   * 8ccf588 存的場次沒有這個欄位，第一次用到混合時才補（crossMixKey）。
+   */
+  mixKey?: string;
   seats: Record<string, CrossSeat>;
   /** 這一場每一次送出（最多 CROSS_LOG_CAP 筆；超過時丟掉最舊的，dropped 記丟了幾筆）。 */
   log?: CrossRecord[];
@@ -75,7 +86,7 @@ export const CROSS_KEEP_ROUNDS = 3;
 export const CROSS_MAX_RUNS = 30;
 /** L3 公因數的選項：每一題都一樣、順序固定（和正確答案無關），學生要自己從原式算出公因數。 */
 export const CROSS_K_OPTIONS = [-5, -4, -3, -2, -1, 1, 2, 3, 4, 5];
-/** 同一等級連對幾題升一級。 */
+/** 勾了「自動進到下一個重點」時，同一個重點連對幾題前進到下一個重點。 */
 export const CROSS_LIVE_STREAK = 3;
 /** 兩次動作最少間隔（毫秒）。 */
 export const CROSS_MIN_GAP = 300;
@@ -140,8 +151,31 @@ export function crossJoin(run: CrossRun, seat: number): DuelTeam {
   }
   return run.teams[key];
 }
+const randomHex = (bytes: number) => Array.from(crypto.getRandomValues(new Uint8Array(bytes)), (b) => b.toString(16).padStart(2, '0')).join('');
 export function crossPlayOf(store: CrossStore, run: CrossRun) {
-  return ((store.crossPlay ||= {})[run.id] ||= { secret: crypto.getRandomValues(new Uint32Array(1))[0], seats: {} });
+  return ((store.crossPlay ||= {})[run.id] ||= { secret: crypto.getRandomValues(new Uint32Array(1))[0], mixKey: randomHex(32), seats: {} });
+}
+/** 這一場混合順序的秘密（舊場次沒有就現在補一個）。 */
+export function crossMixKey(play: CrossPlay): string {
+  return (play.mixKey ||= randomHex(32));
+}
+const MIX_PERMS: CrossLevel[][] = [
+  [1, 2, 3],
+  [1, 3, 2],
+  [2, 1, 3],
+  [2, 3, 1],
+  [3, 1, 2],
+  [3, 2, 1],
+];
+/**
+ * 直播混合：這位同學第 block 組（每 3 題一組）的重點順序（1、2、3 的一個排列）。
+ * SHA-256(秘密 ‖ 場次 ‖ 座號 ‖ 組號) 取前 4 bytes 選 6 種排列之一：秘密是獨立的 256 位元隨機值，
+ * 看得到順序也推不回秘密，更推不回出題種子（出題種子完全沒有參與）。同一場、同一位、同一組永遠同一個排列。
+ */
+export function crossMixOrder(key: string, runId: string, seatNo: number, block: number): CrossLevel[] {
+  const h = sha256(new TextEncoder().encode(`cross-mix|${key}|${runId}|${seatNo}|${block}`));
+  const x = ((h[0] << 24) | (h[1] << 16) | (h[2] << 8) | h[3]) >>> 0;
+  return [...MIX_PERMS[x % 6]];
 }
 function seatOf(store: CrossStore, run: CrossRun, seatNo: number): CrossSeat {
   return (crossPlayOf(store, run).seats[String(seatNo)] ||= { level: run.level, score: 0, streak: 0, best: 0, run: 0, correct: 0, attempts: 0, n: 0, at: 0, past: [] });
@@ -212,7 +246,11 @@ export function crossLeft(run: CrossRun, now: number) {
   return Math.max(0, run.deadline - (run.endedAt ?? run.pausedAt ?? now));
 }
 
-/** 出下一題：同一場不和自己最近做過的、也不和同學目前的題目重複（題目數字每個人都不一樣）。 */
+/**
+ * 出下一題：同一場不和自己最近做過的、也不和同學目前的題目重複（題目數字每個人都不一樣）。
+ * 混合：這一題出哪個重點由這一場獨立的混合秘密決定（crossMixOrder：每 3 題三種各一）；
+ * 題目數字照舊只用出題種子（base），兩者互不相關。
+ */
 export function issueItem(run: CrossRun, store: CrossStore, seatNo: number, now: number): CrossSeat {
   const play = crossPlayOf(store, run);
   const seat = seatOf(store, run, seatNo);
@@ -220,15 +258,21 @@ export function issueItem(run: CrossRun, store: CrossStore, seatNo: number, now:
   for (const [k, x] of Object.entries(play.seats)) if (k !== String(seatNo) && x.cur) others.add(crossItem(x.cur.seed, x.cur.level).key);
   const mine = new Set(seat.past.map((p) => p.key));
   const base = (play.secret ^ Math.imul(seatNo, 0x27d4eb2d)) >>> 0;
+  if (crossRunFocus(run) === 'mix') {
+    const m = seat.m || 0;
+    seat.level = crossMixOrder(crossMixKey(play), run.id, seatNo, Math.floor(m / 3))[m % 3];
+    seat.m = m + 1;
+  }
+  const level = seat.level;
   let seed = 0,
     item: CrossItem | undefined;
   for (let i = 0; i < 400; i++) {
-    seed = crossSeed(base, seat.level, seat.n++);
-    item = crossItem(seed, seat.level);
+    seed = crossSeed(base, level, seat.n++);
+    item = crossItem(seed, level);
     if (!others.has(item.key) && (!mine.has(item.key) || i > 200)) break;
   }
   const it = item!;
-  seat.cur = { id: randomId(), seed, level: seat.level, issuedAt: now, cards: liveCards(it), ...(seat.level === 3 ? { kOptions: kOptions() } : {}) };
+  seat.cur = { id: randomId(), seed, level, issuedAt: now, cards: liveCards(it), ...(level === 3 ? { kOptions: kOptions() } : {}) };
   return seat;
 }
 /** 學生看到的題目：原式、卡片（含干擾卡）、左欄是否固定、L3 的公因數選項。不含答案、不標示干擾卡。 */
@@ -306,7 +350,8 @@ export function submitCross(run: CrossRun, store: CrossStore, seatNo: number, bo
     seat.cool = now + CROSS_COOLDOWN[Math.min(seat.wrong, CROSS_COOLDOWN.length) - 1];
   }
   let levelUp = false;
-  if (ok && !run.lock && seat.run >= CROSS_LIVE_STREAK && seat.level < 3) {
+  // 預設固定在老師選的重點（lock）；勾了「自動進到下一個重點」才前進；混合不前進（每題由伺服器決定）
+  if (ok && !run.lock && crossRunFocus(run) !== 'mix' && seat.run >= CROSS_LIVE_STREAK && seat.level < 3) {
     seat.level = (seat.level + 1) as CrossLevel;
     seat.run = 0;
     levelUp = true;
@@ -451,13 +496,13 @@ export function crossCsvRows(store: CrossStore): (string | number)[][] {
       // 封存的舊場次：每人一列總計（attempt 欄是作答題數）
       rows.push(['十字交乘對戰', 0, '', '', '', '', '', '', `較早的場次已封存：只保留每人總計（${play.dropped || 0} 筆逐題紀錄沒有保存）`, new Date(run.startedAt).toISOString()]);
       for (const [seat, x] of Object.entries(play.seats))
-        rows.push(['十字交乘對戰', Number(seat), `L${x.level}`, x.attempts, '（總計）', `${x.correct}/${x.attempts}`, x.score, '', `最高連對 ${x.best}`, new Date(run.startedAt).toISOString()]);
+        rows.push(['十字交乘對戰', Number(seat), crossRunFocus(run) === 'mix' ? '混合' : crossLevelLabel(x.level), x.attempts, '（總計）', `${x.correct}/${x.attempts}`, x.score, '', `最高連對 ${x.best}`, new Date(run.startedAt).toISOString()]);
       continue;
     }
     if (play?.dropped) rows.push(['十字交乘對戰', 0, '', '', '', '', '', '', `這一場超過 ${CROSS_LOG_CAP} 筆，最早的 ${play.dropped} 筆沒有保存`, new Date(run.startedAt).toISOString()]);
     for (const p of play?.log || []) {
       const team = run.teams[String(p.seat)];
-      rows.push(['十字交乘對戰', p.seat, `L${p.level}`, p.n, polyTex(crossItem(p.seed, p.level).poly), p.ok ? 'Y' : 'N', p.points, '', `${team === 'red' ? '紅隊' : team === 'blue' ? '藍隊' : ''}・${Math.round(p.ms / 100) / 10} 秒`, new Date(p.at).toISOString()]);
+      rows.push(['十字交乘對戰', p.seat, crossLevelLabel(p.level), p.n, polyTex(crossItem(p.seed, p.level).poly), p.ok ? 'Y' : 'N', p.points, '', `${team === 'red' ? '紅隊' : team === 'blue' ? '藍隊' : ''}・${Math.round(p.ms / 100) / 10} 秒`, new Date(p.at).toISOString()]);
     }
   }
   return rows;
@@ -469,10 +514,11 @@ export function crossExport(store: CrossStore) {
       id,
       {
         dropped: play.dropped || 0,
-        ...(play.archived ? { archived: true, totals: Object.fromEntries(Object.entries(play.seats).map(([seat, x]) => [seat, { score: x.score, correct: x.correct, attempts: x.attempts, best: x.best, level: x.level }])) } : {}),
+        ...(play.archived ? { archived: true, totals: Object.fromEntries(Object.entries(play.seats).map(([seat, x]) => [seat, { score: x.score, correct: x.correct, attempts: x.attempts, best: x.best, level: x.level, focus: CROSS_LEVEL_FOCUS[x.level], focusLabel: crossLevelLabel(x.level) }])) } : {}),
+        // level 是產生器等級（數字）；focus／focusLabel 是老師看得懂的重點
         log: (play.log || []).map(({ seed, ...p }) => {
           const it = crossItem(seed, p.level);
-          return { ...p, poly: polyTex(it.poly), factored: factoredTex(it.k, it.p, it.q, it.r, it.s) };
+          return { ...p, focus: CROSS_LEVEL_FOCUS[p.level], focusLabel: crossLevelLabel(p.level), poly: polyTex(it.poly), factored: factoredTex(it.k, it.p, it.q, it.r, it.s) };
         }),
       },
     ]),

@@ -2,14 +2,16 @@
 // 每位同學題目不同；送出先顯示中性的「已送出／判定中」，伺服器回來才顯示 ✓／✗；大螢幕排行榜、紅藍拔河即時更新；
 // 同學得分時，自己的題目不重畫、不跳動。學生收到的每個 HTTP 回應與 WebSocket 訊息在送出前都不含因式分解。
 // 答案由測試自己從原式與卡片算出（列舉卡片擺法），不讀伺服器的答案。
-// 截圖只寫到 artifacts/cross-2026-11-17/（live- 開頭），不寫 artifacts/screenshots。
-import { test, expect, type Page, type Browser, type BrowserContext } from '@playwright/test';
+// 重點（shared/game-focus.ts）：開始設定選重點（名稱＋例子）、預設固定、勾選才自動前進；混合兩位同學各自三種都會出現。
+// 截圖：CROSS_SHOTS=1 時才寫，只寫到 artifacts/cross-2026-11-18/，不寫 artifacts/screenshots，也不動 11-17 的舊截圖。
+import { test, expect, type Page, type Locator, type Browser, type BrowserContext } from '@playwright/test';
 import { mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { crossJudge, factoredTex, gcd, type CrossFill } from '../../shared/cross';
+import { crossClassify, crossJudge, factoredTex, gcd, type CrossFill } from '../../shared/cross';
+import { CROSS_FOCUS } from '../../shared/game-focus';
 
 const baseURL = process.env.E2E_BASE_URL || `http://127.0.0.1:${process.env.MCK_PORT || 8787}`;
-const shots = resolve('artifacts/cross-2026-11-17');
+const shots = resolve('artifacts/cross-2026-11-18');
 const contexts: BrowserContext[] = [];
 const cleanup: { context: BrowserContext; id: string }[] = [];
 
@@ -18,9 +20,10 @@ async function surface(browser: Browser, width: number, height: number, touch = 
   contexts.push(context);
   return { context, page: await context.newPage() };
 }
-async function shot(page: Page, name: string) {
+async function shot(page: Page | Locator, name: string, prefix = 'live-') {
+  if (!process.env.CROSS_SHOTS) return;
   await mkdir(shots, { recursive: true });
-  await page.screenshot({ path: resolve(shots, `live-${name}.png`) });
+  await page.screenshot({ path: resolve(shots, `${prefix}${name}.png`) });
 }
 test.afterEach(async () => {
   for (const r of cleanup.splice(0)) await r.context.request.delete(`/api/sessions/${r.id}`, { headers: { Origin: baseURL }, data: {} });
@@ -121,10 +124,11 @@ test('live cross battle: teacher starts with tug-of-war, two iPads get different
   const A = await student(browser, 31);
   const B = await student(browser, 32);
 
-  // 老師工具列 → 十字交乘對戰 → L1、紅藍拔河、門檻 800 → 開始
+  // 老師工具列 → 十字交乘對戰 →「x² 係數為 1」＋自動進到下一個重點、紅藍拔河、門檻 800 → 開始
   await tp.getByTestId('xl-panel-open').click();
   await expect(tp.getByTestId('xl-panel')).toBeVisible();
-  await tp.getByTestId('xl-level').selectOption('1');
+  await tp.getByTestId('xl-focus-a1').click();
+  await tp.getByTestId('xl-focus-escalate').check();
   await tp.getByTestId('xl-team').check();
   await tp.locator('#xl-margin').selectOption('800');
   await tp.getByTestId('xl-start').click();
@@ -240,10 +244,11 @@ test('live cross battle: teacher starts with tug-of-war, two iPads get different
     await expect(A.page.getByTestId('xl-flash')).toHaveAttribute('data-ok', 'true');
   }
   await expect(A.page.getByTestId('xl-streak')).toHaveText('3');
-  await expect(A.page.getByTestId('xl-flash')).toContainText('升到 L2');
+  await expect(A.page.getByTestId('xl-flash')).toContainText('進到「x² 係數不為 1」');
   await expect.poll(async () => Math.abs(Number(await tp.getByTestId('xl-knot').getAttribute('data-pos')))).toBeGreaterThan(Math.abs(pos1));
   await A.page.getByTestId('xl-next').tap();
-  await expect(A.page.getByTestId('xl-level-now')).toHaveText('L2');
+  await expect(A.page.getByTestId('xl-level-now')).toHaveText('x² 係數不為 1');
+  await expect(A.page.getByTestId('xl-item-focus')).toHaveAttribute('data-level', '2');
   await expect(A.page.locator('.xl-card-btn')).toHaveCount(6);
   await expect(tp.getByTestId('xl-ratio')).toHaveText('3 / 4');
   await expect(B.page.locator('[data-xl="red-total"], [data-xl="blue-total"]').filter({ hasText: /^[1-9]\d* 分/ })).toHaveCount(1);
@@ -537,10 +542,112 @@ test('遊戲活動 entry: pick the class session and start the battle; students 
   const A = await student(browser, 34);
   await tp.goto('/#/games');
   await expect(tp.getByTestId('game-cross-live')).toBeVisible();
+  // 遊戲活動頁的對戰卡片也用同一個重點選擇（名稱＋例子）
+  const live = tp.getByTestId('game-cross-live');
+  for (const f of CROSS_FOCUS) await expect(live.getByTestId(`xl-game-focus-${f.id}`)).toBeVisible();
+  await expect(live).not.toContainText(/L[123]\b/);
+  await shot(tp, 'games-picker', '');
+  await live.getByTestId('xl-game-focus-gcf').click();
   await tp.getByTestId('xl-game-session').selectOption(id);
   await tp.getByTestId('xl-game-start').click();
   await expect(tp).toHaveURL(new RegExp(`/session/${id}`));
   await expect(tp.getByTestId('xl-board')).toBeVisible();
+  await expect(tp.getByTestId('xl-panel-status')).toContainText('重點：先提公因式（固定）');
   await expect(A.page.getByTestId('xl-poly')).toBeVisible();
+  await expect(A.page.getByTestId('xl-item-focus')).toHaveAttribute('data-level', '3');
+  await expect(A.page.getByTestId('xl-k')).toBeVisible();
   await expect(A.page.getByTestId('xl-team')).toHaveCount(0);
+});
+
+/** 學生答對目前這一題（含公因數），回傳這一題的等級；然後按「下一題」等新題。 */
+async function answerRight(page: Page) {
+  await expect(page.getByTestId('xl-card')).toHaveAttribute('data-mode', 'item');
+  const level = Number(await page.getByTestId('xl-item-focus').getAttribute('data-level'));
+  const sol = await solve(page);
+  // 畫面上的重點標籤和原式的分類一致
+  expect(crossClassify({ poly: sol.poly })).toBe(level);
+  await place(page, sol.right, sol.k);
+  await page.getByTestId('xl-submit').tap();
+  await expect(page.getByTestId('xl-flash')).toHaveAttribute('data-ok', 'true');
+  return level;
+}
+
+test('live start dialog: focus choices with examples; students get items of the chosen focus, which stays put by default; mix with 2 students covers all three', async ({ browser }) => {
+  test.setTimeout(180_000);
+  const teacher = await surface(browser, 1440, 900);
+  const tp = teacher.page;
+  await teacherLogin(tp);
+  await startSession(tp, teacher.context);
+  const A = await student(browser, 36);
+  const B = await student(browser, 37);
+
+  await tp.getByTestId('xl-panel-open').click();
+  const dialog = tp.getByTestId('xl-panel');
+  await expect(dialog).toBeVisible();
+  // 四個重點，各有名稱與一行例子（KaTeX），沒有 L 數字；預設不自動前進
+  for (const f of CROSS_FOCUS) {
+    const opt = dialog.getByTestId(`xl-focus-${f.id}`);
+    await expect(opt).toBeVisible();
+    if (f.example) await expect(opt.locator('.fx-example .katex')).toHaveCount(1);
+    else await expect(opt).toContainText(f.exampleText!);
+  }
+  await expect(dialog.getByTestId('xl-focus-gcf')).toContainText('含首項為負');
+  await expect(dialog).not.toContainText(/L[123]\b/);
+  await expect(dialog.getByTestId('xl-focus-escalate')).not.toBeChecked();
+  // 先提公因式：沒有下一個重點 → 勾選取消並停用（和大板一樣）；混合：整個隱藏
+  await dialog.getByTestId('xl-focus-a1').click();
+  await dialog.getByTestId('xl-focus-escalate').check();
+  await dialog.getByTestId('xl-focus-gcf').click();
+  await expect(dialog.getByTestId('xl-focus-escalate')).toBeDisabled();
+  await expect(dialog.getByTestId('xl-focus-escalate')).not.toBeChecked();
+  await expect(dialog.getByTestId('xl-focus-escalate')).toBeVisible();
+  await dialog.getByTestId('xl-focus-mix').click();
+  await expect(dialog.getByTestId('xl-focus-escalate')).toBeHidden();
+  await expect(dialog.getByTestId('xl-focus-escalate')).toBeDisabled();
+  await dialog.getByTestId('xl-focus-a-not-1').click();
+  await expect(dialog.getByTestId('xl-focus-escalate')).toBeVisible();
+  await expect(dialog.getByTestId('xl-focus-escalate')).toBeEnabled();
+  await expect(dialog.getByTestId('xl-focus-escalate')).not.toBeChecked();
+  await expect(dialog.getByTestId('xl-focus-a-not-1')).toHaveClass(/\bon\b/);
+  await shot(dialog, 'start-dialog');
+  await tp.getByTestId('xl-start').click();
+  await expect(tp.getByTestId('xl-board')).toBeVisible();
+  await expect(tp.getByTestId('xl-panel-status')).toContainText('重點：x² 係數不為 1（固定）');
+
+  // 學生拿到的都是「x² 係數不為 1」；連對 3 題後還是（預設固定）
+  await expect(A.page.getByTestId('xl-item-focus')).toHaveAttribute('data-level', '2');
+  await expect(A.page.getByTestId('xl-item-focus')).toContainText('係數不為 1');
+  await expect(A.page.getByTestId('xl-level-now')).toHaveText('x² 係數不為 1');
+  await expect(B.page.getByTestId('xl-item-focus')).toHaveAttribute('data-level', '2');
+  for (let i = 0; i < 3; i++) {
+    if (i) await A.page.getByTestId('xl-next').tap();
+    expect(await answerRight(A.page)).toBe(2);
+  }
+  await expect(A.page.getByTestId('xl-flash')).not.toContainText('進到');
+  await A.page.getByTestId('xl-next').tap();
+  await expect(A.page.getByTestId('xl-item-focus')).toHaveAttribute('data-level', '2');
+  // 大螢幕排行：重點名稱，不是 L 數字
+  await expect(tp.getByTestId('xl-rows').locator('li').first()).toContainText('x² 係數不為 1');
+  await expect(tp.getByTestId('xl-rows')).not.toContainText(/L[123]\b/);
+
+  // 換成混合（結束這一場 → 關閉 → 選混合 → 開始）：兩位同學各答 3 題，三種重點都會出現
+  await tp.getByTestId('xl-end').click();
+  await tp.getByTestId('xl-close').click();
+  await tp.getByTestId('xl-panel-open').click();
+  await tp.getByTestId('xl-focus-mix').click();
+  await tp.getByTestId('xl-start').click();
+  await expect(tp.getByTestId('xl-panel-status')).toContainText('重點：混合');
+  const seen: Record<string, number[]> = { A: [], B: [] };
+  for (let i = 0; i < 3; i++)
+    for (const [name, s] of [['A', A], ['B', B]] as const) {
+      if (i) await s.page.getByTestId('xl-next').tap();
+      await expect(s.page.getByTestId('xl-level-now')).toHaveText('混合');
+      if (name === 'A' && i === 0) {
+        await expect(A.page.getByTestId('xl-item-focus')).toBeVisible();
+        await shot(A.page, 'student-focus');
+      }
+      seen[name].push(await answerRight(s.page));
+    }
+  for (const name of ['A', 'B']) expect([...seen[name]].sort(), `${name} sees all three focuses`).toEqual([1, 2, 3]);
+  await expect(tp.getByTestId('xl-ratio')).toHaveText('6 / 6');
 });

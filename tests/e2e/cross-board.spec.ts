@@ -1,16 +1,18 @@
 // 十字交乘・大板操作（#/games/cross）：老師從「遊戲」打開；桌機用滑鼠拖曳、iPad 用觸控拖曳與「先點卡片再點格子」。
-// 交叉相乘的乘積與和即時更新；答對變綠並寫出因式分解；答錯顯示差多少；下一題、提示、公布答案、等級切換；放卡片時畫面不跳動、不整個重畫。
-// 拖曳穩定性：拖曳中換題／換等級／公布答案、pointercancel、lostpointercapture、第二根手指都不會留下殘影或放錯卡。
+// 交叉相乘的乘積與和即時更新；答對變綠並寫出因式分解；答錯顯示差多少；下一題、提示、公布答案、重點切換；放卡片時畫面不跳動、不整個重畫。
+// 重點（shared/game-focus.ts）：從「遊戲」選四個重點之一、舊網址 ?level=、混合、預設不自動前進／勾選後才前進。
+// 拖曳穩定性：拖曳中換題／換重點／公布答案、pointercancel、lostpointercapture、第二根手指都不會留下殘影或放錯卡。
 // 「iPad」測試預設是 Chromium（Edge）的觸控模擬（hasTouch＋CDP 觸控事件），不是 Safari；
 // PW_BROWSER=webkit 時改走 WebKit 可執行的路徑（不用 CDP，觸控拖曳改成 tap 點選），需要先自行安裝 webkit。
-// 截圖：CROSS_SHOTS=1 時存到 artifacts/cross-2026-11-17/（不寫進 artifacts/screenshots）。
+// 截圖：CROSS_SHOTS=1 時存到 artifacts/cross-2026-11-18/（不寫進 artifacts/screenshots，也不動 11-17 的舊截圖）。
 import { test, expect, type Page, type Browser, type BrowserContext } from '@playwright/test';
 import { mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { CROSS_SLOTS, crossAnswer, crossItem, crossJudge, crossPool, crossSeed, gcd, leadText, signed, type CrossFill, type CrossSlot } from '../../shared/cross';
+import { CROSS_SLOTS, crossAnswer, crossItem, crossJudge, crossMixLevel, crossPool, crossSeed, gcd, leadText, signed, type CrossFill, type CrossLevel, type CrossSlot } from '../../shared/cross';
+import { CROSS_FOCUS } from '../../shared/game-focus';
 
 const baseURL = process.env.E2E_BASE_URL || `http://127.0.0.1:${process.env.MCK_PORT || 8787}`;
-const shots = resolve('artifacts/cross-2026-11-17');
+const shots = resolve('artifacts/cross-2026-11-18');
 const contexts: BrowserContext[] = [];
 const isWebkit = process.env.PW_BROWSER === 'webkit';
 
@@ -31,6 +33,7 @@ async function login(page: Page) {
   await page.locator('#login-form').getByRole('button', { name: '登入' }).click();
   await expect(page.getByTestId('lesson-card').first()).toBeVisible();
 }
+/** 用舊網址 ?level= 打開（同時驗證舊網址相容） */
 async function openBoard(page: Page, level: number, seed: number) {
   await page.goto(`/#/games/cross?level=${level}&seed=${seed}`);
   await expect(page.getByTestId('cross-board')).toBeVisible();
@@ -150,15 +153,16 @@ test.afterEach(async () => {
   await Promise.all(contexts.splice(0).map((c) => c.close()));
 });
 
-test('desktop: open from 遊戲, drag cards with the mouse, live products, correct / wrong, teacher buttons, levels', async ({ browser }) => {
+test('desktop: open from 遊戲, drag cards with the mouse, live products, correct / wrong, teacher buttons, focus switcher', async ({ browser }) => {
   test.setTimeout(120_000);
   const page = await surface(browser, 1440, 900, false);
   await login(page);
   // 入口：側欄「遊戲」→ 遊戲活動頁 → 十字交乘（大板操作）
   await page.locator('.nav-item[href="#/games"]').click();
   await expect(page.getByTestId('game-cross')).toContainText('十字交乘（大板操作）');
-  await page.getByTestId('open-cross-1').click();
+  await page.getByTestId('open-cross-a1').click();
   await expect(page.getByTestId('cross-board')).toBeVisible();
+  await expect(page.getByTestId('cross-board')).toHaveAttribute('data-focus', 'a1');
   await expect(page.getByTestId('cx-poly')).toContainText('x');
 
   // 固定 seed：題目與 shared/cross.ts 的產生器一致
@@ -224,10 +228,14 @@ test('desktop: open from 遊戲, drag cards with the mouse, live products, corre
   await expect(page.getByTestId('cross-board')).not.toHaveAttribute('data-key', g.key);
   await expect(page.locator('.cx-slot .cx-card')).toHaveCount(0);
 
-  // 等級切換 L2：要放 x 係數卡；錯的擺法顯示差多少；放錯欄有提醒
-  await page.getByTestId('cx-level-2').click();
+  // 重點切換「x² 係數不為 1」：要放 x 係數卡；錯的擺法顯示差多少；放錯欄有提醒
+  await page.getByTestId('cx-focus-a-not-1').click();
   await expect(page.getByTestId('cross-board')).toHaveAttribute('data-level', '2');
-  await expect(page.getByTestId('cx-level-2')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByTestId('cross-board')).toHaveAttribute('data-focus', 'a-not-1');
+  await expect(page.getByTestId('cx-focus-a-not-1')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByTestId('cx-focus-a1')).toHaveAttribute('aria-pressed', 'false');
+  await expect(page.getByTestId('cx-item-focus')).toContainText('係數不為 1');
+  expect(page.url()).toContain('focus=a-not-1');
   g = await board(page);
   expect(g.inner.a).toBeGreaterThan(1);
   await page.getByTestId('cx-hint').click();
@@ -284,20 +292,130 @@ test('desktop: open from 遊戲, drag cards with the mouse, live products, corre
   await shot(page, 'L3-negative-reveal');
 });
 
-test('auto level-up after consecutive correct answers', async ({ browser }) => {
+test('focus stays put after 3 correct by default; the 「答對 3 題自動進到下一個重點」 toggle advances a1 → a-not-1', async ({ browser }) => {
+  test.setTimeout(120_000);
+  const page = await surface(browser, 1280, 800, false);
+  await login(page);
+  await page.goto('/#/games/cross?focus=a1&seed=4242');
+  await expect(page.getByTestId('cross-board')).toHaveAttribute('data-focus', 'a1');
+  await expect(page.getByTestId('cx-auto')).not.toBeChecked();
+  await expect(page.locator('#cx-auto-wrap')).toContainText('答對 3 題自動進到下一個重點');
+  const solveThree = async () => {
+    for (let i = 0; i < 3; i++) {
+      const g = await board(page);
+      await fill(page, g.right, (id, slot) => tapPlace(page, id, slot, false));
+      await expect(page.getByTestId('cx-diagram')).toHaveClass(/\bok\b/);
+      await page.getByTestId('cx-next').click();
+    }
+  };
+  // 預設：連對 3 題後還是「x² 係數為 1」
+  await solveThree();
+  await expect(page.getByTestId('cross-board')).toHaveAttribute('data-focus', 'a1');
+  await expect(page.getByTestId('cross-board')).toHaveAttribute('data-level', '1');
+  await expect(page.getByTestId('cx-score')).toContainText('答對 3 題');
+  // 勾選後：再連對 3 題 → 進到「x² 係數不為 1」，切換列與網址跟著換
+  await page.getByTestId('cx-auto').check();
+  await solveThree();
+  await expect(page.getByTestId('cross-board')).toHaveAttribute('data-focus', 'a-not-1');
+  await expect(page.getByTestId('cross-board')).toHaveAttribute('data-level', '2');
+  await expect(page.getByTestId('cx-focus-a-not-1')).toHaveAttribute('aria-pressed', 'true');
+  expect(page.url()).toContain('focus=a-not-1');
+  await expect(page.getByTestId('cx-score')).toContainText('答對 6 題');
+  // 先提公因式是最後一個重點：開關停用
+  await page.getByTestId('cx-focus-gcf').click();
+  await expect(page.getByTestId('cx-auto')).toBeDisabled();
+});
+
+test('picking each focus from 遊戲 opens the board on that focus; options show the name and a KaTeX example', async ({ browser }) => {
+  test.setTimeout(90_000);
+  const page = await surface(browser, 1280, 900, false);
+  await login(page);
+  await page.locator('.nav-item[href="#/games"]').click();
+  const card = page.getByTestId('game-cross');
+  await expect(card).toBeVisible();
+  for (const f of CROSS_FOCUS) {
+    const opt = card.getByTestId(`open-cross-${f.id}`);
+    await expect(opt).toContainText(f.label.replace('x²', '').trim().slice(-4));
+    if (f.example) await expect(opt.locator('.katex')).toHaveCount(f.label.includes('x²') ? 2 : 1);
+    else await expect(opt).toContainText(f.exampleText!);
+    if (f.note) await expect(opt).toContainText(f.note);
+  }
+  await expect(card).not.toContainText(/L[123]\b/);
+  await shot(page, 'games-picker');
+  const levels: Record<string, string | null> = { a1: '1', 'a-not-1': '2', gcf: '3', mix: null };
+  for (const f of CROSS_FOCUS) {
+    await page.goto('/#/games');
+    await page.getByTestId(`open-cross-${f.id}`).click();
+    await expect(page.getByTestId('cross-board')).toHaveAttribute('data-focus', f.id);
+    await expect(page.getByTestId(`cx-focus-${f.id}`)).toHaveAttribute('aria-pressed', 'true');
+    if (levels[f.id]) await expect(page.getByTestId('cross-board')).toHaveAttribute('data-level', levels[f.id]!);
+    expect(page.url()).toContain(`focus=${f.id}`);
+    await expect(page.locator('#cx-auto-wrap')).toBeVisible({ visible: f.id !== 'mix' });
+  }
+  // 切換列也是同樣的名稱＋例子，沒有 L 數字
+  await expect(page.locator('.cx-levels')).not.toContainText(/L[123]\b/);
+  await expect(page.locator('.cx-levels .katex')).toHaveCount(5);
+  await page.getByTestId('cx-focus-gcf').click();
+  await expect(page.getByTestId('cross-board')).toHaveAttribute('data-level', '3');
+  await shot(page, 'board-focus-switcher');
+});
+
+test('legacy ?level=2 lands on 「x² 係數不為 1」; ?focus wins over ?level; the URL is rewritten with focus', async ({ browser }) => {
+  const page = await surface(browser, 1280, 800, false);
+  await login(page);
+  await page.goto('/#/games/cross?level=2&seed=88');
+  await expect(page.getByTestId('cross-board')).toHaveAttribute('data-focus', 'a-not-1');
+  await expect(page.getByTestId('cx-focus-a-not-1')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByTestId('cx-item-focus')).toContainText('係數不為 1');
+  expect(await page.getByTestId('cross-board').getAttribute('data-key')).toBe(crossPool(88, 2, 1)[0].key);
+  await page.getByTestId('cx-next').click();
+  expect(page.url()).toContain('focus=a-not-1');
+  expect(page.url()).not.toContain('level=');
+  for (const [lv, id] of [['1', 'a1'], ['3', 'gcf']] as const) {
+    await page.goto(`/#/games/cross?level=${lv}&seed=88`);
+    await expect(page.getByTestId('cross-board')).toHaveAttribute('data-focus', id);
+  }
+  await page.goto('/#/games/cross?level=3&focus=a1&seed=88');
+  await expect(page.getByTestId('cross-board')).toHaveAttribute('data-focus', 'a1');
+  await expect(page.getByTestId('cross-board')).toHaveAttribute('data-level', '1');
+});
+
+test('?focus=mix shows items from all three focuses, in the seed-determined order, each from its own no-repeat pool', async ({ browser }) => {
   test.setTimeout(90_000);
   const page = await surface(browser, 1280, 800, false);
   await login(page);
-  await openBoard(page, 1, 4242);
-  await page.getByTestId('cx-auto').check();
-  for (let i = 0; i < 3; i++) {
-    const g = await board(page);
-    await fill(page, g.right, (id, slot) => tapPlace(page, id, slot, false));
-    await expect(page.getByTestId('cx-diagram')).toHaveClass(/\bok\b/);
-    await page.getByTestId('cx-next').click();
+  const SEED = 2468;
+  await page.goto(`/#/games/cross?focus=mix&seed=${SEED}`);
+  await expect(page.getByTestId('cross-board')).toHaveAttribute('data-focus', 'mix');
+  await expect(page.getByTestId('cx-focus-mix')).toHaveAttribute('aria-pressed', 'true');
+  // 混合沒有「下一個重點」：開關收起來
+  await expect(page.locator('#cx-auto-wrap')).toBeHidden();
+  const N = 9;
+  const want = Array.from({ length: N }, (_, i) => crossMixLevel(SEED, i));
+  const used: Record<number, number> = { 1: 0, 2: 0, 3: 0 };
+  const wantKeys = want.map((lv) => crossPool(SEED, lv as CrossLevel, 10)[used[lv]++].key);
+  const levels: number[] = [],
+    keys: string[] = [];
+  for (let i = 0; i < N; i++) {
+    if (i) await page.getByTestId('cx-next').click();
+    const lv = Number(await page.getByTestId('cross-board').getAttribute('data-level'));
+    levels.push(lv);
+    keys.push((await page.getByTestId('cross-board').getAttribute('data-key'))!);
+    await expect(page.getByTestId('cx-item-focus')).toHaveAttribute('data-level', String(lv));
+    await expect(page.getByTestId('cross-board')).toHaveAttribute('data-focus', 'mix');
+    if (i === 2 && process.env.CROSS_SHOTS) {
+      // 截圖時把重點標籤也拍進去（換到一題有提公因式步驟的就更清楚）
+      await shot(page, 'board-mix');
+    }
   }
-  await expect(page.getByTestId('cross-board')).toHaveAttribute('data-level', '2');
-  await expect(page.getByTestId('cx-score')).toContainText('答對 3 題');
+  expect(levels).toEqual(want);
+  expect(new Set(levels).size).toBe(3);
+  expect(keys).toEqual(wantKeys);
+  expect(new Set(keys).size).toBe(N);
+  expect(page.url()).toContain('focus=mix');
+  // 重新整理：同一個 seed 同一串
+  await page.reload();
+  await expect(page.getByTestId('cross-board')).toHaveAttribute('data-key', wantKeys[0]);
 });
 
 test(`iPad viewport (${isWebkit ? 'WebKit, tap path' : 'Chromium touch emulation'}): touch drag and tap-to-place, one screen, large targets, no scroll jump`, async ({ browser }) => {
@@ -370,7 +488,7 @@ test('a logged-in student opening #/games and #/games/cross stays on the student
   }
 });
 
-test('drag in progress is cancelled by 下一題 / level change / 公布答案 / 清空; stale pointer never acts on the new item', async ({ browser }) => {
+test('drag in progress is cancelled by 下一題 / focus change / 公布答案 / 清空; stale pointer never acts on the new item', async ({ browser }) => {
   test.setTimeout(90_000);
   const page = await surface(browser, 1440, 900, false);
   await login(page);
@@ -381,7 +499,7 @@ test('drag in progress is cancelled by 下一題 / level change / 公布答案 /
     const g = await board(page);
     const id = g.right.const0!.id;
     await holdMouseDrag(page, id);
-    if (action === 'level') await page.evaluate(() => (document.querySelector('[data-testid="cx-level-2"]') as HTMLElement).click());
+    if (action === 'level') await page.evaluate(() => (document.querySelector('[data-testid="cx-focus-a-not-1"]') as HTMLElement).click());
     else await press(action);
     await expectNoDragLeftovers(page);
     if (action !== 'clear') {
@@ -522,7 +640,7 @@ test('no repeats until the pool is exhausted, then a notice and a new round', as
   expect(k.startsWith('L1:')).toBe(true);
 });
 
-test('?pool=N survives 下一題 and level change, so reloading the URL keeps the same pool', async ({ browser }) => {
+test('?pool=N survives 下一題 and focus change, so reloading the URL keeps the same pool', async ({ browser }) => {
   const page = await surface(browser, 1280, 800, false);
   await login(page);
   const SEED = 31,
@@ -531,10 +649,10 @@ test('?pool=N survives 下一題 and level change, so reloading the URL keeps th
   await expect(page.getByTestId('cross-board')).toBeVisible();
   await page.getByTestId('cx-next').click();
   expect(page.url()).toContain(`pool=${N}`);
-  await page.getByTestId('cx-level-2').click();
+  await page.getByTestId('cx-focus-a-not-1').click();
   await expect(page.getByTestId('cross-board')).toHaveAttribute('data-level', '2');
   expect(page.url()).toContain(`pool=${N}`);
-  await page.getByTestId('cx-level-1').click();
+  await page.getByTestId('cx-focus-a1').click();
   await expect(page.getByTestId('cross-board')).toHaveAttribute('data-level', '1');
   // 重新整理：還是 N 題的題池 → 出完 N 題就提示新的一輪
   await page.reload();
@@ -544,7 +662,7 @@ test('?pool=N survives 下一題 and level change, so reloading the URL keeps th
   for (let i = 1; i < N; i++) await page.getByTestId('cx-next').click();
   await expect(page.getByTestId('cx-pool-notice')).toHaveCount(0);
   await page.getByTestId('cx-next').click();
-  await expect(page.getByTestId('cx-pool-notice')).toContainText(`${N} 題都出過了`);
+  await expect(page.getByTestId('cx-pool-notice')).toContainText(`「x² 係數為 1」的 ${N} 題都出過了`);
   // 沒有 pool 參數（或無效）時網址不帶 pool
   await page.goto(`/#/games/cross?level=1&seed=${SEED}&pool=abc`);
   await expect(page.getByTestId('cross-board')).toBeVisible();

@@ -1,0 +1,2387 @@
+{
+ "commit": "8ccf588",
+ "capturedAt": 1794957553940,
+ "sid": "5c75b1c0-f85e-40f9-82a9-c0c4a39ee687",
+ "runId": "88dc2d0d-b55b-4cc6-a0ae-57022a8b7a78",
+ "before": {
+  "id": "6u2n0w321b433z",
+  "level": 2,
+  "poly": {
+   "a": 3,
+   "b": -10,
+   "c": -25
+  },
+  "leadLocked": false,
+  "cards": [
+   {
+    "id": "k0",
+    "kind": "const",
+    "value": -1
+   },
+   {
+    "id": "k1",
+    "kind": "const",
+    "value": -5
+   },
+   {
+    "id": "k2",
+    "kind": "const",
+    "value": 5
+   },
+   {
+    "id": "k3",
+    "kind": "lead",
+    "value": 1
+   },
+   {
+    "id": "k4",
+    "kind": "lead",
+    "value": 4
+   },
+   {
+    "id": "k5",
+    "kind": "lead",
+    "value": 3
+   }
+  ]
+ },
+ "cookies": {
+  "teacher": "mck_session=de2bbbec-6c03-4956-af2d-ff04b5ad7422.e2ef7d387848b18ad31c99e9e8a76fa2861f5e7ed2d6b45b6ca313b10fb8de0b",
+  "seat1": "mck_session=a9b1d7a2-a321-4e26-bd26-8692f91b76aa.ab2bfbd6ce83ae64153c7ebdc9984dfbe955676df2334e2be619f9764d6927f1",
+  "seat2": "mck_session=72af03d8-a8e6-429a-90b3-eeb47d45650d.6d9291b99407512719c2c5fcb0ec5925e0dbd80f69349b118681a3589a2758d3"
+ },
+ "vault": {},
+ "data": {
+  "version": 1,
+  "secret": "2e5d12a5-1d85-4677-8add-9d3ac324f71a64f12a79-a17a-404d-b45d-261336422965",
+  "lessons": {},
+  "classes": {
+   "demo-class": {
+    "classroom": {
+     "id": "demo-class",
+     "name": "示範八年一班",
+     "code": "DEMO801",
+     "seats": 40,
+     "createdAt": "2026-11-17T23:19:13.527Z",
+     "requireCode": false
+    },
+    "ownerId": "teacher",
+    "students": [
+     {
+      "seat": 1,
+      "codeHash": "2da993aa2bab80e215be6b39052fdfce751814d8a632510d091c57926d1aaa02"
+     },
+     {
+      "seat": 2,
+      "codeHash": "6aadbec1449539f5f774265fe4e344bda2d925eec1a882b346e95dd2abca4279"
+     },
+     {
+      "seat": 3,
+      "codeHash": "09e0dde014f2a3d328ac0fdcf91cb0f3e7b24e6f42e76577d7ef15c0bd503b76"
+     },
+     {
+      "seat": 4,
+      "codeHash": "ba5764a3a6c026d726b719925301936febd02aa3df925750cf51ac9e764403b9"
+     },
+     {
+      "seat": 5,
+      "codeHash": "db9c8ed77e1dd929ca9681af4d857badfe638ae68f470da1e91a8786a9838af2"
+     },
+     {
+      "seat": 6,
+      "codeHash": "818a7a7eae8897d496a9ac8dd05330e6cdb41b013686061765e37aa28abbbe49"
+     },
+     {
+      "seat": 7,
+      "codeHash": "11a225bd5e412d2ea087cae11a9d093e71961dda4637591fc29cb9109fc8b9c7"
+     },
+     {
+      "seat": 8,
+      "codeHash": "858e82e75ecab6b20cebaea163e5e8882e22d21cd9cd5a61ea7732640e8da54e"
+     },
+     {
+      "seat": 9,
+      "codeHash": "cc0bc8f37746da7e06950e7405b95072e70480ce5c0650c8811ebd8ca4f783e7"
+     },
+     {
+      "seat": 10,
+      "codeHash": "adc0915c61f555b46915728aa13f247e07baef33d0dba43f42a3742f54f72883"
+     },
+     {
+      "seat": 11,
+      "codeHash": "4acb02b8cbb37a773a2350b048d52851424eaa177060733c6cb9a8250cdb0518"
+     },
+     {
+      "seat": 12,
+      "codeHash": "abad84149ee2e3a14f07ffeea5b64a2c45088688caf1ec081c6055fed0fd6a5a"
+     },
+     {
+      "seat": 13,
+      "codeHash": "9c88e66ef5aa0505cc49c0aac5dcbb5561d09f806d457a3e714a8685c0f31061"
+     },
+     {
+      "seat": 14,
+      "codeHash": "734abb0fd31c8871f096a84916dc8b998b55e6a61ef15a922ff2e0e03fef61b6"
+     },
+     {
+      "seat": 15,
+      "codeHash": "e8be8d166b915b694570cdfed80155ce0e078420496f374b91dc18372fac2555"
+     },
+     {
+      "seat": 16,
+      "codeHash": "4baf930eed8b13771ecdefce0442797b1a0ba41f03bdd492f0d282cd31bb8ee6"
+     },
+     {
+      "seat": 17,
+      "codeHash": "7c8bdd3f40c7c281d8c1f9d7cea3c4e89639e229d3ecf6fc4bb932abed39c51f"
+     },
+     {
+      "seat": 18,
+      "codeHash": "b81db96cf5aa1a60805b6a223c0bceba3a5a5f7a083132fcaafe21069440bef5"
+     },
+     {
+      "seat": 19,
+      "codeHash": "03c000b779d0734f65d2a17dce04c7f74c793fdfe4e9c8fe2d6a16447b8d57fb"
+     },
+     {
+      "seat": 20,
+      "codeHash": "33fdc8cfeef6e8f2be3ceea01a1b63e412d717d11ebcea443e9591f4184d63a2"
+     },
+     {
+      "seat": 21,
+      "codeHash": "e4c6eb7c5413e638c7d61918acefdc8d86a5644cc3d98c45ee3ad1d38d4b58cd"
+     },
+     {
+      "seat": 22,
+      "codeHash": "3c10ffff7abb22463bdb439b4632646e66af32fa5a4229827a324d3f4706f6b1"
+     },
+     {
+      "seat": 23,
+      "codeHash": "7967b0f212d894be7b5927772ad3c9a3392b35546ea246f9c2cc244720d82cd8"
+     },
+     {
+      "seat": 24,
+      "codeHash": "972de1134b263461399614a87b16341fe1ade545baedf6a3487f3d0e0cf314b5"
+     },
+     {
+      "seat": 25,
+      "codeHash": "fd6225c5cfb4135a1277a7b4127383b399f533944d46300cea59282d92217af0"
+     },
+     {
+      "seat": 26,
+      "codeHash": "df661197638928611f218dcdbd4ba23b128ae5b50f26660c45716e6af431ef0a"
+     },
+     {
+      "seat": 27,
+      "codeHash": "24e7bbfbdd4ec310bef7bad1a6f32f734b131fc72b7cf64383b614d1910be21b"
+     },
+     {
+      "seat": 28,
+      "codeHash": "feb075d811112711048daba9c69097dd9ea23ca03ace99e4699797454e689808"
+     },
+     {
+      "seat": 29,
+      "codeHash": "b4bc7c5e87b09aff7b93420cd8b088068ec5c2b953f5a3e9ecfe66ad21f1c0d8"
+     },
+     {
+      "seat": 30,
+      "codeHash": "6d3935d87b1053ea1a020b06e7094266fe5f01da435c75f11e066c5eaac594ad"
+     },
+     {
+      "seat": 31,
+      "codeHash": "073a0a17567de986949954f98165636791f9c565617084d5a50181af3015a2f4"
+     },
+     {
+      "seat": 32,
+      "codeHash": "66f18ff5e2060a9a3bec6815e9fb16281f7f48e42b011c1db3831ac54a59cfe7"
+     },
+     {
+      "seat": 33,
+      "codeHash": "d7d35ef35312335559189a7e60583ee336782804dc6ce8f306cdaf1d42437073"
+     },
+     {
+      "seat": 34,
+      "codeHash": "2533af4d0e476f9f7a20ef4cdab19b8154daeb5d8a86e8eb42b0e3cb5a47088f"
+     },
+     {
+      "seat": 35,
+      "codeHash": "ae8a8d2e8ce52ff04fde5b3b89abdbcfb940527e45039ffef50d1b64c1274b68"
+     },
+     {
+      "seat": 36,
+      "codeHash": "319b0b18c7941d7abf191920da208b386ca6af3c45dda1385b70af9ec32ea215"
+     },
+     {
+      "seat": 37,
+      "codeHash": "59fa7a28c6935b493d831ce3f522251dad681c247262e9b3e2c3c7bd5d77e2ab"
+     },
+     {
+      "seat": 38,
+      "codeHash": "edc8b5c16016ac4845615ec2bf73d4a6ee72f42a4cf88a83e3b054d22b713b6a"
+     },
+     {
+      "seat": 39,
+      "codeHash": "29e386faefa9a10bd10705a78b82fb133b38ea5968263d1bcb11fbf00789b32a"
+     },
+     {
+      "seat": 40,
+      "codeHash": "d518dab019bfffbe8f4f6d69fc2fa12a04a442dea7e9af06629083f2f1be0b5a"
+     }
+    ]
+   }
+  },
+  "sessions": {
+   "5c75b1c0-f85e-40f9-82a9-c0c4a39ee687": {
+    "session": {
+     "id": "5c75b1c0-f85e-40f9-82a9-c0c4a39ee687",
+     "classId": "demo-class",
+     "className": "示範八年一班",
+     "lessonId": "g8-sum-square",
+     "title": "和的平方公式：用面積看見 (a+b)²",
+     "createdAt": "2026-11-17T23:19:13.624Z",
+     "ended": false,
+     "slideIndex": 0,
+     "activityOpen": false,
+     "resultsVisible": false,
+     "followTeacher": true,
+     "buzzOpen": false,
+     "buzzWinner": null,
+     "drawnSeat": null,
+     "drawnSeats": [],
+     "revision": 11,
+     "quiz": null,
+     "pkLobby": null,
+     "activityDeadline": null,
+     "practice": null,
+     "cross": {
+      "id": "88dc2d0d-b55b-4cc6-a0ae-57022a8b7a78",
+      "startedAt": 1794957553744,
+      "level": 1,
+      "lock": false,
+      "seconds": 0,
+      "deadline": null,
+      "pausedAt": null,
+      "team": false,
+      "margin": 300,
+      "teams": {},
+      "winner": null
+     }
+    },
+    "ownerId": "teacher",
+    "lesson": {
+     "schemaVersion": 1,
+     "id": "g8-sum-square",
+     "title": "和的平方公式：用面積看見 (a+b)²",
+     "description": "八年級 1-1 乘法公式。從分配律出發，拖拉滑桿切開正方形，把圖形、算式與心算連在一起；每頁都有對應的即時提問，最後以錯誤分析與出場券檢核。",
+     "subject": "數學・八年級 1-1",
+     "duration": 45,
+     "objectives": [
+      "能用長方形面積說明分配律 a(b+c) = ab + ac",
+      "能用正方形切割圖說明 (a+b)² = a² + 2ab + b²",
+      "能用和的平方公式做心算與代數式展開",
+      "能找出 (a+b)² = a² + b² 的錯誤並說明理由"
+     ],
+     "slides": [
+      {
+       "id": "warmup",
+       "title": "長方形切兩塊，面積怎麼算？",
+       "body": "長 a、寬 (b+c) 的長方形，沿虛線切成兩塊。拖拉滑桿，比較「整塊算」和「分開算」。",
+       "eyebrow": "01 / 先想起舊知識",
+       "notes": "提取練習：先不講公式，讓學生從面積說出分配律。學生作答後追問：為什麼兩種算法一定一樣？",
+       "source": "對應課本 1-1 p.8 分配律（長方形面積）",
+       "phase": "提取練習",
+       "interactive": {
+        "view": {
+         "xMin": -1.6,
+         "xMax": 9,
+         "yMin": -1.2,
+         "yMax": 10.2,
+         "grid": 1,
+         "aspect": "equal"
+        },
+        "shapes": [
+         {
+          "type": "rect",
+          "x": 0,
+          "y": "c",
+          "w": "a",
+          "h": "b",
+          "color": "#2f80ed",
+          "fill": "rgba(47,128,237,.22)"
+         },
+         {
+          "type": "rect",
+          "x": 0,
+          "y": 0,
+          "w": "a",
+          "h": "c",
+          "color": "#ff8a3d",
+          "fill": "rgba(255,138,61,.25)"
+         },
+         {
+          "type": "segment",
+          "points": [
+           [
+            0,
+            "c"
+           ],
+           [
+            "a",
+            "c"
+           ]
+          ],
+          "color": "#1f2a56",
+          "dash": true,
+          "width": 2.5
+         },
+         {
+          "type": "text",
+          "x": "a/2",
+          "y": "c+b/2",
+          "text": "ab = {a*b}",
+          "color": "#1d4fa3",
+          "size": 22
+         },
+         {
+          "type": "text",
+          "x": "a/2",
+          "y": "c/2",
+          "text": "ac = {a*c}",
+          "color": "#b4541a",
+          "size": 22
+         },
+         {
+          "type": "brace",
+          "points": [
+           [
+            0,
+            "b+c"
+           ],
+           [
+            "a",
+            "b+c"
+           ]
+          ],
+          "text": "a = {a}"
+         },
+         {
+          "type": "brace",
+          "points": [
+           [
+            "a",
+            "b+c"
+           ],
+           [
+            "a",
+            "c"
+           ]
+          ],
+          "text": "b"
+         },
+         {
+          "type": "brace",
+          "points": [
+           [
+            "a",
+            "c"
+           ],
+           [
+            "a",
+            0
+           ]
+          ],
+          "text": "c"
+         }
+        ],
+        "params": [
+         {
+          "id": "a",
+          "kind": "slider",
+          "value": 5,
+          "label": "長 a",
+          "min": 2,
+          "max": 7,
+          "step": 1
+         },
+         {
+          "id": "b",
+          "kind": "slider",
+          "value": 3,
+          "label": "寬 b",
+          "min": 1,
+          "max": 5,
+          "step": 1
+         },
+         {
+          "id": "c",
+          "kind": "slider",
+          "value": 2,
+          "label": "寬 c",
+          "min": 1,
+          "max": 4,
+          "step": 1
+         }
+        ],
+        "readouts": [
+         {
+          "label": "整塊算 a(b+c)",
+          "expr": "a*(b+c)"
+         },
+         {
+          "label": "分開算 ab + ac",
+          "expr": "a*b+a*c"
+         }
+        ],
+        "caption": "兩種算法的面積永遠相同 → 分配律"
+       },
+       "activity": {
+        "id": "warmup-distributive",
+        "type": "single",
+        "prompt": "長 a、寬 (b+c) 的長方形，面積可以寫成哪一個？",
+        "options": [
+         "ab + c",
+         "ab + ac",
+         "a + bc",
+         "abc"
+        ],
+        "correct": [
+         1
+        ],
+        "explanation": "切成長 a 寬 b、長 a 寬 c 兩塊，面積分別是 ab 與 ac，所以 a(b+c) = ab + ac。",
+        "sensitive": false,
+        "aiAllowed": false
+       }
+      },
+      {
+       "id": "predict",
+       "title": "(a+b)² 會等於 a² + b² 嗎？",
+       "body": "先別計算，憑直覺選一個。等一下用圖形驗證你的預測——猜錯也沒關係，猜過會記得更牢。",
+       "eyebrow": "02 / 先猜再驗證",
+       "notes": "預測題（pretesting / generation effect）：公布統計但先不公布答案，保留認知衝突到下一頁。",
+       "phase": "預測",
+       "visual": "cards",
+       "activity": {
+        "id": "predict-square",
+        "type": "single",
+        "prompt": "你認為 (a+b)² 和 a² + b² 一樣嗎？",
+        "options": [
+         "一樣，平方可以分開算",
+         "不一樣，還少了一些東西",
+         "不確定，要畫圖看看"
+        ],
+        "correct": [
+         1
+        ],
+        "explanation": "不一樣。下一頁的正方形會告訴我們少了兩塊 ab。",
+        "sensitive": false,
+        "aiAllowed": false
+       }
+      },
+      {
+       "id": "explore",
+       "title": "把邊長 (a+b) 的正方形切開",
+       "body": "拖拉 a、b 滑桿，再點「切割線」。大正方形被切成哪四塊？哪兩塊是 a² + b² 沒算到的？",
+       "eyebrow": "03 / 動手切正方形",
+       "notes": "CRA 的具體階段。請學生先描述四塊的形狀與邊長，再完成操作題。完成後點名說明 a、b 的找法。",
+       "source": "對應課本 1-1 p.12 探索活動：圖解 (a+b)²",
+       "phase": "具體操作",
+       "interactive": {
+        "view": {
+         "xMin": -1.8,
+         "xMax": 12.5,
+         "yMin": -1.4,
+         "yMax": 12.5,
+         "grid": 1,
+         "aspect": "equal"
+        },
+        "shapes": [
+         {
+          "type": "rect",
+          "x": 0,
+          "y": 0,
+          "w": "a+b",
+          "h": "a+b",
+          "color": "#1f2a56",
+          "fill": "rgba(123,97,255,.10)",
+          "width": 2.5,
+          "show": "!cut",
+          "toggle": "cut"
+         },
+         {
+          "type": "text",
+          "x": "(a+b)/2",
+          "y": "(a+b)/2",
+          "text": "(a+b)² = {(a+b)^2}",
+          "size": 24,
+          "show": "!cut"
+         },
+         {
+          "type": "rect",
+          "x": 0,
+          "y": "b",
+          "w": "a",
+          "h": "a",
+          "color": "#7b61ff",
+          "fill": "rgba(123,97,255,.28)",
+          "show": "cut",
+          "toggle": "cut"
+         },
+         {
+          "type": "rect",
+          "x": "a",
+          "y": "b",
+          "w": "b",
+          "h": "a",
+          "color": "#2f80ed",
+          "fill": "rgba(47,128,237,.28)",
+          "show": "cut",
+          "toggle": "cut"
+         },
+         {
+          "type": "rect",
+          "x": 0,
+          "y": 0,
+          "w": "a",
+          "h": "b",
+          "color": "#2f80ed",
+          "fill": "rgba(47,128,237,.28)",
+          "show": "cut",
+          "toggle": "cut"
+         },
+         {
+          "type": "rect",
+          "x": "a",
+          "y": 0,
+          "w": "b",
+          "h": "b",
+          "color": "#ff8a3d",
+          "fill": "rgba(255,138,61,.32)",
+          "show": "cut",
+          "toggle": "cut"
+         },
+         {
+          "type": "text",
+          "x": "a/2",
+          "y": "b+a/2",
+          "text": "a² = {a^2}",
+          "color": "#5a3fd6",
+          "size": 20,
+          "show": "cut"
+         },
+         {
+          "type": "text",
+          "x": "a+b/2",
+          "y": "b+a/2",
+          "text": "ab",
+          "color": "#1d4fa3",
+          "size": 18,
+          "show": "cut"
+         },
+         {
+          "type": "text",
+          "x": "a/2",
+          "y": "b/2",
+          "text": "ab = {a*b}",
+          "color": "#1d4fa3",
+          "size": 18,
+          "show": "cut"
+         },
+         {
+          "type": "text",
+          "x": "a+b/2",
+          "y": "b/2",
+          "text": "b²",
+          "color": "#b4541a",
+          "size": 18,
+          "show": "cut"
+         },
+         {
+          "type": "brace",
+          "points": [
+           [
+            0,
+            "a+b"
+           ],
+           [
+            "a",
+            "a+b"
+           ]
+          ],
+          "text": "a"
+         },
+         {
+          "type": "brace",
+          "points": [
+           [
+            "a",
+            "a+b"
+           ],
+           [
+            "a+b",
+            "a+b"
+           ]
+          ],
+          "text": "b"
+         },
+         {
+          "type": "brace",
+          "points": [
+           [
+            "a+b",
+            "a+b"
+           ],
+           [
+            "a+b",
+            "b"
+           ]
+          ],
+          "text": "a"
+         },
+         {
+          "type": "brace",
+          "points": [
+           [
+            "a+b",
+            "b"
+           ],
+           [
+            "a+b",
+            0
+           ]
+          ],
+          "text": "b"
+         }
+        ],
+        "params": [
+         {
+          "id": "a",
+          "kind": "slider",
+          "value": 5,
+          "label": "a",
+          "min": 1,
+          "max": 8,
+          "step": 1
+         },
+         {
+          "id": "b",
+          "kind": "slider",
+          "value": 2,
+          "label": "b",
+          "min": 1,
+          "max": 4,
+          "step": 1
+         },
+         {
+          "id": "cut",
+          "kind": "toggle",
+          "value": 0,
+          "label": "切割線"
+         }
+        ],
+        "readouts": [
+         {
+          "label": "(a+b)²",
+          "expr": "(a+b)^2"
+         },
+         {
+          "label": "a² + b²",
+          "expr": "a^2+b^2"
+         },
+         {
+          "label": "少算的兩塊 2ab",
+          "expr": "(a+b)^2-(a^2+b^2)"
+         }
+        ],
+        "caption": "點圖形或「切割線」開關，切開大正方形"
+       },
+       "activity": {
+        "id": "explore-find-ab",
+        "type": "manipulate",
+        "prompt": "調整 a、b，讓右下角 b² 那一塊面積是 4，而且兩塊 ab 的面積合計是 24，再按「送出我的操作」。",
+        "check": "b==2 && 2*a*b==24",
+        "record": [
+         "a",
+         "b"
+        ],
+        "explanation": "b² = 4 → b = 2；2ab = 24 → 2 × a × 2 = 24 → a = 6。",
+        "sensitive": false,
+        "aiAllowed": false
+       }
+      },
+      {
+       "id": "connect",
+       "title": "分配律展開的每一項，在圖上的哪一塊？",
+       "body": "按「下一步」逐步展開 (a+b)(a+b)。同一個顏色＝同一塊面積＝同一項。",
+       "eyebrow": "04 / 圖和式對起來",
+       "notes": "雙重編碼：顏色固定（a² 紫、ab 藍、b² 橘），讓符號與圖形一一對應。逐步揭示控制認知負荷。",
+       "source": "對應課本 1-1 p.12 和的平方公式推導",
+       "phase": "圖式連結",
+       "interactive": {
+        "view": {
+         "xMin": -1.5,
+         "xMax": 16.5,
+         "yMin": -1.2,
+         "yMax": 9.2,
+         "aspect": "equal"
+        },
+        "shapes": [
+         {
+          "type": "rect",
+          "x": 0,
+          "y": 0,
+          "w": 7,
+          "h": 7,
+          "color": "#1f2a56",
+          "fill": "rgba(31,42,86,.04)",
+          "width": 2.5,
+          "focus": [
+           0,
+           4
+          ]
+         },
+         {
+          "type": "segment",
+          "points": [
+           [
+            5,
+            0
+           ],
+           [
+            5,
+            7
+           ]
+          ],
+          "color": "#1f2a56",
+          "dash": true,
+          "step": 1
+         },
+         {
+          "type": "segment",
+          "points": [
+           [
+            0,
+            2
+           ],
+           [
+            7,
+            2
+           ]
+          ],
+          "color": "#1f2a56",
+          "dash": true,
+          "step": 1
+         },
+         {
+          "type": "rect",
+          "x": 0,
+          "y": 2,
+          "w": 5,
+          "h": 5,
+          "color": "#7b61ff",
+          "fill": "rgba(123,97,255,.30)",
+          "step": 1,
+          "focus": [
+           1,
+           4
+          ]
+         },
+         {
+          "type": "text",
+          "x": 2.5,
+          "y": 4.5,
+          "text": "a·a = a²",
+          "color": "#5a3fd6",
+          "size": 18,
+          "step": 1,
+          "focus": [
+           1,
+           4
+          ]
+         },
+         {
+          "type": "rect",
+          "x": 5,
+          "y": 2,
+          "w": 2,
+          "h": 5,
+          "color": "#2f80ed",
+          "fill": "rgba(47,128,237,.30)",
+          "step": 2,
+          "focus": [
+           2,
+           4
+          ]
+         },
+         {
+          "type": "rect",
+          "x": 0,
+          "y": 0,
+          "w": 5,
+          "h": 2,
+          "color": "#2f80ed",
+          "fill": "rgba(47,128,237,.30)",
+          "step": 2,
+          "focus": [
+           2,
+           4
+          ]
+         },
+         {
+          "type": "text",
+          "x": 6,
+          "y": 4.5,
+          "text": "ab",
+          "color": "#1d4fa3",
+          "size": 16,
+          "step": 2,
+          "focus": [
+           2,
+           4
+          ]
+         },
+         {
+          "type": "text",
+          "x": 2.5,
+          "y": 1,
+          "text": "ba",
+          "color": "#1d4fa3",
+          "size": 16,
+          "step": 2,
+          "focus": [
+           2,
+           4
+          ]
+         },
+         {
+          "type": "rect",
+          "x": 5,
+          "y": 0,
+          "w": 2,
+          "h": 2,
+          "color": "#ff8a3d",
+          "fill": "rgba(255,138,61,.35)",
+          "step": 3,
+          "focus": [
+           3,
+           4
+          ]
+         },
+         {
+          "type": "text",
+          "x": 6,
+          "y": 1,
+          "text": "b²",
+          "color": "#b4541a",
+          "size": 16,
+          "step": 3,
+          "focus": [
+           3,
+           4
+          ]
+         },
+         {
+          "type": "brace",
+          "points": [
+           [
+            0,
+            7
+           ],
+           [
+            5,
+            7
+           ]
+          ],
+          "text": "a",
+          "focus": [
+           0
+          ]
+         },
+         {
+          "type": "brace",
+          "points": [
+           [
+            5,
+            7
+           ],
+           [
+            7,
+            7
+           ]
+          ],
+          "text": "b",
+          "focus": [
+           0
+          ]
+         },
+         {
+          "type": "text",
+          "x": 12,
+          "y": 7.6,
+          "text": "(a+b)² = (a+b)(a+b)",
+          "color": "#1f2a56",
+          "size": 19,
+          "focus": [
+           0
+          ]
+         },
+         {
+          "type": "text",
+          "x": 12,
+          "y": 6.2,
+          "text": "= a·a",
+          "color": "#5a3fd6",
+          "size": 19,
+          "step": 1
+         },
+         {
+          "type": "text",
+          "x": 12,
+          "y": 4.8,
+          "text": "+ a·b + b·a",
+          "color": "#1d4fa3",
+          "size": 19,
+          "step": 2
+         },
+         {
+          "type": "text",
+          "x": 12,
+          "y": 3.4,
+          "text": "+ b·b",
+          "color": "#b4541a",
+          "size": 19,
+          "step": 3
+         },
+         {
+          "type": "text",
+          "x": 12,
+          "y": 1.6,
+          "text": "= a² + 2ab + b²",
+          "color": "#1f2a56",
+          "size": 23,
+          "step": 4
+         }
+        ],
+        "steps": [
+         "大正方形邊長是 a + b，面積寫成 (a+b)(a+b)",
+         "第一個 a 乘第二個 a：左上紫色正方形 a²",
+         "a·b 與 b·a：兩塊一樣大的藍色長方形",
+         "b·b：右下橘色小正方形 b²",
+         "兩塊 ab 合併成 2ab，得到和的平方公式"
+        ],
+        "caption": "按「下一步」逐步揭示"
+       },
+       "activity": {
+        "id": "connect-2ab",
+        "type": "numeric",
+        "prompt": "若 a = 30、b = 4，圖中兩塊藍色長方形的面積合計（2ab）是多少？",
+        "answer": "240",
+        "explanation": "2ab = 2 × 30 × 4 = 240。",
+        "sensitive": false,
+        "aiAllowed": false
+       }
+      },
+      {
+       "id": "worked",
+       "title": "用公式心算 31²",
+       "body": "把 31 拆成 30 + 1。按「下一步」看每一塊面積怎麼算，再自己做一題。",
+       "eyebrow": "05 / 看懂一題完整解法",
+       "notes": "工作範例：老師放慢逐步講，請學生說出每一步「為什麼」。接著同結構的近遷移題由學生獨立完成。",
+       "source": "對應課本 1-1 p.12–13 利用和的平方公式求值（數字為自編）",
+       "phase": "工作範例",
+       "interactive": {
+        "view": {
+         "xMin": -2,
+         "xMax": 70,
+         "yMin": -2.5,
+         "yMax": 36,
+         "aspect": "equal"
+        },
+        "shapes": [
+         {
+          "type": "rect",
+          "x": 0,
+          "y": 3,
+          "w": 30,
+          "h": 30,
+          "color": "#7b61ff",
+          "fill": "rgba(123,97,255,.25)",
+          "focus": [
+           1,
+           4
+          ]
+         },
+         {
+          "type": "rect",
+          "x": 30,
+          "y": 3,
+          "w": 3,
+          "h": 30,
+          "color": "#2f80ed",
+          "fill": "rgba(47,128,237,.35)",
+          "step": 2,
+          "focus": [
+           2,
+           4
+          ]
+         },
+         {
+          "type": "rect",
+          "x": 0,
+          "y": 0,
+          "w": 30,
+          "h": 3,
+          "color": "#2f80ed",
+          "fill": "rgba(47,128,237,.35)",
+          "step": 2,
+          "focus": [
+           2,
+           4
+          ]
+         },
+         {
+          "type": "rect",
+          "x": 30,
+          "y": 0,
+          "w": 3,
+          "h": 3,
+          "color": "#ff8a3d",
+          "fill": "rgba(255,138,61,.45)",
+          "step": 3,
+          "focus": [
+           3,
+           4
+          ]
+         },
+         {
+          "type": "text",
+          "x": 15,
+          "y": 18,
+          "text": "30² = 900",
+          "color": "#5a3fd6",
+          "size": 20,
+          "step": 1
+         },
+         {
+          "type": "brace",
+          "points": [
+           [
+            0,
+            33
+           ],
+           [
+            30,
+            33
+           ]
+          ],
+          "text": "30",
+          "focus": [
+           0
+          ]
+         },
+         {
+          "type": "brace",
+          "points": [
+           [
+            30,
+            33
+           ],
+           [
+            33,
+            33
+           ]
+          ],
+          "text": "1",
+          "focus": [
+           0
+          ]
+         },
+         {
+          "type": "text",
+          "x": 52,
+          "y": 31,
+          "text": "31² = (30 + 1)²",
+          "size": 19,
+          "focus": [
+           0
+          ]
+         },
+         {
+          "type": "text",
+          "x": 52,
+          "y": 25,
+          "text": "= 30² + 2×30×1 + 1²",
+          "size": 19,
+          "step": 1
+         },
+         {
+          "type": "text",
+          "x": 52,
+          "y": 19,
+          "text": "= 900 + 60 + 1",
+          "size": 19,
+          "step": 3
+         },
+         {
+          "type": "text",
+          "x": 52,
+          "y": 13,
+          "text": "= 961",
+          "color": "#1f2a56",
+          "size": 24,
+          "step": 4
+         },
+         {
+          "type": "text",
+          "x": 52,
+          "y": 6,
+          "text": "兩條細長方形：30×1 各一塊 → 60",
+          "color": "#1d4fa3",
+          "size": 14,
+          "step": 2
+         }
+        ],
+        "steps": [
+         "拆數：31 = 30 + 1（選一個好算的整十數）",
+         "套公式：a = 30、b = 1，先算 a² = 900",
+         "兩塊細長方形：2ab = 2 × 30 × 1 = 60",
+         "右下小正方形：b² = 1，再相加",
+         "答案：31² = 961（圖中比例為示意，細條已放大）"
+        ],
+        "caption": "圖形未按比例：細長方形寬度放大以便觀察"
+       },
+       "activity": {
+        "id": "worked-41",
+        "type": "numeric",
+        "prompt": "換你：用和的平方公式算 41² = ？",
+        "answer": "1681",
+        "explanation": "41² = (40+1)² = 1600 + 80 + 1 = 1681。",
+        "sensitive": false,
+        "aiAllowed": false
+       }
+      },
+      {
+       "id": "faded",
+       "title": "(x + 5)² = x² + □x + 25",
+       "body": "□ 是兩塊長方形合起來的係數。拖拉 x，確認你的答案對任何 x 都成立。",
+       "eyebrow": "06 / 換你補關鍵步驟",
+       "notes": "褪除（fading）：只留關鍵步驟給學生。若學生填 5，請他指出圖上的兩塊長方形。",
+       "source": "對應課本 1-1 p.13 代數式的展開（題目自編）",
+       "phase": "半完成範例",
+       "interactive": {
+        "view": {
+         "xMin": -1.6,
+         "xMax": 15,
+         "yMin": -1.2,
+         "yMax": 14.6,
+         "grid": 1,
+         "aspect": "equal"
+        },
+        "shapes": [
+         {
+          "type": "rect",
+          "x": 0,
+          "y": 5,
+          "w": "x",
+          "h": "x",
+          "color": "#7b61ff",
+          "fill": "rgba(123,97,255,.28)"
+         },
+         {
+          "type": "rect",
+          "x": "x",
+          "y": 5,
+          "w": 5,
+          "h": "x",
+          "color": "#2f80ed",
+          "fill": "rgba(47,128,237,.28)"
+         },
+         {
+          "type": "rect",
+          "x": 0,
+          "y": 0,
+          "w": "x",
+          "h": 5,
+          "color": "#2f80ed",
+          "fill": "rgba(47,128,237,.28)"
+         },
+         {
+          "type": "rect",
+          "x": "x",
+          "y": 0,
+          "w": 5,
+          "h": 5,
+          "color": "#ff8a3d",
+          "fill": "rgba(255,138,61,.32)"
+         },
+         {
+          "type": "text",
+          "x": "x/2",
+          "y": "5+x/2",
+          "text": "x²",
+          "color": "#5a3fd6",
+          "size": 18
+         },
+         {
+          "type": "text",
+          "x": "x+2.5",
+          "y": "5+x/2",
+          "text": "5x",
+          "color": "#1d4fa3",
+          "size": 18
+         },
+         {
+          "type": "text",
+          "x": "x/2",
+          "y": 2.5,
+          "text": "5x",
+          "color": "#1d4fa3",
+          "size": 18
+         },
+         {
+          "type": "text",
+          "x": "x+2.5",
+          "y": 2.5,
+          "text": "25",
+          "color": "#b4541a",
+          "size": 18
+         },
+         {
+          "type": "brace",
+          "points": [
+           [
+            0,
+            "x+5"
+           ],
+           [
+            "x",
+            "x+5"
+           ]
+          ],
+          "text": "x = {x}"
+         },
+         {
+          "type": "brace",
+          "points": [
+           [
+            "x",
+            "x+5"
+           ],
+           [
+            "x+5",
+            "x+5"
+           ]
+          ],
+          "text": "5"
+         }
+        ],
+        "params": [
+         {
+          "id": "x",
+          "kind": "slider",
+          "value": 3,
+          "label": "x",
+          "min": 1,
+          "max": 8,
+          "step": 1
+         }
+        ],
+        "readouts": [
+         {
+          "label": "(x+5)²",
+          "expr": "(x+5)^2"
+         },
+         {
+          "label": "x² + 25",
+          "expr": "x^2+25"
+         },
+         {
+          "label": "兩塊長方形",
+          "expr": "(x+5)^2-x^2-25"
+         }
+        ]
+       },
+       "activity": {
+        "id": "faded-coefficient",
+        "type": "numeric",
+        "prompt": "(x + 5)² = x² + □x + 25，□ 應填多少？",
+        "answer": "10",
+        "explanation": "兩塊長方形各是 5x，合計 10x，所以 □ = 10（也就是 2 × x × 5 的係數）。",
+        "sensitive": false,
+        "aiAllowed": false
+       }
+      },
+      {
+       "id": "error-analysis",
+       "title": "小明寫：(2x + 3)² = 4x² + 9",
+       "body": "在畫布圈出錯誤、寫出正確展開，並畫面積圖說明少了哪兩塊。也可以寫在紙上拍照上傳。",
+       "eyebrow": "07 / 當小老師",
+       "notes": "錯誤分析＋自我解釋。開放作答約 4 分鐘；收件後用「AI 批改」依規準批改，教師覆核後再「發回」。可挑兩份不同作法投影討論。",
+       "source": "對應課本 1-1 p.12–13 和的平方公式（錯例自編）",
+       "phase": "錯誤分析",
+       "interactive": {
+        "view": {
+         "xMin": -1.6,
+         "xMax": 13,
+         "yMin": -1.2,
+         "yMax": 12.4,
+         "grid": 1,
+         "aspect": "equal"
+        },
+        "shapes": [
+         {
+          "type": "rect",
+          "x": 0,
+          "y": 3,
+          "w": "2*x",
+          "h": "2*x",
+          "color": "#7b61ff",
+          "fill": "rgba(123,97,255,.28)"
+         },
+         {
+          "type": "rect",
+          "x": "2*x",
+          "y": 0,
+          "w": 3,
+          "h": 3,
+          "color": "#ff8a3d",
+          "fill": "rgba(255,138,61,.32)"
+         },
+         {
+          "type": "rect",
+          "x": "2*x",
+          "y": 3,
+          "w": 3,
+          "h": "2*x",
+          "color": "#2f80ed",
+          "fill": "rgba(47,128,237,.28)",
+          "show": "!ming"
+         },
+         {
+          "type": "rect",
+          "x": 0,
+          "y": 0,
+          "w": "2*x",
+          "h": 3,
+          "color": "#2f80ed",
+          "fill": "rgba(47,128,237,.28)",
+          "show": "!ming"
+         },
+         {
+          "type": "rect",
+          "x": "2*x",
+          "y": 3,
+          "w": 3,
+          "h": "2*x",
+          "color": "#e5484d",
+          "dash": true,
+          "show": "ming"
+         },
+         {
+          "type": "rect",
+          "x": 0,
+          "y": 0,
+          "w": "2*x",
+          "h": 3,
+          "color": "#e5484d",
+          "dash": true,
+          "show": "ming"
+         },
+         {
+          "type": "text",
+          "x": "2*x+1.5",
+          "y": "3+x",
+          "text": "？",
+          "color": "#e5484d",
+          "size": 26,
+          "show": "ming"
+         },
+         {
+          "type": "text",
+          "x": "x",
+          "y": 1.5,
+          "text": "？",
+          "color": "#e5484d",
+          "size": 26,
+          "show": "ming"
+         },
+         {
+          "type": "text",
+          "x": "x",
+          "y": "3+x",
+          "text": "4x²",
+          "color": "#5a3fd6",
+          "size": 18
+         },
+         {
+          "type": "text",
+          "x": "2*x+1.5",
+          "y": 1.5,
+          "text": "9",
+          "color": "#b4541a",
+          "size": 18
+         },
+         {
+          "type": "brace",
+          "points": [
+           [
+            0,
+            "2*x+3"
+           ],
+           [
+            "2*x",
+            "2*x+3"
+           ]
+          ],
+          "text": "2x"
+         },
+         {
+          "type": "brace",
+          "points": [
+           [
+            "2*x",
+            "2*x+3"
+           ],
+           [
+            "2*x+3",
+            "2*x+3"
+           ]
+          ],
+          "text": "3"
+         }
+        ],
+        "params": [
+         {
+          "id": "x",
+          "kind": "slider",
+          "value": 3,
+          "label": "x",
+          "min": 1,
+          "max": 4,
+          "step": 0.5
+         },
+         {
+          "id": "ming",
+          "kind": "toggle",
+          "value": 1,
+          "label": "只看小明算到的"
+         }
+        ],
+        "readouts": [
+         {
+          "label": "正確面積 (2x+3)²",
+          "expr": "(2*x+3)^2",
+          "digits": 2
+         },
+         {
+          "label": "小明的 4x² + 9",
+          "expr": "4*x^2+9",
+          "digits": 2
+         }
+        ],
+        "caption": "關掉「只看小明算到的」，看看漏掉的部分"
+       },
+       "activity": {
+        "id": "error-canvas",
+        "type": "canvas",
+        "prompt": "小明寫 (2x + 3)² = 4x² + 9。① 圈出錯誤 ② 寫出正確展開 ③ 畫面積圖說明少了哪兩塊。",
+        "canvas": "grid",
+        "allowPhoto": true,
+        "rubric": {
+         "criteria": [
+          {
+           "id": "kai",
+           "label": "會考評分（0–3 分）",
+           "points": 3,
+           "levels": [
+            {
+             "score": 3,
+             "description": "指出漏掉中間項，正確展開 4x² + 12x + 9，並用面積圖（兩塊 2x × 3 的長方形）說明"
+            },
+            {
+             "score": 2,
+             "description": "正確展開但面積圖說明不完整，或說明正確但展開有一處小錯（例如 12x 寫成 6x）"
+            },
+            {
+             "score": 1,
+             "description": "只指出「錯了」或只寫出部分正確的展開，沒有說明"
+            },
+            {
+             "score": 0,
+             "description": "空白，或同意 4x² + 9，或沒有任何正確內容"
+            }
+           ]
+          }
+         ],
+         "reference": "(2x + 3)² = (2x)² + 2 × (2x) × 3 + 3² = 4x² + 12x + 9。小明只算了兩個正方形 4x² 與 9，漏了兩塊 2x × 3 的長方形（各 6x，共 12x）。",
+         "graderNotes": "接受 (2x + 3)(2x + 3) 用分配律展開；面積圖不必按比例。"
+        },
+        "sensitive": false,
+        "aiAllowed": true
+       }
+      },
+      {
+       "id": "lab",
+       "title": "公式對所有的數都成立嗎？",
+       "body": "拖拉 a、b（可以是負數或小數），比較三根長條。哪兩根永遠一樣高？",
+       "eyebrow": "08 / 數字實驗室",
+       "notes": "把面積模型推廣到所有實數（面積圖只適用正數）。接著做交錯判斷題：混合數字與代數、正確與錯誤例子。",
+       "phase": "交錯練習",
+       "interactive": {
+        "view": {
+         "xMin": 0,
+         "xMax": 12,
+         "yMin": -1.8,
+         "yMax": 12,
+         "aspect": "fill"
+        },
+        "shapes": [
+         {
+          "type": "segment",
+          "points": [
+           [
+            0.4,
+            0
+           ],
+           [
+            11.6,
+            0
+           ]
+          ],
+          "color": "#1f2a56",
+          "width": 2
+         },
+         {
+          "type": "rect",
+          "x": 1,
+          "y": 0,
+          "w": 2.6,
+          "h": "min((a+b)^2,121)/11",
+          "fill": "rgba(31,42,86,.75)"
+         },
+         {
+          "type": "rect",
+          "x": 4.7,
+          "y": 0,
+          "w": 2.6,
+          "h": "min(a^2+b^2,121)/11",
+          "fill": "rgba(229,72,77,.7)"
+         },
+         {
+          "type": "rect",
+          "x": 8.4,
+          "y": 0,
+          "w": 2.6,
+          "h": "min(a^2+2*a*b+b^2,121)/11",
+          "fill": "rgba(18,163,154,.75)"
+         },
+         {
+          "type": "text",
+          "x": 2.3,
+          "y": -0.9,
+          "text": "(a+b)²",
+          "size": 15
+         },
+         {
+          "type": "text",
+          "x": 6,
+          "y": -0.9,
+          "text": "a² + b²",
+          "size": 15
+         },
+         {
+          "type": "text",
+          "x": 9.7,
+          "y": -0.9,
+          "text": "a² + 2ab + b²",
+          "size": 15
+         },
+         {
+          "type": "text",
+          "x": 2.3,
+          "y": "min((a+b)^2,121)/11+0.6",
+          "text": "{(a+b)^2}",
+          "size": 16
+         },
+         {
+          "type": "text",
+          "x": 6,
+          "y": "min(a^2+b^2,121)/11+0.6",
+          "text": "{a^2+b^2}",
+          "color": "#c0383c",
+          "size": 16
+         },
+         {
+          "type": "text",
+          "x": 9.7,
+          "y": "min(a^2+2*a*b+b^2,121)/11+0.6",
+          "text": "{a^2+2*a*b+b^2}",
+          "color": "#0c7c75",
+          "size": 16
+         }
+        ],
+        "params": [
+         {
+          "id": "a",
+          "kind": "slider",
+          "value": 3,
+          "label": "a",
+          "min": -5,
+          "max": 6,
+          "step": 0.5
+         },
+         {
+          "id": "b",
+          "kind": "slider",
+          "value": 2,
+          "label": "b",
+          "min": -5,
+          "max": 6,
+          "step": 0.5
+         }
+        ],
+        "readouts": [
+         {
+          "label": "2ab",
+          "expr": "2*a*b",
+          "digits": 2
+         }
+        ],
+        "caption": "長條高度上限 121；a、b 異號時 2ab 是負的"
+       },
+       "activity": {
+        "id": "lab-interleave",
+        "type": "multiple",
+        "prompt": "下列哪些展開或計算是正確的？（可複選）",
+        "options": [
+         "(a + 2b)² = a² + 4ab + 4b²",
+         "(3 + y)² = 9 + y²",
+         "102² = 10000 + 400 + 4",
+         "(x + 1)² = x² + x + 1"
+        ],
+        "correct": [
+         0,
+         2
+        ],
+        "explanation": "(a+2b)² 的中間項是 2·a·2b = 4ab；102² = (100+2)² = 10000 + 400 + 4。另外兩個都漏了或算錯中間項 2ab。",
+        "sensitive": false,
+        "aiAllowed": false
+       }
+      },
+      {
+       "id": "exit-ticket",
+       "title": "向沒來上課的同學解釋",
+       "body": "用一到兩句話說明：為什麼 (a+b)² 不等於 a² + b²？可以用面積圖或分配律當理由。",
+       "eyebrow": "09 / 用自己的話說",
+       "notes": "出場券（自我解釋）。可用「AI 批改」依規準給回饋，或用「AI 整理回答」看全班迷思分布。",
+       "phase": "出場券",
+       "bullets": [
+        "說出差在哪裡",
+        "給一個理由",
+        "舉一個數字例子更好"
+       ],
+       "visual": "steps",
+       "activity": {
+        "id": "exit-explain",
+        "type": "short",
+        "prompt": "為什麼 (a+b)² 不等於 a² + b²？",
+        "rubric": {
+         "criteria": [
+          {
+           "id": "concept",
+           "label": "指出差異",
+           "points": 2,
+           "levels": [
+            {
+             "score": 0,
+             "description": "沒有指出差異，或說明錯誤"
+            },
+            {
+             "score": 1,
+             "description": "只說「還有別的項」但沒說是什麼"
+            },
+            {
+             "score": 2,
+             "description": "明確指出少了 2ab（兩塊 ab）"
+            }
+           ]
+          },
+          {
+           "id": "reason",
+           "label": "提出理由",
+           "points": 2,
+           "levels": [
+            {
+             "score": 0,
+             "description": "沒有理由"
+            },
+            {
+             "score": 1,
+             "description": "只舉數字例子，沒有一般性的理由"
+            },
+            {
+             "score": 2,
+             "description": "用面積圖（四塊）或分配律 (a+b)(a+b) 說明"
+            }
+           ]
+          }
+         ],
+         "reference": "(a+b)² = (a+b)(a+b) = a² + ab + ba + b² = a² + 2ab + b²。面積圖上邊長 a+b 的正方形切成 a²、b² 與兩塊 ab，a² + b² 少算了兩塊長方形 2ab。"
+        },
+        "sensitive": false,
+        "aiAllowed": true
+       }
+      },
+      {
+       "id": "reflect",
+       "title": "我能用面積圖解釋和的平方公式嗎？",
+       "body": "誠實評估自己的理解程度。下一節課會從你們的自評與錯誤類型開始複習。",
+       "eyebrow": "10 / 給自己打分數",
+       "notes": "後設認知自評。3 分以下的學生，下節課開頭用「提取練習」再操作一次面積模型（間隔複習）。",
+       "phase": "後設認知",
+       "visual": "cards",
+       "activity": {
+        "id": "reflect-confidence",
+        "type": "scale",
+        "prompt": "我能用面積圖向同學解釋 (a+b)² = a² + 2ab + b²",
+        "min": 1,
+        "max": 5,
+        "minLabel": "還需要再看一次",
+        "maxLabel": "可以教別人",
+        "sensitive": false,
+        "aiAllowed": false
+       }
+      },
+      {
+       "id": "quiz-pk",
+       "title": "課後檢核・PK 戰",
+       "body": "10 題四選一，每題從 3 題換數字的題目抽 1 題。老師可以派全班測驗，或開 PK 戰兩兩對戰。",
+       "eyebrow": "最後 / 課後檢核・PK 戰",
+       "phase": "課後檢核",
+       "quizPage": true
+      }
+     ],
+     "updatedAt": "2026-11-17T23:19:13.496Z",
+     "quiz": {
+      "title": "1-1 和的平方公式：課後檢核",
+      "source": "八年級 1-1 乘法公式（和的平方）；題目自編，答案已用 SymPy 核算",
+      "slots": [
+       {
+        "id": "q1",
+        "topic": "分配律（先備）",
+        "variants": [
+         {
+          "stem": "$3(x+4)$ 展開後是？",
+          "options": [
+           "$3x+12$",
+           "$3x+4$",
+           "$x+12$",
+           "$3x+7$"
+          ],
+          "answer": 0,
+          "explanation": "分配律：括號裡每一項都要乘 $3$，$3\\times x=3x$、$3\\times 4=12$。"
+         },
+         {
+          "stem": "$5(2x+1)$ 展開後是？",
+          "options": [
+           "$10x+5$",
+           "$10x+1$",
+           "$2x+5$",
+           "$10x+6$"
+          ],
+          "answer": 0,
+          "explanation": "分配律：括號裡每一項都要乘 $5$，$5\\times 2x=10x$、$5\\times 1=5$。"
+         },
+         {
+          "stem": "$4(3x+2)$ 展開後是？",
+          "options": [
+           "$12x+8$",
+           "$12x+2$",
+           "$3x+8$",
+           "$12x+6$"
+          ],
+          "answer": 0,
+          "explanation": "分配律：括號裡每一項都要乘 $4$，$4\\times 3x=12x$、$4\\times 2=8$。"
+         }
+        ]
+       },
+       {
+        "id": "q2",
+        "topic": "(x+n)² 展開",
+        "variants": [
+         {
+          "stem": "$(x+3)^2$ 展開後是？",
+          "options": [
+           "$x^2+6x+9$",
+           "$x^2+9$",
+           "$x^2+3x+9$",
+           "$x^2+6x+6$"
+          ],
+          "answer": 0,
+          "explanation": "$(x+3)^2=x^2+2\\times x\\times 3+3^2=x^2+6x+9$，中間的 $2ab$ 不能漏。"
+         },
+         {
+          "stem": "$(x+5)^2$ 展開後是？",
+          "options": [
+           "$x^2+10x+25$",
+           "$x^2+25$",
+           "$x^2+5x+25$",
+           "$x^2+10x+10$"
+          ],
+          "answer": 0,
+          "explanation": "$(x+5)^2=x^2+2\\times x\\times 5+5^2=x^2+10x+25$，中間的 $2ab$ 不能漏。"
+         },
+         {
+          "stem": "$(x+4)^2$ 展開後是？",
+          "options": [
+           "$x^2+8x+16$",
+           "$x^2+16$",
+           "$x^2+4x+16$",
+           "$x^2+8x+8$"
+          ],
+          "answer": 0,
+          "explanation": "$(x+4)^2=x^2+2\\times x\\times 4+4^2=x^2+8x+16$，中間的 $2ab$ 不能漏。"
+         }
+        ]
+       },
+       {
+        "id": "q3",
+        "topic": "中間項 2ab 的係數",
+        "variants": [
+         {
+          "stem": "$(x+7)^2=x^2+\\square x+49$，$\\square$ 應填多少？",
+          "options": [
+           "$14$",
+           "$7$",
+           "$49$",
+           "$2$"
+          ],
+          "answer": 0,
+          "explanation": "中間項是 $2ab=2\\times x\\times 7=14x$。"
+         },
+         {
+          "stem": "$(x+6)^2=x^2+\\square x+36$，$\\square$ 應填多少？",
+          "options": [
+           "$12$",
+           "$6$",
+           "$36$",
+           "$2$"
+          ],
+          "answer": 0,
+          "explanation": "中間項是 $2ab=2\\times x\\times 6=12x$。"
+         },
+         {
+          "stem": "$(x+9)^2=x^2+\\square x+81$，$\\square$ 應填多少？",
+          "options": [
+           "$18$",
+           "$9$",
+           "$81$",
+           "$2$"
+          ],
+          "answer": 0,
+          "explanation": "中間項是 $2ab=2\\times x\\times 9=18x$。"
+         }
+        ]
+       },
+       {
+        "id": "q4",
+        "topic": "心算：兩位數的平方",
+        "variants": [
+         {
+          "stem": "用和的平方公式心算：$41^2=$？",
+          "options": [
+           "$1681$",
+           "$1601$",
+           "$1641$",
+           "$1680$"
+          ],
+          "answer": 0,
+          "explanation": "$41^2=(40+1)^2=40^2+2\\times 40\\times 1+1^2=1600+80+1=1681$。"
+         },
+         {
+          "stem": "用和的平方公式心算：$31^2=$？",
+          "options": [
+           "$961$",
+           "$901$",
+           "$931$",
+           "$960$"
+          ],
+          "answer": 0,
+          "explanation": "$31^2=(30+1)^2=30^2+2\\times 30\\times 1+1^2=900+60+1=961$。"
+         },
+         {
+          "stem": "用和的平方公式心算：$51^2=$？",
+          "options": [
+           "$2601$",
+           "$2501$",
+           "$2551$",
+           "$2600$"
+          ],
+          "answer": 0,
+          "explanation": "$51^2=(50+1)^2=50^2+2\\times 50\\times 1+1^2=2500+100+1=2601$。"
+         }
+        ]
+       },
+       {
+        "id": "q5",
+        "topic": "心算：一百多的平方",
+        "variants": [
+         {
+          "stem": "用和的平方公式心算：$102^2=$？",
+          "options": [
+           "$10404$",
+           "$10004$",
+           "$10204$",
+           "$10400$"
+          ],
+          "answer": 0,
+          "explanation": "$102^2=(100+2)^2=100^2+2\\times 100\\times 2+2^2=10000+400+4=10404$。"
+         },
+         {
+          "stem": "用和的平方公式心算：$103^2=$？",
+          "options": [
+           "$10609$",
+           "$10009$",
+           "$10309$",
+           "$10600$"
+          ],
+          "answer": 0,
+          "explanation": "$103^2=(100+3)^2=100^2+2\\times 100\\times 3+3^2=10000+600+9=10609$。"
+         },
+         {
+          "stem": "用和的平方公式心算：$201^2=$？",
+          "options": [
+           "$40401$",
+           "$40001$",
+           "$40201$",
+           "$40400$"
+          ],
+          "answer": 0,
+          "explanation": "$201^2=(200+1)^2=200^2+2\\times 200\\times 1+1^2=40000+400+1=40401$。"
+         }
+        ]
+       },
+       {
+        "id": "q6",
+        "topic": "係數不是 1：(px+q)²",
+        "variants": [
+         {
+          "stem": "$(2x+3)^2$ 展開後是？",
+          "options": [
+           "$4x^2+12x+9$",
+           "$4x^2+9$",
+           "$2x^2+12x+9$",
+           "$4x^2+6x+9$"
+          ],
+          "answer": 0,
+          "explanation": "$(2x)^2=4x^2$，$2\\times 2x\\times 3=12x$，$3^2=9$。係數也要平方。"
+         },
+         {
+          "stem": "$(3x+1)^2$ 展開後是？",
+          "options": [
+           "$9x^2+6x+1$",
+           "$9x^2+1$",
+           "$3x^2+6x+1$",
+           "$9x^2+3x+1$"
+          ],
+          "answer": 0,
+          "explanation": "$(3x)^2=9x^2$，$2\\times 3x\\times 1=6x$，$1^2=1$。係數也要平方。"
+         },
+         {
+          "stem": "$(2x+5)^2$ 展開後是？",
+          "options": [
+           "$4x^2+20x+25$",
+           "$4x^2+25$",
+           "$2x^2+20x+25$",
+           "$4x^2+10x+25$"
+          ],
+          "answer": 0,
+          "explanation": "$(2x)^2=4x^2$，$2\\times 2x\\times 5=20x$，$5^2=25$。係數也要平方。"
+         }
+        ]
+       },
+       {
+        "id": "q7",
+        "topic": "兩個字母：(a+kb)²",
+        "variants": [
+         {
+          "stem": "$(a+2b)^2$ 展開後是？",
+          "options": [
+           "$a^2+4ab+4b^2$",
+           "$a^2+4b^2$",
+           "$a^2+2ab+4b^2$",
+           "$a^2+4ab+2b^2$"
+          ],
+          "answer": 0,
+          "explanation": "$a$ 項 $a$、$b$ 項 $2b$：平方、平方，中間 $2\\times a\\times 2b=4ab$。"
+         },
+         {
+          "stem": "$(2a+b)^2$ 展開後是？",
+          "options": [
+           "$4a^2+4ab+b^2$",
+           "$4a^2+b^2$",
+           "$4a^2+2ab+b^2$",
+           "$2a^2+4ab+b^2$"
+          ],
+          "answer": 0,
+          "explanation": "$a$ 項 $2a$、$b$ 項 $b$：平方、平方，中間 $2\\times 2a\\times b=4ab$。"
+         },
+         {
+          "stem": "$(a+3b)^2$ 展開後是？",
+          "options": [
+           "$a^2+6ab+9b^2$",
+           "$a^2+9b^2$",
+           "$a^2+3ab+9b^2$",
+           "$a^2+6ab+3b^2$"
+          ],
+          "answer": 0,
+          "explanation": "$a$ 項 $a$、$b$ 項 $3b$：平方、平方，中間 $2\\times a\\times 3b=6ab$。"
+         }
+        ]
+       },
+       {
+        "id": "q8",
+        "topic": "面積圖：兩塊 ab",
+        "variants": [
+         {
+          "stem": "邊長 $a+b$ 的正方形切成四塊，$a=30$、$b=4$。兩塊長方形 $ab$ 合計的面積是？",
+          "options": [
+           "$240$",
+           "$120$",
+           "$1156$",
+           "$916$"
+          ],
+          "answer": 0,
+          "explanation": "兩塊長方形各是 $ab=30\\times 4=120$，合計 $2ab=240$。整個正方形是 $(a+b)^2=1156$。"
+         },
+         {
+          "stem": "邊長 $a+b$ 的正方形切成四塊，$a=20$、$b=3$。兩塊長方形 $ab$ 合計的面積是？",
+          "options": [
+           "$120$",
+           "$60$",
+           "$529$",
+           "$409$"
+          ],
+          "answer": 0,
+          "explanation": "兩塊長方形各是 $ab=20\\times 3=60$，合計 $2ab=120$。整個正方形是 $(a+b)^2=529$。"
+         },
+         {
+          "stem": "邊長 $a+b$ 的正方形切成四塊，$a=50$、$b=2$。兩塊長方形 $ab$ 合計的面積是？",
+          "options": [
+           "$200$",
+           "$100$",
+           "$2704$",
+           "$2504$"
+          ],
+          "answer": 0,
+          "explanation": "兩塊長方形各是 $ab=50\\times 2=100$，合計 $2ab=200$。整個正方形是 $(a+b)^2=2704$。"
+         }
+        ]
+       },
+       {
+        "id": "q9",
+        "topic": "正方形面積（應用）",
+        "variants": [
+         {
+          "stem": "邊長 $(x+2)$ 公分的正方形，面積是多少平方公分？",
+          "options": [
+           "$x^2+4x+4$",
+           "$x^2+4$",
+           "$x^2+2x+4$",
+           "$4x+8$"
+          ],
+          "answer": 0,
+          "explanation": "面積＝邊長的平方＝$(x+2)^2$。$4\\times$邊長是周長，不是面積。"
+         },
+         {
+          "stem": "邊長 $(x+5)$ 公分的正方形，面積是多少平方公分？",
+          "options": [
+           "$x^2+10x+25$",
+           "$x^2+25$",
+           "$x^2+5x+25$",
+           "$4x+20$"
+          ],
+          "answer": 0,
+          "explanation": "面積＝邊長的平方＝$(x+5)^2$。$4\\times$邊長是周長，不是面積。"
+         },
+         {
+          "stem": "邊長 $(2x+1)$ 公分的正方形，面積是多少平方公分？",
+          "options": [
+           "$4x^2+4x+1$",
+           "$4x^2+1$",
+           "$2x^2+4x+1$",
+           "$8x+4$"
+          ],
+          "answer": 0,
+          "explanation": "面積＝邊長的平方＝$(2x+1)^2$。$4\\times$邊長是周長，不是面積。"
+         }
+        ]
+       },
+       {
+        "id": "q10",
+        "topic": "哪一個展開正確？",
+        "variants": [
+         {
+          "stem": "下列哪一個是正確的？",
+          "options": [
+           "$(x+1)^2=x^2+2x+1$",
+           "$(x+1)^2=x^2+1$",
+           "$(x+1)^2=x^2+x+1$",
+           "$(2x)^2=2x^2$"
+          ],
+          "answer": 0,
+          "explanation": "$(x+1)^2=x^2+2x+1$；平方不能只把兩項分開平方，$(2x)^2=4x^2$。"
+         },
+         {
+          "stem": "下列哪一個是正確的？",
+          "options": [
+           "$51^2=2500+100+1$",
+           "$51^2=2500+1$",
+           "$51^2=2500+50+1$",
+           "$(50+1)^2=2500+2$"
+          ],
+          "answer": 0,
+          "explanation": "$51^2=(50+1)^2=50^2+2\\times50\\times1+1^2=2500+100+1=2601$。"
+         },
+         {
+          "stem": "下列哪一個是正確的？",
+          "options": [
+           "$(3+y)^2=9+6y+y^2$",
+           "$(3+y)^2=9+y^2$",
+           "$(3+y)^2=9+3y+y^2$",
+           "$(3y)^2=3y^2$"
+          ],
+          "answer": 0,
+          "explanation": "$(3+y)^2=3^2+2\\times3\\times y+y^2=9+6y+y^2$；$(3y)^2=9y^2$。"
+         }
+        ]
+       }
+      ]
+     }
+    },
+    "answers": [],
+    "whiteboard": {},
+    "seen": {
+     "1": "2026-11-17T23:19:13.680Z",
+     "2": "2026-11-17T23:19:13.723Z"
+    },
+    "grades": {},
+    "crossRuns": [
+     {
+      "id": "88dc2d0d-b55b-4cc6-a0ae-57022a8b7a78",
+      "startedAt": 1794957553744,
+      "level": 1,
+      "lock": false,
+      "seconds": 0,
+      "deadline": null,
+      "pausedAt": null,
+      "team": false,
+      "margin": 300,
+      "teams": {},
+      "winner": null
+     }
+    ],
+    "crossPlay": {
+     "88dc2d0d-b55b-4cc6-a0ae-57022a8b7a78": {
+      "secret": 1410709346,
+      "seats": {
+       "1": {
+        "level": 2,
+        "score": 480,
+        "streak": 3,
+        "best": 3,
+        "run": 0,
+        "correct": 3,
+        "attempts": 3,
+        "n": 4,
+        "at": 1794957533889,
+        "past": [
+         {
+          "id": "6q1l350c4a0061",
+          "key": "L1:1,8,-20",
+          "level": 1,
+          "seed": 2760546274,
+          "ok": true,
+          "points": 150,
+          "ms": 5013,
+          "at": 1794957553788
+         },
+         {
+          "id": "3o0f1m29302o3p",
+          "key": "L1:1,-15,50",
+          "level": 1,
+          "seed": 1268083378,
+          "ok": true,
+          "points": 160,
+          "ms": 5009,
+          "at": 1794957553826
+         },
+         {
+          "id": "5n4d3d4u2v4r0m",
+          "key": "L1:1,2,-35",
+          "level": 1,
+          "seed": 2637921557,
+          "ok": true,
+          "points": 170,
+          "ms": 5013,
+          "at": 1794957553870
+         }
+        ],
+        "cur": {
+         "id": "6u2n0w321b433z",
+         "seed": 2757314042,
+         "level": 2,
+         "issuedAt": 1794957548899,
+         "cards": [
+          {
+           "id": "k0",
+           "kind": "const",
+           "value": -1
+          },
+          {
+           "id": "k1",
+           "kind": "const",
+           "value": -5
+          },
+          {
+           "id": "k2",
+           "kind": "const",
+           "value": 5
+          },
+          {
+           "id": "k3",
+           "kind": "lead",
+           "value": 1
+          },
+          {
+           "id": "k4",
+           "kind": "lead",
+           "value": 4
+          },
+          {
+           "id": "k5",
+           "kind": "lead",
+           "value": 3
+          }
+         ]
+        },
+        "hits": [
+         1794957553788,
+         1794957553826,
+         1794957553870
+        ],
+        "wrong": 0
+       },
+       "2": {
+        "level": 1,
+        "score": 0,
+        "streak": 0,
+        "best": 0,
+        "run": 0,
+        "correct": 0,
+        "attempts": 1,
+        "n": 1,
+        "at": 1794957553930,
+        "past": [
+         {
+          "id": "1g4n2g5c40680g",
+          "key": "L1:1,-3,-10",
+          "level": 1,
+          "seed": 3487387962,
+          "ok": false,
+          "points": 0,
+          "ms": 5010,
+          "at": 1794957553930
+         }
+        ],
+        "hits": [
+         1794957553930
+        ],
+        "wrong": 1,
+        "cool": 1794957613940
+       }
+      },
+      "log": [
+       {
+        "id": "6q1l350c4a0061",
+        "seat": 1,
+        "n": 1,
+        "level": 1,
+        "seed": 2760546274,
+        "ok": true,
+        "points": 150,
+        "ms": 5013,
+        "at": 1794957553788
+       },
+       {
+        "id": "3o0f1m29302o3p",
+        "seat": 1,
+        "n": 2,
+        "level": 1,
+        "seed": 1268083378,
+        "ok": true,
+        "points": 160,
+        "ms": 5009,
+        "at": 1794957553826
+       },
+       {
+        "id": "5n4d3d4u2v4r0m",
+        "seat": 1,
+        "n": 3,
+        "level": 1,
+        "seed": 2637921557,
+        "ok": true,
+        "points": 170,
+        "ms": 5013,
+        "at": 1794957553870
+       },
+       {
+        "id": "1g4n2g5c40680g",
+        "seat": 2,
+        "n": 1,
+        "level": 1,
+        "seed": 3487387962,
+        "ok": false,
+        "points": 0,
+        "ms": 5010,
+        "at": 1794957553930
+       }
+      ]
+     }
+    }
+   }
+  },
+  "logins": {
+   "de2bbbec-6c03-4956-af2d-ff04b5ad7422": {
+    "user": {
+     "id": "teacher",
+     "role": "teacher",
+     "name": "teacher"
+    },
+    "expires": 1795000753547
+   },
+   "a9b1d7a2-a321-4e26-bd26-8692f91b76aa": {
+    "user": {
+     "id": "demo-class-1",
+     "role": "student",
+     "name": "1 號",
+     "classId": "demo-class",
+     "seat": 1
+    },
+    "expires": 1794971953653
+   },
+   "72af03d8-a8e6-429a-90b3-eeb47d45650d": {
+    "user": {
+     "id": "demo-class-2",
+     "role": "student",
+     "name": "2 號",
+     "classId": "demo-class",
+     "seat": 2
+    },
+    "expires": 1794971953702
+   }
+  },
+  "aiUsage": {},
+  "images": {},
+  "catalog": {}
+ }
+}
