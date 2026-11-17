@@ -29,6 +29,9 @@ import { analysisContext, analysisTaken, answerRaid, newQuestion, questionFor, r
 import { RAID_ALL_KINDS, RAID_COUNTDOWN_MS, RAID_ROLES, raidConfig, type RaidDifficulty, type RaidKind, type RaidRole } from '../shared/raid';
 import { answerDuel, duelBank, duelCsvRows, duelJoin, duelOver, duelState, duelTeams, duelView, problemView, restoreDuel, startProblem, type DuelStore } from './duel';
 import { DUEL_COUNTDOWN_MS } from '../shared/duel';
+import { CROSS_MARGIN, CROSS_MIN_GAP, crossCheckOver, crossCsvRows, crossOver, crossExport, crossJoin, crossLeader, crossMine, crossNextThrottle, crossPause, crossPlayOf, crossPrune, crossReveal, crossView, issueItem, itemView, submitCross, type CrossStore } from './cross';
+export { crossThrottleReset } from './cross';
+import type { CrossLevel } from '../shared/cross';
 import {
   HttpError,
   assert,
@@ -127,7 +130,7 @@ interface StoredClass {
   /** 每一課各題位全班累計答錯幾次（課程 ID → 紀錄），間隔複習挑上一課錯最多的題型。 */
   quizMisses?: Record<string, { at: number; counts: number[] }>;
 }
-export interface StoredSession extends QuizStore, RaidStore, DuelStore {
+export interface StoredSession extends QuizStore, RaidStore, DuelStore, CrossStore {
   session: Session;
   ownerId: string;
   lesson: Lesson;
@@ -222,6 +225,13 @@ export interface AppContext {
   usage?: () => Promise<{ dataBytes: number; rowsToday: number; sessions: number }>;
   /** 有作業等待批改：Durable Object 排一個 alarm 在背景批改（學生關掉網頁也會繼續）。沒有時當場批改；排不進去會丟出錯誤。 */
   kickHomework?: () => Promise<void>;
+  /**
+   * 十字交乘對戰的限時：Durable Object 在到期時（alarm）於佇列內結算、保存、推送（全班閒置也會結束）。
+   * at＝到期時間（在保存之前呼叫：保存失敗只會多叫醒一次，alarm 讀到保存的資料發現沒事就不動）；
+   * null＝不再需要（暫停、結束、收起）：不會馬上移除，等 alarm 讀到「已保存」的場次確定沒有到期時間才移除，
+   * 所以保存失敗時排程還在、之後照樣結算。沒有時（單元測試）靠用戶端到期時送 settle 結算。
+   */
+  scheduleCross?: (sessionId: string, at: number | null) => Promise<void>;
 }
 /** 這一堂課的題庫：開課後才加的題庫也拿得到（複製進這一堂的課程）。 */
 /** CSV：每一次測驗／PK 的每一題作答。 */
@@ -421,10 +431,49 @@ function closeDuel(s: StoredSession) {
   if (kept) kept.endedAt ??= run.endedAt;
   s.session.duel = null;
 }
+/** 結束十字交乘對戰（記上結束時間，兩隊分高下），紀錄也跟著更新。 */
+function endCross(s: StoredSession) {
+  const run = s.session.cross;
+  if (!run) return;
+  if (!run.endedAt) {
+    const at = Date.now();
+    crossPause(run, s, false, at);
+    if (!crossCheckOver(run, s, at)) {
+      run.endedAt = at;
+      run.winner = run.team ? crossLeader(run, s) : null;
+    }
+  }
+  const kept = s.crossRuns?.find((r) => r.id === run.id);
+  if (kept) Object.assign(kept, clone(run));
+}
+/** 限時對戰的到期時間（進行中、沒暫停才有）；排 alarm 用。 */
+function crossDue(s: StoredSession): number | null {
+  const run = s.session.cross;
+  return run && !run.endedAt && !run.pausedAt && run.deadline ? run.deadline : null;
+}
+/**
+ * 到期結算（alarm 與用戶端的 settle 都走這裡，在佇列內、可以重複呼叫）：時間到就結束、記下勝負、revision 加一。
+ * 回傳 changed＝這次才結束（要保存、推送）；deadline＝還沒到期時的到期時間（重新排 alarm）。
+ */
+export function settleCrossSession(state: State, id: string, at = Date.now()): { changed: boolean; deadline: number | null } {
+  const s = state.sessions[id];
+  const run = s?.session.cross;
+  if (!s || !run || run.endedAt) return { changed: false, deadline: null };
+  if (!crossCheckOver(run, s, at)) return { changed: false, deadline: crossDue(s) };
+  endCross(s);
+  s.session.revision++;
+  return { changed: true, deadline: null };
+}
+/** 收起十字交乘對戰。 */
+function closeCross(s: StoredSession) {
+  endCross(s);
+  s.session.cross = null;
+}
 function startQuiz(s: StoredSession, run: QuizRun, state: State) {
   endQuiz(s, state);
   closeRaid(s, state);
   closeDuel(s);
+  closeCross(s);
   const session = s.session;
   session.activityOpen = false;
   session.activityDeadline = null;
@@ -789,6 +838,10 @@ export function sessionView(state: State, stored: StoredSession, user: User, onl
   if (session.raid && raid) view.raid = raidView(raid, session.raid, stored, user, view.serverNow);
   const duel = session.duel && duelBank(session.lessonId);
   if (session.duel && duel) view.duel = duelView(duel, session.duel, stored, user, view.serverNow);
+  if (session.cross) {
+    view.cross = crossView(session.cross, stored, user, view.serverNow);
+    view.session.cross = clone(view.cross.run);
+  }
   const mapBank = teacher && raidBank(session.lessonId);
   if (mapBank) view.raidMap = { title: mapBank.title, ...(mapBank.section ? { section: mapBank.section } : {}), wins: clone(state.classes[session.classId]?.raidWins?.[session.lessonId] || {}) };
   return view;
@@ -1478,7 +1531,7 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
       return json(sessionView(state, s, user, ctx.online?.()));
     }
     const sessionMatch = path.match(
-      /^\/api\/sessions\/([\w-]+)(?:\/(control|answers|practice|danmaku|ocr|ocr-work|buzz|whiteboard|export|images|grades|quiz|pk-buzz|raid|duel)(?:\/([\w-]+))?)?$/,
+      /^\/api\/sessions\/([\w-]+)(?:\/(control|answers|practice|danmaku|ocr|ocr-work|buzz|whiteboard|export|images|grades|quiz|pk-buzz|raid|duel|cross)(?:\/([\w-]+))?)?$/,
     );
     if (sessionMatch) {
       const s = ownedSession(state, identifier(sessionMatch[1]), user),
@@ -1501,6 +1554,9 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
         // 已經結束了再按一次（例如網路不穩，第一次的回應沒收到）：直接回傳結束後的畫面
         if (session.ended && body.action === 'end') return json(sessionView(state, s, user, ctx.online?.()));
         assert(!session.ended || body.action === 'release-grades', '課堂已結束', 409);
+        const crossDueBefore = crossDue(s);
+        // 對戰時間已到、還沒結算：先走結算（記結束時間、勝負、場次紀錄），再處理這個指令
+        if (session.cross) settleCrossSession(state, session.id, Date.now());
         switch (body.action) {
           case 'slide':
             session.slideIndex = integer(body.index, 0, s.lesson.slides.length - 1);
@@ -1595,6 +1651,7 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
             session.practice = null;
             closeRaid(s, state);
             closeDuel(s);
+            closeCross(s);
             // 開戰時記下每個人之前的個人最佳（結算時比較有沒有突破）
             // 只用這一課的紀錄來比；別課的題庫、難度、答對題數不能互比
             const prevBest = { ...lessonRaidBest(state, session.classId, session.lessonId) };
@@ -1634,6 +1691,7 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
             session.practice = null;
             closeRaid(s, state);
             closeDuel(s);
+            closeCross(s);
             const online = [...onlineSeats(state, s, ctx.online?.())];
             const run = { id: uuid(), startedAt: Date.now() + DUEL_COUNTDOWN_MS, seconds, teams: duelTeams(online, (n) => seatLevel(state, s, n)) };
             session.duel = run;
@@ -1650,6 +1708,70 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
           }
           case 'duel-close':
             closeDuel(s);
+            break;
+          // ── 十字交乘對戰：每位同學各自的題目（伺服器出題、判定），排行榜與紅藍拔河 ──
+          case 'cross-start': {
+            const level = integer(body.level ?? 1, 1, 3) as CrossLevel;
+            const seconds = integer(body.seconds ?? 0, 0, 1800);
+            const margin = integer(body.margin ?? CROSS_MARGIN, 50, 5000);
+            endQuiz(s, state);
+            session.quiz = null;
+            session.pkLobby = null;
+            session.activityOpen = false;
+            session.activityDeadline = null;
+            session.practice = null;
+            closeRaid(s, state);
+            closeDuel(s);
+            closeCross(s);
+            const at = Date.now();
+            const team = body.team === true;
+            const online = [...onlineSeats(state, s, ctx.online?.())];
+            const run = { id: uuid(), startedAt: at, level, lock: body.lock === true, seconds, deadline: seconds ? at + seconds * 1000 : null, pausedAt: null, team, margin, teams: team ? duelTeams(online, (n) => seatLevel(state, s, n)) : {}, winner: null };
+            session.cross = run;
+            (s.crossRuns ||= []).push(clone(run));
+            crossPrune(s);
+            crossPlayOf(s, run);
+            break;
+          }
+          case 'cross-pause': {
+            const run = session.cross;
+            assert(run && !crossOver(run, Date.now()), '目前沒有進行中的十字交乘對戰', 409);
+            assert(typeof body.value === 'boolean', '暫停狀態不正確');
+            crossPause(run, s, body.value, Date.now());
+            break;
+          }
+          case 'cross-team': {
+            const run = session.cross;
+            assert(run && !crossOver(run, Date.now()), '目前沒有進行中的十字交乘對戰', 409);
+            assert(typeof body.value === 'boolean', '分隊狀態不正確');
+            run.team = body.value;
+            if (run.team && !Object.keys(run.teams).length) {
+              // 開戰後才開拔河：已經在玩的和上線的同學一起分隊（依程度平均）
+              const seats = new Set([...onlineSeats(state, s, ctx.online?.()), ...Object.keys(s.crossPlay?.[run.id]?.seats || {}).map(Number)]);
+              run.teams = duelTeams([...seats], (n) => seatLevel(state, s, n));
+            }
+            break;
+          }
+          case 'cross-end':
+            assert(session.cross, '目前沒有十字交乘對戰', 409);
+            endCross(s);
+            break;
+          case 'cross-reset': {
+            // 重新開始：新的一場（設定、分隊保留），分數歸零；上一場的紀錄留著
+            const old = session.cross;
+            assert(old, '目前沒有十字交乘對戰', 409);
+            endCross(s);
+            const at = Date.now();
+            const { endedAt: _ended, ...rest } = clone(old);
+            const run = { ...rest, id: uuid(), startedAt: at, deadline: old.seconds ? at + old.seconds * 1000 : null, pausedAt: null, winner: null };
+            session.cross = run;
+            (s.crossRuns ||= []).push(clone(run));
+            crossPrune(s);
+            crossPlayOf(s, run);
+            break;
+          }
+          case 'cross-close':
+            closeCross(s);
             break;
           // ── 課後形成性評量：全班同一份卷子（每個題位從 3 題裡抽 1 題） ──
           case 'quiz-class': {
@@ -1704,6 +1826,7 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
             endQuiz(s, state);
             closeRaid(s, state);
             closeDuel(s);
+            closeCross(s);
             session.quiz = null;
             session.pkLobby = { pairs: [], waiting: null, buzz: false, ...(unit ? { unit } : {}) };
             break;
@@ -1847,6 +1970,7 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
           case 'end':
             recordRaidBest(state, s);
             endQuiz(s, state);
+            endCross(s);
             if (session.duel) {
               session.duel.endedAt ??= Date.now();
               const kept = s.duelRuns?.find((r) => r.id === session.duel!.id);
@@ -1864,6 +1988,8 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
             throw new HttpError(400, '未知控制指令');
         }
         session.revision++;
+        // 十字交乘對戰的到期時間變了（開始、暫停、繼續、結束、收起、被別的活動取代）：重排 alarm
+        if (crossDue(s) !== crossDueBefore) await ctx.scheduleCross?.(session.id, crossDue(s));
         return save(sessionView(state, s, user, ctx.online?.()));
       }
       if (action === 'images' && method === 'POST') {
@@ -2191,6 +2317,74 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
         session.revision++;
         return save({ ...result, team, problem: problemView(bank, seat), revision: session.revision });
       }
+      if (action === 'cross' && method === 'POST') {
+        // 十字交乘對戰：學生拿題目（next）、送出（submit）；老師公布某位同學送出過的題目（reveal）；
+        // 師生都可以在時間到時要求結算（settle，可重複呼叫）
+        const run = session.cross;
+        assert(run && run.id === body.runId, '這一場十字交乘對戰已經結束', 409);
+        const t = Date.now();
+        // 沒有變更的回應不觸發全班推送（X-Classroom-Quiet，見 worker/index.ts）
+        const quiet = (value: unknown) => json(value, 200, { 'X-Classroom-Quiet': '1' });
+        // 時間到：在佇列內結算一次並保存（之後 alarm／別人的 settle 都不會再改）
+        const settled = settleCrossSession(state, session.id, t).changed;
+        if (settled) {
+          await ctx.scheduleCross?.(session.id, null);
+          await store.write(state);
+        }
+        if (body.op === 'settle') return settled ? json({ over: true, revision: session.revision }) : quiet({ over: !!run.endedAt, revision: session.revision });
+        // 剛結算完：回 409，但要推送（X-Classroom-Changed）
+        if (settled) return json({ error: '這一場已經結束' }, 409, { 'X-Classroom-Changed': '1' });
+        if (user.role === 'teacher') {
+          assert(body.op === 'reveal', '未知的操作');
+          return quiet(crossReveal(run, s, integer(body.seat, 1, state.classes[session.classId]?.classroom.seats || 100), identifier(body.itemId)));
+        }
+        assert(user.role === 'student', '只有學生可以參戰', 403);
+        assert(!session.ended && !run.endedAt, '這一場已經結束', 409);
+        assert(!run.pausedAt, '老師暫停中，等一下再作答', 409);
+        assert(body.op === 'next' || body.op === 'submit', '未知的操作');
+        const seatNo = user.seat!;
+        const play = crossPlayOf(s, run);
+        const prev = play.seats[String(seatNo)];
+        // 出席時間：30 秒內更新過就不再寫
+        const seenAt = s.seen[String(seatNo)];
+        const presence = !seenAt || t - Date.parse(seenAt) > 30_000;
+        if (presence) s.seen[String(seatNo)] = now();
+        const joined = run.team && !run.teams[String(seatNo)];
+        const team = run.team ? crossJoin(run, seatNo) : undefined;
+        const kept = s.crossRuns?.find((r) => r.id === run.id);
+        if (kept && joined) kept.teams = clone(run.teams);
+        if (body.op === 'next') {
+          // 拿題目限速（記憶體內）：同一位同學 0.25 秒內只處理一次
+          assert(crossNextThrottle(`${session.id}:${seatNo}`, t), '太快了，等一下再試', 429);
+          if (prev?.cur) {
+            // 已經有題目：原題奉還，不加 revision；只有新分隊或出席時間要寫入
+            const out = { item: itemView(prev), revision: session.revision, ...(team ? { team } : {}) };
+            if (joined) {
+              session.revision++;
+              return save({ ...out, revision: session.revision });
+            }
+            if (presence) return save(out);
+            return quiet(out);
+          }
+          // 冷卻中（答錯後）不發新題
+          assert(!prev?.cool || t >= prev.cool, '冷卻中，稍等一下再拿下一題', 429);
+          const st = issueItem(run, s, seatNo, t);
+          st.at = t;
+          session.revision++;
+          return save({ item: itemView(st), revision: session.revision, ...(team ? { team } : {}) });
+        }
+        assert(prev, '請先拿題目', 409);
+        // 限速：同一位同學兩次送出（或拿題後馬上送出）至少隔 0.3 秒
+        assert(t - prev.at >= CROSS_MIN_GAP, '太快了，等一下再試', 429);
+        prev.at = t;
+        const result = submitCross(run, s, seatNo, body, t);
+        if (run.endedAt) {
+          endCross(s);
+          await ctx.scheduleCross?.(session.id, null);
+        }
+        session.revision++;
+        return save({ ...result, revision: session.revision, over: !!run.endedAt, ...(team ? { team } : {}) });
+      }
       if (action === 'raid' && method === 'POST') {
         // 魔王戰：選角色、選一類題目（每一題都可以換）、作答（答錯鎖 5 秒）
         assert(user.role === 'student', '只有學生可以參戰', 403);
@@ -2329,6 +2523,8 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
           raidPlay: s.raidPlay || {},
           duelRuns: s.duelRuns || [],
           duelPlay: s.duelPlay || {},
+          crossRuns: s.crossRuns || [],
+          crossLog: crossExport(s),
         };
         const csvCell = (value: unknown) =>
           `"${String(value)
@@ -2373,6 +2569,8 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
               ...raidCsvRows(s, () => raidBank(s.session.lessonId)),
               // 步驟格鬥：每一次作答一列；activityId＝規則；attempt＝選規則／填算式；answer＝隊伍
               ...duelCsvRows(s),
+              // 十字交乘對戰：每一次送出一列；activityId＝等級；attempt＝第幾題；answer＝原式；score＝得分；feedback＝隊伍與秒數
+              ...crossCsvRows(s),
               // 彈幕：feedback 欄寫匿名／具名
               ...(s.danmaku || []).map((d) => ['彈幕', d.seat, '', '', d.text, '', '', '', d.anon ? '匿名' : '具名', new Date(d.at).toISOString()]),
             ]

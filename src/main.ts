@@ -41,7 +41,7 @@ import type {
   TextMark,
 } from '../shared/types';
 import { parseNumberAnswer, type Vars } from '../shared/expr';
-import { md, plain, answerHtml } from './math';
+import { md, plain, answerHtml, tex } from './math';
 import { initRaidUi, liveState, raidMapHtml, raidBoardHtml, raidCardHtml, raidCardKey, raidLocal, raidMiniHtml, raidPanelHtml, raidPhase, raidBusy, patchHtml, updateRaidBoard, wireArt } from './raid-ui';
 import { initRaidAct, raidAct, raidRevisionOf } from './raid-act';
 import { RAID_SKIP_COOLDOWN_MS } from '../shared/raid';
@@ -49,6 +49,7 @@ import { duelBlanks, duelBoardHtml, duelCardHtml, duelCardKey, duelLocal, duelPa
 import { DUEL_TEAM_NAME, type DuelTok } from '../shared/duel';
 import QRCode from 'qrcode';
 import { crossGameCardHtml, renderCrossBoard } from './cross-board';
+import { crossAct, crossBoardHtml, crossCardHtml, crossEnsureScope, crossCardKey, crossLiveGameCardHtml, crossLocal, crossPanelHtml, crossPanelKey, fetchNext, initCrossLive, maybeSettle, mergeCrossPush, resetCrossLocal, updateCrossBoard, updateCrossCard } from './cross-live';
 import { homeworkAction, initHomeworkUi, leaveStudentSheet, openPlan, renderHomeworkDetail, renderHomeworkList, renderLearning, renderStudentSheet, studentHomeworkHtml } from './homework';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
@@ -222,7 +223,7 @@ function renderGames() {
   shell(
     'games',
     '遊戲活動',
-    `<p class="page-description">不屬於任何一堂課的課堂活動，在老師的大螢幕或 iPad 上直接操作，學生不用登入。</p><div class="games-grid">${crossGameCardHtml()}</div>`,
+    `<p class="page-description">不屬於任何一堂課的課堂活動，在老師的大螢幕或 iPad 上直接操作，學生不用登入。</p><div class="games-grid">${crossGameCardHtml()}${crossLiveGameCardHtml(dashboard?.sessions || [])}</div>`,
   );
 }
 function renderClasses() {
@@ -1058,7 +1059,7 @@ function renderSession() {
   const own = a ? currentStudentAnswer(a) : undefined;
   if (own && !editing && a?.type !== 'canvas' && a?.type !== 'manipulate') draft = own.value;
   const total = view.lesson.slides.length;
-  app.className = `classroom ${teacher ? 'teacher-room' : 'student-room'} ${screen ? 'big-screen' : ''} ${needsPanelFocus() ? 'show-panel' : ''} ${!teacher && a && s.activityOpen && (!own || editing) ? 'answering' : ''}`;
+  app.className = `classroom ${teacher ? 'teacher-room' : 'student-room'} ${screen ? 'big-screen' : ''} ${needsPanelFocus() ? 'show-panel' : ''} ${!teacher && a && s.activityOpen && (!own || editing) ? 'answering' : ''} ${!teacher && view.cross && s.cross ? 'xl-on' : ''}`;
   const panel = teacher ? teacherPanel(a, screen) : studentPanel(a, index);
   // 重畫時（例如按「公布結果」）保留動畫的播放位置
   const oldVideo = document.querySelector<HTMLVideoElement>('.anim-focus video');
@@ -1067,7 +1068,7 @@ function renderSession() {
     : null;
   // 同一頁、同一題重畫：記下捲動位置與正在輸入的格子，畫完放回去
   const keep = teacher ? null : keepStudentUi(`${s.id}:${index}:${a?.id ?? ''}:${studentTab}:${editing}`);
-  app.innerHTML = `<header class="room-bar"><div class="room-identity">${teacher ? btn('返回', 'dashboard', 'icon-btn', 'back', 'aria-label="返回課程"') : `<span class="brand-mark small">${icon('sigma')}</span>`}<div><strong>${esc(teacher ? s.title : `${s.className}・${user.seat} 號`)}</strong><small>${teacher ? esc(s.className) : esc(view.lesson.title)}</small></div></div><div class="room-progress" aria-label="第 ${index + 1} 頁，共 ${total} 頁"><span>${index + 1}</span>/<span>${total}</span></div><div class="room-actions"><span id="sync-status" class="sync-status"><i></i>已連線</span>${teacher ? `${btn(screen ? '一般' : '大屏', 'screen', 'quiet', 'screen', 'title="切換大屏授課"')}` : ''}${btn('', 'fullscreen', 'icon-btn', 'expand', 'aria-label="全螢幕" title="全螢幕"')}${!teacher && s.danmakuOpen && !s.ended ? btn('彈幕', 'danmaku-bar', `quiet danmaku-btn ${danmakuBar ? 'selected' : ''}`, 'spark', 'data-testid="danmaku-open"') : ''}${teacher ? '' : btn('', 'logout', 'icon-btn', 'logout', 'aria-label="登出" title="登出"')}</div></header><div class="room-main"><main class="stage-col"><article class="slide-stage" data-testid="session-slide" id="slide-stage">${slideMarkup(slide, index, total)}<div id="quiz-board-host">${teacher ? quizBoardHtml() : ''}</div><div id="raid-board-host">${showRaidBoard() ? raidBoardHtml(view.raid!, s.lessonId) : showRaidMap() ? raidMapHtml(view.raidMap!, s.lessonId) : ''}</div><div id="class-goal-host">${teacher ? classGoalHtml(view) : ''}</div><div id="duel-board-host">${showDuelBoard() ? duelBoardHtml(view.duel!) : ''}</div></article><nav class="slide-nav" aria-label="翻頁與白板工具">${btn('', 'prev-slide', 'icon-btn nav-btn', 'prev', `aria-label="上一頁" ${index === 0 || (!teacher && s.followTeacher) ? 'disabled' : ''}`)}${teacher ? toolbar() : ''}<div class="slide-dots">${view.lesson.slides.map((sl, i) => `<button class="${i === index ? 'active' : ''} ${sl.activity ? 'has-q' : ''} ${i === s.slideIndex && !teacher ? 'live' : ''}" data-action="go-slide" data-index="${i}" aria-label="第 ${i + 1} 頁${sl.phase ? `・${esc(sl.phase)}` : ''}" title="${esc(sl.phase || sl.title)}" ${!teacher && s.followTeacher ? 'disabled' : ''}><span></span></button>`).join('')}</div>${btn('', 'next-slide', 'icon-btn nav-btn primary', 'next', `aria-label="下一頁" data-testid="next-slide" ${index === total - 1 || (!teacher && s.followTeacher) ? 'disabled' : ''}`)}</nav></main><aside class="panel-col" aria-label="${teacher ? '課堂互動' : '作答區'}">${panel}</aside></div>${teacher ? '' : `<nav class="phone-tabs" aria-label="切換"><button class="${studentTab === 'slide' ? 'selected' : ''}" data-action="student-tab" data-tab="slide">${icon('book')}教材</button><button class="${studentTab === 'answer' ? 'selected' : ''}" data-action="student-tab" data-tab="answer">${icon('pen')}作答${a && s.activityOpen && (!own || editing) ? '<i class="badge-dot"></i>' : ''}</button></nav>`}<div id="buzz-root"></div><div id="danmaku-root">${teacher ? '' : danmakuStudentHtml()}</div>${teacher ? '' : keypadHtml()}`;
+  app.innerHTML = `<header class="room-bar"><div class="room-identity">${teacher ? btn('返回', 'dashboard', 'icon-btn', 'back', 'aria-label="返回課程"') : `<span class="brand-mark small">${icon('sigma')}</span>`}<div><strong>${esc(teacher ? s.title : `${s.className}・${user.seat} 號`)}</strong><small>${teacher ? esc(s.className) : esc(view.lesson.title)}</small></div></div><div class="room-progress" aria-label="第 ${index + 1} 頁，共 ${total} 頁"><span>${index + 1}</span>/<span>${total}</span></div><div class="room-actions"><span id="sync-status" class="sync-status"><i></i>已連線</span>${teacher ? `${btn(screen ? '一般' : '大屏', 'screen', 'quiet', 'screen', 'title="切換大屏授課"')}` : ''}${btn('', 'fullscreen', 'icon-btn', 'expand', 'aria-label="全螢幕" title="全螢幕"')}${!teacher && s.danmakuOpen && !s.ended ? btn('彈幕', 'danmaku-bar', `quiet danmaku-btn ${danmakuBar ? 'selected' : ''}`, 'spark', 'data-testid="danmaku-open"') : ''}${teacher ? '' : btn('', 'logout', 'icon-btn', 'logout', 'aria-label="登出" title="登出"')}</div></header><div class="room-main"><main class="stage-col"><article class="slide-stage" data-testid="session-slide" id="slide-stage">${slideMarkup(slide, index, total)}<div id="quiz-board-host">${teacher ? quizBoardHtml() : ''}</div><div id="raid-board-host">${showRaidBoard() ? raidBoardHtml(view.raid!, s.lessonId) : showRaidMap() ? raidMapHtml(view.raidMap!, s.lessonId) : ''}</div><div id="class-goal-host">${teacher ? classGoalHtml(view) : ''}</div><div id="duel-board-host">${showDuelBoard() ? duelBoardHtml(view.duel!) : ''}</div><div id="cross-live-host">${teacher && view.cross && s.cross ? crossBoardHtml() : ''}</div></article><nav class="slide-nav" aria-label="翻頁與白板工具">${btn('', 'prev-slide', 'icon-btn nav-btn', 'prev', `aria-label="上一頁" ${index === 0 || (!teacher && s.followTeacher) ? 'disabled' : ''}`)}${teacher ? toolbar() : ''}<div class="slide-dots">${view.lesson.slides.map((sl, i) => `<button class="${i === index ? 'active' : ''} ${sl.activity ? 'has-q' : ''} ${i === s.slideIndex && !teacher ? 'live' : ''}" data-action="go-slide" data-index="${i}" aria-label="第 ${i + 1} 頁${sl.phase ? `・${esc(sl.phase)}` : ''}" title="${esc(sl.phase || sl.title)}" ${!teacher && s.followTeacher ? 'disabled' : ''}><span></span></button>`).join('')}</div>${btn('', 'next-slide', 'icon-btn nav-btn primary', 'next', `aria-label="下一頁" data-testid="next-slide" ${index === total - 1 || (!teacher && s.followTeacher) ? 'disabled' : ''}`)}</nav></main><aside class="panel-col" aria-label="${teacher ? '課堂互動' : '作答區'}">${panel}</aside></div>${teacher ? '' : `<nav class="phone-tabs" aria-label="切換"><button class="${studentTab === 'slide' ? 'selected' : ''}" data-action="student-tab" data-tab="slide">${icon('book')}教材</button><button class="${studentTab === 'answer' ? 'selected' : ''}" data-action="student-tab" data-tab="answer">${icon('pen')}作答${a && s.activityOpen && (!own || editing) ? '<i class="badge-dot"></i>' : ''}</button></nav>`}<div id="buzz-root"></div><div id="danmaku-root">${teacher ? '' : danmakuStudentHtml()}</div>${teacher ? '' : keypadHtml()}`;
   const stage = document.querySelector<HTMLElement>('#slide-stage')!;
   renderBuzzLayer();
   if (!teacher) mountHandPad();
@@ -1087,6 +1088,7 @@ function renderSession() {
   if (dots && dot && dots.scrollWidth > dots.clientWidth) dots.scrollLeft += dot.getBoundingClientRect().left - dots.getBoundingClientRect().left - (dots.clientWidth - dot.offsetWidth) / 2;
   const duelHost = document.querySelector<HTMLElement>('#duel-board-host');
   if (duelHost && showDuelBoard()) updateDuelBoard(duelHost, view.duel!, serverTime());
+  if (view.cross && s.cross) refreshCross();
   celebrateGoal(view);
   const video = stage.querySelector<HTMLVideoElement>('.anim-focus video');
   if (video && resume) {
@@ -1139,6 +1141,7 @@ function studentPanel(a: Activity | undefined, index: number) {
   const s = view!.session;
   if (s.ended) return `<div class="quiet-moment"><h2>課堂已結束</h2><p>你的作答已保存。</p></div>`;
   if (myPractice()) return `<div class="panel-scroll"><div id="student-answer">${practiceCard()}</div><div id="class-events">${eventsHtml()}</div></div>`;
+  if (view!.cross && s.cross) return `<div class="panel-scroll"><div id="student-answer" data-xl-key="${esc(crossCardKey(view!.cross, serverTime()))}">${crossCardHtml(view!.cross, serverTime())}</div></div>`;
   if (view!.duel && s.duel) return `<div class="panel-scroll"><div id="student-answer" data-duel-key="${esc(duelCardKey(view!.duel, serverTime()))}">${duelCardHtml(view!.duel, serverTime())}</div></div>`;
   if (view!.raid && s.raid) return `<div class="panel-scroll raid-scroll"><div id="student-answer" data-raid-key="${esc(raidCardKey(view!.raid, serverTime()))}">${raidCardHtml(view!.raid, serverTime())}</div></div>`;
   if (view!.quiz && s.quiz) {
@@ -1175,13 +1178,15 @@ function teacherPanel(a: Activity | undefined, screen: boolean) {
   // 步驟格鬥在課後檢核頁前面那一頁；進行中時其他頁也留著控制區
   const onDuelPage = !!view!.lesson.slides[s.slideIndex]?.duelPage;
   const duelSection = onDuelPage || s.duel ? `<section class="quiz-tools duel-tools" id="duel-panel">${duelPanel()}</section>` : '';
+  // 十字交乘對戰：老師工具列按「十字交乘對戰」打開；進行中一直留著控制區
+  const crossSection = s.cross || crossPanelOpen ? `<section class="quiz-tools xl-tools" id="cross-panel" data-testid="xl-panel">${crossPanel()}</section>` : '';
   // 間隔複習：課堂一開始（第一頁）先做上一課全班錯最多的題型
   const sp = view!.spaced;
   const spacedSection =
     s.slideIndex === 0 && sp && !s.quiz && !s.pkLobby && !s.raid && !s.ended
       ? `<section class="quiz-tools spaced-tools" data-testid="spaced-panel"><header><strong>${icon('target')}間隔複習（約 3 分鐘）</strong></header><p class="muted small-text">上一課〈${esc(sp.title)}〉全班錯最多的 ${sp.topics.length} 個題型：${sp.topics.map(esc).join('、')}。每題換數字，答完馬上看到對錯與解析。</p>${btn('派間隔複習', 'quiz-spaced', 'primary', 'target', 'data-testid="quiz-spaced"')}</section>`
       : '';
-  return `<div class="panel-scroll">${spacedSection}${duelSection}${raidSection}${quizSection}${onQuizPage || onRaidPage || onDuelPage ? '' : activity}<section class="seat-map" id="seat-map" data-testid="seat-map">${seatMapInner()}</section>${gradable && !screen ? gradingBar(a!) : ''}<section class="class-tools">${screen && a ? drawFilterBar() : ''}<div class="tool-row">${btn(drawLabel(a), 'draw', 'secondary', 'dice', 'data-testid="draw-seat"')}${btn('搶答', 'buzz-open', 'secondary', 'bolt', 'data-testid="buzz-open"')}</div><div id="danmaku-tools">${danmakuTools()}</div><div id="class-events">${eventsHtml()}</div></section>${screen ? '' : `<section class="room-options">${btn(s.followTeacher ? '同步翻頁中' : '學生自主瀏覽', 'toggle-follow', 'quiet', s.followTeacher ? 'screen' : 'book', s.ended ? 'disabled' : '')}${btn('學生加入', 'join-info', 'quiet', 'users')}${btn('派發作業', 'hw-plan-session', 'quiet', 'pen', 'data-testid="hw-plan-open"')}${btn('結束課堂', 'end-session', 'quiet danger', 'logout', s.ended ? 'disabled' : '')}</section>${view!.lesson.slides[s.slideIndex]?.notes ? `<details class="teacher-notes"><summary>教師備註（學生看不到）</summary><p>${esc(view!.lesson.slides[s.slideIndex].notes)}</p></details>` : ''}`}</div>`;
+  return `<div class="panel-scroll">${spacedSection}${crossSection}${duelSection}${raidSection}${quizSection}${onQuizPage || onRaidPage || onDuelPage ? '' : activity}<section class="seat-map" id="seat-map" data-testid="seat-map">${seatMapInner()}</section>${gradable && !screen ? gradingBar(a!) : ''}<section class="class-tools">${screen && a ? drawFilterBar() : ''}<div class="tool-row">${btn(drawLabel(a), 'draw', 'secondary', 'dice', 'data-testid="draw-seat"')}${btn('搶答', 'buzz-open', 'secondary', 'bolt', 'data-testid="buzz-open"')}${btn('十字交乘對戰', 'xl-panel', `secondary ${s.cross || crossPanelOpen ? 'selected' : ''}`, 'grid', `data-testid="xl-panel-open" ${s.ended ? 'disabled' : ''}`)}</div><div id="danmaku-tools">${danmakuTools()}</div><div id="class-events">${eventsHtml()}</div></section>${screen ? '' : `<section class="room-options">${btn(s.followTeacher ? '同步翻頁中' : '學生自主瀏覽', 'toggle-follow', 'quiet', s.followTeacher ? 'screen' : 'book', s.ended ? 'disabled' : '')}${btn('學生加入', 'join-info', 'quiet', 'users')}${btn('派發作業', 'hw-plan-session', 'quiet', 'pen', 'data-testid="hw-plan-open"')}${btn('結束課堂', 'end-session', 'quiet danger', 'logout', s.ended ? 'disabled' : '')}</section>${view!.lesson.slides[s.slideIndex]?.notes ? `<details class="teacher-notes"><summary>教師備註（學生看不到）</summary><p>${esc(view!.lesson.slides[s.slideIndex].notes)}</p></details>` : ''}`}</div>`;
 }
 /* ───────────── 作答限時與補救練習 ───────────── */
 const TIME_LIMITS: [number, string][] = [
@@ -1571,6 +1576,104 @@ function refreshDuel() {
 setInterval(() => {
   if (view?.duel && view.session.duel) refreshDuel();
 }, 250);
+/* ───────────── 十字交乘・全班連線對戰 ───────────── */
+initCrossLive({ esc, btn, icon, tex, serverTime, api: (path, method, body) => api(path, method, body), view: () => view, route: () => routeVersion, toast: (m, e) => toast(m, e), resync: () => void refreshSession(), playCorrect });
+let crossPanelOpen = false,
+  crossPanelKeyNow = '';
+function crossPanel() {
+  const v = view!;
+  return crossPanelHtml(v.cross && v.session.cross ? v.cross : undefined, { level: prefs.get('xlLevel', 1), seconds: prefs.get('xlSeconds', 0), team: prefs.get('xlTeam', false), lock: prefs.get('xlLock', false), margin: prefs.get('xlMargin', 300) });
+}
+function renderCrossCard() {
+  const card = document.querySelector<HTMLElement>('#student-answer[data-xl-key]');
+  const cv = view?.cross && view.session.cross ? view.cross : undefined;
+  if (!card || !cv) return;
+  const now = serverTime();
+  card.dataset.xlKey = crossCardKey(cv, now);
+  card.innerHTML = crossCardHtml(cv, now);
+  updateCrossCard(card, cv, now);
+}
+/** 推送、計時：老師更新大螢幕與控制區；學生只在換題／送出／暫停／結束時重畫作答卡，其他只更新分數、名次、拔河、時間。 */
+function refreshCross() {
+  const v = view;
+  if (!v || !user) return;
+  const now = serverTime();
+  const cv = v.cross && v.session.cross ? v.cross : undefined;
+  // 時間到了但還沒收到結束：請伺服器結算（alarm 是主要的結算；這是保險）
+  maybeSettle(v, user.role === 'teacher');
+  if (user.role === 'teacher') {
+    const host = document.querySelector<HTMLElement>('#cross-live-host');
+    if (host) {
+      if (cv) {
+        if (!host.querySelector('[data-testid="xl-board"]')) host.innerHTML = crossBoardHtml();
+        updateCrossBoard(host.firstElementChild as HTMLElement, cv, now);
+      } else if (host.innerHTML) host.innerHTML = '';
+    }
+    const panel = document.querySelector<HTMLElement>('#cross-panel');
+    if (panel && !panel.contains(document.activeElement)) {
+      const key = crossPanelKey(cv, now);
+      if (key !== crossPanelKeyNow) {
+        crossPanelKeyNow = key;
+        panel.innerHTML = crossPanel();
+      }
+    }
+    return;
+  }
+  const card = document.querySelector<HTMLElement>('#student-answer[data-xl-key]');
+  if (!card || !cv) return;
+  if (card.dataset.xlKey !== crossCardKey(cv, now)) renderCrossCard();
+  else updateCrossCard(card, cv, now);
+  // 還沒有題目：自動拿一題
+  if (card.querySelector('[data-mode="wait"]') && !crossLocal.fetching) void fetchNext(true).then(renderCrossCard);
+}
+setInterval(() => {
+  if (view?.cross && view.session.cross) refreshCross();
+}, 500);
+/** 老師的對戰控制與遊戲活動頁的「開始對戰」；其他交給 src/cross-live.ts。 */
+async function crossAction(act: string, el: HTMLElement): Promise<boolean> {
+  const val = <T extends HTMLElement>(id: string) => document.querySelector<T>(`#${id}`);
+  switch (act) {
+    case 'xl-game-start': {
+      const id = val<HTMLSelectElement>('xl-game-session')?.value;
+      if (!id) return true;
+      await api(`/sessions/${id}/control`, 'POST', { action: 'cross-start', level: Number(val<HTMLSelectElement>('xl-game-level')?.value || 1), team: !!val<HTMLInputElement>('xl-game-team')?.checked, seconds: 0 });
+      navigate(`/session/${id}`);
+      return true;
+    }
+    case 'xl-panel':
+      crossPanelOpen = !crossPanelOpen;
+      renderSession();
+      return true;
+    case 'xl-start': {
+      const level = Number(val<HTMLSelectElement>('xl-level')?.value || 1),
+        seconds = Number(val<HTMLSelectElement>('xl-seconds')?.value || 0),
+        margin = Number(val<HTMLSelectElement>('xl-margin')?.value || 300),
+        team = !!val<HTMLInputElement>('xl-team')?.checked,
+        lock = !!val<HTMLInputElement>('xl-lock')?.checked;
+      prefs.set('xlLevel', level);
+      prefs.set('xlSeconds', seconds);
+      prefs.set('xlMargin', margin);
+      prefs.set('xlTeam', team);
+      prefs.set('xlLock', lock);
+      await control('cross-start', { level, seconds, margin, team, lock });
+      return true;
+    }
+    case 'xl-pause':
+    case 'xl-resume':
+      await control('cross-pause', { value: act === 'xl-pause' });
+      return true;
+    case 'xl-team':
+      await control('cross-team', { value: el.dataset.value === '1' });
+      return true;
+    case 'xl-end':
+    case 'xl-reset':
+    case 'xl-close':
+      if (act === 'xl-close') crossPanelOpen = false;
+      await control(act.replace('xl-', 'cross-'));
+      return true;
+  }
+  return crossAct(act, el, renderCrossCard);
+}
 /** 學生：拿題目、選規則、選格子、放數字卡、出招。 */
 async function duelAct(act: string, el: HTMLElement) {
   const v = view?.duel;
@@ -2379,7 +2482,7 @@ function viewSignature(v: SessionView) {
   const s = v.session;
   // 學生端：自己被派到（或結束）補救練習也要整個重畫
   const mine = user?.role === 'student' ? (v.practice?.entries.length ?? 0) : '';
-  return [s.id, s.slideIndex, s.activityOpen, s.resultsVisible, s.followTeacher, s.ended, s.activityDeadline ?? '', s.practice?.startedAt ?? '', s.danmakuOpen ?? false, s.photoOpen ?? false, `${s.quiz?.id ?? ''}/${s.quiz?.endedAt ?? ''}`, `${s.raid?.id ?? ''}/${s.raid?.endedAt ?? ''}`, `${s.duel?.id ?? ''}/${s.duel?.endedAt ?? ''}`, s.pkLobby ? JSON.stringify(s.pkLobby) : '', `${v.danmakuQuota?.limited ?? ''}/${v.danmakuQuota?.eligible ?? ''}`, mine].join(':');
+  return [s.id, s.slideIndex, s.activityOpen, s.resultsVisible, s.followTeacher, s.ended, s.activityDeadline ?? '', s.practice?.startedAt ?? '', s.danmakuOpen ?? false, s.photoOpen ?? false, `${s.quiz?.id ?? ''}/${s.quiz?.endedAt ?? ''}`, `${s.raid?.id ?? ''}/${s.raid?.endedAt ?? ''}`, `${s.duel?.id ?? ''}/${s.duel?.endedAt ?? ''}`, `${s.cross?.id ?? ''}/${s.cross?.endedAt ?? ''}/${s.cross?.pausedAt ?? ''}/${s.cross?.team ?? ''}`, s.pkLobby ? JSON.stringify(s.pkLobby) : '', `${v.danmakuQuota?.limited ?? ''}/${v.danmakuQuota?.eligible ?? ''}`, mine].join(':');
 }
 function gradesSignature(v: SessionView) {
   return v.grades.map((g) => `${g.answerId}:${g.total}:${g.released}:${g.gradedAt}`).sort().join('|');
@@ -2564,6 +2667,12 @@ async function applyViewNow(next: SessionView | { session: null }, route: string
         studentTab = 'answer';
         duelLocal.flash = '';
       }
+      // 十字交乘對戰開始（或重新開始）：直接到作答區，清掉上一場的本機狀態
+      if (!!n.session.cross && n.session.cross.id !== view.session.cross?.id && user.role === 'student') {
+        studentTab = 'answer';
+        resetCrossLocal();
+      }
+      mergeCrossPush(n, view);
       view = n;
       if (changedSlide) {
         draft = [];
@@ -2590,10 +2699,13 @@ async function applyViewNow(next: SessionView | { session: null }, route: string
       if (n.raid && view.raid && n.raid.run.id === view.raid.run.id && user.role === 'student' && n.session.revision <= raidRevisionOf(n.raid.run.id)) n.raid.mine = view.raid.mine;
       // 步驟格鬥：學生端的題目以本機為準（作答回應比推送新）
       if (n.duel && view.duel && n.duel.run.id === view.duel.run.id && user.role === 'student' && n.session.revision <= duelRevision) n.duel.mine = view.duel.mine;
+      // 十字交乘對戰：比作答回應舊的推送，學生端的題目、分數以本機為準
+      if (user.role === 'student') mergeCrossPush(n, view);
       view = n;
       if (quizChanged && !busy) refreshQuiz();
       if (n.raid && !busy) refreshRaid();
       if (n.duel && !busy) refreshDuel();
+      if ((n.cross || document.querySelector('#cross-live-host')?.innerHTML) && !busy) refreshCross();
       if (practiceChanged) {
         const a = n.lesson.slides[n.session.slideIndex]?.activity;
         const board = document.querySelector('#practice-board');
@@ -2681,6 +2793,8 @@ async function loadStudent() {
     view = result as SessionView;
     studentSlide = view.session.slideIndex;
     draft = [];
+    // 十字交乘：先依這一次的路由／課堂／場次重設本機狀態，舊路由的「判定中」或判定不會先畫出來
+    crossEnsureScope(view);
     renderSession();
   } else studentWaiting();
   connectLive();
@@ -2924,6 +3038,7 @@ async function action(el: HTMLElement) {
   const act = el.dataset.action,
     id = el.dataset.id;
   if (/^(hw|learn)-/.test(act || '') && (await homeworkAction(el))) return;
+  if (act?.startsWith('xl-') && (await crossAction(act, el))) return;
   switch (act) {
     case 'hw-plan-session':
       if (view) await openPlan(view.session.classId, view.session.lessonId);

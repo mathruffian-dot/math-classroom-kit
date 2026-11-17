@@ -1,0 +1,666 @@
+/* 十字交乘・全班連線對戰（src/cross-live.ts）：老師大螢幕、控制區、學生 iPad 作答卡。只用 .xl-* 與 #cross-live-host。
+   尺寸都固定（列高、格子、卡片），推送更新只改文字與 transform，不會造成版面位移。 */
+#cross-live-host:empty {
+  display: none;
+}
+#cross-live-host {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+}
+.xl-board {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-rows: auto auto auto minmax(0, 1fr);
+  gap: 12px;
+  padding: clamp(12px, 2vh, 24px) clamp(14px, 2vw, 30px);
+  background: linear-gradient(160deg, #13204a, #1d2f66 60%, #13204a);
+  color: #fff;
+  overflow: hidden;
+}
+.xl-board-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.xl-board-head strong {
+  font-size: clamp(22px, 3vmin, 34px);
+}
+.xl-pill {
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: #2fbf71;
+  font-weight: 800;
+}
+.xl-pill[data-phase='paused'] {
+  background: #f0a13a;
+}
+.xl-pill[data-phase='over'] {
+  background: #6b7598;
+}
+.xl-clock {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  font-size: clamp(22px, 3.4vmin, 40px);
+  font-weight: 900;
+}
+.xl-totals {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.xl-totals div {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 8px 14px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.xl-totals small {
+  opacity: 0.75;
+}
+.xl-totals b {
+  font-size: clamp(20px, 3vmin, 34px);
+  font-variant-numeric: tabular-nums;
+}
+.xl-rope-host:empty {
+  display: none;
+}
+.xl-board-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 14px;
+  min-height: 0;
+}
+.xl-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-rows: repeat(10, minmax(0, 1fr));
+  gap: 6px;
+  min-height: 0;
+}
+.xl-row {
+  display: grid;
+  grid-template-columns: 2.2em 1fr 3em 4em 3.2em 4.4em;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.09);
+  font-size: clamp(15px, 2.1vmin, 24px);
+  font-variant-numeric: tabular-nums;
+  min-height: 34px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.xl-row.empty {
+  background: rgba(255, 255, 255, 0.03);
+}
+.xl-row.top1 {
+  background: linear-gradient(90deg, rgba(255, 200, 60, 0.45), rgba(255, 255, 255, 0.08));
+}
+.xl-row.top2 {
+  background: linear-gradient(90deg, rgba(210, 220, 235, 0.35), rgba(255, 255, 255, 0.08));
+}
+.xl-row.top3 {
+  background: linear-gradient(90deg, rgba(220, 140, 80, 0.35), rgba(255, 255, 255, 0.08));
+}
+.xl-rank {
+  font-weight: 900;
+}
+.xl-score {
+  text-align: right;
+  font-size: 1.15em;
+}
+.xl-dot {
+  display: inline-block;
+  width: 0.7em;
+  height: 0.7em;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+.xl-dot.red {
+  background: #ff5a5f;
+}
+.xl-dot.blue {
+  background: #3d8bff;
+}
+.xl-recent {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 10px 12px;
+  min-height: 0;
+  overflow: hidden;
+}
+.xl-recent h3 {
+  margin: 0 0 6px;
+  font-size: 16px;
+  opacity: 0.8;
+}
+.xl-recent ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.xl-recent li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  font-size: 15px;
+}
+.xl-recent li.ok b {
+  color: #7cf0a8;
+}
+.xl-recent li.no b {
+  color: #ff9a9a;
+}
+.xl-recent .btn.xl-reveal {
+  min-height: 32px;
+  padding: 2px 10px;
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.35);
+}
+.xl-rpoly {
+  font-size: 17px;
+}
+.xl-factored {
+  color: #ffe08a;
+}
+.xl-banner {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  transform: translate(-50%, -50%) scale(0.6);
+  opacity: 0;
+  pointer-events: none;
+  padding: 18px 40px;
+  border-radius: 20px;
+  background: rgba(0, 0, 0, 0.72);
+  font-size: clamp(32px, 6vmin, 72px);
+  font-weight: 900;
+  transition: opacity 0.4s, transform 0.4s;
+}
+.xl-banner.on {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+.xl-banner[data-team='red'] {
+  color: #ff8f92;
+}
+.xl-banner[data-team='blue'] {
+  color: #8dbaff;
+}
+
+/* 拔河 */
+.xl-rope {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+}
+.xl-end {
+  display: grid;
+  text-align: center;
+  min-width: 9em;
+  font-variant-numeric: tabular-nums;
+}
+.xl-end.red b {
+  color: #ff7b7f;
+}
+.xl-end.blue b {
+  color: #75a9ff;
+}
+.xl-end span {
+  font-size: 13px;
+  opacity: 0.85;
+}
+.xl-track {
+  container-type: inline-size;
+  position: relative;
+  height: 46px;
+  border-radius: 23px;
+  background: linear-gradient(90deg, rgba(255, 90, 95, 0.35), rgba(255, 255, 255, 0.08) 50%, rgba(61, 139, 255, 0.35));
+}
+.xl-line {
+  position: absolute;
+  left: 4%;
+  right: 4%;
+  top: 50%;
+  height: 6px;
+  margin-top: -3px;
+  border-radius: 3px;
+  background: repeating-linear-gradient(45deg, #c9a46a 0 8px, #a77f43 8px 16px);
+}
+.xl-goal {
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  width: 3px;
+  background: rgba(255, 255, 255, 0.6);
+}
+.xl-goal.red {
+  left: 5%;
+}
+.xl-goal.blue {
+  right: 5%;
+}
+.xl-knot {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 26px;
+  height: 26px;
+  margin: -13px 0 0 -13px;
+  border-radius: 50%;
+  background: #ffd34d;
+  box-shadow: 0 0 0 4px rgba(255, 211, 77, 0.35);
+  transition: transform 0.7s cubic-bezier(0.3, 1.3, 0.5, 1);
+  will-change: transform;
+}
+.xl-rope.small .xl-track {
+  height: 30px;
+}
+.xl-rope.small .xl-end {
+  min-width: 5.5em;
+  font-size: 14px;
+}
+.xl-rope.small .xl-end span {
+  font-size: 11px;
+}
+.xl-rope.small .xl-knot {
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+}
+
+/* 老師控制區 */
+.xl-form {
+  display: grid;
+  gap: 8px;
+  margin: 8px 0;
+}
+.xl-form label,
+.xl-game-pick {
+  display: grid;
+  gap: 4px;
+  font-size: 14px;
+}
+.xl-check {
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+}
+.xl-thumb {
+  background: linear-gradient(135deg, #1d2f66, #3d8bff) !important;
+}
+.xl-game-card .course-actions {
+  margin-top: 8px;
+}
+
+/* 學生 iPad 作答卡 */
+.xl-card {
+  display: grid;
+  gap: 12px;
+  --xl-slot-w: clamp(92px, 22vw, 150px);
+  --xl-slot-h: clamp(62px, 9vh, 88px);
+}
+.xl-card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.xl-card-head h2 {
+  margin: 0;
+  font-size: 22px;
+}
+.xl-clock.small {
+  margin-left: auto;
+  font-size: 22px;
+  min-width: 3.5em;
+  text-align: right;
+  color: var(--ink);
+}
+.xl-team-tag {
+  padding: 4px 10px;
+  border-radius: 999px;
+  color: #fff;
+  font-weight: 800;
+  font-size: 14px;
+}
+.xl-team-tag.red {
+  background: #e5484d;
+}
+.xl-team-tag.blue {
+  background: #2f74e0;
+}
+.xl-stats {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  font-size: 14px;
+  color: var(--ink-2);
+}
+.xl-stats span {
+  background: #f2f4fa;
+  border-radius: 10px;
+  padding: 6px 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.xl-stats b {
+  font-size: 20px;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.xl-card .xl-rope {
+  background: #1d2f66;
+  color: #fff;
+  border-radius: 14px;
+  padding: 6px 8px;
+}
+.xl-q {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 14px 10px;
+  border-radius: 16px;
+  background: #fff;
+  border: 1.5px solid var(--line);
+  min-height: 96px;
+}
+.xl-lvtag {
+  position: absolute;
+  left: 10px;
+  top: 8px;
+  font-weight: 800;
+  color: var(--muted);
+}
+.xl-poly {
+  font-size: clamp(30px, 6vw, 44px);
+}
+.xl-inner {
+  font-size: 22px;
+  color: var(--ink-2);
+}
+.xl-k {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-weight: 700;
+}
+.xl-k > span {
+  flex-basis: 100%;
+}
+/* L3 公因數：固定 10 個選項（−5～5），兩列各 5 個 */
+.xl-kbtn {
+  flex: 1 0 calc(20% - 8px);
+  min-width: 56px;
+  min-height: 52px;
+  border-radius: 12px;
+  border: 2px solid #8a6df0;
+  background: #fff;
+  font-size: 22px;
+  font-weight: 800;
+}
+/* 答錯後冷卻：「下一題」中性的灰色倒數 */
+.xl-big.xl-cooling,
+.xl-big.xl-cooling:disabled {
+  background: #e7e9f0;
+  color: var(--ink-2);
+  border-color: #d5d9e4;
+}
+.xl-kbtn.on {
+  background: #8a6df0;
+  color: #fff;
+}
+.xl-work {
+  position: relative;
+  display: grid;
+  justify-items: center;
+}
+.xl-work.locked .xl-cross {
+  opacity: 0.35;
+}
+.xl-lock {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 8px 16px;
+  border-radius: 12px;
+  background: var(--ink);
+  color: #fff;
+  font-weight: 800;
+}
+.xl-cross {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--xl-slot-w) clamp(50px, 10vw, 90px) var(--xl-slot-w);
+  grid-template-rows: auto var(--xl-slot-h) var(--xl-slot-h);
+  gap: 10px 0;
+  align-items: center;
+  justify-items: center;
+}
+.xl-colhead {
+  font-size: 14px;
+  color: var(--muted);
+  font-weight: 700;
+}
+.xl-x {
+  grid-column: 2;
+  grid-row: 2 / span 2;
+  width: 100%;
+  height: 100%;
+  stroke: #9aa6c8;
+  stroke-width: 3;
+}
+.xl-slot {
+  width: var(--xl-slot-w);
+  height: var(--xl-slot-h);
+  border-radius: 14px;
+  border: 3px dashed #b9c2dc;
+  background: #fff;
+  font-size: clamp(26px, 5vw, 36px);
+  font-weight: 800;
+  color: var(--ink);
+  display: grid;
+  place-items: center;
+  touch-action: manipulation;
+}
+.xl-slot.lead {
+  grid-column: 1;
+}
+.xl-slot.const {
+  grid-column: 3;
+}
+.xl-slot.fixed {
+  border-style: solid;
+  background: #f2f4fa;
+  color: var(--ink-2);
+}
+.xl-slot.filled {
+  border-style: solid;
+  border-color: var(--ink-2);
+}
+.xl-slot.lead.filled {
+  border-color: #8a6df0;
+}
+.xl-slot.const.filled {
+  border-color: #3d8bff;
+}
+.xl-slot.target:not(.fixed) {
+  border-color: var(--accent);
+}
+.xl-slot.pending {
+  border-color: #8f99b8;
+  background: #eef1f8;
+  color: var(--ink-2);
+  animation: xl-pulse 1.1s ease-in-out infinite;
+}
+.xl-slot.ok {
+  border-color: #23a35a;
+  background: #e7f8ee;
+}
+.xl-slot.no {
+  border-color: #e5484d;
+  background: #fdecec;
+}
+@keyframes xl-pulse {
+  50% {
+    background: #dfe4f1;
+  }
+}
+.xl-empty {
+  color: #b9c2dc;
+}
+.xl-cross > :nth-child(4) {
+  grid-row: 2;
+}
+.xl-cross > :nth-child(6) {
+  grid-row: 2;
+}
+.xl-cross > :nth-child(7),
+.xl-cross > :nth-child(8) {
+  grid-row: 3;
+}
+.xl-tray {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  min-height: calc(var(--xl-slot-h) + 4px);
+}
+.xl-home {
+  width: var(--xl-slot-w);
+  height: var(--xl-slot-h);
+  border-radius: 14px;
+  border: 2px dashed #dfe4f1;
+}
+.xl-card-btn {
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  font-size: clamp(26px, 5vw, 36px);
+  font-weight: 800;
+  background: #fff;
+  border: 3px solid #3d8bff;
+  color: var(--ink);
+  touch-action: manipulation;
+}
+.xl-card-btn.lead {
+  border-color: #8a6df0;
+  font-style: italic;
+}
+.xl-card-btn.sel {
+  background: #fff2e9;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px rgba(255, 122, 69, 0.25);
+}
+.xl-card-btn.used {
+  visibility: hidden;
+}
+.xl-flash {
+  margin: 0;
+  min-height: 64px;
+  display: grid;
+  gap: 2px;
+  align-content: center;
+  justify-items: center;
+  text-align: center;
+  border-radius: 12px;
+  font-size: 16px;
+}
+.xl-flash.pending {
+  background: #eef1f8;
+  color: var(--ink-2);
+  font-weight: 800;
+}
+.xl-flash.ok {
+  background: #e7f8ee;
+  color: #12693a;
+}
+.xl-flash.no {
+  background: #fdecec;
+  color: #a1282c;
+}
+.xl-flash b {
+  font-size: 20px;
+}
+.xl-answer {
+  font-size: 22px;
+}
+.xl-actions {
+  display: flex;
+  justify-content: center;
+}
+.btn.xl-big {
+  min-height: 60px;
+  min-width: 200px;
+  font-size: 20px;
+}
+.xl-over {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 30px 10px;
+  text-align: center;
+}
+
+/* 對戰中的學生：作答卡佔滿整個畫面（教材先收起來），iPad 直向、橫向都不用捲動 */
+.student-room.xl-on .room-main {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+}
+.student-room.xl-on .stage-col,
+.student-room.xl-on .phone-tabs {
+  display: none;
+}
+.student-room.xl-on .panel-col {
+  display: flex;
+}
+.student-room.xl-on .panel-col .panel-scroll {
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+/* 送出後格子鎖住（disabled），但顏色要清楚：判定中灰、答對綠、答錯紅（蓋過卡片種類的框色） */
+.xl-card .xl-slot:disabled {
+  opacity: 1;
+  cursor: default;
+}
+.xl-card .xl-slot.filled.pending {
+  border-color: #8f99b8;
+  background: #eef1f8;
+  color: var(--ink-2);
+}
+.xl-card .xl-slot.filled.ok {
+  border-color: #23a35a;
+  background: #e7f8ee;
+  color: #12693a;
+}
+.xl-card .xl-slot.filled.no {
+  border-color: #e5484d;
+  background: #fdecec;
+  color: #a1282c;
+}
+.xl-card .xl-card-btn:disabled {
+  opacity: 0.45;
+}
+.xl-recent .btn.xl-reveal:hover,
+.xl-recent .btn.xl-reveal:focus-visible {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}

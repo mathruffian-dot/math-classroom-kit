@@ -1,5 +1,6 @@
 import type { RaidConfig, RaidDifficulty, RaidKind, RaidRole, RaidSeatStats, RaidState } from './raid';
 import type { DuelSeatStats, DuelState, DuelTeam, DuelTok } from './duel';
+import type { CrossCard, CrossJudge, CrossLevel, Trinomial } from './cross';
 export type Role = 'teacher' | 'student';
 export interface User {
   id: string;
@@ -588,6 +589,8 @@ export interface Session {
   raid?: RaidRun | null;
   /** 目前（或剛結束）的步驟格鬥。 */
   duel?: DuelRun | null;
+  /** 目前（或剛結束）的十字交乘對戰（只有設定與分隊，題目與答案只在伺服器）。 */
+  cross?: CrossRun | null;
   id: string;
   classId: string;
   className: string;
@@ -689,6 +692,8 @@ export interface SessionView {
   raidMap?: { title: string; section?: string; wins: Partial<Record<RaidDifficulty, { at: number; ms: number }>> };
   /** 步驟格鬥（進行中或剛結束）。 */
   duel?: DuelView;
+  /** 十字交乘對戰（進行中或剛結束）。 */
+  cross?: CrossLiveView;
   /**
    * 學生：作答開放中時彈幕有限制（只有答對的同學能送，這一題每人 3 則）。
    * limited 為 false 表示平常時間，不限則數。
@@ -801,6 +806,87 @@ export interface DuelView {
   results?: DuelResult[];
   /** 老師：各規則全班的正確率（低的在前，最需要加強）。 */
   weak?: { rule: string; ok: number; n: number }[];
+}
+
+/** 一場十字交乘對戰（設定、分隊；學生也看得到，不含題目）。 */
+export interface CrossRun {
+  id: string;
+  startedAt: number;
+  /** 起始等級；lock＝鎖定等級（不自動升級）。 */
+  level: CrossLevel;
+  lock: boolean;
+  /** 限時秒數（0＝不限時）與到期時間（暫停的時間會往後延）。 */
+  seconds: number;
+  deadline: number | null;
+  pausedAt: number | null;
+  endedAt?: number;
+  /** 紅藍拔河：開著才分隊；兩隊平均分差到 margin 就獲勝。 */
+  team: boolean;
+  margin: number;
+  teams: Record<string, DuelTeam>;
+  winner: DuelTeam | 'draw' | null;
+}
+/** 學生的一題：原式、卡片（正解＋干擾卡，順序打亂）、左欄是否固定、L3 公因數選項。不含答案。 */
+export interface CrossLiveItem {
+  id: string;
+  level: CrossLevel;
+  poly: Trinomial;
+  leadLocked: boolean;
+  cards: CrossCard[];
+  kOptions?: number[];
+}
+/** 學生自己的統計（伺服器算好的，前端直接指派）；cool＝答錯後冷卻到什麼時候（伺服器時間）。 */
+export interface CrossLiveMine {
+  score: number;
+  streak: number;
+  correct: number;
+  attempts: number;
+  level: CrossLevel;
+  cool?: number;
+}
+/** 送出後伺服器的判定（送出後才有因式分解）。 */
+export interface CrossLiveResult {
+  /** 這是哪一題的判定。 */
+  itemId: string;
+  ok: boolean;
+  reason: CrossJudge['reason'] | 'k';
+  products: [number | null, number | null];
+  sum: number | null;
+  target: number;
+  k: number;
+  /** 因式分解（LaTeX）與原式（LaTeX）。 */
+  factored: string;
+  poly: string;
+  points: { base: number; speed: number; streak: number; total: number };
+  score: number;
+  streak: number;
+  level: CrossLevel;
+  levelUp: boolean;
+  ms: number;
+  mine: CrossLiveMine;
+}
+export interface CrossLiveRow {
+  seat: number;
+  score: number;
+  correct: number;
+  attempts: number;
+  streak: number;
+  best: number;
+  level: CrossLevel;
+  team?: DuelTeam;
+}
+export interface CrossLiveView {
+  run: CrossRun;
+  /** 剩下幾毫秒（不限時是 null）。 */
+  left: number | null;
+  teams?: { size: Record<DuelTeam, number>; total: Record<DuelTeam, number>; avg: Record<DuelTeam, number> };
+  /** 老師：排行、全班答對／作答數、最近送出的題目（只有原式）。 */
+  rows?: CrossLiveRow[];
+  totals?: { players: number; correct: number; attempts: number };
+  /** id＝題目 ID（「公布」用，不會變）；n＝這位同學的第幾題。 */
+  recent?: { seat: number; id: string; n: number; ok: boolean; points: number; at: number; level: CrossLevel; poly: string }[];
+  /** 學生：自己的分數、連對、等級、冷卻、名次與目前這一題。 */
+  mine?: CrossLiveMine & { team?: DuelTeam; rank?: number; players: number; item?: CrossLiveItem };
 }
 
 /* ───────────── 學習紀錄與回家作業 ───────────── */

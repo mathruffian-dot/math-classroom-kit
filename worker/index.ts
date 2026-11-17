@@ -4,6 +4,7 @@ import {
   hydrateSession,
   liveTicket,
   liveView,
+  settleCrossSession,
   type Deferred,
   type LiveTicket,
   type Presence,
@@ -50,6 +51,10 @@ interface Env extends StorageEnv {
 }
 const LIVE_PATH = '/api/live';
 const AI_LAST_ERROR = 'ai-last-error';
+/** 十字交乘對戰的到期時間（課堂 ID → 時間），alarm 用。 */
+const CROSS_DUE = 'cross-due';
+/** 批改期間多久檢查一次對戰有沒有到期（毫秒）。 */
+const CROSS_TICK = 1000;
 /** 比對畫面有沒有變：伺服器時間（serverNow）每次都不同，不列入比對。 */
 function viewDigest(view: unknown): string {
   const { serverNow: _ignored, ...rest } = (view || {}) as { serverNow?: number };
@@ -97,7 +102,8 @@ export class ClassroomDurableObject {
     );
     return response.then(async (r) => {
       // 任何成功的寫入都推送最新畫面給連線中的師生（取代每 2 秒輪詢）。
-      if (r.ok && !['GET', 'HEAD'].includes(request.method)) this.scheduleBroadcast();
+      // X-Classroom-Quiet：沒有變更的回應（例如重複拿同一題）不推送；X-Classroom-Changed：被拒但狀態有變（例如剛好時間到）也要推送。
+      if ((r.ok && !['GET', 'HEAD'].includes(request.method) && !r.headers.get('X-Classroom-Quiet')) || r.headers.get('X-Classroom-Changed')) this.scheduleBroadcast();
       if (!deferred) return r;
       const job = deferred;
       try {
@@ -132,21 +138,106 @@ export class ClassroomDurableObject {
     });
   }
   /**
-   * 回家作業背景批改：一份一份處理佇列；AI 呼叫在佇列外，讀寫狀態在佇列內（不擋課堂）。
-   * 還有工作在租約裡（別的批改正在進行、或上一次寫回失敗）就排到租約到期再叫醒；出錯時 30 秒後重試。
-   * 已經排了更早的 alarm（例如批改期間又有人送出）就不要改晚。
+   * 同一個 alarm 處理兩件事：
+   * 1. 十字交乘對戰的限時結算：一叫醒就先結算，而且批改期間也照到期時間結算（不等批改）。
+   * 2. 回家作業背景批改：一份一份處理佇列；AI 呼叫在佇列外，讀寫狀態在佇列內（不擋課堂）。
+   *    還有工作在租約裡（別的批改正在進行、或上一次寫回失敗）就排到租約到期再叫醒；出錯時 30 秒後重試。
+   * 下一次叫醒取兩者較早的；已經排了更早的 alarm（例如批改期間又有人送出，就算已經過期）就不要改晚。
    */
   async alarm() {
-    let next: number | undefined;
-    try {
-      next = await drainHomework({ env: this.env, store: this.store(), vault: this.vault() }, (job) => this.enqueue(job));
-    } catch {
-      next = Date.now() + 30_000;
+    let cross: number | undefined;
+    const settle = async () => {
+      try {
+        cross = await this.settleCross();
+      } catch {
+        cross = Date.now() + 5000;
+      }
+    };
+    await settle();
+    let finished = false;
+    const homework = drainHomework({ env: this.env, store: this.store(), vault: this.vault() }, (job) => this.enqueue(job))
+      .catch(() => Date.now() + 30_000)
+      .finally(() => {
+        finished = true;
+      });
+    // 批改（單次 AI 呼叫可能等上好幾分鐘）進行中：到期的對戰照樣結算；也接住批改期間才開始的限時對戰
+    while (!finished) {
+      const wait = Math.min(CROSS_TICK, Math.max(50, (cross ?? Infinity) - Date.now()));
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      await Promise.race([homework, new Promise<void>((r) => (timer = setTimeout(r, wait)))]);
+      clearTimeout(timer);
+      if (!finished) await settle();
     }
-    if (next === undefined || !this.state.storage.setAlarm) return;
+    let next = await homework;
+    if (next !== undefined) next = Math.max(next, Date.now() + 1000);
+    await settle();
+    if (cross !== undefined) next = Math.min(next ?? Infinity, Math.max(cross, Date.now() + 50));
+    if (!this.state.storage.setAlarm) return;
+    // 最後的比較＋設定在佇列內：和送出作業的 kickHomework（在請求的佇列工作裡）不會交錯。
+    // 執行期間 getAlarm() 只會讀到這次 handler 期間新排的 alarm（例如剛送出的作業排了 50ms 後）；
+    // 它就算已經過期也代表還有工作等著，不能被較晚的對戰期限蓋掉 → 取較早的，過期的就馬上叫醒。
+    await this.enqueue(async () => {
+      const pending = (await this.state.storage.getAlarm?.()) ?? null;
+      const now = Date.now();
+      if (pending !== null && (next === undefined || pending <= next)) {
+        if (pending <= now) await this.state.storage.setAlarm!(now);
+        return;
+      }
+      if (next !== undefined) await this.state.storage.setAlarm!(next);
+    });
+  }
+  /**
+   * 十字交乘對戰：記下某一堂課的到期時間，alarm 排在最早的到期時間（不會把較早的 alarm 改晚）。
+   * 在保存課堂之前呼叫；at＝null（暫停、結束、收起）不移除：排程只在 alarm 讀到「已保存」的場次、
+   * 確定沒有到期時間（或已經結算並保存）之後才移除，保存失敗也不會失去叫醒。多叫醒一次沒有影響。
+   */
+  private async scheduleCross(sessionId: string, at: number | null) {
+    if (!at) return;
+    const due = (await this.state.storage.get<Record<string, number>>(CROSS_DUE)) || {};
+    due[sessionId] = Math.min(due[sessionId] ?? Infinity, at);
+    await this.state.storage.put(CROSS_DUE, due);
+    if (!this.state.storage.setAlarm) return;
     const pending = await this.state.storage.getAlarm?.();
-    if (pending && pending <= next) return;
-    await this.state.storage.setAlarm(Math.max(next, Date.now() + 1000));
+    if (!pending || pending > at) await this.state.storage.setAlarm(at);
+  }
+  /**
+   * 到期的對戰在佇列內結算（保存＋推送）；回傳下一個到期時間。
+   * 排程依「已保存」的課堂重新確認：還沒到期的照實際到期時間重排；已結束、暫停、收起的移除。
+   * 移除只發生在保存成功之後（保存失敗會丟出錯誤，排程原封不動，5 秒後再試）。
+   */
+  private settleCross(): Promise<number | undefined> {
+    return this.enqueue(async () => {
+      const due = (await this.state.storage.get<Record<string, number>>(CROSS_DUE)) || {};
+      const t = Date.now();
+      let next: number | undefined;
+      for (const at of Object.values(due)) if (at > t) next = Math.min(next ?? Infinity, at);
+      // 沒有到期的：不讀課堂（批改期間每秒檢查一次，要便宜）
+      if (!Object.values(due).some((at) => at <= t)) return next;
+      const store = this.store();
+      const latest = await store.read();
+      if (!latest) return next;
+      let changed = false;
+      const kept = { ...due };
+      for (const [id, at] of Object.entries(due)) {
+        if (at > t) continue;
+        await hydrateSession(latest, this.loader(), id);
+        const r = settleCrossSession(latest, id, t);
+        changed ||= r.changed;
+        // 暫停後又繼續：到期時間往後移了，重新排
+        if (r.deadline) {
+          kept[id] = r.deadline;
+          next = Math.min(next ?? Infinity, r.deadline);
+        } else delete kept[id];
+      }
+      if (changed) {
+        await store.write(latest);
+        // 保存成功就推送（在清理排程之前）：清理失敗時重試讀到的是已結束的場次（changed＝false），不會再推送
+        this.scheduleBroadcast();
+      }
+      // 期間沒有別人改過排程（都在佇列內，不會）：寫回確認過的排程
+      await this.state.storage.put(CROSS_DUE, kept);
+      return next;
+    });
   }
   /** 建立即時連線：驗證身分後接受 WebSocket（可休眠），並立刻送出目前畫面。 */
   private async openLive(request: Request): Promise<Response> {
@@ -321,6 +412,7 @@ export class ClassroomDurableObject {
         loadSession: this.loader(),
         usage: this.env.APP_MODE === 'supabase' ? undefined : () => this.splitStore().usage(),
         kickHomework: this.state.storage.setAlarm ? () => this.state.storage.setAlarm!(Date.now() + 50) : undefined,
+        scheduleCross: (sessionId, at) => this.scheduleCross(sessionId, at),
       });
     } catch (error) {
       return Response.json(
