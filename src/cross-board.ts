@@ -2,6 +2,7 @@
  * 十字交乘・大板操作（教師大螢幕／iPad）：#/games/cross?focus=a1&seed=123
  * 老師選的是單元重點（shared/game-focus.ts 的 CROSS_FOCUS）：x² 係數為 1／不為 1／先提公因式／混合。
  * 舊網址 ?level=1/2/3 照樣能開（對應到 a1／a-not-1／gcf；兩個都有時 focus 優先）。
+ * 測試用：?test=1&freeze=毫秒 改答錯凍結的時間（只有網址帶 test=1 才有效，正式畫面一律 3 秒；見 crossTestFreeze）。
  *
  * 作答區（十字圖、卡片匣、拖曳與點選、公因數選項）在 src/cross-pad.ts，雙人大屏對戰（src/cross-duel.ts）共用；
  * 這裡只管題目順序（題池）、重點切換、分數與老師按鈕。
@@ -12,6 +13,7 @@ import { escape as esc } from './api';
 import { icon } from './icons';
 import { tex } from './math';
 import { CROSS_POOL_SIZE, crossMixLevel, crossPool, crossSeed, type CrossItem, type CrossLevel } from '../shared/cross';
+import { crossTestFreeze } from '../shared/cross-duel';
 import { CROSS_FOCUS, crossFocusFromParams, crossFocusLevel, crossLevelLabel, crossNextFocus, type CrossFocusId, type GameFocus } from '../shared/game-focus';
 import { createCrossPad, focusLabelHtml } from './cross-pad';
 
@@ -64,6 +66,8 @@ export function renderCrossBoard(app: HTMLElement, route: string): void {
   // ?pool=N：把每一輪的題池縮小成 N 題（示範「題目出完重新開始」與測試用）
   const poolParam = Math.floor(Number(params.get('pool')));
   const poolSize = (l: CrossLevel) => (poolParam >= 1 ? Math.min(poolParam, CROSS_POOL_SIZE[l]) : CROSS_POOL_SIZE[l]);
+  // 測試用的答錯凍結時間（只有 ?test=1 才讀；網址改寫時一起保留）
+  const testFreeze = crossTestFreeze(params);
   const st: BoardState = { focus, level: crossFocusLevel(focus) || 1, mix: 0, base, item: null, counted: false, score: 0, streak: 0, auto: false, pools: {} };
 
   app.className = 'cross-app';
@@ -75,6 +79,7 @@ export function renderCrossBoard(app: HTMLElement, route: string): void {
     host: $('#cx-main'),
     prefix: 'cx',
     cardPrefix: 'q',
+    ...(testFreeze !== null ? { freezeMs: testFreeze } : {}),
     onSolved: () => {
       if (!st.counted) {
         st.counted = true;
@@ -159,7 +164,8 @@ export function renderCrossBoard(app: HTMLElement, route: string): void {
 
   function syncUrl() {
     // 有效的 ?pool=N 要留著，重新整理或分享網址才會是同一個題池設定
-    history.replaceState(null, '', `#/games/cross?focus=${st.focus}&seed=${st.base}${poolParam >= 1 ? `&pool=${poolParam}` : ''}`);
+    const t = testFreeze !== null ? `&test=1&freeze=${testFreeze}` : '';
+    history.replaceState(null, '', `#/games/cross?focus=${st.focus}&seed=${st.base}${poolParam >= 1 ? `&pool=${poolParam}` : ''}${t}`);
   }
   function next() {
     let focus = st.focus;

@@ -6,16 +6,18 @@
 // lostpointercapture 取消那根手指還沒完成的點選；
 // 1920×1080、1366×768、iPad 橫向 1180×820／1024×768 在開始、選 k 等式、差多少的訊息、完整因式分解各狀態都不裁切、不溢出。
 // 「iPad」是 Chromium（Edge）的觸控模擬（hasTouch＋CDP 觸控事件），不是 Safari。
-// 截圖：CROSS_SHOTS=1 時才寫，只寫到 artifacts/cross-2026-11-18b/。
+// 答錯凍結 3 秒：只有答錯的那一邊凍結，另一邊照常（同時拖曳也一樣）；計時不停；暫停時凍結倒數也停；凍結中時間到照常結算。
+//   「答錯後馬上改」的舊測試用 ?test=1&freeze=0 關掉凍結。先提公因式、首項為負：一邊先提正的公因數＋提出負號。
+// 截圖：CROSS_SHOTS=1 時才寫，只寫到 artifacts/cross-2026-11-18c/。
 import { test, expect, type Page, type Browser, type BrowserContext } from '@playwright/test';
 import { mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { CROSS_SLOTS, crossJudge, crossKFeedback, crossKOptions, gcd, polyTex, signed, type CrossFill, type CrossItem, type CrossSlot } from '../../shared/cross';
+import { CROSS_SLOTS, crossJudge, crossKAccepted, crossKFeedback, crossKOptions, crossSignOptions, gcd, polyTex, signed, type CrossFill, type CrossItem, type CrossSlot } from '../../shared/cross';
 import { crossDuelDeck } from '../../shared/cross-duel';
 import { expectXColorDistinct, hue, hueGap } from './cross-colors';
 
 const baseURL = process.env.E2E_BASE_URL || `http://127.0.0.1:${process.env.MCK_PORT || 8787}`;
-const shots = resolve('artifacts/cross-2026-11-18b');
+const shots = resolve('artifacts/cross-2026-11-18c');
 const contexts: BrowserContext[] = [];
 type Side = 'L' | 'R';
 
@@ -396,7 +398,7 @@ test('per-side tap fallback: selections are independent; a correct answer counts
   test.setTimeout(90_000);
   const page = await surface(browser, 1180, 820, true);
   await login(page);
-  await openDuel(page, 'focus=a-not-1&seed=777');
+  await openDuel(page, 'focus=a-not-1&seed=777&test=1&freeze=0');
   await start(page);
   const l = await side(page, 'L'),
     r = await side(page, 'R');
@@ -463,7 +465,7 @@ test('gcf in the duel: each side picks k from the fixed options; wrong pick feed
   test.setTimeout(90_000);
   const page = await surface(browser, 1920, 1080, true);
   await login(page);
-  await openDuel(page, 'focus=gcf&seed=31');
+  await openDuel(page, 'focus=gcf&seed=31&test=1&freeze=0');
   await start(page);
   const l = await side(page, 'L'),
     r = await side(page, 'R');
@@ -477,11 +479,12 @@ test('gcf in the duel: each side picks k from the fixed options; wrong pick feed
     expect(await page.getByTestId(`xd${s}-kopts`).locator('.cx-kbtn').evaluateAll((els) => els.map((e) => Number((e as HTMLElement).dataset.k)))).toEqual(crossKOptions());
   }
   await expect(page.getByRole('button', { name: '提出公因數', exact: true })).toHaveCount(0);
-  // 左邊選錯（用正負號相反的數）：只有左邊顯示說明
-  await page.getByTestId(`xdL-k-${-l.k}`).tap();
-  await expect(page.getByTestId('xdL-kwrong')).toContainText(crossKFeedback(l.poly, l.k, -l.k)!);
+  // 左邊選錯：只有左邊顯示說明（首項為負時 −k 是正的最大公因數，現在算對，所以挑一個不接受的數）
+  const wrongL = l.k > 0 ? -l.k : crossKOptions().find((c) => !crossKAccepted(l.poly, l.k, c))!;
+  await page.getByTestId(`xdL-k-${wrongL}`).tap();
+  await expect(page.getByTestId('xdL-kwrong')).toContainText(crossKFeedback(l.poly, l.k, wrongL)!);
   await expect(page.getByTestId('xdR-kwrong')).toHaveCount(0);
-  await expect(page.getByTestId(`xdL-k-${-l.k}`)).toHaveClass(/tried/);
+  await expect(page.getByTestId(`xdL-k-${wrongL}`)).toHaveClass(/tried/);
   await expectNoInnerLeak(page, 'L', deck.item('L', 0));
   // 右邊選對：右邊顯示 原式 = k(…) 並解鎖；左邊仍然鎖住
   await page.getByTestId(`xdR-k-${r.k}`).tap();
@@ -774,10 +777,10 @@ test('layout: 1920×1080, 1366×768, iPad landscape 1180×820 / 1024×768 (touch
   async function fits(page: Page, label: string) {
     const m = await page.evaluate(() => {
       // 文字容器：內容不能比框寬（字被切掉）。格子裡的卡片本來就蓋住格子的虛線框，不算。
-      const TEXT = '.cx-poly, .cx-extract-eq, .cx-kbtn, .cx-card, .cx-colprod, .cx-readout > div, .cx-tray-wait, .cx-feedback, .cx-answer';
+      const TEXT = '.cx-poly, .cx-extract-eq, .cx-kbtn, .cx-signbtn, .cx-card, .cx-colprod, .cx-readout > div, .cx-tray-wait, .cx-feedback, .cx-answer';
       const pads = [...document.querySelectorAll<HTMLElement>('.xd-pad')].map((p) => {
         const pr = p.getBoundingClientRect();
-        const bad = [...p.querySelectorAll<HTMLElement>('.cx-question, .cx-poly, .cx-item-focus, .cx-extract, .cx-extract-eq, .cx-kopts, .cx-kbtn, .cx-cross, .cx-slot, .cx-card, .cx-colprod, .cx-readout, .cx-readout > div, .cx-tray, .cx-tray-wait, .cx-feedback, .cx-answer')]
+        const bad = [...p.querySelectorAll<HTMLElement>('.cx-question, .cx-poly, .cx-item-focus, .cx-extract, .cx-extract-eq, .cx-kopts, .cx-kbtn, .cx-signopts, .cx-signbtn, .cx-cross, .cx-slot, .cx-card, .cx-colprod, .cx-readout, .cx-readout > div, .cx-tray, .cx-tray-wait, .cx-feedback, .cx-answer')]
           // 空著的欄乘積（選 k 之前）沒有內容，不算
           .filter((e) => !e.closest('.cx-ghost') && getComputedStyle(e).display !== 'none' && !(e.classList.contains('cx-colprod') && !e.textContent))
           .map((e) => ({ e, r: e.getBoundingClientRect() }))
@@ -793,7 +796,7 @@ test('layout: 1920×1080, 1366×768, iPad landscape 1180×820 / 1024×768 (touch
       expect(p.over, `${label}: pad content fits`).toBeLessThanOrEqual(1);
       expect(p.bad, `${label}: elements inside their pad`).toEqual([]);
     }
-    const small = await page.locator('.xd-pad .cx-card, .xd-pad .cx-slot:not(.fixed), .xd-pad .cx-kbtn, .xd-controls .btn').evaluateAll((els) => els.map((e) => e.getBoundingClientRect()).filter((r) => r.width < 44 || r.height < 44).length);
+    const small = await page.locator('.xd-pad .cx-card, .xd-pad .cx-slot:not(.fixed), .xd-pad .cx-kbtn, .xd-pad .cx-signbtn, .xd-controls .btn').evaluateAll((els) => els.map((e) => e.getBoundingClientRect()).filter((r) => r.width < 44 || r.height < 44).length);
     expect(small, `${label}: touch targets ≥ 44px`).toBe(0);
   }
   for (const [w, h, touch, name] of [
@@ -819,19 +822,26 @@ test('layout: 1920×1080, 1366×768, iPad landscape 1180×820 / 1024×768 (touch
     // 先提公因式：左欄要放 x 係數卡（卡片最多）、首項為負（等式最長）的 seed
     let seed = 1;
     while (crossDuelDeck(seed, 'gcf').item('L', 0).leadLocked || crossDuelDeck(seed, 'gcf').item('L', 0).k > 0) seed++;
-    await openDuel(page, `focus=gcf&time=180&test=1&seed=${seed}`);
+    await openDuel(page, `focus=gcf&time=180&test=1&freeze=0&seed=${seed}`);
     await start(page);
     // 自動換題暫停（停在答對的畫面量）；計時器照走
     await page.evaluate(() => (window as unknown as HookWindow).__crossDuelTest.hold(false, true));
     await fits(page, `${name} gcf before k`);
     const deck = crossDuelDeck(seed, 'gcf');
     // 選錯 k 的說明
-    await tap(`[data-testid="xdL-k-${-deck.item('L', 0).k}"]`);
+    const itL = deck.item('L', 0)!;
+    await tap(`[data-testid="xdL-k-${crossKOptions().find((c) => !crossKAccepted(itL.poly, itL.k, c))}"]`);
     await expect(page.getByTestId('xdL-kwrong')).toBeVisible();
     await fits(page, `${name} gcf wrong k`);
-    // 兩邊都選對：顯示 原式 = k(…) 的等式與卡片
-    for (const s of ['L', 'R'] as const) await tap(`[data-testid="xd${s}-k-${deck.item(s, 0).k}"]`);
-    for (const s of ['L', 'R'] as const) await expect(page.getByTestId(`xd${s}-extracted`)).toBeVisible();
+    // 左邊先提正的公因數：第 2 步「提出負號」的四個選項也不溢出；選對
+    await tap(`[data-testid="xdL-k-${-itL.k}"]`);
+    await expect(page.getByTestId('xdL-signopts')).toBeVisible();
+    await fits(page, `${name} gcf sign step`);
+    await tap(`[data-testid="xdL-sign-${crossSignOptions(itL.poly, -itL.k, itL.seed).findIndex((o) => o.ok)}"]`);
+    await expect(page.getByTestId('xdL-signed')).toBeVisible();
+    // 右邊直接選負的：兩邊都顯示 原式 = k(…) 的等式與卡片
+    await tap(`[data-testid="xdR-k-${deck.item('R', 0)!.k}"]`);
+    await expect(page.getByTestId('xdR-extracted')).toBeVisible();
     await fits(page, `${name} gcf k equation`);
     // 左邊錯的擺法（差多少的訊息）、右邊完整的因式分解
     const l = await side(page, 'L'),
@@ -853,4 +863,121 @@ test('unauthenticated users cannot open #/games/cross-duel', async ({ browser })
   await page.goto('/#/games/cross-duel?focus=a1');
   await expect(page.locator('#login-form')).toBeVisible();
   await expect(duel(page)).toHaveCount(0);
+});
+
+/* ───────────── 答錯凍結（只凍結答錯的那一邊） ───────────── */
+const sidePenalty = (page: Page, s: Side) => page.getByTestId(`xd${s}-penalty`);
+const slotIds = (page: Page, s: Side) =>
+  page.evaluate((x) => Object.fromEntries(['lead0', 'lead1', 'const0', 'const1'].map((k) => [k, (document.querySelector(`#xd${x}-host [data-slot="${k}"] .cx-card`) as HTMLElement | null)?.dataset.card ?? null])), s);
+const remaining = (page: Page) => page.evaluate(() => (window as unknown as HookWindow).__crossDuelTest.remaining());
+
+test('wrong answer freezes only that side for 3 s: the other side still takes a simultaneous drag; the clock keeps running', async ({ browser }) => {
+  test.setTimeout(90_000);
+  const page = await surface(browser, 1920, 1080, true);
+  await login(page);
+  await openDuel(page, 'focus=a-not-1&seed=777&time=180&test=1');
+  await start(page);
+  const l = await side(page, 'L'),
+    r = await side(page, 'R');
+  await fillSide(page, 'L', l.wrong);
+  await expect(sidePenalty(page, 'L')).toBeVisible();
+  await expect(sidePenalty(page, 'L')).toHaveText(/^答錯了，[123] 秒後再試$/);
+  await expect(sidePenalty(page, 'R')).toBeHidden();
+  await expect(page.getByTestId('xd-pad-L')).toHaveClass(/cx-penalty-on/);
+  await expect(page.getByTestId('xd-pad-R')).not.toHaveClass(/cx-penalty-on/);
+  await expect(page.getByTestId('xdL-feedback')).toContainText('差');
+  const leftBefore = await slotIds(page, 'L');
+  const t0 = await remaining(page);
+  // 兩根手指同時拖：左邊（凍結）拖一張卡片匣的卡到格子、右邊拖正解的卡到格子 → 只有右邊放進去
+  const spare = l.cards.find((c) => c.kind === 'const' && !Object.values(l.wrong).some((w) => w?.id === c.id))!;
+  const fromL = await center(page, `[data-card="${spare.id}"]`),
+    toL = await center(page, '[data-testid="xdL-slot-const0"]');
+  const fromR = await center(page, `[data-card="${r.right.lead0!.id}"]`),
+    toR = await center(page, '[data-testid="xdR-slot-lead0"]');
+  await twoFingerDrag(page, { from: fromL, to: toL }, { from: fromR, to: toR });
+  await expect(page.getByTestId('xdR-slot-lead0').locator(`[data-card="${r.right.lead0!.id}"]`)).toBeVisible();
+  expect(await slotIds(page, 'L'), 'frozen side did not change').toEqual(leftBefore);
+  await expect(page.locator('.cx-ghost')).toHaveCount(0);
+  // 右邊的點選也照常
+  await tapPlace(page, 'R', r.right.lead1!.id, 'lead1');
+  await shot(page, 'freeze-duel-one-side');
+  // 凍結的時間照樣算在對戰時間裡
+  await page.waitForTimeout(1000);
+  expect(t0 - (await remaining(page))).toBeGreaterThan(800);
+  await expect(page.getByTestId('xd-timer')).not.toHaveText('3:00');
+  // 3 秒後左邊解除，卡片照舊，可以改
+  await expect(sidePenalty(page, 'L')).toBeHidden({ timeout: 4000 });
+  expect(await slotIds(page, 'L')).toEqual(leftBefore);
+  await page.getByTestId('xdL-slot-const0').locator('.cx-card').tap();
+  await page.locator(`[data-home="${l.wrong.const0!.id}"]`).tap();
+  await expect(page.getByTestId('xdL-slot-const0').locator('.cx-card')).toHaveCount(0);
+  // 右邊完成：照常計分
+  await fillSide(page, 'R', { const0: r.right.const0, const1: r.right.const1 });
+  await expect(page.getByTestId('xd-score-R')).toHaveText('1');
+});
+
+test('freeze countdown pauses with the duel and resumes after; time up during a freeze settles normally', async ({ browser }) => {
+  test.setTimeout(90_000);
+  const page = await surface(browser, 1366, 768, true);
+  await login(page);
+  await openDuel(page, 'focus=a-not-1&seed=777&time=60&test=1');
+  await start(page);
+  const l = await side(page, 'L');
+  await fillSide(page, 'L', l.wrong);
+  await expect(sidePenalty(page, 'L')).toBeVisible();
+  // 暫停：凍結的倒數停住（暫停 4 秒後還在凍結）
+  await page.getByTestId('xd-pause').click();
+  await expect(duel(page)).toHaveAttribute('data-phase', 'paused');
+  const n = await page.getByTestId('xdL-penalty-n').textContent();
+  await page.waitForTimeout(4000);
+  await expect(sidePenalty(page, 'L')).toBeVisible();
+  await expect(page.getByTestId('xdL-penalty-n')).toHaveText(n!);
+  // 繼續：接著倒數剩下的時間，之後解除
+  await page.getByTestId('xd-resume').click();
+  await expect(duel(page)).toHaveAttribute('data-phase', 'play');
+  await expect(sidePenalty(page, 'L')).toBeVisible();
+  await expect(sidePenalty(page, 'L')).toBeHidden({ timeout: 4000 });
+  // 凍結中時間到：照常結算一次，凍結的橫幅收起
+  const l2 = await side(page, 'L');
+  for (const slot of CROSS_SLOTS) {
+    const id = await page.getByTestId(`xdL-slot-${slot}`).locator('.cx-card').getAttribute('data-card').catch(() => null);
+    if (id) {
+      await page.getByTestId(`xdL-slot-${slot}`).locator('.cx-card').tap();
+      await page.locator(`[data-home="${id}"]`).tap();
+    }
+  }
+  await fillSide(page, 'L', l2.wrong);
+  await expect(sidePenalty(page, 'L')).toBeVisible();
+  await skewTo(page, 1200);
+  await expect(duel(page)).toHaveAttribute('data-phase', 'over', { timeout: 4000 });
+  await expect(page.getByTestId('xd-result')).toBeVisible();
+  expect(await settledCount(page)).toBe(1);
+  await expect(sidePenalty(page, 'L')).toBeHidden();
+});
+
+test('gcf duel, negative leading coefficient: one side takes the positive GCF + 提出負號 path, the other the negative GCF directly; both score', async ({ browser }) => {
+  test.setTimeout(90_000);
+  const page = await surface(browser, 1920, 1080, true);
+  await login(page);
+  let seed = 1;
+  while (crossDuelDeck(seed, 'gcf').item('L', 0)!.k > -2) seed++;
+  const deck = crossDuelDeck(seed, 'gcf');
+  const itL = deck.item('L', 0)!,
+    itR = deck.item('R', 0)!;
+  expect(itR.k).toBeLessThan(0);
+  await openDuel(page, `focus=gcf&seed=${seed}`);
+  await start(page);
+  await page.getByTestId(`xdL-k-${-itL.k}`).tap();
+  await expect(page.getByTestId('xdL-signopts')).toBeVisible();
+  await expect(page.getByTestId('xdR-signopts')).toHaveCount(0);
+  await expect(page.getByTestId('xd-pad-L').locator('.cx-card')).toHaveCount(0);
+  await page.getByTestId(`xdL-sign-${crossSignOptions(itL.poly, -itL.k, itL.seed).findIndex((o) => o.ok)}`).tap();
+  await expect(page.getByTestId('xdL-signed')).toBeVisible();
+  await expect(page.getByTestId('xd-pad-L').locator('.cx-card')).toHaveCount(itL.cards.length);
+  await solve(page, 'L');
+  await expect(page.getByTestId('xd-score-L')).toHaveText('1');
+  await page.getByTestId(`xdR-k-${itR.k}`).tap();
+  await expect(page.getByTestId('xdR-signopts')).toHaveCount(0);
+  await solve(page, 'R');
+  await expect(page.getByTestId('xd-score-R')).toHaveText('1');
 });

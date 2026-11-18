@@ -1,7 +1,7 @@
 // 十字交乘・全班連線對戰（伺服器）：每位同學各自的題目（伺服器出題、伺服器判定）、計分、自動升級、紅藍拔河。
 // 出題與判定用 shared/cross.ts（和老師大板同一套）；答案只在伺服器（StoredSession.crossPlay），不進 session 物件。
 import type { CrossLiveItem, CrossLiveResult, CrossLiveRow, CrossLiveView, CrossRun, User } from '../shared/types';
-import { CROSS_K_OPTIONS as SHARED_K_OPTIONS, crossItem, crossJudge, crossKOptions, crossSeed, factoredTex, polyTex, type CrossCard, type CrossItem, type CrossLevel, type CrossSlot } from '../shared/cross';
+import { CROSS_K_OPTIONS as SHARED_K_OPTIONS, crossItem, crossJudge, crossKAccepted, crossKOptions, crossNeedsSign, crossSeed, crossSignOptions, crossSignSalt, factoredTex, polyTex, type CrossCard, type CrossItem, type CrossLevel, type CrossSlot } from '../shared/cross';
 import { CROSS_LEVEL_FOCUS, crossLevelLabel, crossRunFocus } from '../shared/game-focus';
 import { DUEL_TEAMS, type DuelTeam } from '../shared/duel';
 import { sha256 } from './sha256';
@@ -28,8 +28,11 @@ export interface CrossSeat {
   cool?: number;
   /** 最近一分鐘內每一次送出的時間（每分鐘送出上限）。 */
   hits?: number[];
-  /** 目前這一題：題目種子、等級、發題時間、發出去的卡片（伺服器洗過、重新編號）、L3 公因數選項。 */
-  cur?: { id: string; seed: number; level: CrossLevel; issuedAt: number; cards: CrossCard[]; kOptions?: number[] };
+  /**
+   * 目前這一題：題目種子、等級、發題時間、發出去的卡片（伺服器洗過、重新編號）、L3 公因數選項。
+   * v = 2：這一版之後發的題（首項為負時可以先提正的公因數＋送出「提出負號」的選擇 sign）；5ca99fc 存的題沒有 v，照舊判定。
+   */
+  cur?: { id: string; seed: number; level: CrossLevel; issuedAt: number; cards: CrossCard[]; kOptions?: number[]; v?: 2 };
   /** 送出過的題目（最近 30 題；出題時避開自己做過的）。完整紀錄在 CrossPlay.log。 */
   past: { id: string; key: string; level: CrossLevel; seed: number; ok: boolean; points: number; ms: number; at: number }[];
 }
@@ -72,8 +75,11 @@ export interface CrossStore {
  * 快得不合理（L1 不到 2 秒、L2 不到 3 秒、L3 不到 4 秒）的答對沒有速度分（只拿基本分＋連對分）。
  */
 export const CROSS_SCORE = { base: { 1: 100, 2: 130, 3: 160 } as Record<CrossLevel, number>, speedMax: 50, speedFull: 10_000, speedZero: 40_000, streakStep: 10, streakMax: 50, plausible: { 1: 2000, 2: 3000, 3: 4000 } as Record<CrossLevel, number> };
-/** 防亂猜：答錯後冷卻（連錯 1、2、3 題以上：1.5、3、5 秒），冷卻中不能拿下一題、不能送出。 */
-export const CROSS_COOLDOWN = [1500, 3000, 5000];
+/**
+ * 防亂猜：答錯後冷卻（連錯 1、2、3 題以上：3、4、5 秒；答對歸零），冷卻中不能拿下一題、不能送出（被拒的不算作答）。
+ * 「答錯」包含公因數選錯、提出負號選錯（都在同一次送出裡判定）。和大板、對戰的答錯凍結（3 秒）一致。
+ */
+export const CROSS_COOLDOWN = [3000, 4000, 5000];
 /** 每位同學每分鐘最多送出幾次（一分鐘滑動視窗）。 */
 export const CROSS_PER_MINUTE = 15;
 /** 拿題目（含重複拿同一題）兩次最少間隔（毫秒；記憶體內限速，不寫入儲存）。 */
@@ -272,7 +278,7 @@ export function issueItem(run: CrossRun, store: CrossStore, seatNo: number, now:
     if (!others.has(item.key) && (!mine.has(item.key) || i > 200)) break;
   }
   const it = item!;
-  seat.cur = { id: randomId(), seed, level, issuedAt: now, cards: liveCards(it), ...(level === 3 ? { kOptions: kOptions() } : {}) };
+  seat.cur = { id: randomId(), seed, level, issuedAt: now, cards: liveCards(it), ...(level === 3 ? { kOptions: kOptions() } : {}), v: 2 };
   return seat;
 }
 /** 學生看到的題目：原式、卡片（含干擾卡）、左欄是否固定、L3 的公因數選項。不含答案、不標示干擾卡。 */
@@ -290,7 +296,14 @@ export function itemView(seat: CrossSeat): CrossLiveItem | undefined {
   };
 }
 
-/** 送出：itemId 要是目前這一題；四格填卡片 id（左欄固定時不填左欄）；L3 另外選公因數 k。 */
+/**
+ * 送出：itemId 要是目前這一題；四格填卡片 id（左欄固定時不填左欄）；L3 另外選公因數 k。
+ * 首項是負的、選了正的公因數（crossNeedsSign）：還要帶 sign＝「提出負號」選了第幾個選項
+ * （crossSignOptions(原式, k, crossSignSalt(題目 ID)) 的位置；伺服器重算同一份清單判定）。
+ * - v = 2 的題目：需要時一定要有 sign，不需要時不能有 sign（格式不對回 400，不算作答）。
+ * - 5ca99fc 發的舊題（沒有 v）：照舊的格式也收；沒有 sign 時正的公因數照舊判錯，有 sign 就照新規則判。
+ * 公因數、提出負號、十字圖三樣都對才算答對；分數和直接提出負的公因數一樣。
+ */
 export function submitCross(run: CrossRun, store: CrossStore, seatNo: number, body: Record<string, unknown>, now: number): CrossLiveResult {
   const seat = seatOf(store, run, seatNo);
   const cur = seat.cur;
@@ -322,14 +335,28 @@ export function submitCross(run: CrossRun, store: CrossStore, seatNo: number, bo
     used.add(id);
     fill[slot] = card.value;
   }
-  let k = 1;
+  let k = 1,
+    signOk = true,
+    kOk = true;
   if (cur.kOptions) {
     k = integer(body.k, -99, 99);
     assert(cur.kOptions?.includes(k), '請先選公因數');
-  }
+    const hasSign = body.sign !== undefined && body.sign !== null;
+    if (crossNeedsSign(it.poly, k)) {
+      assert(hasSign || !cur.v, '請先完成「提出負號」');
+      if (hasSign) {
+        const options = crossSignOptions(it.poly, k, crossSignSalt(cur.id));
+        const i = integer(body.sign, 0, options.length - 1);
+        signOk = options[i].ok;
+        kOk = crossKAccepted(it.poly, it.k, k);
+      } else kOk = k === it.k; // 舊題、舊格式：正的公因數照舊判錯
+    } else {
+      assert(!hasSign, '這一題不用提出負號');
+      kOk = crossKAccepted(it.poly, it.k, k);
+    }
+  } else assert(body.sign === undefined || body.sign === null, '這一題不用提出負號');
   const judge = crossJudge({ inner: it.inner, leadLocked: it.leadLocked, cards: cur.cards }, fill);
-  const kOk = k === it.k;
-  const ok = judge.ok && kOk;
+  const ok = judge.ok && kOk && signOk;
   const ms = Math.max(0, now - cur.issuedAt);
   const before = seat.streak;
   const pts = ok ? crossPoints(cur.level, ms, before) : { base: 0, speed: 0, streak: 0, total: 0 };
@@ -374,7 +401,7 @@ export function submitCross(run: CrossRun, store: CrossStore, seatNo: number, bo
   return {
     itemId: cur.id,
     ok,
-    reason: !kOk ? 'k' : judge.reason,
+    reason: !kOk ? 'k' : !signOk ? 'sign2' : judge.reason,
     products: judge.products,
     sum: judge.sum,
     target: it.inner.b,

@@ -547,6 +547,19 @@
   gap: 10px;
   min-height: calc(var(--xl-slot-h) + 4px);
 }
+/* 公因數／提出負號還沒選好：卡片匣只放一行說明（不產生卡片），空格不能點 */
+.xl-tray.locked {
+  align-items: center;
+}
+.xl-tray-wait {
+  color: var(--ink-2);
+  font-weight: 700;
+}
+.xl-slot.wait {
+  display: grid;
+  place-items: center;
+  cursor: default;
+}
 .xl-home {
   width: var(--xl-slot-w);
   height: var(--xl-slot-h);
@@ -745,4 +758,47 @@
 /* 混合時隱藏「自動進到下一個重點」（.xl-check 是 display:flex !important，要另外蓋過去） */
 .xl-check[hidden] {
   display: none !important;
+}
+
+/* 第 2 步「提出負號」：四個只差正負號的式子，兩列各 2 個 */
+.xl-sign {
+  display: grid;
+  gap: 8px;
+  font-weight: 700;
+}
+.xl-sign-opts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.xl-signbtn {
+  min-height: 52px;
+  border-radius: 12px;
+  border: 2px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+  font-size: 20px;
+}
+.xl-signbtn.on {
+  border-color: var(--cross-x);
+  background: var(--cross-x-bg);
+}
+/* 答錯後冷卻：「答錯了，N 秒後再試」倒數（伺服器時間） */
+.xl-cool {
+  margin: 6px 0 0;
+  padding: 8px 14px;
+  border-radius: 12px;
+  border: 2px solid var(--red);
+  background: #fff5f5;
+  color: #b42f33;
+  font-size: 22px;
+  font-weight: 800;
+  text-align: center;
+}
+.xl-cool[hidden] {
+  display: none;
+}
+.xl-cool b {
+  font-size: 1.3em;
+  font-variant-numeric: tabular-nums;
 }

@@ -70,21 +70,102 @@ test('wrong k feedback explains without revealing the answer; right k → null',
     for (const c of X.crossKOptions()) {
       if (c === it.k) continue;
       const msg = X.crossKFeedback(it.poly, it.k, c);
+      // 首項為負、選正的最大公因數：接受（之後要提出負號）
+      if (it.poly.a < 0 && c === -it.k) {
+        assert.equal(msg, null);
+        continue;
+      }
       assert.equal(typeof msg, 'string');
       // 說明只提到選的那個數，不寫出正確的公因數
       const nums = (msg.match(/−?\d+/g) || []).map((x) => Number(x.replace('−', '-')));
       for (const n of nums) assert.equal(n, c, `${msg} (k=${it.k})`);
       const divides = [it.poly.a, it.poly.b, it.poly.c].every((v) => v % c === 0);
       if (!divides) assert.match(msg, /不是三個係數的公因數/);
-      else if (it.poly.a < 0 && c > 0) assert.match(msg, /首項是負的/);
       else if (it.poly.a > 0 && c < 0) assert.match(msg, /首項是正的/);
       else assert.match(msg, /最大公因數|還有公因數/);
+      assert.doesNotMatch(msg, /首項是負的/, 'the old 「要連負號一起提出」 error is gone');
     }
   }
   assert.equal(X.crossKFeedback({ a: 4, b: 8, c: 12 }, 4, 2), '2 是公因數，但不是最大公因數');
-  assert.equal(X.crossKFeedback({ a: -1, b: 1, c: 6 }, -1, 1), '首項是負的，要連負號一起提出');
+  // 首項為負：正的最大公因數也接受（下一步提出負號）；−1 的題選 1 也接受
+  assert.equal(X.crossKFeedback({ a: -1, b: 1, c: 6 }, -1, 1), null);
+  assert.equal(X.crossKFeedback({ a: -2, b: 2, c: 12 }, -2, 2), null);
+  assert.equal(X.crossKFeedback({ a: -2, b: 2, c: 12 }, -2, 1), '提出 1 之後，括號裡的係數還有公因數');
+  assert.equal(X.crossKFeedback({ a: -2, b: 2, c: 12 }, -2, -1), '提出 −1 之後，括號裡的係數還有公因數');
   assert.equal(X.crossKFeedback({ a: 2, b: 10, c: 12 }, 2, -2), '首項是正的，不用提出負號');
   assert.equal(X.crossKFeedback({ a: 2, b: 10, c: 12 }, 2, 3), '3 不是三個係數的公因數');
+});
+
+test('freeze constant: 3 s shared by board and duel; the test override needs test=1 and is bounded', () => {
+  assert.equal(X.CROSS_WRONG_FREEZE_MS, 3000);
+  const f = (q) => D.crossTestFreeze(new URLSearchParams(q));
+  assert.equal(f(''), null);
+  assert.equal(f('freeze=0'), null, 'freeze without test=1 is ignored (normal use always 3 s)');
+  assert.equal(f('test=1'), null);
+  assert.equal(f('test=1&freeze=0'), 0);
+  assert.equal(f('test=1&freeze=1200'), 1200);
+  for (const bad of ['-1', 'abc', '1.5', '20000']) assert.equal(f(`test=1&freeze=${bad}`), null, bad);
+});
+
+test('先提公因式 with a negative leading coefficient: both paths (positive GCF + 提出負號, negative GCF directly) for every gcf item', () => {
+  let neg = 0;
+  for (let i = 0; i < 3000; i++) {
+    const it = X.crossItem(X.crossSeed(4242, 3, i), 3);
+    if (it.poly.a > 0) {
+      // 首項為正：選 −k 算錯（首項是正的，不用提出負號），也不會有第 2 步
+      assert.equal(X.crossKFeedback(it.poly, it.k, -it.k), '首項是正的，不用提出負號');
+      assert.equal(X.crossKAccepted(it.poly, it.k, -it.k), false);
+      assert.equal(X.crossNeedsSign(it.poly, it.k), false);
+      continue;
+    }
+    neg++;
+    const g = -it.k;
+    // 直接提出負的公因數：接受、不用第 2 步
+    assert.equal(X.crossKAccepted(it.poly, it.k, it.k), true);
+    assert.equal(X.crossNeedsSign(it.poly, it.k), false);
+    // 先提正的最大公因數：接受，接著第 2 步
+    assert.equal(X.crossKAccepted(it.poly, it.k, g), true, it.key);
+    assert.equal(X.crossNeedsSign(it.poly, g), true);
+    const opts = X.crossSignOptions(it.poly, g, it.seed);
+    assert.equal(opts.length, 4);
+    assert.equal(opts.filter((o) => o.ok).length, 1, 'exactly one correct sign option');
+    const right = opts.find((o) => o.ok);
+    // 正解：−g(括號裡首項為正) ＝ k·inner，接下來在 inner 上做十字交乘
+    assert.equal(right.outer, it.k);
+    assert.deepEqual(right.inner, it.inner);
+    const t = X.crossDivide(it.poly, g);
+    const texts = new Set(opts.map((o) => X.outerTex(o.outer, o.inner)));
+    assert.equal(texts.size, 4, 'options are distinct');
+    for (const o of opts) {
+      // 每個選項都只是 ±g(±T 的各項) ——從原式與選的 g 算得出來
+      assert.equal(Math.abs(o.outer), g);
+      for (const x of ['a', 'b', 'c']) assert.equal(Math.abs(o.inner[x]), Math.abs(t[x]));
+      // 選錯的選項乘開來不等於原式（只是正負號錯）
+      if (!o.ok) assert.notDeepEqual({ a: o.outer * o.inner.a, b: o.outer * o.inner.b, c: o.outer * o.inner.c }, it.poly);
+      // 不洩漏十字交乘的答案
+      const tex = X.outerTex(o.outer, o.inner);
+      for (const f of [X.factorTex(it.p, it.q), X.factorTex(it.r, it.s), X.factoredTex(it.k, it.p, it.q, it.r, it.s)]) assert(!tex.includes(f), `${tex} leaks ${f}`);
+    }
+    // 選項只由原式、g、salt 決定（和卡片、p、q、r、s 無關）：換一個答案不同但原式一樣的物件，選項一樣
+    assert.deepEqual(X.crossSignOptions({ ...it.poly }, g, it.seed), opts);
+    // 錯的大小（不整除或不是最大公因數）照舊算錯；不整除就沒有第 2 步
+    for (const c of X.crossKOptions()) {
+      if (c === it.k || c === g) continue;
+      assert.equal(X.crossKAccepted(it.poly, it.k, c), false, `${it.key} ${c}`);
+    }
+  }
+  assert(neg > 300, `enough negative-leading items (${neg})`);
+  // 順序有洗牌：正解不是永遠在同一個位置
+  const pos = new Set();
+  for (let s = 0; s < 40; s++) pos.add(X.crossSignOptions({ a: -2, b: 2, c: 12 }, 2, s).findIndex((o) => o.ok));
+  assert(pos.size >= 3, 'correct option position varies with the salt');
+  // 題目中的例子
+  const ex = X.crossSignOptions({ a: -2, b: 2, c: 12 }, 2, 1).map((o) => X.outerTex(o.outer, o.inner)).sort();
+  assert.deepEqual(ex, ['-2(-x^2+x+6)', '-2(x^2+x+6)', '-2(x^2-x-6)', '2(x^2-x-6)'].sort());
+  assert.equal(X.crossSignOptions({ a: -1, b: 1, c: 6 }, 1, 1).find((o) => o.ok).outer, -1);
+  assert.equal(X.outerTex(-1, { a: 1, b: -1, c: -6 }), '-(x^2-x-6)');
+  assert.equal(X.crossSignSalt('abc'), X.crossSignSalt('abc'));
+  assert.notEqual(X.crossSignSalt('abc'), X.crossSignSalt('abd'));
 });
 
 test('duel settings from the URL: focus / time defaults and validation; short times only with test=1', () => {

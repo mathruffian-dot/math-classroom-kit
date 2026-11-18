@@ -457,8 +457,9 @@ test('anti-guessing: escalating cooldown after wrong answers, per-minute submit 
     // 學生畫面也看得到冷卻時間（重新整理後一樣）
     assert.equal((await f.call(`/api/sessions/${s.id}`, 'GET', null, 'seat1')).body.cross.mine.cool, seat().cool);
   }
-  // 連錯 1、2、3、4 題：1.5、3、5、5 秒（允許測試執行的誤差）
-  for (const [i, want] of [1500, 3000, 5000, 5000].entries()) assert(cooldowns[i] >= want && cooldowns[i] < want + 1000, `cooldown ${i}: ${cooldowns[i]}`);
+  // 連錯 1、2、3、4 題：3、4、5、5 秒（允許測試執行的誤差）
+  assert.deepEqual(lib.CROSS_COOLDOWN, [3000, 4000, 5000]);
+  for (const [i, want] of [3000, 4000, 5000, 5000].entries()) assert(cooldowns[i] >= want && cooldowns[i] < want + 1000, `cooldown ${i}: ${cooldowns[i]}`);
   assert.equal(seat().attempts, 4);
   // 冷卻過了：拿題、答對（剛發題就送出：快得不合理，沒有速度分）→ 冷卻與連錯歸零
   seat().cool = Date.now() - 1;
@@ -1001,4 +1002,165 @@ test('R5-SF2: team winner and margin compare exact averages (no rounding before 
   const uneven = { ...run, margin: 100, teams: { 1: 'red', 2: 'red', 4: 'blue', 5: 'blue', 6: 'blue' } };
   assert.equal(lib.crossMarginWinner(uneven, store({ 1: 300, 4: 151 })), null);
   assert.equal(lib.crossMarginWinner(uneven, store({ 1: 301, 4: 151 })), 'red');
+});
+
+/** 把這位同學目前的題目換成指定的 L3 題（找第一個符合 want 的種子），回傳學生看到的題目。 */
+async function forceGcf(f, s, act, who, seatNo, want, opts = {}) {
+  unthrottle(f, s);
+  await act(who, { op: 'next' });
+  const plays = Object.values(f.data.sessions[s.id].crossPlay);
+  const x = plays[plays.length - 1].seats[String(seatNo)];
+  let seed = 1;
+  while (!want(cross.crossItem(seed, 3))) seed++;
+  const it = cross.crossItem(seed, 3);
+  x.cur = { ...x.cur, seed, level: 3, cards: lib.liveCards(it), kOptions: lib.kOptions(), ...(opts.legacy ? {} : { v: 2 }) };
+  if (opts.legacy) delete x.cur.v;
+  unthrottle(f, s);
+  const view = (await act(who, { op: 'next' })).body.item;
+  unthrottle(f, s);
+  return { view, it };
+}
+const signIndex = (view, g, ok = true) => cross.crossSignOptions(view.poly, g, cross.crossSignSalt(view.id)).findIndex((o) => o.ok === ok);
+
+test('cooldown 3 → 4 → 5 s for consecutive wrongs, back to 3 s after a correct one; a submit during the cooldown is rejected and not counted', async () => {
+  const { f, s, ctl, act } = await setup([1]);
+  assert.equal((await ctl({ action: 'cross-start', level: 1, lock: true })).status, 200);
+  const run = (await f.call(`/api/sessions/${s.id}`)).body.session.cross;
+  const seat = () => f.data.sessions[s.id].crossPlay[run.id].seats['1'];
+  const wrongOnce = async () => {
+    unthrottle(f, s);
+    const it = (await act('seat1', { op: 'next' })).body.item;
+    unthrottle(f, s);
+    const t0 = Date.now();
+    const w = (await act('seat1', { op: 'submit', itemId: it.id, ...wrongOf(it) })).body;
+    assert.equal(w.ok, false);
+    return w.mine.cool - t0;
+  };
+  const near = (ms, want) => assert(ms >= want && ms < want + 1000, `${ms} vs ${want}`);
+  near(await wrongOnce(), 3000);
+  near(await wrongOnce(), 4000);
+  // 冷卻中送出：伺服器拒絕（429），不算一次作答，冷卻時間不變
+  unthrottle(f, s);
+  const it = (await act('seat1', { op: 'next' })).body.item;
+  ready(f, s);
+  seat().cool = Date.now() + 2500;
+  const coolBefore = seat().cool,
+    attempts = seat().attempts;
+  const rejected = await act('seat1', { op: 'submit', itemId: it.id, ...solve(it) });
+  assert.equal(rejected.status, 429);
+  assert.match(rejected.body.error, /冷卻/);
+  assert.equal(seat().attempts, attempts, 'rejected submit is not an attempt');
+  assert.equal(seat().cool, coolBefore);
+  assert.equal(seat().cur.id, it.id, 'item is still open');
+  // 冷卻過了：答對 → 連錯歸零；再錯一次又是 3 秒
+  seat().cool = Date.now() - 1;
+  ready(f, s);
+  const ok = (await act('seat1', { op: 'submit', itemId: it.id, ...solve(it) })).body;
+  assert.equal(ok.ok, true);
+  assert.equal(seat().wrong, 0);
+  assert.equal(ok.mine.cool, undefined);
+  near(await wrongOnce(), 3000);
+});
+
+test('先提公因式, negative leading coefficient (live): positive GCF + server-judged 提出負號 scores the same as the negative GCF; wrong 提出負號 → cooldown; strict payload', async () => {
+  const { f, s, ctl, act } = await setup([1, 2]);
+  assert.equal((await ctl({ action: 'cross-start', focus: 'gcf' })).status, 200);
+  const negBig = (it) => it.k < -1;
+  // 座號 1：直接選負的公因數
+  const A = await forceGcf(f, s, act, 'seat1', 1, negBig);
+  assert(A.view.kOptions && A.view.poly.a < 0);
+  assert(!('signOptions' in A.view), 'no step-2 options are sent before k is chosen');
+  const a = (await act('seat1', { op: 'submit', itemId: A.view.id, ...solve(A.view) })).body;
+  assert.equal(a.ok, true);
+  // 座號 2：先選正的最大公因數，再選「提出負號」的正解
+  const B = await forceGcf(f, s, act, 'seat2', 2, negBig);
+  const solB = solve(B.view);
+  const g = -solB.k;
+  // 需要提出負號卻沒有 sign：格式不對（400），不算作答
+  const seat2 = () => Object.values(f.data.sessions[s.id].crossPlay).at(-1).seats['2'];
+  for (const bad of [{}, { sign: 4 }, { sign: -1 }, { sign: 1.5 }, { sign: 'a' }]) {
+    unthrottle(f, s);
+    const r = await act('seat2', { op: 'submit', itemId: B.view.id, cards: solB.cards, k: g, ...bad });
+    assert.equal(r.status, 400, JSON.stringify(bad));
+    assert.equal(seat2().attempts, 0);
+  }
+  // 選負的 k 卻帶 sign：格式不對
+  unthrottle(f, s);
+  assert.equal((await act('seat2', { op: 'submit', itemId: B.view.id, ...solB, sign: 0 })).status, 400);
+  unthrottle(f, s);
+  const b = (await act('seat2', { op: 'submit', itemId: B.view.id, cards: solB.cards, k: g, sign: signIndex(B.view, g) })).body;
+  assert.equal(b.ok, true, JSON.stringify(b));
+  assert.equal(b.points.total, a.points.total, 'both paths score the same');
+  assert.equal(b.k, a.k);
+  // 提出負號選錯：sign2、冷卻 3 秒
+  const C = await forceGcf(f, s, act, 'seat2', 2, negBig);
+  const solC = solve(C.view);
+  const t0 = Date.now();
+  const c = (await act('seat2', { op: 'submit', itemId: C.view.id, cards: solC.cards, k: -solC.k, sign: signIndex(C.view, -solC.k, false) })).body;
+  assert.equal(c.ok, false);
+  assert.equal(c.reason, 'sign2');
+  assert(c.mine.cool - t0 >= 3000 && c.mine.cool - t0 < 4000);
+  // 首項為負、選錯的大小（1）：也要先提出負號，判定是公因數錯
+  const D = await forceGcf(f, s, act, 'seat1', 1, negBig);
+  const solD = solve(D.view);
+  const d = (await act('seat1', { op: 'submit', itemId: D.view.id, cards: solD.cards, k: 1, sign: signIndex(D.view, 1) })).body;
+  assert.equal(d.ok, false);
+  assert.equal(d.reason, 'k');
+  // 首項為正：選 −k 判錯，帶 sign 是格式錯誤
+  const E = await forceGcf(f, s, act, 'seat1', 1, (it) => it.k > 1);
+  const solE = solve(E.view);
+  assert.equal((await act('seat1', { op: 'submit', itemId: E.view.id, cards: solE.cards, k: -solE.k, sign: 0 })).status, 400);
+  unthrottle(f, s);
+  const e2 = (await act('seat1', { op: 'submit', itemId: E.view.id, cards: solE.cards, k: -solE.k })).body;
+  assert.equal(e2.ok, false);
+  assert.equal(e2.reason, 'k');
+  // 不是 L3 的題目不能帶 sign
+  assert.equal((await ctl({ action: 'cross-start', focus: 'a1' })).status, 200);
+  unthrottle(f, s);
+  const L1 = (await act('seat1', { op: 'next' })).body.item;
+  unthrottle(f, s);
+  assert.equal((await act('seat1', { op: 'submit', itemId: L1.id, ...solve(L1), sign: 0 })).status, 400);
+  // 學生收到的回應：送出前沒有任何提出負號的選項或答案
+  for (const m of f.seen.filter((x) => x.op === 'next')) assert(!/"sign|"factored"/.test(m.text), m.text.slice(0, 200));
+});
+
+test('legacy 5ca99fc state: in-progress items without v accept the old payload; old cooldown fields still load and block', async () => {
+  const { f, s, ctl, act } = await setup([1]);
+  assert.equal((await ctl({ action: 'cross-start', focus: 'gcf' })).status, 200);
+  // 舊題（沒有 v）：舊格式（直接選負的 k）照樣判對
+  const A = await forceGcf(f, s, act, 'seat1', 1, (it) => it.k < -1, { legacy: true });
+  const a = (await act('seat1', { op: 'submit', itemId: A.view.id, ...solve(A.view) })).body;
+  assert.equal(a.ok, true);
+  // 舊題、舊格式、正的公因數（沒有 sign）：照舊判錯，不是 400
+  const B = await forceGcf(f, s, act, 'seat1', 1, (it) => it.k < -1, { legacy: true });
+  const solB = solve(B.view);
+  const b = await act('seat1', { op: 'submit', itemId: B.view.id, cards: solB.cards, k: -solB.k });
+  assert.equal(b.status, 200);
+  assert.equal(b.body.ok, false);
+  assert.equal(b.body.reason, 'k');
+  // 舊題帶新格式（新版畫面送的 sign）：照新規則判
+  const C = await forceGcf(f, s, act, 'seat1', 1, (it) => it.k < -1, { legacy: true });
+  const solC = solve(C.view);
+  const c = (await act('seat1', { op: 'submit', itemId: C.view.id, cards: solC.cards, k: -solC.k, sign: signIndex(C.view, -solC.k) })).body;
+  assert.equal(c.ok, true);
+  // 5ca99fc 存下的冷卻欄位（wrong、cool）照樣讀得到、照樣擋
+  const plays = Object.values(f.data.sessions[s.id].crossPlay);
+  const x = plays[plays.length - 1].seats['1'];
+  delete x.cur;
+  x.wrong = 2;
+  x.cool = Date.now() + 5000;
+  ready(f, s);
+  const blocked = await act('seat1', { op: 'next' });
+  assert.equal(blocked.status, 429);
+  const view = (await f.call(`/api/sessions/${s.id}`, 'GET', null, 'seat1')).body.cross.mine;
+  assert.equal(view.cool, x.cool);
+  // 冷卻過了：下一次答錯接著連錯的次數（第 3 題 → 5 秒）
+  x.cool = Date.now() - 1;
+  ready(f, s);
+  const it = (await act('seat1', { op: 'next' })).body.item;
+  assert.equal(f.data.sessions[s.id].crossPlay[Object.keys(f.data.sessions[s.id].crossPlay).at(-1)].seats['1'].cur.v, 2, 'new items are v2');
+  unthrottle(f, s);
+  const t0 = Date.now();
+  const w = (await act('seat1', { op: 'submit', itemId: it.id, ...wrongOf(it) })).body;
+  assert(w.mine.cool - t0 >= 5000 && w.mine.cool - t0 < 6000);
 });

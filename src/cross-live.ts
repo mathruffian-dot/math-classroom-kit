@@ -4,12 +4,18 @@
  * - 老師控制區：重點（x² 係數為 1／不為 1／先提公因式／混合）、要不要自動進到下一個重點、限時、紅藍拔河；暫停／繼續、結束、重新開始。
  * - 學生 iPad：原式、十字圖四格、卡片匣、送出。點卡片 → 點格子；點已放的格子收回。
  *   送出後先顯示中性的「已送出／判定中」並鎖住，不在本機猜對錯；伺服器回來才換成 ✓／✗。
+ *   L3 首項是負的：可以直接選負的公因數，或先選正的、再選「提出負號」的式子（crossSignOptions，順序由題目 ID 決定）；
+ *   公因數、提出負號、四格在同一次送出裡由伺服器判定（payload 帶 k 與 sign）。
+ *   答錯後顯示「答錯了，N 秒後再試」倒數（伺服器給的冷卻時間 mine.cool，用伺服器時間算；本機不能縮短），
+ *   答錯的擺法留在畫面上，倒數完才能拿下一題。沒有本機判定（重新整理）時由 mine.cool 重建倒數畫面（mode 'cool'）；
+ *   送出被 429／409 拒絕時和伺服器重新同步。
+ *   公因數（與需要時的提出負號）選好之前，不產生卡片、固定左欄與 data-value，放卡／收回也在處理函式擋掉。
  *   同學得分的推送只更新分數、名次、拔河這幾個小元素，不重畫題目。
  * 出題、判定都在伺服器（worker/cross.ts，用 shared/cross.ts），學生端拿不到答案。
  */
 import './cross-live.css';
 import type { CrossLiveItem, CrossLiveResult, CrossLiveView, SessionView, Session } from '../shared/types';
-import { leadText, polyTex, signed, numText, type CrossLevel, type CrossSlot } from '../shared/cross';
+import { crossDivide, crossNeedsSign, crossSignOptions, crossSignSalt, leadText, outerTex, polyTex, signed, numText, type CrossLevel, type CrossSlot } from '../shared/cross';
 import { CROSS_FOCUS, crossFocusById, crossLevelLabel, crossNextFocus, crossRunFocus, type CrossFocusId } from '../shared/game-focus';
 import { focusLabelHtml, focusOptionHtml } from './cross-board';
 import { DUEL_TEAM_NAME, type DuelTeam } from '../shared/duel';
@@ -47,10 +53,12 @@ export const crossLocal = {
   placed: emptyPlaced(),
   sel: null as string | null,
   k: null as number | null,
+  /** 「提出負號」選了第幾個選項（只有首項為負、選了正的公因數才需要） */
+  sign: null as number | null,
   /** 送出中：哪個世代、路由、課堂、場次、題目（晚到的回應對不上就丟掉）。 */
   pending: null as null | { gen: number; route: number; session: string; run: string; item: CrossLiveItem },
   /** 判定結果（下一題之前一直顯示）。 */
-  result: null as null | { gen: number; run: string; item: CrossLiveItem; placed: Placed; k: number | null; r: CrossLiveResult },
+  result: null as null | { gen: number; run: string; item: CrossLiveItem; placed: Placed; k: number | null; sign: number | null; r: CrossLiveResult },
   /** 拿題目中（這一個請求的記號；舊請求結束時對不上就不清）。 */
   fetching: null as object | null,
   /** 這個範圍內看過最新的 revision（回應與推送）：比它舊的回應、推送不蓋掉本機的題目與分數。 */
@@ -253,14 +261,16 @@ function shownItem(v: CrossLiveView): CrossLiveItem | undefined {
   if (res) return res.item;
   return v.mine?.item;
 }
-function mode(v: CrossLiveView, now: number): 'wait' | 'item' | 'pending' | 'result' | 'paused' | 'over' {
+function mode(v: CrossLiveView, now: number): 'wait' | 'cool' | 'item' | 'pending' | 'result' | 'paused' | 'over' {
   const runId = v.run.id;
   if (pendingOf(runId)) return 'pending';
   const phase = crossPhase(v, now);
   if (phase === 'over') return 'over';
   if (resultOf(runId)) return 'result';
   if (phase === 'paused') return 'paused';
-  return v.mine?.item ? 'item' : 'wait';
+  if (v.mine?.item) return 'item';
+  // 沒有本機判定（例如答錯後重新整理）但伺服器說還在冷卻：倒數畫面由 mine.cool 重建，倒數完回到 wait 自動拿題
+  return coolLeft(v.mine?.cool, now) > 0 ? 'cool' : 'wait';
 }
 /** 卡片什麼時候要整個重畫：換場、換題、送出／判定、暫停、結束。同學得分不會改變這個 key。 */
 export function crossCardKey(v: CrossLiveView, now: number) {
@@ -275,6 +285,21 @@ function syncLocal(it: CrossLiveItem | undefined) {
   crossLocal.placed = emptyPlaced();
   crossLocal.sel = null;
   crossLocal.k = it.kOptions ? null : 1;
+  crossLocal.sign = null;
+}
+/** 答錯後的冷卻還剩幾秒（伺服器時間） */
+const coolLeft = (cool: number | undefined, now: number) => (cool ? Math.ceil((cool - now) / 1000) : 0);
+/** 這一題選了 k 之後要不要做「提出負號」，以及選項（只用公開的原式與選的 k 算） */
+function signStep(it: CrossLiveItem, k: number | null) {
+  if (!it.kOptions || k === null || !crossNeedsSign(it.poly, k)) return null;
+  return crossSignOptions(it.poly, k, crossSignSalt(it.id));
+}
+/**
+ * 公因數（與需要時的「提出負號」）都選好了，才能放卡片：
+ * 之前不產生卡片、固定左欄、data-value，放卡／收回的處理也擋掉（不只靠 CSS）。
+ */
+function workReady(it: CrossLiveItem, k: number | null, sign: number | null) {
+  return !it.kOptions || (k !== null && (!signStep(it, k) || sign !== null));
 }
 export function crossCardHtml(v: CrossLiveView, now: number): string {
   ensureScope(H.view());
@@ -287,27 +312,44 @@ export function crossCardHtml(v: CrossLiveView, now: number): string {
   let body = '';
   if (m === 'over') body = `<div class="xl-over" data-testid="xl-over"><h3>${H.esc(v.run.team ? winnerText(v) : '這一場結束')}</h3><p>你答對 <b>${v.mine?.correct || 0}</b> 題（作答 ${v.mine?.attempts || 0} 題），得 <b>${v.mine?.score || 0}</b> 分。</p></div>`;
   else if (m === 'paused') body = `<div class="xl-over" data-testid="xl-paused"><h3>老師暫停中</h3><p>等老師按「繼續」。</p></div>`;
-  else if (m === 'wait') body = `<div class="xl-over" data-testid="xl-wait"><p>拿題目中…</p>${H.btn('拿題目', 'xl-next', 'primary xl-big', 'next', 'data-testid="xl-next"')}</div>`;
-  else if (it) body = questionHtml(it, m);
+  else if (m === 'wait') body = `<div class="xl-over" data-testid="xl-wait"><p>拿題目中…</p>${nextBtnHtml('拿題目')}</div>`;
+  else if (m === 'cool') body = `<div class="xl-over" data-testid="xl-wait-cool"><p class="xl-cool" data-xl="cool" data-testid="xl-cool" role="status">答錯了，<b data-xl="cool-n" data-testid="xl-cool-n">${Math.max(1, coolLeft(v.mine?.cool, now))}</b> 秒後再試</p>${nextBtnHtml('下一題', true)}</div>`;
+  else if (it) body = questionHtml(it, m, coolLeft(v.mine?.cool, now));
   return `<div class="xl-card ${m}" data-testid="xl-card" data-mode="${m}">${head}${body}</div>`;
 }
-function questionHtml(it: CrossLiveItem, m: 'item' | 'pending' | 'result') {
+/** 「下一題／拿題目」：帶 data-xl="next"，冷卻中 updateCrossCard 會停用並倒數。 */
+function nextBtnHtml(label: string, disabled = false) {
+  return `<button type="button" class="btn primary xl-big ${disabled ? 'xl-cooling' : ''}" data-action="xl-next" data-testid="xl-next" data-xl="next" data-label="${label}" ${disabled ? 'disabled' : ''}>${H.icon('next')}<span data-xl="next-label">${label}</span></button>`;
+}
+function questionHtml(it: CrossLiveItem, m: 'item' | 'pending' | 'result', cool = 0) {
   const res = m === 'result' ? crossLocal.result : null;
   const placed = res ? res.placed : crossLocal.placed;
   const k = res ? res.k : crossLocal.k;
-  const lockedK = !!it.kOptions && k === null;
+  const sign = res ? res.sign : crossLocal.sign;
+  const signs = signStep(it, k);
+  const lockedK = !workReady(it, k, sign);
   const kStep = it.kOptions
     ? `<div class="xl-k" data-testid="xl-k"><span>先提出公因數：</span>${it.kOptions.map((x) => `<button type="button" class="xl-kbtn ${k === x ? 'on' : ''}" data-action="xl-k" data-k="${x}" data-testid="xl-k-${x}" ${m !== 'item' ? 'disabled' : ''}>${numText(x)}</button>`).join('')}</div>`
     : '';
-  const lead = (slot: CrossSlot) => slotHtml(it, slot, placed, m);
-  const kText = k === null || k === 1 ? '' : k === -1 ? '−' : numText(k);
-  const verdict = res ? verdictHtml(res.r) : m === 'pending' ? '<p class="xl-flash pending" data-testid="xl-flash">已送出／判定中…</p>' : '<p class="xl-flash" data-testid="xl-flash"></p>';
+  // 第 2 步「提出負號」：選了正的公因數之後，先看到 原式 = g(原式 ÷ g)（公開的代數），再選四個只差正負號的式子之一
+  const signStepHtml =
+    signs && k !== null
+      ? `<div class="xl-sign" data-testid="xl-sign"><span>提出負號：${H.tex(`${polyTex(it.poly)}=${k === 1 ? '' : k}(${polyTex(crossDivide(it.poly, k))})`)}</span><div class="xl-sign-opts">${signs.map((o, i) => `<button type="button" class="xl-signbtn ${sign === i ? 'on' : ''}" data-action="xl-sign" data-sign="${i}" data-testid="xl-sign-${i}" ${m !== 'item' ? 'disabled' : ''}>${H.tex(outerTex(o.outer, o.inner))}</button>`).join('')}</div></div>`
+      : '';
+  const lead = (slot: CrossSlot) => (lockedK ? lockedSlotHtml(slot) : slotHtml(it, slot, placed, m));
+  const outer = signs ? (sign !== null ? signs[sign].outer : null) : k;
+  const kText = outer === null || outer === 1 ? '' : outer === -1 ? '−' : numText(outer);
+  const verdict = res ? verdictHtml(res.r, cool) : m === 'pending' ? '<p class="xl-flash pending" data-testid="xl-flash">已送出／判定中…</p>' : '<p class="xl-flash" data-testid="xl-flash"></p>';
   // 答錯後的冷卻：「下一題」先停用並倒數（中性的灰色，不是錯誤訊息），updateCrossCard 每 0.5 秒更新
   const action =
     m === 'result'
-      ? `<button type="button" class="btn primary xl-big" data-action="xl-next" data-testid="xl-next" data-xl="next">${H.icon('next')}<span data-xl="next-label">下一題</span></button>`
+      ? nextBtnHtml('下一題')
       : `<button type="button" class="btn primary xl-big xl-submit" data-action="xl-submit" data-testid="xl-submit" ${m !== 'item' ? 'disabled' : ''}>${H.icon('check')}<span>${m === 'pending' ? '判定中…' : '送出'}</span></button>`;
-  return `<div class="xl-q" data-testid="xl-question" data-item="${H.esc(it.id)}"><span class="xl-lvtag" data-testid="xl-item-focus" data-level="${it.level}">${focusLabelHtml(crossLevelLabel(it.level))}</span><div class="xl-poly" data-testid="xl-poly" data-a="${it.poly.a}" data-b="${it.poly.b}" data-c="${it.poly.c}">${H.tex(polyTex(it.poly))}</div>${kText ? `<div class="xl-inner">＝ ${H.esc(kText)}(　　)(　　)</div>` : ''}</div>${kStep}<div class="xl-work ${lockedK ? 'locked' : ''}" data-xl="work"><div class="xl-cross" data-testid="xl-cross"><div class="xl-colhead">x 係數</div><div></div><div class="xl-colhead">常數</div>${lead('lead0')}<svg class="xl-x" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><line x1="6" y1="10" x2="94" y2="90"/><line x1="6" y1="90" x2="94" y2="10"/></svg>${lead('const0')}${lead('lead1')}${lead('const1')}</div>${lockedK ? '<div class="xl-lock">先選公因數</div>' : ''}</div><div class="xl-tray" data-xl="tray" data-testid="xl-tray">${it.cards.map((c) => trayCardHtml(it, c.id, placed, m)).join('')}</div>${verdict}<div class="xl-actions">${action}</div>`;
+  return `<div class="xl-q" data-testid="xl-question" data-item="${H.esc(it.id)}"><span class="xl-lvtag" data-testid="xl-item-focus" data-level="${it.level}">${focusLabelHtml(crossLevelLabel(it.level))}</span><div class="xl-poly" data-testid="xl-poly" data-a="${it.poly.a}" data-b="${it.poly.b}" data-c="${it.poly.c}">${H.tex(polyTex(it.poly))}</div>${kText ? `<div class="xl-inner">＝ ${H.esc(kText)}(　　)(　　)</div>` : ''}</div>${kStep}${signStepHtml}<div class="xl-work ${lockedK ? 'locked' : ''}" data-xl="work"><div class="xl-cross" data-testid="xl-cross"><div class="xl-colhead">x 係數</div><div></div><div class="xl-colhead">常數</div>${lead('lead0')}<svg class="xl-x" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><line x1="6" y1="10" x2="94" y2="90"/><line x1="6" y1="90" x2="94" y2="10"/></svg>${lead('const0')}${lead('lead1')}${lead('const1')}</div>${lockedK ? `<div class="xl-lock">${k === null ? '先選公因數' : '先選「提出負號」'}</div>` : ''}</div><div class="xl-tray ${lockedK ? 'locked' : ''}" data-xl="tray" data-testid="xl-tray">${lockedK ? '<span class="xl-tray-wait" data-testid="xl-tray-wait">完成上面的步驟後才會出現卡片</span>' : it.cards.map((c) => trayCardHtml(it, c.id, placed, m)).join('')}</div>${verdict}<div class="xl-actions">${action}</div>`;
+}
+/** 還不能放卡時的空格：不帶 data-action／卡片內容，也不顯示固定左欄 */
+function lockedSlotHtml(slot: CrossSlot) {
+  return `<div class="xl-slot ${slot.startsWith('lead') ? 'lead' : 'const'} wait" data-testid="xl-slot-${slot}" aria-disabled="true"><span class="xl-empty">?</span></div>`;
 }
 function slotHtml(it: CrossLiveItem, slot: CrossSlot, placed: Placed, m: string) {
   const kind = slot.startsWith('lead') ? 'lead' : 'const';
@@ -323,11 +365,11 @@ function trayCardHtml(it: CrossLiveItem, id: string, placed: Placed, m: string) 
   const used = SLOTS.some((s) => placed[s] === id);
   return `<span class="xl-home"><button type="button" class="xl-card-btn ${c.kind} ${crossLocal.sel === id && m === 'item' ? 'sel' : ''} ${used ? 'used' : ''}" data-action="xl-card" data-card="${H.esc(id)}" data-testid="xl-card-${H.esc(id)}" data-kind="${c.kind}" data-value="${c.value}" aria-pressed="${crossLocal.sel === id}" ${m !== 'item' || used ? 'disabled' : ''}>${H.esc(cardText(c.kind, c.value))}</button></span>`;
 }
-function verdictHtml(r: CrossLiveResult) {
-  const why: Record<string, string> = { k: '公因數選錯了', sign: '左欄要是正的', lead: '左欄相乘不等於 x² 係數', const: '右欄相乘不等於常數項', sum: '交叉相乘的和不對', card: '卡片放錯了', incomplete: '四格還沒放滿', invalid: '卡片不正確' };
+function verdictHtml(r: CrossLiveResult, cool = 0) {
+  const why: Record<string, string> = { k: '公因數選錯了', sign2: '提出負號選錯了（負號要提到括號外，括號內每一項都要變號）', sign: '左欄要是正的', lead: '左欄相乘不等於 x² 係數', const: '右欄相乘不等於常數項', sum: '交叉相乘的和不對', card: '卡片放錯了', incomplete: '四格還沒放滿', invalid: '卡片不正確' };
   const [ps, rq] = r.products;
   const products = ps !== null && rq !== null ? `交叉相乘 ${numText(ps)} ＋ ${numText(rq)} ＝ ${numText(ps + rq)}（目標 ${numText(r.target)}）` : '';
-  return `<div class="xl-flash ${r.ok ? 'ok' : 'no'}" data-testid="xl-flash" data-ok="${r.ok}"><b>${r.ok ? `✓ 答對！＋${r.points.total} 分` : `✗ ${H.esc(why[r.reason || ''] || '不對')}`}</b>${r.ok ? `<small>基本 ${r.points.base}・速度 ${r.points.speed}・連對 ${r.points.streak}${r.levelUp ? `・進到「${H.esc(crossLevelLabel(r.level))}」！` : ''}</small>` : ''}<small>${products}</small><span class="xl-answer" data-testid="xl-answer">${H.tex(`${r.poly}=${r.factored}`)}</span></div>`;
+  return `<div class="xl-flash ${r.ok ? 'ok' : 'no'}" data-testid="xl-flash" data-ok="${r.ok}"><b>${r.ok ? `✓ 答對！＋${r.points.total} 分` : `✗ ${H.esc(why[r.reason || ''] || '不對')}`}</b>${r.ok ? `<small>基本 ${r.points.base}・速度 ${r.points.speed}・連對 ${r.points.streak}${r.levelUp ? `・進到「${H.esc(crossLevelLabel(r.level))}」！` : ''}</small>` : ''}<small>${products}</small><span class="xl-answer" data-testid="xl-answer">${H.tex(`${r.poly}=${r.factored}`)}</span>${r.ok ? '' : `<p class="xl-cool" data-xl="cool" data-testid="xl-cool" role="status" ${cool > 0 ? '' : 'hidden'}>答錯了，<b data-xl="cool-n" data-testid="xl-cool-n">${Math.max(1, cool)}</b> 秒後再試</p>`}</div>`;
 }
 /** 同學得分、時間：只更新這幾個小元素，不重畫題目。 */
 export function updateCrossCard(root: HTMLElement, v: CrossLiveView, now: number) {
@@ -350,7 +392,15 @@ export function updateCrossCard(root: HTMLElement, v: CrossLiveView, now: number
     const cooling = wait > 0;
     if (next.disabled !== cooling) next.disabled = cooling;
     next.classList.toggle('xl-cooling', cooling);
-    set('next-label', cooling ? `下一題（${wait} 秒）` : '下一題');
+    const label = next.dataset.label || '下一題';
+    set('next-label', cooling ? `${label}（${wait} 秒）` : label);
+  }
+  // 答錯的冷卻倒數（伺服器時間）：倒數完自動收起
+  const cool = root.querySelector<HTMLElement>('[data-xl="cool"]');
+  if (cool) {
+    const wait = coolLeft(mine?.cool, now);
+    if (cool.hidden !== wait <= 0) cool.hidden = wait <= 0;
+    if (wait > 0) set('cool-n', String(wait));
   }
 }
 /** 學生要求結算前多等一點（每台 iPad 不同），全班不會同一瞬間送出。 */
@@ -383,11 +433,13 @@ function rerenderWork(root: HTMLElement) {
   const html = questionHtml(it, 'item');
   const tmp = document.createElement('div');
   tmp.innerHTML = html;
-  for (const sel of ['[data-xl="work"]', '[data-xl="tray"]', '.xl-k', '.xl-inner']) {
+  for (const sel of ['[data-xl="work"]', '[data-xl="tray"]', '.xl-k', '.xl-inner', '.xl-sign']) {
     const now = root.querySelector(sel),
       next = tmp.querySelector(sel);
     if (now && next) now.replaceWith(next);
     else if (!now && next && sel === '.xl-inner') root.querySelector('.xl-q')?.append(next);
+    else if (!now && next && sel === '.xl-sign') root.querySelector('.xl-k')?.after(next);
+    else if (now && !next && (sel === '.xl-sign' || sel === '.xl-inner')) now.remove();
   }
 }
 /** 回傳 true：這個 data-action 是十字交乘對戰的。 */
@@ -409,14 +461,14 @@ export async function crossAct(act: string, el: HTMLElement, renderCard: () => v
   if (!cv || !v.session.cross) return true;
   const it = shownItem(cv);
   if (act === 'xl-card') {
-    if (!it || mode(cv, H.serverTime()) !== 'item') return true;
+    if (!it || mode(cv, H.serverTime()) !== 'item' || !workReady(it, crossLocal.k, crossLocal.sign)) return true;
     const id = el.dataset.card!;
     crossLocal.sel = crossLocal.sel === id ? null : id;
     if (root) rerenderWork(root);
     return true;
   }
   if (act === 'xl-slot') {
-    if (!it || mode(cv, H.serverTime()) !== 'item') return true;
+    if (!it || mode(cv, H.serverTime()) !== 'item' || !workReady(it, crossLocal.k, crossLocal.sign)) return true;
     const slot = el.dataset.slot as CrossSlot;
     const sel = crossLocal.sel;
     if (sel) {
@@ -434,7 +486,16 @@ export async function crossAct(act: string, el: HTMLElement, renderCard: () => v
   }
   if (act === 'xl-k') {
     if (!it || mode(cv, H.serverTime()) !== 'item') return true;
-    crossLocal.k = Number(el.dataset.k);
+    const k = Number(el.dataset.k);
+    if (crossLocal.k !== k) crossLocal.sign = null;
+    crossLocal.k = k;
+    if (!workReady(it, k, crossLocal.sign)) crossLocal.sel = null;
+    if (root) rerenderWork(root);
+    return true;
+  }
+  if (act === 'xl-sign') {
+    if (!it || mode(cv, H.serverTime()) !== 'item' || !signStep(it, crossLocal.k)) return true;
+    crossLocal.sign = Number(el.dataset.sign);
     if (root) rerenderWork(root);
     return true;
   }
@@ -494,15 +555,18 @@ async function submit(renderCard: () => void) {
   const it = shownItem(cv);
   if (!it || mode(cv, H.serverTime()) !== 'item') return;
   const need = SLOTS.filter((s) => !(it.leadLocked && s.startsWith('lead')));
-  if (need.some((s) => !crossLocal.placed[s])) return H.toast('四格都要放卡片');
   if (it.kOptions && crossLocal.k === null) return H.toast('先選公因數');
+  const needSign = !!signStep(it, crossLocal.k);
+  if (needSign && crossLocal.sign === null) return H.toast('先完成「提出負號」');
+  if (need.some((s) => !crossLocal.placed[s])) return H.toast('四格都要放卡片');
   const placed = { ...crossLocal.placed };
   const k = crossLocal.k;
+  const sign = needSign ? crossLocal.sign : null;
   const pend = (crossLocal.pending = { gen: crossLocal.gen, route: H.route(), session: v.session.id, run: cv.run.id, item: it });
   renderCard(); // 中性的「已送出／判定中」，鎖住
   const cards = Object.fromEntries(need.map((s) => [s, placed[s]]));
   try {
-    const r = await H.api<CrossLiveResult & { revision: number; over: boolean; team?: DuelTeam }>(`/sessions/${pend.session}/cross`, 'POST', { runId: pend.run, op: 'submit', itemId: it.id, cards, ...(it.kOptions ? { k } : {}) });
+    const r = await H.api<CrossLiveResult & { revision: number; over: boolean; team?: DuelTeam }>(`/sessions/${pend.session}/cross`, 'POST', { runId: pend.run, op: 'submit', itemId: it.id, cards, ...(it.kOptions ? { k } : {}), ...(sign !== null ? { sign } : {}) });
     const now = H.view();
     ensureScope(now);
     // 晚到的回應：已經換頁、換課、換場（世代變了）或不是這一題，就不要動現在的畫面（自己的判定中也要清掉）
@@ -512,7 +576,7 @@ async function submit(renderCard: () => void) {
     }
     crossLocal.done.add(it.id);
     crossLocal.pending = null;
-    crossLocal.result = { gen: pend.gen, run: pend.run, item: it, placed, k, r };
+    crossLocal.result = { gen: pend.gen, run: pend.run, item: it, placed, k, sign, r };
     const mine = now.cross.mine || blankMine(r.level);
     if (r.revision >= crossLocal.revision) {
       // 伺服器算好的統計直接指派（推送先到也不會重複加）
@@ -529,7 +593,8 @@ async function submit(renderCard: () => void) {
     if (pend.gen !== crossLocal.gen) return;
     const status = (e as { status?: number }).status;
     H.toast((e as Error).message, status !== 429);
-    if (status === 409) H.resync();
+    // 409（題目已送出）、429（冷卻中／限速）：和伺服器重新同步，冷卻倒數由 mine.cool 重建
+    if (status === 409 || status === 429) H.resync();
   } finally {
     if (pend.gen === crossLocal.gen) renderCard();
   }
@@ -563,6 +628,7 @@ export function resetCrossLocal(scope = '') {
   crossLocal.placed = emptyPlaced();
   crossLocal.sel = null;
   crossLocal.k = null;
+  crossLocal.sign = null;
   crossLocal.pending = null;
   crossLocal.result = null;
   crossLocal.fetching = null;

@@ -2402,7 +2402,8 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
           await ctx.scheduleCross?.(session.id, null);
         }
         session.revision++;
-        return save({ ...result, revision: session.revision, over: !!run.endedAt, ...(team ? { team } : {}) });
+        // serverNow：學生端在收到判定的同一刻校正時間差，冷卻倒數（mine.cool）不會因為回應延遲多算 1 秒
+        return save({ ...result, revision: session.revision, over: !!run.endedAt, serverNow: Date.now(), ...(team ? { team } : {}) });
       }
       if (action === 'raid' && method === 'POST') {
         // 魔王戰：選角色、選一類題目（每一題都可以換）、作答（答錯鎖 5 秒）

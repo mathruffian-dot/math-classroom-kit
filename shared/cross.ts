@@ -221,16 +221,77 @@ export function crossKOptions(): number[] {
   return [...CROSS_K_OPTIONS];
 }
 /**
- * 選錯公因數時的說明（不洩漏答案：只說選的數哪裡不對）。選對回傳 null。
+ * 選公因數的說明（不洩漏答案：只說選的數哪裡不對）。選的數可以接受時回傳 null：
+ * - 選對 k（首項是負的時 k 是負數，連負號一起提）；
+ * - 首項是負的、選了正的最大公因數（−k）：也算對，下一步要「提出負號」（crossNeedsSign、crossSignOptions）。
+ * 首項是正的卻選負的（含 −k）：算錯，「首項是正的，不用提出負號」。
  */
 export function crossKFeedback(poly: Trinomial, k: number, chosen: number): string | null {
   if (chosen === k) return null;
   const n = (x: number) => (x < 0 ? `${MINUS}${-x}` : String(x));
-  const divides = poly.a % chosen === 0 && poly.b % chosen === 0 && poly.c % chosen === 0;
-  if (!divides) return `${n(chosen)} 不是三個係數的公因數`;
-  if (poly.a < 0 && chosen > 0) return '首項是負的，要連負號一起提出';
+  if (!crossDivides(poly, chosen)) return `${n(chosen)} 不是三個係數的公因數`;
+  if (poly.a < 0 && chosen === -k) return null;
   if (poly.a > 0 && chosen < 0) return '首項是正的，不用提出負號';
   return Math.abs(chosen) === 1 ? `提出 ${n(chosen)} 之後，括號裡的係數還有公因數` : `${n(chosen)} 是公因數，但不是最大公因數`;
+}
+/** 選的公因數可以接受（直接提出 k，或首項為負時先提出正的最大公因數 −k） */
+export const crossKAccepted = (poly: Trinomial, k: number, chosen: number) => crossKFeedback(poly, k, chosen) === null;
+/** chosen 整除三個係數 */
+export function crossDivides(poly: Trinomial, chosen: number): boolean {
+  return Number.isSafeInteger(chosen) && chosen !== 0 && poly.a % chosen === 0 && poly.b % chosen === 0 && poly.c % chosen === 0;
+}
+/** 提出 chosen 之後括號裡的三項式（原式 ÷ chosen；公開的代數，不是答案） */
+export function crossDivide(poly: Trinomial, chosen: number): Trinomial {
+  return { a: poly.a / chosen, b: poly.b / chosen, c: poly.c / chosen };
+}
+/**
+ * 提出 chosen 之後要不要再「提出負號」：首項是負的、chosen 是正的而且整除三個係數
+ * （例 −2x²+2x+12 選 2 → 2(−x²+x+6) → 第 2 步 −2(x²−x−6)）。只看原式與選的數，和答案無關。
+ */
+export function crossNeedsSign(poly: Trinomial, chosen: number): boolean {
+  return poly.a < 0 && chosen > 0 && crossDivides(poly, chosen);
+}
+
+/* ───────────── 答錯凍結、第 2 步「提出負號」 ───────────── */
+/** 答錯（四格填滿但不對、公因數選錯、提出負號選錯）後作答區凍結多久（毫秒）；大板、雙人對戰共用。 */
+export const CROSS_WRONG_FREEZE_MS = 3000;
+/** 提出負號選錯時的說明（不管選了哪一個都一樣，不洩漏答案） */
+export const CROSS_SIGN_FEEDBACK = '負號要提到括號外，括號內每一項都要變號';
+export interface CrossSignOption {
+  /** 括號外的數（−g 或 g） */
+  outer: number;
+  /** 括號裡的三項式 */
+  inner: Trinomial;
+  /** outer·inner 等於原式，而且括號裡首項是正的 */
+  ok: boolean;
+}
+/**
+ * 「提出負號」的四個選項（chosen 是正的公因數 g，T = 原式 ÷ g，T 的首項是負的）：
+ * 正解 −g(−T)；干擾只有正負號錯：−g(只改首項)、−g(T)（括號裡沒變號）、g(−T)（括號外沒加負號）。
+ * 全部只用原式與 chosen 算出來，看不出十字交乘的答案。順序由 salt 決定（大板用題目種子，直播用題目 ID 的雜湊），
+ * 伺服器可以重算同一份清單、用位置判定。
+ */
+export function crossSignOptions(poly: Trinomial, chosen: number, salt: number): CrossSignOption[] {
+  const t = crossDivide(poly, chosen);
+  const neg = (x: Trinomial): Trinomial => ({ a: -x.a, b: -x.b, c: -x.c });
+  const list: Omit<CrossSignOption, 'ok'>[] = [
+    { outer: -chosen, inner: neg(t) },
+    { outer: -chosen, inner: { a: -t.a, b: t.b, c: t.c } },
+    { outer: -chosen, inner: { ...t } },
+    { outer: chosen, inner: neg(t) },
+  ];
+  const ok = (o: Omit<CrossSignOption, 'ok'>) => o.inner.a > 0 && o.outer * o.inner.a === poly.a && o.outer * o.inner.b === poly.b && o.outer * o.inner.c === poly.c;
+  return shuffle(crossRng(salt >>> 0), list.map((o) => ({ ...o, ok: ok(o) })));
+}
+/** 字串 → 32 位元雜湊（FNV-1a）；直播用題目 ID 決定「提出負號」選項的順序 */
+export function crossSignSalt(id: string): number {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < id.length; i++) h = Math.imul(h ^ id.charCodeAt(i), 0x01000193) >>> 0;
+  return h >>> 0;
+}
+/** g(三項式) 的 LaTeX；g = 1 不寫、g = −1 只寫負號 */
+export function outerTex(outer: number, inner: Trinomial): string {
+  return `${outer === 1 ? '' : outer === -1 ? '-' : outer}(${polyTex(inner)})`;
 }
 
 /** 各等級一輪的題池大小（L1 在範圍內一共 200 種，全部都放進題池）。 */

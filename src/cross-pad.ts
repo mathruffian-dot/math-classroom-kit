@@ -9,16 +9,26 @@
  * - 放卡片只搬動那張卡的節點、更新讀數，不重畫整塊。
  * - 「先提公因式」：先在固定的公因數選項（shared/cross.ts crossKOptions，和全班連線對戰同一份）選 k，
  *   選錯有說明（不洩漏答案）可以再選；選對顯示「原式 = k(括號裡的三項式)」，十字圖才解鎖。
+ *   首項是負的：直接選負的 k；或先選正的最大公因數，再做第 2 步「提出負號」（四個只差正負號的選項，crossSignOptions）。
+ * - 答錯凍結（CROSS_WRONG_FREEZE_MS，3 秒）：四格填滿但不對、公因數選錯、提出負號選錯，這一塊鎖住並顯示
+ *   「答錯了，N 秒後再試」倒數；進行中的拖曳、點選立刻作廢，答錯的擺法留在畫面上。外部鎖住（暫停）時倒數也停住；
+ *   換題、清空、公布答案立刻解除。只鎖這一塊（對戰的另一邊照常）。
  */
 import { escape as esc } from './api';
 import { tex } from './math';
 import {
+  CROSS_SIGN_FEEDBACK,
   CROSS_SLOTS,
+  CROSS_WRONG_FREEZE_MS,
   crossAnswer,
+  crossDivide,
   crossJudge,
   crossKFeedback,
   crossKOptions,
+  crossNeedsSign,
+  crossSignOptions,
   factoredTex,
+  outerTex,
   leadText,
   numText,
   polyTex,
@@ -59,6 +69,8 @@ export interface CrossPadOptions {
    * 對戰用來核對實際的截止時間：時間已到就不接受輸入，並由呼叫端立刻結算（不等計時器的下一拍）。
    */
   guard?: () => boolean;
+  /** 答錯凍結幾毫秒（預設 CROSS_WRONG_FREEZE_MS；只有 ?test=1 的畫面會改；0＝不凍結） */
+  freezeMs?: number;
 }
 export interface CrossPadState {
   item: CrossItem;
@@ -70,6 +82,14 @@ export interface CrossPadState {
   extracted: boolean;
   /** 選錯過的公因數（畫面標成紅框；只用來顯示） */
   kTried: number[];
+  /** 選對的公因數（k，或首項為負時正的最大公因數 −k）；還沒選對是 null */
+  kChosen: number | null;
+  /** 第 2 步「提出負號」做完了（只有首項是負的、kChosen 是正的才需要） */
+  signDone: boolean;
+  /** 第 2 步選錯過的選項（位置） */
+  signTried: number[];
+  /** 答錯凍結中（3 秒倒數） */
+  penalty: boolean;
   done: 'none' | 'ok' | 'revealed';
   /** 外部鎖住（對戰倒數、暫停、時間到） */
   frozen: boolean;
@@ -84,7 +104,7 @@ interface Drag {
   ghost: HTMLElement | null;
   over: HTMLElement | null;
 }
-type Tap = { kind: 'slot'; slot: CrossSlot } | { kind: 'tray' } | { kind: 'k'; k: number };
+type Tap = { kind: 'slot'; slot: CrossSlot } | { kind: 'tray' } | { kind: 'k'; k: number } | { kind: 'sign'; i: number };
 
 export interface CrossPad {
   readonly state: CrossPadState;
@@ -95,6 +115,10 @@ export interface CrossPad {
   chooseK(k: number): void;
   cancelDrag(): void;
   freeze(on: boolean): void;
+  /** 第 2 步「提出負號」：選第 i 個選項 */
+  chooseSign(i: number): void;
+  /** 立刻解除答錯凍結（換題、清空、公布答案、對戰結算時） */
+  endPenalty(): void;
   /** 在回饋列顯示一段訊息（換題時的題池提示等） */
   notice(html: string, cls: string): void;
 }
@@ -103,22 +127,27 @@ export const emptyPlaced = (): Record<CrossSlot, string | null> => ({ lead0: nul
 
 export function createCrossPad(opts: CrossPadOptions): CrossPad {
   const { host, prefix: p } = opts;
-  const st: CrossPadState = { item: null as unknown as CrossItem, serial: 0, placed: emptyPlaced(), selected: null, hint: 0, extracted: false, kTried: [], done: 'none', frozen: false };
+  const st: CrossPadState = { item: null as unknown as CrossItem, serial: 0, placed: emptyPlaced(), selected: null, hint: 0, extracted: false, kTried: [], kChosen: null, signDone: false, signTried: [], penalty: false, done: 'none', frozen: false };
 
   const slotHtml = (slot: CrossSlot) => {
     const lead = slotKind(slot) === 'lead';
     const pos = slot.endsWith('0') ? '上' : '下';
     return `<div class="cx-slot ${lead ? 'lead' : 'const'}" data-slot="${slot}" data-testid="${p}-slot-${slot}" role="button" tabindex="0" aria-label="${lead ? 'x 係數' : '常數'}・${pos}格"><span class="cx-slot-empty">${lead ? '?x' : '?'}</span></div>`;
   };
-  host.innerHTML = `<section class="cx-question" id="${p}-question" aria-label="題目"></section><section class="cx-work"><div class="cx-cross" id="${p}-cross" data-testid="${p}-diagram" aria-label="十字圖"><div class="cx-colhead">x 係數</div><div></div><div class="cx-colhead">常數</div>${slotHtml('lead0')}<svg class="cx-x" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><line class="cx-d1" x1="6" y1="10" x2="94" y2="90"/><line class="cx-d2" x1="6" y1="90" x2="94" y2="10"/></svg>${slotHtml('const0')}${slotHtml('lead1')}${slotHtml('const1')}<div class="cx-colprod" id="${p}-leadprod" data-testid="${p}-leadprod"></div><div></div><div class="cx-colprod" id="${p}-constprod" data-testid="${p}-constprod"></div><div class="cx-lock">先選出公因數</div></div><div class="cx-readout" aria-label="交叉相乘"><div class="cx-row-f"><span>因式</span><b id="${p}-f0" data-testid="${p}-f0"></b><b id="${p}-f1" data-testid="${p}-f1"></b></div><div class="cx-prod d1"><span>左上 × 右下</span><b id="${p}-ps" data-testid="${p}-ps">?</b></div><div class="cx-prod d2"><span>左下 × 右上</span><b id="${p}-rq" data-testid="${p}-rq">?</b></div><div class="cx-sum"><span>交叉相乘和</span><b id="${p}-sum" data-testid="${p}-sum">?</b><em id="${p}-target" data-testid="${p}-target"></em></div></div></section><section class="cx-tray" id="${p}-tray" data-testid="${p}-tray" aria-label="數字卡（格子裡的卡按 Delete 放回這裡）"></section><p class="cx-feedback" id="${p}-feedback" data-testid="${p}-feedback" role="status" aria-live="polite"></p>`;
+  host.innerHTML = `<section class="cx-question" id="${p}-question" aria-label="題目"></section><section class="cx-work"><div class="cx-cross" id="${p}-cross" data-testid="${p}-diagram" aria-label="十字圖"><div class="cx-colhead">x 係數</div><div></div><div class="cx-colhead">常數</div>${slotHtml('lead0')}<svg class="cx-x" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><line class="cx-d1" x1="6" y1="10" x2="94" y2="90"/><line class="cx-d2" x1="6" y1="90" x2="94" y2="10"/></svg>${slotHtml('const0')}${slotHtml('lead1')}${slotHtml('const1')}<div class="cx-colprod" id="${p}-leadprod" data-testid="${p}-leadprod"></div><div></div><div class="cx-colprod" id="${p}-constprod" data-testid="${p}-constprod"></div><div class="cx-lock">先選出公因數</div></div><div class="cx-readout" aria-label="交叉相乘"><div class="cx-row-f"><span>因式</span><b id="${p}-f0" data-testid="${p}-f0"></b><b id="${p}-f1" data-testid="${p}-f1"></b></div><div class="cx-prod d1"><span>左上 × 右下</span><b id="${p}-ps" data-testid="${p}-ps">?</b></div><div class="cx-prod d2"><span>左下 × 右上</span><b id="${p}-rq" data-testid="${p}-rq">?</b></div><div class="cx-sum"><span>交叉相乘和</span><b id="${p}-sum" data-testid="${p}-sum">?</b><em id="${p}-target" data-testid="${p}-target"></em></div></div></section><section class="cx-tray" id="${p}-tray" data-testid="${p}-tray" aria-label="數字卡（格子裡的卡按 Delete 放回這裡）"></section><p class="cx-feedback" id="${p}-feedback" data-testid="${p}-feedback" role="status" aria-live="polite"></p><div class="cx-penalty" id="${p}-penalty" data-testid="${p}-penalty" aria-hidden="true" hidden><strong>答錯了，<b id="${p}-penalty-n" data-testid="${p}-penalty-n">3</b> 秒後再試</strong></div><p class="cx-sr" id="${p}-penalty-live" data-testid="${p}-penalty-live" aria-live="assertive"></p>`;
 
   const $ = <T extends HTMLElement = HTMLElement>(id: string) => host.querySelector<T>(`#${p}-${id}`)!;
   const slotEl = (slot: CrossSlot) => host.querySelector<HTMLElement>(`[data-slot="${slot}"]`)!;
   const cardEl = (id: string) => host.querySelector<HTMLElement>(`[data-card="${CSS.escape(id)}"]`);
   const cardOf = (id: string) => st.item.cards.find((c) => c.id === id);
   const whereIs = (id: string): CrossSlot | null => CROSS_SLOTS.find((s) => st.placed[s] === id) || null;
-  const needK = () => st.item.k !== 1 && !st.extracted;
-  const locked = () => st.frozen || st.done !== 'none' || needK();
+  /** 這一題做到哪一步：選公因數 →（首項為負、選了正的）提出負號 → 十字交乘 */
+  const stage = (): 'k' | 'sign' | 'cross' =>
+    st.item.k === 1 ? 'cross' : !st.extracted ? 'k' : st.kChosen !== null && crossNeedsSign(st.item.poly, st.kChosen) && !st.signDone ? 'sign' : 'cross';
+  /** 還沒做到十字交乘（選公因數或提出負號）：卡片、讀數都不畫 */
+  const needK = () => stage() !== 'cross';
+  const locked = () => st.frozen || st.penalty || st.done !== 'none' || needK();
+  const signOptions = () => crossSignOptions(st.item.poly, st.kChosen!, st.item.seed);
   const allowed = () => !opts.guard || opts.guard();
 
   /* ── 換題：只有這裡會重畫題目、卡片匣與四格內容 ── */
@@ -132,8 +161,13 @@ export function createCrossPad(opts: CrossPadOptions): CrossPad {
     st.hint = 0;
     st.extracted = false;
     st.kTried = [];
+    st.kChosen = null;
+    st.signDone = false;
+    st.signTried = [];
     st.done = 'none';
     kMsg = '';
+    signMsg = '';
+    endPenalty();
     host.dataset.key = item.key;
     host.dataset.level = String(item.level);
     renderQuestion();
@@ -146,6 +180,7 @@ export function createCrossPad(opts: CrossPadOptions): CrossPad {
    */
   function renderWork() {
     const hide = needK();
+    $('cross').querySelector('.cx-lock')!.textContent = stage() === 'sign' ? '先提出負號' : '先選出公因數';
     for (const slot of CROSS_SLOTS) {
       const el = slotEl(slot);
       el.querySelector('.cx-card')?.remove();
@@ -163,16 +198,29 @@ export function createCrossPad(opts: CrossPadOptions): CrossPad {
   }
   function renderQuestion() {
     const it = st.item;
-    const step =
-      it.k === 1
-        ? ''
-        : `<div class="cx-extract ${st.extracted ? 'done' : ''}" data-testid="${p}-extract-step"><span class="cx-step">第 1 步　提出公因數${it.k < 0 ? '（首項是負的，連負號一起提）' : ''}</span>${
-            st.extracted
-              ? `<div class="cx-extract-eq" data-testid="${p}-extracted">${tex(`${polyTex(it.poly)}=${it.k === -1 ? '-' : it.k}(${polyTex(it.inner)})`)}</div><span class="cx-step">第 2 步　把括號裡的 ${tex(polyTex(it.inner))} 做十字交乘</span>`
-              : `<div class="cx-kopts" role="group" aria-label="選出要提出的公因數" data-testid="${p}-kopts">${crossKOptions()
-                  .map((k) => `<button type="button" class="cx-kbtn ${st.kTried.includes(k) ? 'tried' : ''}" data-k="${k}" data-testid="${p}-k-${k}" aria-label="提出公因數 ${numText(k)}">${numText(k)}</button>`)
-                  .join('')}</div>`
-          }</div>`;
+    const kTex = (k: number) => (k === 1 ? '' : k === -1 ? '-' : String(k));
+    let step = '';
+    if (it.k !== 1) {
+      let body: string;
+      if (!st.extracted)
+        body = `<div class="cx-kopts" role="group" aria-label="選出要提出的公因數" data-testid="${p}-kopts">${crossKOptions()
+          .map((k) => `<button type="button" class="cx-kbtn ${st.kTried.includes(k) ? 'tried' : ''}" data-k="${k}" data-testid="${p}-k-${k}" aria-label="提出公因數 ${numText(k)}">${numText(k)}</button>`)
+          .join('')}</div>`;
+      else {
+        const k = st.kChosen ?? it.k;
+        // 選對之後顯示的式子：原式 = k(原式 ÷ k)，是公開的代數
+        body = `<div class="cx-extract-eq" data-testid="${p}-extracted">${tex(`${polyTex(it.poly)}=${kTex(k)}(${polyTex(crossDivide(it.poly, k))})`)}</div>`;
+        if (crossNeedsSign(it.poly, k)) {
+          body += `<span class="cx-step cx-step2">第 2 步　提出負號（括號裡的首項變成正的）</span>`;
+          body += st.signDone
+            ? `<div class="cx-extract-eq" data-testid="${p}-signed">${tex(`${polyTex(it.poly)}=${kTex(it.k)}(${polyTex(it.inner)})`)}</div><span class="cx-step">第 3 步　把括號裡的 ${tex(polyTex(it.inner))} 做十字交乘</span>`
+            : `<div class="cx-signopts" role="group" aria-label="提出負號：選出正確的式子" data-testid="${p}-signopts">${signOptions()
+                .map((o, i) => `<button type="button" class="cx-signbtn ${st.signTried.includes(i) ? 'tried' : ''}" data-sign="${i}" data-testid="${p}-sign-${i}">${tex(outerTex(o.outer, o.inner))}</button>`)
+                .join('')}</div>`;
+        } else body += `<span class="cx-step">第 2 步　把括號裡的 ${tex(polyTex(it.inner))} 做十字交乘</span>`;
+      }
+      step = `<div class="cx-extract ${st.extracted ? 'done' : ''} ${st.signDone && st.kChosen !== null && crossNeedsSign(it.poly, st.kChosen) ? 'signed' : ''}" data-testid="${p}-extract-step"><span class="cx-step">第 1 步　提出公因數${it.k < 0 ? '（首項是負的：可以連負號一起提）' : ''}</span>${body}</div>`;
+    }
     $('question').innerHTML = `<span class="cx-item-focus" data-testid="${p}-item-focus" data-level="${it.level}">${focusLabelHtml(crossLevelLabel(it.level))}</span><div class="cx-poly" data-testid="${p}-poly"><span class="cx-label">因式分解</span>${tex(polyTex(it.poly), true)}</div>${step}`;
   }
 
@@ -183,6 +231,7 @@ export function createCrossPad(opts: CrossPadOptions): CrossPad {
     return f;
   }
   let kMsg = '';
+  let signMsg = '';
   function update() {
     const it = st.item;
     const f = fill();
@@ -244,10 +293,9 @@ export function createCrossPad(opts: CrossPadOptions): CrossPad {
                 ? '✗ 這個填法不成立，請清空再試'
                 : `✗ 交叉相乘和 = ${signed(j.sum!)}，目標 ${signed(j.target)}，差 ${Math.abs(j.diff!)}`;
     }
-    host.querySelectorAll<HTMLButtonElement>('.cx-card').forEach((b) => (b.disabled = locked()));
-    host.querySelectorAll<HTMLButtonElement>('.cx-kbtn').forEach((b) => (b.disabled = st.frozen || st.done !== 'none'));
     for (const s of CROSS_SLOTS) slotEl(s).classList.toggle('filled', !!st.placed[s]);
     labelCards();
+    applyLocks();
     paintSelection();
     opts.onUpdate?.();
     if (solvedNow) opts.onSolved?.();
@@ -270,13 +318,35 @@ export function createCrossPad(opts: CrossPadOptions): CrossPad {
     host.classList.remove('cx-done');
     const fb = $('feedback');
     fb.className = 'cx-feedback';
-    if (kMsg) {
+    if (stage() === 'sign') {
+      if (signMsg) {
+        fb.classList.add('bad');
+        fb.innerHTML = `<span data-testid="${p}-signwrong">✗ ${esc(signMsg)}</span>`;
+      } else fb.textContent = '首項是負的：再把負號提到括號外面，選出正確的式子。';
+    } else if (kMsg) {
       fb.classList.add('bad');
       fb.innerHTML = `<span data-testid="${p}-kwrong">✗ ${esc(kMsg)}，再選一次</span>`;
     } else fb.textContent = '三項的係數有公因數：先選出要提出的公因數，再做十字交乘。';
-    host.querySelectorAll<HTMLButtonElement>('.cx-kbtn').forEach((b) => (b.disabled = st.frozen || st.done !== 'none'));
+    applyLocks();
     paintSelection();
     opts.onUpdate?.();
+  }
+  /** 依目前狀態停用卡片、公因數與提出負號的選項（答錯凍結、外部鎖住、做完都停用） */
+  function applyLocks() {
+    const off = locked();
+    host.querySelectorAll<HTMLButtonElement>('.cx-card').forEach((b) => {
+      b.disabled = off;
+      b.setAttribute('aria-disabled', String(off));
+    });
+    const optOff = st.frozen || st.penalty || st.done !== 'none';
+    host.querySelectorAll<HTMLButtonElement>('.cx-kbtn, .cx-signbtn').forEach((b) => {
+      b.disabled = optOff;
+      b.setAttribute('aria-disabled', String(optOff));
+    });
+    for (const s of CROSS_SLOTS) {
+      const el = slotEl(s);
+      el.setAttribute('aria-disabled', String(el.classList.contains('fixed') || needK() || st.penalty || st.frozen));
+    }
   }
   /** 讀屏：卡片名稱帶上「在哪一格」與退回方式 */
   function labelCards() {
@@ -314,7 +384,7 @@ export function createCrossPad(opts: CrossPadOptions): CrossPad {
 
   /* ── 公因數 ── */
   function chooseK(k: number) {
-    if (st.frozen || st.done !== 'none' || !needK() || !allowed()) return;
+    if (st.frozen || st.penalty || st.done !== 'none' || stage() !== 'k' || !allowed()) return;
     cancelDrag();
     const why = crossKFeedback(st.item.poly, st.item.k, k);
     if (why) {
@@ -322,13 +392,96 @@ export function createCrossPad(opts: CrossPadOptions): CrossPad {
       if (!st.kTried.includes(k)) st.kTried.push(k);
       host.querySelector(`.cx-kbtn[data-k="${k}"]`)?.classList.add('tried');
       update();
+      penalize();
       return;
     }
     kMsg = '';
     st.extracted = true;
+    st.kChosen = k;
     renderQuestion();
     renderWork();
     update();
+  }
+  /** 第 2 步「提出負號」：選對才進到十字交乘；選錯一律同一句說明＋凍結 */
+  function chooseSign(i: number) {
+    if (st.frozen || st.penalty || st.done !== 'none' || stage() !== 'sign' || !allowed()) return;
+    cancelDrag();
+    const o = signOptions()[i];
+    if (!o) return;
+    if (!o.ok) {
+      signMsg = CROSS_SIGN_FEEDBACK;
+      if (!st.signTried.includes(i)) st.signTried.push(i);
+      host.querySelector(`.cx-signbtn[data-sign="${i}"]`)?.classList.add('tried');
+      update();
+      penalize();
+      return;
+    }
+    signMsg = '';
+    st.signDone = true;
+    renderQuestion();
+    renderWork();
+    update();
+  }
+
+  /* ── 答錯凍結：倒數只在沒有外部鎖住（暫停）時跑 ── */
+  const freezeMs = opts.freezeMs ?? CROSS_WRONG_FREEZE_MS;
+  let penLeft = 0,
+    penEnd = 0,
+    penTimer = 0,
+    penTick = 0;
+  function penalize() {
+    if (freezeMs <= 0) return;
+    cancelDrag();
+    st.selected = null;
+    stopPenaltyClock();
+    st.penalty = true;
+    penLeft = freezeMs;
+    host.classList.add('cx-penalty-on');
+    $('penalty').hidden = false;
+    // 讀屏只念一次（倒數的數字在 aria-hidden 的橫幅上）
+    $('penalty-live').textContent = `答錯了，${Math.ceil(freezeMs / 1000)} 秒後再試`;
+    paintPenalty();
+    if (!st.frozen) runPenalty();
+    applyLocks();
+    paintSelection();
+  }
+  function runPenalty() {
+    if (!st.penalty || penTimer) return;
+    penEnd = performance.now() + penLeft;
+    penTimer = window.setTimeout(endPenalty, penLeft);
+    penTick = window.setInterval(() => {
+      if (!host.isConnected) return endPenalty();
+      penLeft = Math.max(0, penEnd - performance.now());
+      paintPenalty();
+    }, 100);
+  }
+  function holdPenalty() {
+    if (!penTimer) return;
+    penLeft = Math.max(0, penEnd - performance.now());
+    stopPenaltyClock();
+    paintPenalty();
+  }
+  function stopPenaltyClock() {
+    clearTimeout(penTimer);
+    clearInterval(penTick);
+    penTimer = penTick = 0;
+  }
+  function paintPenalty() {
+    const n = String(Math.max(1, Math.ceil(penLeft / 1000)));
+    const el = $('penalty-n');
+    if (el.textContent !== n) el.textContent = n;
+    host.dataset.penalty = n;
+  }
+  function endPenalty() {
+    stopPenaltyClock();
+    const was = st.penalty;
+    st.penalty = false;
+    penLeft = 0;
+    host.classList.remove('cx-penalty-on');
+    $('penalty').hidden = true;
+    $('penalty-live').textContent = '';
+    delete host.dataset.penalty;
+    if (was && st.item) applyLocks();
   }
 
   /* ── 搬卡片（只動到相關的節點） ── */
@@ -356,6 +509,8 @@ export function createCrossPad(opts: CrossPadOptions): CrossPad {
     }
     st.selected = null;
     update();
+    // 四格填滿但不對：答錯凍結（擺法留著，倒數完可以移動卡片再試）
+    if (st.done === 'none' && crossJudge(st.item, fill()).complete) penalize();
     return true;
   }
   function home(id: string) {
@@ -381,10 +536,11 @@ export function createCrossPad(opts: CrossPadOptions): CrossPad {
     paintSelection();
   }
   function tapSlot(slot: CrossSlot) {
-    if (!st.selected) return;
+    if (!st.selected || st.penalty) return;
     place(st.selected, slot);
   }
   function tapTray() {
+    if (st.penalty) return;
     if (st.selected && whereIs(st.selected)) toTray(st.selected);
   }
 
@@ -425,6 +581,8 @@ export function createCrossPad(opts: CrossPadOptions): CrossPad {
   }
   host.addEventListener('pointerdown', (e) => {
     if (e.pointerType === 'mouse' && e.button !== 0) return;
+    // 答錯凍結中：這一塊的任何指標都不理（不開始拖曳、不記點選）
+    if (st.penalty) return;
     const t = e.target as HTMLElement;
     const el = t.closest<HTMLElement>('.cx-card[data-card]');
     if (el) {
@@ -438,12 +596,14 @@ export function createCrossPad(opts: CrossPadOptions): CrossPad {
     }
     if (drag) return;
     const kb = t.closest<HTMLButtonElement>('.cx-kbtn');
+    const sb = t.closest<HTMLButtonElement>('.cx-signbtn');
     const slot = t.closest<HTMLElement>('[data-slot]');
     const tray = t.closest<HTMLElement>('.cx-tray');
-    const tap: Tap | null = kb ? (kb.disabled ? null : { kind: 'k', k: Number(kb.dataset.k) }) : slot ? { kind: 'slot', slot: slot.dataset.slot as CrossSlot } : tray ? { kind: 'tray' } : null;
+    const opt: Tap | null = kb ? { kind: 'k', k: Number(kb.dataset.k) } : sb ? { kind: 'sign', i: Number(sb.dataset.sign) } : null;
+    const tap: Tap | null = kb || sb ? ((kb || sb)!.disabled ? null : opt) : slot ? { kind: 'slot', slot: slot.dataset.slot as CrossSlot } : tray ? { kind: 'tray' } : null;
     if (!tap || !allowed()) return;
     taps.set(e.pointerId, { ...tap, x0: e.clientX, y0: e.clientY });
-    capture(kb || slot || tray!, e.pointerId);
+    capture(kb || sb || slot || tray!, e.pointerId);
   });
   host.addEventListener('pointermove', (e) => {
     const tp = taps.get(e.pointerId);
@@ -479,12 +639,14 @@ export function createCrossPad(opts: CrossPadOptions): CrossPad {
     if (tp) {
       taps.delete(e.pointerId);
       if (tp.kind === 'k') chooseK(tp.k);
+      else if (tp.kind === 'sign') chooseSign(tp.i);
       else if (tp.kind === 'slot') tapSlot(tp.slot);
       else tapTray();
       return;
     }
     if (!drag || e.pointerId !== drag.pointerId) return;
     const d = drag;
+    if (st.penalty) return endDrag();
     const target = d.moved ? dropAt(e.clientX, e.clientY) : null;
     endDrag();
     // 拖曳中換過題：這張卡已經不在這一塊上
@@ -511,11 +673,18 @@ export function createCrossPad(opts: CrossPadOptions): CrossPad {
     if (card) return tapCard(card.dataset.card!);
     const kb = t.closest<HTMLElement>('.cx-kbtn');
     if (kb) return chooseK(Number(kb.dataset.k));
+    const sb = t.closest<HTMLElement>('.cx-signbtn');
+    if (sb) return chooseSign(Number(sb.dataset.sign));
     const slot = t.closest<HTMLElement>('[data-slot]');
     if (slot) return tapSlot(slot.dataset.slot as CrossSlot);
     if (t.closest('.cx-tray')) tapTray();
   });
   host.addEventListener('keydown', (e) => {
+    if (st.penalty) {
+      // 答錯凍結中：鍵盤放卡、退卡都不理
+      if (['Delete', 'Backspace', 'Enter', ' '].includes(e.key)) e.preventDefault();
+      return;
+    }
     const card = (e.target as HTMLElement).closest<HTMLElement>('.cx-card[data-card]');
     if (card && (e.key === 'Delete' || e.key === 'Backspace') && whereIs(card.dataset.card!)) {
       // 鍵盤把格子裡的卡放回卡片匣，焦點跟著卡片
@@ -539,6 +708,7 @@ export function createCrossPad(opts: CrossPadOptions): CrossPad {
   /* ── 老師按鈕（大板）：清空、提示、公布答案 ── */
   function clear() {
     cancelDrag();
+    endPenalty();
     st.done = 'none';
     st.selected = null;
     for (const s of CROSS_SLOTS) if (st.placed[s]) home(st.placed[s]!);
@@ -569,8 +739,12 @@ export function createCrossPad(opts: CrossPadOptions): CrossPad {
     const it = st.item;
     const fb = $('feedback');
     fb.className = 'cx-feedback hint';
+    if (stage() === 'sign') {
+      fb.textContent = '提示：把負號提到括號外面，括號裡的每一項都要變號（正變負、負變正）。';
+      return;
+    }
     if (needK()) {
-      fb.textContent = `提示：看看 ${numText(it.poly.a)}、${numText(it.poly.b)}、${numText(it.poly.c)} 三個係數，最大公因數是多少？${it.poly.a < 0 ? '首項是負的，負號也一起提出來。' : ''}`;
+      fb.textContent = `提示：看看 ${numText(it.poly.a)}、${numText(it.poly.b)}、${numText(it.poly.c)} 三個係數，最大公因數是多少？${it.poly.a < 0 ? '首項是負的：負號可以一起提出來，也可以先提正的、再提出負號。' : ''}`;
       return;
     }
     const ans = answerCards();
@@ -595,10 +769,14 @@ export function createCrossPad(opts: CrossPadOptions): CrossPad {
   function reveal() {
     cancelDrag();
     if (st.done !== 'none') return;
+    endPenalty();
     if (needK()) {
-      // 公布答案也公布公因數那一步
+      // 公布答案也公布公因數那一步（已經先提了正的，就連提出負號一起公布）
+      if (st.kChosen === null) st.kChosen = st.item.k;
       st.extracted = true;
+      st.signDone = true;
       kMsg = '';
+      signMsg = '';
       renderQuestion();
       renderWork();
     }
@@ -613,8 +791,11 @@ export function createCrossPad(opts: CrossPadOptions): CrossPad {
     if (on) cancelDrag();
     st.frozen = on;
     if (on) st.selected = null;
+    // 外部鎖住（暫停）時答錯凍結的倒數停住，解鎖後接著倒數剩下的時間
+    if (on) holdPenalty();
+    else runPenalty();
     if (st.item) update();
   }
 
-  return { state: st, load, clear, hint, reveal, chooseK, cancelDrag, freeze, notice };
+  return { state: st, load, clear, hint, reveal, chooseK, chooseSign, cancelDrag, freeze, endPenalty, notice };
 }

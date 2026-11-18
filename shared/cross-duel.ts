@@ -49,6 +49,16 @@ export function crossDuelSettings(params: URLSearchParams): CrossDuelSettings {
   return { focus, time, seed };
 }
 
+/**
+ * 測試用的答錯凍結時間（毫秒）：網址同時帶 test=1 與 freeze=0～10000 才有；其他情況是 null（用 CROSS_WRONG_FREEZE_MS）。
+ * 大板與對戰共用；正式畫面不會出現 test=1，所以一律 3 秒。
+ */
+export function crossTestFreeze(params: URLSearchParams): number | null {
+  if (params.get('test') !== '1' || !params.has('freeze')) return null;
+  const n = Number(params.get('freeze'));
+  return Number.isInteger(n) && n >= 0 && n <= 10_000 ? n : null;
+}
+
 /** 第 index 題（從 0 起）的等級：單一重點固定；混合由場次種子決定（兩邊同一串）。 */
 export function crossDuelLevel(focus: CrossFocusId, seed: number, index: number): CrossLevel {
   return crossFocusLevel(focus) ?? crossMixLevel(seed, index);

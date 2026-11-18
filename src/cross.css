@@ -1020,3 +1020,110 @@
   min-width: 180px;
   font-size: clamp(18px, 2.4vmin, 26px);
 }
+
+/* ───────────── 答錯凍結（3 秒）與第 2 步「提出負號」（src/cross-pad.ts） ───────────── */
+.cx-main {
+  position: relative;
+}
+.cx-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+/* 凍結中：作答區變暗、不能操作；回饋列（差多少）照常看得清楚 */
+.cx-penalty-on .cx-work,
+.cx-penalty-on .cx-tray,
+.cx-penalty-on .cx-kopts,
+.cx-penalty-on .cx-signopts {
+  opacity: 0.55;
+  filter: grayscale(0.35);
+  pointer-events: none;
+}
+.cx-penalty {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  transform: translate(-50%, -50%);
+  z-index: 30;
+  pointer-events: none;
+  padding: clamp(10px, 1.6vmin, 20px) clamp(18px, 3vmin, 40px);
+  border-radius: 18px;
+  border: 3px solid var(--red);
+  background: #fff5f5f2;
+  color: #b42f33;
+  box-shadow: 0 8px 30px #1f2a5633;
+  font-size: clamp(20px, 3.2vmin, 40px);
+  white-space: nowrap;
+}
+.cx-penalty[hidden] {
+  display: none;
+}
+.cx-penalty b {
+  display: inline-block;
+  min-width: 1.2em;
+  text-align: center;
+  font-size: 1.35em;
+  font-variant-numeric: tabular-nums;
+}
+.cx-signopts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  width: 100%;
+}
+.cx-signbtn {
+  min-height: 56px;
+  padding: 4px 12px;
+  border-radius: 12px;
+  border: 3px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+  font-size: clamp(18px, 2.6vmin, 30px);
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+/* 式子不在按鈕裡換行 */
+.cx-signbtn .katex {
+  white-space: nowrap;
+}
+.cx-signbtn:hover:not(:disabled),
+.cx-signbtn:focus-visible {
+  border-color: var(--accent, #2f80ed);
+}
+.cx-signbtn.tried {
+  border-color: var(--red);
+  background: #fdeced;
+}
+.cx-signbtn:disabled {
+  opacity: 0.6;
+}
+/* 對戰：提出負號做完後只留最後的等式（和直接提出負的公因數一樣高） */
+.xd-pad .cx-extract.signed > .cx-extract-eq:first-of-type,
+.xd-pad .cx-extract.signed > .cx-step2 {
+  display: none;
+}
+/* 對戰：按鈕寬度跟著式子，放不下就換行 */
+.xd-pad .cx-signopts {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+}
+.xd-pad .cx-signbtn {
+  flex: 1 1 auto;
+}
+.xd-pad .cx-signbtn {
+  min-height: 44px;
+  padding: 0 4px;
+  font-size: clamp(13px, min(1.25vw, 2.2vh), 26px);
+}
+.xd-pad .cx-penalty {
+  font-size: clamp(18px, min(2.4vw, 4vh), 40px);
+}

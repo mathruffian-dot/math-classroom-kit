@@ -12,6 +12,9 @@
  *   用來重現「截止前／後的最後一個輸入」「計時器延遲」。只有網址帶 test=1 開的那一個畫面有：整個畫面存續期間網址
  *   一直保留 test=1（改選正式時間也一樣）；離開畫面（root 不在頁面上）就撤掉，而且 hook 只認建立它的畫面，
  *   所以之後用一般網址開的對局不受影響。
+ * - 答錯凍結（src/cross-pad.ts）：只有答錯的那一邊凍結 3 秒，另一邊照常；凍結的時間照樣算在對戰時間裡（計時不停）。
+ *   老師按暫停時凍結的倒數也停住，繼續後接著倒數剩下的時間；凍結中時間到照常結算（結算時解除凍結）。
+ *   測試用：?test=1&freeze=毫秒 改凍結時間（shared/cross-duel.ts crossTestFreeze）。
  * - 題目用完（shared/cross-duel.ts 的 deck.exhausted）：那一邊停止發題、鎖住，顯示「這個重點的題目都出過了」；
  *   不重新洗牌，所以整局不重複、兩邊不會同時同一題。
  */
@@ -31,6 +34,7 @@ import {
   crossDuelResultText,
   crossDuelSettings,
   crossDuelWinner,
+  crossTestFreeze,
   type CrossDuelDeck,
   type CrossDuelSide,
 } from '../shared/cross-duel';
@@ -78,6 +82,7 @@ export function renderCrossDuel(app: HTMLElement, route: string): void {
   /** 這一邊的題目用完了（停止發題、一直鎖住） */
   const out: Record<CrossDuelSide, boolean> = { L: false, R: false };
   const testing = params.get('test') === '1';
+  const testFreeze = crossTestFreeze(params);
   /** 測試用：時鐘偏移、暫停計時器的拍子／自動換題 */
   const test = { skew: 0, holdTick: false, holdAdvance: false };
   const now = () => performance.now() + test.skew;
@@ -96,7 +101,7 @@ export function renderCrossDuel(app: HTMLElement, route: string): void {
   const alive = () => root.isConnected;
 
   const pads = {} as Record<CrossDuelSide, CrossPad>;
-  for (const s of CROSS_DUEL_SIDES) pads[s] = createCrossPad({ host: $(`#xd${s}-host`), prefix: `xd${s}`, cardPrefix: s, onSolved: () => solved(s), guard: () => inTime() });
+  for (const s of CROSS_DUEL_SIDES) pads[s] = createCrossPad({ host: $(`#xd${s}-host`), prefix: `xd${s}`, cardPrefix: s, onSolved: () => solved(s), guard: () => inTime(), ...(testFreeze !== null ? { freezeMs: testFreeze } : {}) });
 
   /** 對戰中而且還沒過截止時間；已經過了就立刻結算（回傳 false） */
   function inTime(): boolean {
@@ -161,7 +166,7 @@ export function renderCrossDuel(app: HTMLElement, route: string): void {
   }
   function syncUrl() {
     // 測試畫面整個存續期間都保留 test=1（hook 在這個畫面上一直有效，網址要看得出來）
-    const t = testing ? '&test=1' : '';
+    const t = testing ? `&test=1${testFreeze !== null ? `&freeze=${testFreeze}` : ''}` : '';
     history.replaceState(null, '', `#/games/cross-duel?focus=${focus}&time=${time}&seed=${seed}${t}`);
   }
   function stopTimers() {
@@ -260,6 +265,7 @@ export function renderCrossDuel(app: HTMLElement, route: string): void {
     root.dataset.settled = String(settled);
     stopTimers();
     paintClock();
+    for (const s of CROSS_DUEL_SIDES) pads[s].endPenalty();
     setPhase('over');
     const w = crossDuelWinner(score);
     root.dataset.winner = w;

@@ -3,16 +3,18 @@
 // 同學得分時，自己的題目不重畫、不跳動。學生收到的每個 HTTP 回應與 WebSocket 訊息在送出前都不含因式分解。
 // 答案由測試自己從原式與卡片算出（列舉卡片擺法），不讀伺服器的答案。
 // 重點（shared/game-focus.ts）：開始設定選重點（名稱＋例子）、預設固定、勾選才自動前進；混合兩位同學各自三種都會出現。
-// 截圖：CROSS_SHOTS=1 時才寫，只寫到 artifacts/cross-2026-11-18b/，不寫 artifacts/screenshots，也不動 11-17 的舊截圖。
+// 答錯冷卻（伺服器）：連錯 3、4、5 秒，學生 iPad 顯示「答錯了，N 秒後再試」倒數（伺服器時間），倒數完才能拿下一題。
+// 先提公因式、首項為負：先選正的公因數、再選「提出負號」的式子，同一次送出由伺服器判定。
+// 截圖：CROSS_SHOTS=1 時才寫，只寫到 artifacts/cross-2026-11-18c/，不寫 artifacts/screenshots，也不動之前的截圖。
 import { test, expect, type Page, type Locator, type Browser, type BrowserContext } from '@playwright/test';
 import { mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { crossClassify, crossJudge, factoredTex, gcd, type CrossFill } from '../../shared/cross';
+import { crossClassify, crossJudge, crossSignOptions, crossSignSalt, factoredTex, gcd, type CrossFill } from '../../shared/cross';
 import { CROSS_FOCUS } from '../../shared/game-focus';
 import { expectPickCue, expectXColorDistinct } from './cross-colors';
 
 const baseURL = process.env.E2E_BASE_URL || `http://127.0.0.1:${process.env.MCK_PORT || 8787}`;
-const shots = resolve('artifacts/cross-2026-11-18b');
+const shots = resolve('artifacts/cross-2026-11-18c');
 const contexts: BrowserContext[] = [];
 const cleanup: { context: BrowserContext; id: string }[] = [];
 
@@ -75,6 +77,11 @@ async function solve(page: Page) {
   const k = Math.sign(a) * gcd(gcd(a, b), c);
   const inner = { a: a / k, b: b / k, c: c / k };
   const leadLocked = inner.a === 1;
+  // 先提公因式：選好公因數之前不產生卡片（也沒有 data-value），先選讓首項為正的 k
+  if ((await page.getByTestId('xl-k').count()) && !(await page.locator('.xl-card-btn').count())) {
+    await page.getByTestId(`xl-k-${k}`).tap();
+    await expect(page.locator('.xl-card-btn').first()).toBeVisible();
+  }
   const cards: Card[] = await page.locator('.xl-card-btn').evaluateAll((els) => els.map((e) => ({ id: (e as HTMLElement).dataset.card!, kind: (e as HTMLElement).dataset.kind as Card['kind'], value: Number((e as HTMLElement).dataset.value) })));
   const pairs = (l: Card[]) => l.flatMap((x) => l.filter((y) => y !== x).map((y) => [x, y] as const));
   const leads = leadLocked ? [[null, null] as const] : pairs(cards.filter((x) => x.kind === 'lead'));
@@ -223,11 +230,13 @@ test('live cross battle: teacher starts with tug-of-war, two iPads get different
   await expect(B.page.locator('.xl-slot.no').first()).toBeVisible();
   await expect(B.page.getByTestId('xl-score')).toHaveText('0');
   await expect(tp.getByTestId('xl-ratio')).toHaveText('1 / 2');
-  // 答錯後冷卻：「下一題」中性地倒數（停用、灰色），1.5 秒後才能按
+  // 答錯後冷卻：「下一題」中性地倒數（停用、灰色），3 秒後才能按；「答錯了，N 秒後再試」
   await expect(B.page.getByTestId('xl-next')).toBeDisabled();
   await expect(B.page.getByTestId('xl-next')).toContainText(/下一題（\d 秒）/);
   await expect(B.page.getByTestId('xl-next')).toHaveClass(/xl-cooling/);
-  await expect(B.page.getByTestId('xl-next')).toBeEnabled({ timeout: 4000 });
+  await expect(B.page.getByTestId('xl-cool')).toBeVisible();
+  await expect(B.page.getByTestId('xl-next')).toBeEnabled({ timeout: 6000 });
+  await expect(B.page.getByTestId('xl-cool')).toBeHidden();
   await expect(B.page.getByTestId('xl-next')).toHaveText('下一題');
   await expect(B.page.getByTestId('xl-mine-ratio')).toHaveText('0/1');
 
@@ -668,4 +677,230 @@ test('live start dialog: focus choices with examples; students get items of the 
     }
   for (const name of ['A', 'B']) expect([...seen[name]].sort(), `${name} sees all three focuses`).toEqual([1, 2, 3]);
   await expect(tp.getByTestId('xl-ratio')).toHaveText('6 / 6');
+});
+
+/** 老師開一場（關掉拔河）；focus：重點 */
+async function startBattle(tp: Page, focus: string) {
+  await tp.getByTestId('xl-panel-open').click();
+  await tp.getByTestId('xl-team').uncheck();
+  await tp.getByTestId(`xl-focus-${focus}`).click();
+  await tp.getByTestId('xl-start').click();
+  await expect(tp.getByTestId('xl-board')).toBeVisible();
+}
+
+/**
+ * 記下倒數出現過的數字：倒數出現過、又收起來（或從畫面消失）就停；
+ * 保存 animation frame，再呼叫一次先取消上一個循環，不會疊好幾個。
+ */
+const watchCoolOn = (page: Page) =>
+  page.evaluate(() => {
+    const w = window as unknown as { __cool: string[]; __coolRaf?: number };
+    if (w.__coolRaf) cancelAnimationFrame(w.__coolRaf);
+    w.__cool = [];
+    const tick = () => {
+      const el = document.querySelector('[data-testid="xl-cool"]') as HTMLElement | null;
+      const n = el && !el.hidden ? el.querySelector('b')!.textContent! : null;
+      if (n && w.__cool[w.__cool.length - 1] !== n) w.__cool.push(n);
+      if (!n && w.__cool.length) {
+        w.__coolRaf = undefined;
+        return;
+      }
+      w.__coolRaf = requestAnimationFrame(tick);
+    };
+    tick();
+  });
+
+test('wrong submit → 「答錯了，3 秒後再試」 countdown from the server cooldown, no next / submit until it ends; the second consecutive wrong is 4 s', async ({ browser }) => {
+  test.setTimeout(120_000);
+  const teacher = await surface(browser, 1280, 800);
+  const tp = teacher.page;
+  await teacherLogin(tp);
+  await startSession(tp, teacher.context);
+  const A = await student(browser, 38);
+  await startBattle(tp, 'a1');
+  const wrongOnce = async () => {
+    await expect(A.page.getByTestId('xl-card')).toHaveAttribute('data-mode', 'item');
+    const s = await solve(A.page);
+    await place(A.page, s.wrong, s.k);
+    const res = A.page.waitForResponse((r) => r.url().includes('/cross') && r.request().postDataJSON()?.op === 'submit');
+    await A.page.getByTestId('xl-submit').tap();
+    await expect(A.page.getByTestId('xl-flash')).toHaveAttribute('data-ok', 'false');
+    // 伺服器給的冷卻長度：同一個回應裡的 mine.cool − serverNow
+    const body = await (await res).json();
+    return body.mine.cool - body.serverNow;
+  };
+  const watchCool = () => watchCoolOn(A.page);
+  await watchCool();
+  const left1 = await wrongOnce();
+  expect(left1).toBeGreaterThan(2500);
+  expect(left1).toBeLessThanOrEqual(3000);
+  const cool = A.page.getByTestId('xl-cool');
+  await expect(cool).toBeVisible();
+  await expect(cool).toHaveText(/^答錯了，[1-3] 秒後再試$/);
+  // 答錯的擺法留在畫面上；送出、卡片、下一題都鎖住
+  await expect(A.page.locator('.xl-slot.no').first()).toBeVisible();
+  await expect(A.page.getByTestId('xl-next')).toBeDisabled();
+  await expect(A.page.locator('.xl-card-btn:not([disabled])')).toHaveCount(0);
+  await expect(A.page.getByTestId('xl-submit')).toHaveCount(0);
+  await shot(A.page, 'cooldown');
+  // 直接呼叫 API 拿下一題也被伺服器擋（不能靠本機縮短）
+  const v = await (await A.page.request.get(`/api/student/session`)).json();
+  const blocked = await A.page.request.post(`/api/sessions/${v.session.id}/cross`, { headers: { Origin: baseURL }, data: { runId: v.session.cross.id, op: 'next' } });
+  expect(blocked.status()).toBe(429);
+  await expect(cool).toBeHidden({ timeout: 5000 });
+  await expect(A.page.getByTestId('xl-next')).toBeEnabled();
+  expect(await A.page.evaluate(() => (window as unknown as { __cool: string[] }).__cool)).toEqual(['3', '2', '1']);
+  // 第二次連錯：4 秒
+  await A.page.getByTestId('xl-next').tap();
+  await watchCool();
+  const left2 = await wrongOnce();
+  await expect(cool).toBeVisible();
+  // 伺服器給的冷卻是 4 秒
+  expect(left2).toBeGreaterThan(3500);
+  expect(left2).toBeLessThanOrEqual(4000);
+  await expect(cool).toBeHidden({ timeout: 6000 });
+  // 送出的回應帶 serverNow（收到判定的同一刻校正時間差）：倒數不會因為回應延遲多算 1 秒
+  expect(await A.page.evaluate(() => (window as unknown as { __cool: string[] }).__cool)).toEqual(['4', '3', '2', '1']);
+  await expect(A.page.getByTestId('xl-next')).toBeEnabled();
+});
+
+test('cooldown is rebuilt from the server (mine.cool) after a reload; a 429 on submit resyncs and shows the countdown', async ({ browser }) => {
+  test.setTimeout(120_000);
+  const teacher = await surface(browser, 1280, 800);
+  const tp = teacher.page;
+  await teacherLogin(tp);
+  await startSession(tp, teacher.context);
+  const A = await student(browser, 40);
+  await startBattle(tp, 'a1');
+  const card = A.page.getByTestId('xl-card');
+  const cool = A.page.getByTestId('xl-cool');
+  // 答錯 → 馬上重新整理：本機判定沒了，倒數畫面由伺服器的 mine.cool 重建，輸入鎖住
+  await expect(card).toHaveAttribute('data-mode', 'item');
+  const s1 = await solve(A.page);
+  await place(A.page, s1.wrong, s1.k);
+  await A.page.getByTestId('xl-submit').tap();
+  await expect(A.page.getByTestId('xl-flash')).toHaveAttribute('data-ok', 'false');
+  await A.page.reload();
+  await expect(card).toHaveAttribute('data-mode', 'cool');
+  await expect(cool).toBeVisible();
+  await expect(cool).toHaveText(/^答錯了，[1-3] 秒後再試$/);
+  await expect(A.page.getByTestId('xl-next')).toBeDisabled();
+  await expect(A.page.getByTestId('xl-next')).toHaveAttribute('data-xl', 'next');
+  await expect(A.page.getByTestId('xl-next')).toContainText(/下一題（[1-3] 秒）/);
+  await expect(A.page.getByTestId('xl-submit')).toHaveCount(0);
+  await expect(card.locator('.xl-card-btn')).toHaveCount(0);
+  // 倒數完自動拿下一題（第二次連錯的冷卻會是 4 秒）
+  await expect(card).toHaveAttribute('data-mode', 'item', { timeout: 6000 });
+  await expect(cool).toHaveCount(0);
+
+  // 送出時伺服器其實已判錯，但這台 iPad 拿到的是 429（例如另一個分頁、回應遺失）：重新同步，倒數照伺服器的 mine.cool
+  let hit = false;
+  let rejectedAt = 0;
+  await A.page.route('**/api/sessions/*/cross', async (route) => {
+    const body = route.request().postDataJSON() as { op?: string } | null;
+    if (body?.op !== 'submit' || hit) return route.continue();
+    hit = true;
+    await route.fetch(); // 伺服器照常判定（答錯、開始冷卻）
+    rejectedAt = Date.now();
+    await route.fulfill({ status: 429, contentType: 'application/json', body: JSON.stringify({ error: '冷卻中，稍等一下再送出' }) });
+  });
+  const resyncs: number[] = [];
+  A.page.on('request', (r) => {
+    if (r.method() === 'GET' && r.url().includes('/api/student/session')) resyncs.push(Date.now());
+  });
+  const s2 = await solve(A.page);
+  await place(A.page, s2.wrong, s2.k);
+  await A.page.getByTestId('xl-submit').tap();
+  await expect(card).toHaveAttribute('data-mode', 'cool');
+  await expect(cool).toBeVisible();
+  expect(hit).toBe(true);
+  expect(resyncs.some((t) => t >= rejectedAt)).toBe(true);
+  // 第二次連錯：伺服器給 4 秒
+  await expect(cool).toHaveText(/^答錯了，[2-4] 秒後再試$/);
+  await expect(A.page.getByTestId('xl-next')).toBeDisabled();
+  await A.page.unroute('**/api/sessions/*/cross');
+  await expect(card).toHaveAttribute('data-mode', 'item', { timeout: 7000 });
+});
+
+test('live 先提公因式, negative leading coefficient: positive GCF → 提出負號 options → cross step → server says correct', async ({ browser }) => {
+  test.setTimeout(150_000);
+  const teacher = await surface(browser, 1280, 800);
+  const tp = teacher.page;
+  await teacherLogin(tp);
+  await startSession(tp, teacher.context);
+  const A = await student(browser, 39);
+  await startBattle(tp, 'gcf');
+  // 一直答對直到拿到首項為負的題（每題伺服器隨機出）
+  let itemStart = Date.now();
+  for (let i = 0; i < 30; i++) {
+    await expect(A.page.getByTestId('xl-card')).toHaveAttribute('data-mode', 'item');
+    const a = Number(await A.page.getByTestId('xl-poly').getAttribute('data-a'));
+    if (a < 0) break;
+    const s = await solve(A.page);
+    await place(A.page, s.right, s.k);
+    await A.page.getByTestId('xl-submit').tap();
+    await expect(A.page.getByTestId('xl-flash')).toHaveAttribute('data-ok', 'true');
+    await A.page.waitForTimeout(300);
+    itemStart = Date.now();
+    await A.page.getByTestId('xl-next').tap();
+  }
+  // 還沒選公因數：沒有卡片、沒有 data-value、沒有固定左欄
+  const card = A.page.getByTestId('xl-card');
+  await expect(card.locator('.xl-card-btn')).toHaveCount(0);
+  await expect(card.locator('[data-value]')).toHaveCount(0);
+  await expect(card.locator('.xl-slot.fixed')).toHaveCount(0);
+  await expect(card.locator('.xl-slot[data-action]')).toHaveCount(0);
+  // solve() 先選負的公因數（直接路線）才看得到卡片
+  const s = await solve(A.page);
+  expect(s.poly.a).toBeLessThan(0);
+  const g = -s.k;
+  const before = Date.now();
+  // 選正的公因數 → 第 2 步的四個選項（只差正負號）；十字圖鎖著，卡片、固定左欄、data-value 都不產生
+  await A.page.getByTestId(`xl-k-${g}`).tap();
+  await expect(A.page.getByTestId('xl-sign')).toBeVisible();
+  await expect(A.page.getByTestId('xl-sign').locator('.xl-signbtn')).toHaveCount(4);
+  await expect(A.page.locator('.xl-lock')).toBeVisible();
+  await expect(card.locator('.xl-card-btn')).toHaveCount(0);
+  await expect(card.locator('[data-value]')).toHaveCount(0);
+  await expect(card.locator('.xl-slot.fixed')).toHaveCount(0);
+  await expect(card.locator('.xl-slot[data-action]')).toHaveCount(0);
+  await expect(A.page.getByTestId('xl-tray-wait')).toBeVisible();
+  const id = (await A.page.getByTestId('xl-question').getAttribute('data-item'))!;
+  const opts = crossSignOptions(s.poly, g, crossSignSalt(id));
+  // 處理函式也擋：自己做出帶 data-action 的按鈕去點卡片、格子（繞過畫面），放卡仍然無效
+  await A.page.waitForTimeout(500);
+  await A.page.evaluate((fill) => {
+    const host = document.querySelector('[data-testid="xl-card"]')!;
+    for (const [slot, id] of Object.entries(fill)) {
+      for (const [k, v] of [['card', id], ['slot', slot]]) {
+        const b = document.createElement('button');
+        b.dataset.action = `xl-${k}`;
+        b.dataset[k] = v;
+        host.append(b);
+        b.click();
+        b.remove();
+      }
+    }
+  }, Object.fromEntries(Object.entries(s.right).map(([slot, c]) => [slot, c.id])));
+  await A.page.waitForTimeout(300);
+  // 還沒選提出負號就送出：提示，不送
+  await A.page.getByTestId('xl-submit').tap();
+  await expect(A.page.locator('#toast')).toContainText('先完成「提出負號」');
+  await expect(A.page.getByTestId('xl-card')).toHaveAttribute('data-mode', 'item');
+  await A.page.getByTestId(`xl-sign-${opts.findIndex((o) => o.ok)}`).tap();
+  await expect(A.page.getByTestId(`xl-sign-${opts.findIndex((o) => o.ok)}`)).toHaveClass(/\bon\b/);
+  await expect(A.page.locator('.xl-lock')).toHaveCount(0);
+  await expect(A.page.locator('.xl-inner')).toContainText(`＝ −${g === 1 ? '' : g}(`);
+  // 第 2 步之前偷點的卡片一張都沒放上去：四格都是空的，卡片都還在匣子裡
+  await expect(card.locator('.xl-slot.filled')).toHaveCount(0);
+  await expect(card.locator('.xl-card-btn.used')).toHaveCount(0);
+  // 選好提出負號後才完成十字圖
+  await place(A.page, s.right);
+  await shot(A.page, 'gcf-step2');
+  await A.page.getByTestId('xl-submit').tap();
+  await expect(A.page.getByTestId('xl-flash')).toHaveAttribute('data-ok', 'true');
+  // 這一題送出前收到的回應（拿題、推送）都不含因式分解，也不含提出負號的選項
+  const early = A.seen.filter((m) => m.at >= itemStart && m.at < before);
+  expect(early.length).toBeGreaterThan(0);
+  for (const m of early) expect(m.text).not.toMatch(/"factored"|"sign/);
 });

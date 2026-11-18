@@ -854,7 +854,8 @@ export interface CrossLiveResult {
   /** 這是哪一題的判定。 */
   itemId: string;
   ok: boolean;
-  reason: CrossJudge['reason'] | 'k';
+  /** k：公因數選錯；sign2：「提出負號」選錯；其他是十字圖的原因。 */
+  reason: CrossJudge['reason'] | 'k' | 'sign2';
   products: [number | null, number | null];
   sum: number | null;
   target: number;
