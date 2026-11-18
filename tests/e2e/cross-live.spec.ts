@@ -3,15 +3,16 @@
 // 同學得分時，自己的題目不重畫、不跳動。學生收到的每個 HTTP 回應與 WebSocket 訊息在送出前都不含因式分解。
 // 答案由測試自己從原式與卡片算出（列舉卡片擺法），不讀伺服器的答案。
 // 重點（shared/game-focus.ts）：開始設定選重點（名稱＋例子）、預設固定、勾選才自動前進；混合兩位同學各自三種都會出現。
-// 截圖：CROSS_SHOTS=1 時才寫，只寫到 artifacts/cross-2026-11-18/，不寫 artifacts/screenshots，也不動 11-17 的舊截圖。
+// 截圖：CROSS_SHOTS=1 時才寫，只寫到 artifacts/cross-2026-11-18b/，不寫 artifacts/screenshots，也不動 11-17 的舊截圖。
 import { test, expect, type Page, type Locator, type Browser, type BrowserContext } from '@playwright/test';
 import { mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { crossClassify, crossJudge, factoredTex, gcd, type CrossFill } from '../../shared/cross';
 import { CROSS_FOCUS } from '../../shared/game-focus';
+import { expectPickCue, expectXColorDistinct } from './cross-colors';
 
 const baseURL = process.env.E2E_BASE_URL || `http://127.0.0.1:${process.env.MCK_PORT || 8787}`;
-const shots = resolve('artifacts/cross-2026-11-18');
+const shots = resolve('artifacts/cross-2026-11-18b');
 const contexts: BrowserContext[] = [];
 const cleanup: { context: BrowserContext; id: string }[] = [];
 
@@ -21,7 +22,7 @@ async function surface(browser: Browser, width: number, height: number, touch = 
   return { context, page: await context.newPage() };
 }
 async function shot(page: Page | Locator, name: string, prefix = 'live-') {
-  if (!process.env.CROSS_SHOTS) return;
+  if (process.env.CROSS_SHOTS !== '1') return;
   await mkdir(shots, { recursive: true });
   await page.screenshot({ path: resolve(shots, `${prefix}${name}.png`) });
 }
@@ -619,6 +620,23 @@ test('live start dialog: focus choices with examples; students get items of the 
   await expect(A.page.getByTestId('xl-item-focus')).toContainText('係數不為 1');
   await expect(A.page.getByTestId('xl-level-now')).toHaveText('x² 係數不為 1');
   await expect(B.page.getByTestId('xl-item-focus')).toHaveAttribute('data-level', '2');
+  // 學生端的 x 係數卡（橘）和常數卡（藍）分得出來
+  await expectXColorDistinct(B.page, '.xl-card-btn.lead', '.xl-card-btn:not(.lead)');
+  // 已放 x 卡的格子＋另選一張卡：格子框是 navy 選取提示（不是橘色）；取消選取後回到橘色
+  {
+    const leads = B.page.locator('.xl-card-btn.lead');
+    const [a, b] = [(await leads.nth(0).getAttribute('data-card'))!, (await leads.nth(1).getAttribute('data-card'))!];
+    await B.page.getByTestId(`xl-card-${a}`).tap();
+    await B.page.getByTestId('xl-slot-lead0').tap();
+    await expect(B.page.getByTestId('xl-slot-lead0')).toHaveClass(/filled/);
+    await expectXColorDistinct(B.page, '[data-testid="xl-slot-lead0"]', '.xl-card-btn:not(.lead)');
+    await B.page.getByTestId(`xl-card-${b}`).tap();
+    await expect(B.page.getByTestId('xl-slot-lead0')).toHaveClass(/\btarget\b/);
+    await expectPickCue(B.page, '[data-testid="xl-slot-lead0"]', 'border');
+    await B.page.getByTestId(`xl-card-${b}`).tap();
+    await B.page.getByTestId('xl-slot-lead0').tap();
+    await expect(B.page.getByTestId('xl-slot-lead0')).not.toHaveClass(/filled/);
+  }
   for (let i = 0; i < 3; i++) {
     if (i) await A.page.getByTestId('xl-next').tap();
     expect(await answerRight(A.page)).toBe(2);

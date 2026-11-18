@@ -4,15 +4,16 @@
 // 拖曳穩定性：拖曳中換題／換重點／公布答案、pointercancel、lostpointercapture、第二根手指都不會留下殘影或放錯卡。
 // 「iPad」測試預設是 Chromium（Edge）的觸控模擬（hasTouch＋CDP 觸控事件），不是 Safari；
 // PW_BROWSER=webkit 時改走 WebKit 可執行的路徑（不用 CDP，觸控拖曳改成 tap 點選），需要先自行安裝 webkit。
-// 截圖：CROSS_SHOTS=1 時存到 artifacts/cross-2026-11-18/（不寫進 artifacts/screenshots，也不動 11-17 的舊截圖）。
+// 截圖：CROSS_SHOTS=1 時存到 artifacts/cross-2026-11-18b/（不寫進 artifacts/screenshots，也不動 11-17 的舊截圖）。
 import { test, expect, type Page, type Browser, type BrowserContext } from '@playwright/test';
 import { mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { CROSS_SLOTS, crossAnswer, crossItem, crossJudge, crossMixLevel, crossPool, crossSeed, gcd, leadText, signed, type CrossFill, type CrossLevel, type CrossSlot } from '../../shared/cross';
+import { CROSS_SLOTS, crossAnswer, crossItem, crossJudge, crossKFeedback, crossKOptions, crossMixLevel, crossPool, crossSeed, gcd, leadText, polyTex, signed, type CrossFill, type CrossItem, type CrossLevel, type CrossSlot } from '../../shared/cross';
 import { CROSS_FOCUS } from '../../shared/game-focus';
+import { expectPickCue, expectXColorDistinct } from './cross-colors';
 
 const baseURL = process.env.E2E_BASE_URL || `http://127.0.0.1:${process.env.MCK_PORT || 8787}`;
-const shots = resolve('artifacts/cross-2026-11-18');
+const shots = resolve('artifacts/cross-2026-11-18b');
 const contexts: BrowserContext[] = [];
 const isWebkit = process.env.PW_BROWSER === 'webkit';
 
@@ -22,7 +23,7 @@ async function surface(browser: Browser, width: number, height: number, touch: b
   return context.newPage();
 }
 async function shot(page: Page, name: string) {
-  if (!process.env.CROSS_SHOTS) return;
+  if (process.env.CROSS_SHOTS !== '1') return;
   await mkdir(shots, { recursive: true });
   await page.screenshot({ path: resolve(shots, `${name}.png`) });
 }
@@ -262,34 +263,129 @@ test('desktop: open from 遊戲, drag cards with the mouse, live products, corre
   await fill(page, g.right, (id, slot) => tapPlace(page, id, slot, false));
   await expect(page.getByTestId('cx-diagram')).toHaveClass(/\bok\b/);
 
-  // L3：先提公因數（十字圖鎖住），再做括號裡的十字交乘，答案帶 k
+  // 先提公因式：十字圖鎖住，先從固定的公因數選項（−5～5，和全班連線對戰同一份）選 k；沒有「提出公因數」按鈕
   let seed3 = 1;
   while (crossItem(crossSeed(seed3, 3, 0), 3).k < 2 || crossItem(crossSeed(seed3, 3, 0), 3).leadLocked) seed3++;
   const it3 = crossItem(crossSeed(seed3, 3, 0), 3);
   await openBoard(page, 3, seed3);
   await expect(page.getByTestId('cx-diagram')).toHaveClass(/locked/);
-  await expect(page.locator('.cx-card:disabled')).toHaveCount(it3.cards.length);
+  // 選對 k 之前沒有任何數字卡（卡片的數值、張數都會洩漏括號裡的三項式）
+  await expect(page.locator('#cx-main .cx-card')).toHaveCount(0);
+  await expect(page.getByTestId('cx-tray-wait')).toBeVisible();
+  await expect(page.getByTestId('cx-extract')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: '提出公因數', exact: true })).toHaveCount(0);
+  expect(await page.locator('[data-testid="cx-kopts"] .cx-kbtn').evaluateAll((els) => els.map((e) => Number((e as HTMLElement).dataset.k)))).toEqual(crossKOptions());
+  const kSmall = await page.locator('.cx-kbtn').evaluateAll((els) => els.map((e) => e.getBoundingClientRect()).filter((r) => r.width < 44 || r.height < 44).length);
+  expect(kSmall, 'k options are large touch targets').toBe(0);
   await page.getByTestId('cx-hint').click();
   await expect(page.getByTestId('cx-feedback')).toContainText('最大公因數');
-  await page.getByTestId('cx-extract').click();
+  await shot(page, 'board-gcf-options');
+  // 選錯：說明哪裡不對（不洩漏答案），可以再選；十字圖仍然鎖住
+  const wrongK = it3.k === 4 ? 2 : 1;
+  await page.getByTestId(`cx-k-${wrongK}`).click();
+  await expect(page.getByTestId('cx-kwrong')).toContainText(crossKFeedback(it3.poly, it3.k, wrongK)!);
+  await expect(page.getByTestId('cx-kwrong')).not.toContainText(String(it3.k));
+  await expect(page.getByTestId(`cx-k-${wrongK}`)).toHaveClass(/tried/);
+  await expect(page.getByTestId('cx-diagram')).toHaveClass(/locked/);
+  await expect(page.getByTestId('cx-extracted')).toHaveCount(0);
+  await shot(page, 'board-gcf-wrong');
+  await page.getByTestId(`cx-k--${it3.k}`).click();
+  await expect(page.getByTestId('cx-kwrong')).toContainText('首項是正的，不用提出負號');
+  const notDivisor = crossKOptions().find((x) => x > 0 && (it3.poly.a % x || it3.poly.b % x || it3.poly.c % x))!;
+  await page.getByTestId(`cx-k-${notDivisor}`).click();
+  await expect(page.getByTestId('cx-kwrong')).toContainText(`${notDivisor} 不是三個係數的公因數`);
+  // 選對（用鍵盤：Tab 到選項按 Enter）：顯示 原式 = k(…)，十字圖解鎖，括號裡的三項式的卡片可以放
+  await page.getByTestId(`cx-k-${it3.k}`).focus();
+  await page.keyboard.press('Enter');
   await expect(page.getByTestId('cx-extracted')).toBeVisible();
+  await expect(page.getByTestId('cx-extracted')).toContainText(String(it3.k));
+  await expect(page.getByTestId('cx-kopts')).toHaveCount(0);
   await expect(page.getByTestId('cx-diagram')).not.toHaveClass(/locked/);
+  await expect(page.locator('.cx-card:disabled')).toHaveCount(0);
   g = await board(page);
   expect(g.k).toBe(it3.k);
   await fill(page, g.right, (id, slot) => mouseDrag(page, id, slot));
   await expect(page.getByTestId('cx-diagram')).toHaveClass(/\bok\b/);
   await expect(page.getByTestId('cx-answer')).toContainText(String(it3.k));
-  await shot(page, 'L3-common-factor');
+  await shot(page, 'board-gcf-correct');
 
-  // L3 負的首項：k < 0，公布答案會連提公因數一起顯示
+  // 負的首項：選正的 → 提醒連負號一起提；公布答案會連提公因數一起顯示
   let seedN = 1;
   while (crossItem(crossSeed(seedN, 3, 0), 3).k > 0) seedN++;
+  const itN = crossItem(crossSeed(seedN, 3, 0), 3);
   await openBoard(page, 3, seedN);
+  await page.getByTestId(`cx-k-${-itN.k}`).click();
+  await expect(page.getByTestId('cx-kwrong')).toContainText('首項是負的，要連負號一起提出');
   await page.getByTestId('cx-reveal').click();
   await expect(page.getByTestId('cx-extracted')).toBeVisible();
   await expect(page.getByTestId('cx-diagram')).toHaveClass(/revealed/);
   await expect(page.getByTestId('cx-extract-step')).toContainText('負號');
-  await shot(page, 'L3-negative-reveal');
+});
+
+/**
+ * 選 k 之前的作答區 HTML（含所有屬性）：拿掉原式（.cx-poly，本來就該看得到）與 data-key（原式的係數），
+ * 前綴換成 P。兩題的結果一樣＝畫面上除了原式以外，沒有任何跟這一題有關的資訊。
+ */
+async function preKDom(page: Page, host: string, prefix: string) {
+  return page.locator(host).evaluate((el, p) => {
+    const c = el.cloneNode(true) as HTMLElement;
+    c.querySelectorAll('.cx-poly').forEach((e) => e.remove());
+    c.removeAttribute('data-key');
+    return c.outerHTML.split(p).join('P');
+  }, prefix);
+}
+/** 選 k 之前：讀數、卡片、格子、屬性都看不到括號裡的三項式 */
+async function expectNoInnerLeak(page: Page, host: string, p: string, it: CrossItem) {
+  const pad = page.locator(host);
+  await expect(pad.locator('.cx-card, [data-card], [data-value], [data-home], .cx-slot.fixed, .cx-answer')).toHaveCount(0);
+  for (const id of ['ps', 'rq', 'sum']) await expect(page.getByTestId(`${p}-${id}`)).toHaveText('?');
+  await expect(page.getByTestId(`${p}-target`)).toHaveText('目標 ?');
+  await expect(page.getByTestId(`${p}-leadprod`)).toHaveText('');
+  await expect(page.getByTestId(`${p}-constprod`)).toHaveText('');
+  await expect(page.getByTestId(`${p}-f0`)).toHaveText('(?x ?)');
+  const html = await pad.evaluate((el) => el.outerHTML);
+  expect(html, 'inner trinomial (KaTeX source) is not in the DOM').not.toContain(polyTex(it.inner));
+  expect(html).not.toContain('目標 +');
+  expect(html).not.toContain('目標 −');
+  expect(html, 'no column products').not.toMatch(/相乘 [=\d−x]/);
+}
+
+test('先提公因式: before the right k is chosen nothing on screen reveals the inner trinomial (text, cards, readouts, attributes)', async ({ browser }) => {
+  test.setTimeout(90_000);
+  const page = await surface(browser, 1280, 800, false);
+  await login(page);
+  // 兩題同號的 k：一題左欄固定（括號裡 x² 係數 1）、一題不固定；還有兩題負的 k
+  const find = (want: (it: CrossItem) => boolean) => {
+    for (let s = 1; ; s++) if (want(crossItem(crossSeed(s, 3, 0), 3))) return s;
+  };
+  const cases = [
+    [find((it) => it.k > 1 && it.leadLocked), find((it) => it.k > 1 && !it.leadLocked)],
+    [find((it) => it.k < 0 && it.leadLocked), find((it) => it.k < 0 && !it.leadLocked)],
+  ];
+  for (const seeds of cases) {
+    const doms: string[] = [];
+    for (const seed of seeds) {
+      const it = crossItem(crossSeed(seed, 3, 0), 3);
+      await openBoard(page, 3, seed);
+      await expect(page.getByTestId('cross-board')).toHaveAttribute('data-key', it.key);
+      await expectNoInnerLeak(page, '#cx-main', 'cx', it);
+      doms.push(await preKDom(page, '#cx-main', 'cx-'));
+      // 選錯一次：說明也不洩漏
+      await page.getByTestId(`cx-k-${-it.k}`).click();
+      await expect(page.getByTestId('cx-kwrong')).toBeVisible();
+      await expectNoInnerLeak(page, '#cx-main', 'cx', it);
+      // 提示（第一層）只談原式的三個係數
+      await page.getByTestId('cx-hint').click();
+      await expect(page.getByTestId('cx-feedback')).toContainText('最大公因數');
+      await expectNoInnerLeak(page, '#cx-main', 'cx', it);
+      // 選對之後才出現卡片與目標
+      await page.getByTestId(`cx-k-${it.k}`).click();
+      await expect(page.locator('#cx-main .cx-card')).toHaveCount(it.cards.length);
+      await expect(page.getByTestId('cx-target')).toHaveText(`目標 ${signed(it.inner.b)}`);
+      await expect(page.locator('#cx-main .cx-slot.fixed')).toHaveCount(it.leadLocked ? 2 : 0);
+    }
+    expect(doms[0], 'apart from the original quadratic the pre-k board is identical for different items').toBe(doms[1]);
+  }
 });
 
 test('focus stays put after 3 correct by default; the 「答對 3 題自動進到下一個重點」 toggle advances a1 → a-not-1', async ({ browser }) => {
@@ -403,7 +499,9 @@ test('?focus=mix shows items from all three focuses, in the seed-determined orde
     keys.push((await page.getByTestId('cross-board').getAttribute('data-key'))!);
     await expect(page.getByTestId('cx-item-focus')).toHaveAttribute('data-level', String(lv));
     await expect(page.getByTestId('cross-board')).toHaveAttribute('data-focus', 'mix');
-    if (i === 2 && process.env.CROSS_SHOTS) {
+    // 混合裡「先提公因式」的題目走同樣的公因數選項流程
+    await expect(page.getByTestId('cx-kopts')).toHaveCount(lv === 3 ? 1 : 0);
+    if (i === 2 && process.env.CROSS_SHOTS === '1') {
       // 截圖時把重點標籤也拍進去（換到一題有提公因式步驟的就更清楚）
       await shot(page, 'board-mix');
     }
@@ -428,6 +526,8 @@ test(`iPad viewport (${isWebkit ? 'WebKit, tap path' : 'Chromium touch emulation
     await login(page);
     await openBoard(page, 2, 909);
     const g = await board(page);
+    // x 係數卡（橘）和常數卡（藍）一眼分得出來
+    await expectXColorDistinct(page, '#cx-tray .cx-card.lead', '#cx-tray .cx-card.const');
     // 一個畫面放得下（不必整頁捲動），按鍵與卡片夠大
     const s = await page.evaluate(() => ({ w: document.documentElement.scrollWidth, h: document.documentElement.scrollHeight, vw: innerWidth, vh: innerHeight, main: (() => { const m = document.querySelector('#cx-main')!; return m.scrollHeight - m.clientHeight; })() }));
     expect(s.w, `${name}: no horizontal overflow`).toBeLessThanOrEqual(s.vw + 1);
@@ -452,6 +552,20 @@ test(`iPad viewport (${isWebkit ? 'WebKit, tap path' : 'Chromium touch emulation
     await tapPlace(page, g.right.const0!.id, 'const0', true);
     await page.locator(`[data-card="${g.right.const0!.id}"]`).tap();
     await page.locator(`[data-home]:not(:has(.cx-card))`).first().tap();
+    await expect(page.locator('.cx-slot .cx-card')).toHaveCount(0);
+    // 格子裡已有 x 卡、再選另一張 x 卡：被選的卡是 navy 外框；改選格子裡那張也是 navy（橘色規則不蓋過選取提示）
+    const [xa, xb] = g.cards.filter((c) => c.kind === 'lead');
+    await tapPlace(page, xa.id, 'lead0', true);
+    await expect(page.getByTestId('cx-slot-lead0')).toHaveClass(/filled/);
+    await page.locator(`[data-card="${xb.id}"]`).tap();
+    await expectPickCue(page, `[data-card="${xb.id}"]`, 'outline');
+    await page.locator(`[data-card="${xb.id}"]`).tap();
+    await page.locator(`[data-card="${xa.id}"]`).tap();
+    await expect(page.locator(`[data-card="${xa.id}"]`)).toHaveClass(/selected/);
+    await expectPickCue(page, `[data-card="${xa.id}"]`, 'outline');
+    await expectXColorDistinct(page, `.cx-slot [data-card="${xa.id}"]`, '#cx-tray .cx-card.const');
+    await page.locator(`[data-card="${xa.id}"]`).tap();
+    await page.getByTestId('cx-clear').tap();
     await expect(page.locator('.cx-slot .cx-card')).toHaveCount(0);
   }
 });

@@ -49,6 +49,7 @@ import { duelBlanks, duelBoardHtml, duelCardHtml, duelCardKey, duelLocal, duelPa
 import { DUEL_TEAM_NAME, type DuelTok } from '../shared/duel';
 import QRCode from 'qrcode';
 import { crossGameCardHtml, renderCrossBoard } from './cross-board';
+import { crossDuelGameCardHtml, renderCrossDuel } from './cross-duel';
 import { crossAct, crossBoardHtml, crossCardHtml, crossEnsureScope, crossCardKey, crossFocusChanged, crossFocusValue, crossLiveGameCardHtml, crossLocal, crossPanelHtml, crossPanelKey, fetchNext, initCrossLive, maybeSettle, mergeCrossPush, resetCrossLocal, updateCrossBoard, updateCrossCard } from './cross-live';
 import { isCrossFocus } from '../shared/game-focus';
 import { homeworkAction, initHomeworkUi, leaveStudentSheet, openPlan, renderHomeworkDetail, renderHomeworkList, renderLearning, renderStudentSheet, studentHomeworkHtml } from './homework';
@@ -224,7 +225,7 @@ function renderGames() {
   shell(
     'games',
     '遊戲活動',
-    `<p class="page-description">不屬於任何一堂課的課堂活動，在老師的大螢幕或 iPad 上直接操作，學生不用登入。</p><div class="games-grid">${crossGameCardHtml()}${crossLiveGameCardHtml(dashboard?.sessions || [])}</div>`,
+    `<p class="page-description">不屬於任何一堂課的課堂活動，在老師的大螢幕或 iPad 上直接操作，學生不用登入。</p><div class="games-grid">${crossGameCardHtml()}${crossLiveGameCardHtml(dashboard?.sessions || [])}${crossDuelGameCardHtml()}</div>`,
   );
 }
 function renderClasses() {
@@ -2848,6 +2849,11 @@ async function renderRoute() {
       return;
     }
     view = null;
+    if (currentRoute.startsWith('/games/cross-duel')) {
+      // 十字交乘雙人大屏對戰：純前端
+      renderCrossDuel(app, currentRoute);
+      return;
+    }
     if (currentRoute.startsWith('/games/cross')) {
       // 十字交乘大板：純前端，不必讀課程資料
       renderCrossBoard(app, currentRoute);

@@ -124,7 +124,7 @@
   margin-right: 6px;
 }
 .xl-dot.red {
-  background: #ff5a5f;
+  background: var(--cross-team-red-light);
 }
 .xl-dot.blue {
   background: #3d8bff;
@@ -193,7 +193,7 @@
   transform: translate(-50%, -50%) scale(1);
 }
 .xl-banner[data-team='red'] {
-  color: #ff8f92;
+  color: var(--cross-team-red-light);
 }
 .xl-banner[data-team='blue'] {
   color: #8dbaff;
@@ -213,7 +213,7 @@
   font-variant-numeric: tabular-nums;
 }
 .xl-end.red b {
-  color: #ff7b7f;
+  color: var(--cross-team-red-light);
 }
 .xl-end.blue b {
   color: #75a9ff;
@@ -337,7 +337,7 @@
   font-size: 14px;
 }
 .xl-team-tag.red {
-  background: #e5484d;
+  background: var(--cross-team-red);
 }
 .xl-team-tag.blue {
   background: #2f74e0;
@@ -409,8 +409,9 @@
   min-width: 56px;
   min-height: 52px;
   border-radius: 12px;
-  border: 2px solid #8a6df0;
+  border: 2px solid var(--cross-x-border);
   background: #fff;
+  color: var(--cross-x);
   font-size: 22px;
   font-weight: 800;
 }
@@ -422,7 +423,8 @@
   border-color: #d5d9e4;
 }
 .xl-kbtn.on {
-  background: #8a6df0;
+  background: var(--cross-x);
+  border-color: var(--cross-x);
   color: #fff;
 }
 .xl-work {
@@ -494,14 +496,17 @@
   border-style: solid;
   border-color: var(--ink-2);
 }
-.xl-slot.lead.filled {
-  border-color: #8a6df0;
+/* 排除條件包在 :where 裡：specificity 和 .xl-slot.target 相同，後面的選取框（navy）才蓋得過橘色 */
+.xl-slot.lead.filled:where(:not(.ok, .no, .pending)) {
+  border-color: var(--cross-x-border);
+  background: var(--cross-x-bg);
+  color: var(--cross-x);
 }
 .xl-slot.const.filled {
   border-color: #3d8bff;
 }
 .xl-slot.target:not(.fixed) {
-  border-color: var(--accent);
+  border-color: var(--cross-pick);
 }
 .xl-slot.pending {
   border-color: #8f99b8;
@@ -560,13 +565,15 @@
   touch-action: manipulation;
 }
 .xl-card-btn.lead {
-  border-color: #8a6df0;
+  border-color: var(--cross-x-border);
+  background: var(--cross-x-bg);
+  color: var(--cross-x);
   font-style: italic;
 }
 .xl-card-btn.sel {
-  background: #fff2e9;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 4px rgba(255, 122, 69, 0.25);
+  background: var(--cross-pick-bg);
+  border-color: var(--cross-pick);
+  box-shadow: 0 0 0 4px rgba(31, 42, 86, 0.3);
 }
 .xl-card-btn.used {
   visibility: hidden;

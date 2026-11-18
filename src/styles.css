@@ -17,6 +17,15 @@
   --yellow: #ffc93c;
   --green: #1f9d63;
   --red: #e5484d;
+  /* 十字交乘：x 係數用橘色（和常數的藍、對錯的綠紅、對戰隊伍的玫瑰紅／藍分開）；全部 cross 畫面只用這組變數 */
+  --cross-x: #c2410c;
+  --cross-x-border: #ea580c;
+  --cross-x-bg: #fff7ed;
+  --cross-team-red: #e11d48;
+  --cross-team-red-bg: #fff1f3;
+  --cross-team-red-light: #fb7185;
+  --cross-pick: #1f2a56;
+  --cross-pick-bg: #e8ecf8;
   --radius: 16px;
   --shadow: 0 6px 24px #1f2a560f;
   --tap: 46px;

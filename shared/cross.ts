@@ -211,6 +211,28 @@ export function crossMixLevel(base: number, index: number): CrossLevel {
   return shuffle(rnd, [1, 2, 3] as CrossLevel[])[index % 3];
 }
 
+/**
+ * 「先提公因式」的公因數選項：每一題都一樣、順序固定（和正確答案無關），學生要自己從原式算出公因數。
+ * 產生器的 k 只會是 2、3、4、5、−1、−2、−3，都在這份清單裡（單元測試對題池每一題核對）；
+ * 其他的數是干擾：別的因數、正負號相反、±1。全班連線對戰（worker/cross.ts）與老師大板共用這一份。
+ */
+export const CROSS_K_OPTIONS: readonly number[] = Object.freeze([-5, -4, -3, -2, -1, 1, 2, 3, 4, 5]);
+export function crossKOptions(): number[] {
+  return [...CROSS_K_OPTIONS];
+}
+/**
+ * 選錯公因數時的說明（不洩漏答案：只說選的數哪裡不對）。選對回傳 null。
+ */
+export function crossKFeedback(poly: Trinomial, k: number, chosen: number): string | null {
+  if (chosen === k) return null;
+  const n = (x: number) => (x < 0 ? `${MINUS}${-x}` : String(x));
+  const divides = poly.a % chosen === 0 && poly.b % chosen === 0 && poly.c % chosen === 0;
+  if (!divides) return `${n(chosen)} 不是三個係數的公因數`;
+  if (poly.a < 0 && chosen > 0) return '首項是負的，要連負號一起提出';
+  if (poly.a > 0 && chosen < 0) return '首項是正的，不用提出負號';
+  return Math.abs(chosen) === 1 ? `提出 ${n(chosen)} 之後，括號裡的係數還有公因數` : `${n(chosen)} 是公因數，但不是最大公因數`;
+}
+
 /** 各等級一輪的題池大小（L1 在範圍內一共 200 種，全部都放進題池）。 */
 export const CROSS_POOL_SIZE: Record<CrossLevel, number> = { 1: 200, 2: 150, 3: 150 };
 /**

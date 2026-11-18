@@ -214,7 +214,7 @@
   vector-effect: non-scaling-stroke;
 }
 .cx-d1 {
-  stroke: var(--violet);
+  stroke: var(--cross-x-border);
 }
 .cx-d2 {
   stroke: var(--blue);
@@ -272,11 +272,11 @@
 }
 .cx-slot.over,
 .cx-picking .cx-slot:not(.fixed):hover {
-  border-color: var(--accent);
-  background: #fff3ec;
+  border-color: var(--cross-pick);
+  background: var(--cross-pick-bg);
 }
 .cx-picking .cx-slot:not(.fixed) {
-  border-color: #ffb48f;
+  border-color: #8f99b8;
 }
 .cx-colprod {
   font-size: clamp(14px, 1.9vmin, 19px);
@@ -345,7 +345,7 @@
   font-family: 'Times New Roman', serif;
 }
 .cx-prod.d1 b {
-  color: var(--violet);
+  color: var(--cross-x);
 }
 .cx-prod.d2 b {
   color: var(--blue);
@@ -382,7 +382,19 @@
   touch-action: none;
 }
 .cx-tray.over {
-  border-color: var(--accent);
+  border-color: var(--cross-pick);
+}
+/* 先提公因式還沒選對 k：卡片匣先空著（卡片會洩漏括號裡的三項式），保留一列卡片的高度 */
+.cx-tray-wait {
+  grid-column: 1 / -1;
+  min-height: var(--cx-card-h);
+  display: grid;
+  place-items: center;
+  margin: 0;
+  text-align: center;
+  font-size: clamp(14px, 2vmin, 22px);
+  font-weight: 700;
+  color: var(--ink-2);
 }
 .cx-cell {
   width: var(--cx-card-w);
@@ -414,8 +426,9 @@
   cursor: grab;
 }
 .cx-card.lead {
-  border-color: var(--violet);
-  color: #4b36c9;
+  border-color: var(--cross-x-border);
+  background: var(--cross-x-bg);
+  color: var(--cross-x);
   font-family: 'Times New Roman', serif;
   font-style: italic;
 }
@@ -424,7 +437,7 @@
   color: #1b5fb8;
 }
 .cx-card.selected {
-  outline: 5px solid var(--accent);
+  outline: 5px solid var(--cross-pick);
   outline-offset: 2px;
 }
 .cx-card.hint {
@@ -564,4 +577,446 @@
 }
 .fx-picker .fx-example {
   font-size: 14px;
+}
+
+/* 單人大板 ↔ 雙人對戰 */
+.cx-mode {
+  display: inline-flex;
+  background: #eef1f8;
+  border-radius: 12px;
+  padding: 3px;
+  gap: 3px;
+}
+.cx-mode-btn {
+  display: inline-grid;
+  place-items: center;
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 10px;
+  font-weight: 800;
+  font-size: 15px;
+  color: var(--ink-2);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.cx-mode-btn.selected {
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 1px 3px #1f2a5633;
+}
+
+/* 先提公因式：固定的公因數選項（和全班連線對戰同一份），選錯的標紅框 */
+.cx-kopts {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(44px, 1fr));
+  gap: 6px;
+  width: 100%;
+}
+.cx-kbtn {
+  min-width: 44px;
+  min-height: 52px;
+  border-radius: 12px;
+  border: 3px solid var(--cross-x-border);
+  background: #fff;
+  color: var(--cross-x);
+  font-size: clamp(20px, 2.8vmin, 30px);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.cx-kbtn:hover:not(:disabled),
+.cx-kbtn:focus-visible {
+  background: var(--cross-x-bg);
+}
+.cx-kbtn.tried {
+  border-color: var(--red);
+  color: #b42f33;
+  background: #fdeced;
+  text-decoration: line-through;
+}
+.cx-kbtn:disabled {
+  opacity: 0.6;
+}
+@media (max-aspect-ratio: 1/1) {
+  .cx-kopts {
+    grid-template-columns: repeat(5, minmax(44px, 1fr));
+  }
+}
+
+/* ───────────── 雙人大屏對戰（src/cross-duel.ts） ───────────── */
+.xd-thumb {
+  background: linear-gradient(90deg, var(--cross-team-red) 0 50%, #2f80ed 50% 100%);
+}
+.xd-times {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 6px 0;
+}
+.xd-time {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  font-weight: 800;
+  cursor: pointer;
+}
+.xd-time:has(input:checked) {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: #fff;
+}
+.xd-time input {
+  width: 20px;
+  height: 20px;
+  min-height: 0;
+  margin: 0;
+}
+#app.cross-duel-app {
+  overflow: hidden;
+}
+.xd-root {
+  position: relative;
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
+  touch-action: none;
+  overscroll-behavior: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.xd-top {
+  flex-wrap: nowrap;
+}
+.xd-top h1 {
+  white-space: nowrap;
+}
+.xd-focus-tag {
+  display: inline-flex;
+  align-items: baseline;
+  font-size: clamp(13px, 1.6vmin, 18px);
+  white-space: nowrap;
+}
+.xd-focus-tag .fx-label {
+  margin-right: 8px;
+}
+.xd-timer {
+  margin: 0 auto;
+  min-width: 4ch;
+  text-align: center;
+  font-size: clamp(34px, min(4.4vw, 7vh), 84px);
+  font-weight: 900;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+.xd-timer.low {
+  color: var(--red);
+}
+.xd-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.xd-controls .btn {
+  min-height: 48px;
+  font-size: 17px;
+}
+@media (max-width: 1250px) {
+  .xd-top h1 small,
+  .xd-focus-tag .fx-example {
+    display: none;
+  }
+}
+@media (max-width: 1100px) {
+  .xd-focus-tag {
+    display: none;
+  }
+}
+.xd-arena {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 6px minmax(0, 1fr);
+  overflow: hidden;
+}
+.xd-divider {
+  background: linear-gradient(var(--cross-team-red), #2f80ed);
+}
+.xd-side {
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  padding: clamp(6px, 0.9vmin, 14px);
+  gap: clamp(4px, 0.8vmin, 10px);
+  touch-action: none;
+}
+.xd-side.red {
+  background: var(--cross-team-red-bg);
+}
+.xd-side.blue {
+  background: #f2f7ff;
+}
+.xd-side-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 2px 14px;
+  border-radius: 12px;
+  color: #fff;
+  font-size: clamp(18px, min(2.2vw, 3.6vh), 40px);
+  font-weight: 900;
+}
+.xd-side.red .xd-side-head {
+  background: var(--cross-team-red);
+}
+.xd-side.blue .xd-side-head {
+  background: #2f80ed;
+}
+.xd-count b {
+  font-size: 1.35em;
+  font-variant-numeric: tabular-nums;
+}
+.xd-pad {
+  --cx-card-w: clamp(52px, min(6.4vw, 11vh), 132px);
+  --cx-card-h: clamp(44px, min(4.2vw, 6.6vh), 96px);
+  --cx-font: clamp(22px, min(2.8vw, 4.6vh), 54px);
+  position: relative;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: 'q' 'work' 'tray' 'fb';
+  grid-template-rows: auto auto auto auto;
+  align-content: space-evenly;
+  gap: clamp(4px, 0.8vmin, 10px);
+  overflow: hidden;
+  touch-action: none;
+}
+.xd-pad .cx-question {
+  padding: 4px 10px;
+  gap: 4px 14px;
+}
+.xd-pad .cx-poly {
+  font-size: clamp(24px, min(3vw, 5.2vh), 62px);
+  gap: 8px;
+}
+.xd-pad .cx-poly .cx-label {
+  display: none;
+}
+.xd-pad .cx-item-focus {
+  font-size: clamp(12px, 1.4vmin, 16px);
+}
+.xd-pad .cx-extract {
+  justify-items: center;
+  width: 100%;
+  font-size: clamp(14px, min(1.5vw, 2.4vh), 22px);
+}
+.xd-pad .cx-extract-eq {
+  font-size: clamp(20px, min(2.4vw, 4vh), 44px);
+}
+.xd-pad .cx-kopts {
+  grid-template-columns: repeat(5, minmax(44px, 1fr));
+  max-width: 640px;
+  gap: 4px;
+}
+.xd-pad .cx-kbtn {
+  min-height: 44px;
+  font-size: clamp(18px, min(2vw, 3.4vh), 34px);
+}
+@media (min-width: 1100px) {
+  .xd-pad .cx-kopts {
+    grid-template-columns: repeat(10, minmax(44px, 1fr));
+    max-width: none;
+  }
+}
+.xd-pad .cx-work {
+  padding: clamp(4px, 0.8vmin, 12px);
+  gap: clamp(8px, 1.4vw, 28px);
+}
+.xd-pad .cx-cross {
+  grid-template-columns: var(--cx-card-w) clamp(44px, 5vw, 120px) var(--cx-card-w);
+  row-gap: clamp(4px, 1vmin, 14px);
+  padding: 4px;
+}
+.xd-pad .cx-colhead,
+.xd-pad .cx-colprod {
+  font-size: clamp(12px, min(1.2vw, 2vh), 19px);
+}
+.xd-pad .cx-readout {
+  flex: 0 1 230px;
+  font-size: clamp(12px, min(1.2vw, 2vh), 20px);
+  gap: 4px;
+}
+.xd-pad .cx-readout > div {
+  padding: 2px 10px;
+  gap: 2px 8px;
+}
+.xd-pad .cx-readout b {
+  font-size: calc(var(--cx-font) * 0.66);
+}
+.xd-pad .cx-tray {
+  padding: clamp(4px, 0.8vmin, 12px);
+  gap: clamp(4px, 0.8vmin, 12px);
+}
+.xd-pad .cx-feedback {
+  font-size: clamp(14px, min(1.6vw, 2.6vh), 30px);
+  min-height: 2em;
+  padding: 2px 10px;
+}
+
+/* 覆蓋層：開始設定、倒數、暫停、結果 */
+.xd-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: #1f2a56cc;
+  touch-action: manipulation;
+}
+.xd-overlay[hidden] {
+  display: none;
+}
+.xd-setup {
+  background: var(--paper);
+  overflow: auto;
+}
+.xd-panel {
+  width: min(880px, 100%);
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+  text-align: center;
+  padding: clamp(16px, 3vmin, 36px);
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: var(--shadow);
+}
+.xd-panel h2 {
+  margin: 0;
+  font-size: clamp(26px, 4vmin, 48px);
+}
+.xd-panel h3 {
+  margin: 8px 0 0;
+  font-size: clamp(17px, 2.2vmin, 24px);
+  color: var(--ink-2);
+}
+.xd-panel p {
+  margin: 0;
+  font-size: clamp(15px, 2vmin, 20px);
+  color: var(--ink-2);
+}
+.xd-focus-pick {
+  width: 100%;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+@media (max-width: 760px) {
+  .xd-focus-pick {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.xd-focus-pick .fx-option {
+  min-height: 72px;
+  font-size: clamp(15px, 1.8vmin, 20px);
+}
+.xd-focus-pick .fx-option.selected {
+  background: var(--ink);
+  color: #fff;
+  border-color: var(--ink);
+}
+.xd-focus-pick .fx-option.selected .fx-example,
+.xd-focus-pick .fx-option.selected .fx-note {
+  color: #dfe4f2;
+}
+.xd-panel .xd-times {
+  justify-content: center;
+}
+.xd-panel .xd-time {
+  font-size: clamp(16px, 2vmin, 22px);
+  min-height: 52px;
+}
+.xd-start {
+  margin-top: 8px;
+  min-height: 64px;
+  min-width: 220px;
+  font-size: clamp(22px, 3vmin, 32px);
+}
+.xd-setup-links {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.xd-setup-links .btn {
+  min-height: 48px;
+}
+.xd-countdown {
+  background: #1f2a5699;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.xd-countdown span {
+  font-size: clamp(120px, 30vmin, 320px);
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 8px 30px #0006;
+  font-variant-numeric: tabular-nums;
+}
+.xd-result-kicker {
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+.xd-result[data-winner='L'] .xd-panel {
+  border: 6px solid var(--cross-team-red);
+}
+.xd-result[data-winner='R'] .xd-panel {
+  border: 6px solid #2f80ed;
+}
+.xd-result[data-winner='tie'] .xd-panel {
+  border: 6px solid var(--yellow);
+}
+.xd-result-scores {
+  display: flex;
+  gap: clamp(16px, 4vw, 60px);
+}
+.xd-result-scores > div {
+  display: grid;
+  justify-items: center;
+  padding: 10px 28px;
+  border-radius: 16px;
+  color: #fff;
+  font-weight: 800;
+  font-size: clamp(16px, 2.2vmin, 24px);
+}
+.xd-result-scores .red {
+  background: var(--cross-team-red);
+}
+.xd-result-scores .blue {
+  background: #2f80ed;
+}
+.xd-result-scores b {
+  font-size: clamp(56px, 10vmin, 120px);
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+}
+.xd-result-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.xd-result-actions .btn,
+.xd-paused .btn {
+  min-height: 60px;
+  min-width: 180px;
+  font-size: clamp(18px, 2.4vmin, 26px);
 }

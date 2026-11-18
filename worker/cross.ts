@@ -1,7 +1,7 @@
 // 十字交乘・全班連線對戰（伺服器）：每位同學各自的題目（伺服器出題、伺服器判定）、計分、自動升級、紅藍拔河。
 // 出題與判定用 shared/cross.ts（和老師大板同一套）；答案只在伺服器（StoredSession.crossPlay），不進 session 物件。
 import type { CrossLiveItem, CrossLiveResult, CrossLiveRow, CrossLiveView, CrossRun, User } from '../shared/types';
-import { crossItem, crossJudge, crossSeed, factoredTex, polyTex, type CrossCard, type CrossItem, type CrossLevel, type CrossSlot } from '../shared/cross';
+import { CROSS_K_OPTIONS as SHARED_K_OPTIONS, crossItem, crossJudge, crossKOptions, crossSeed, factoredTex, polyTex, type CrossCard, type CrossItem, type CrossLevel, type CrossSlot } from '../shared/cross';
 import { CROSS_LEVEL_FOCUS, crossLevelLabel, crossRunFocus } from '../shared/game-focus';
 import { DUEL_TEAMS, type DuelTeam } from '../shared/duel';
 import { sha256 } from './sha256';
@@ -84,8 +84,8 @@ export const CROSS_LOG_CAP = 2400;
 export const CROSS_KEEP_ROUNDS = 3;
 /** 整堂課最多保留幾場的場次紀錄（更早的連總計一起刪掉）。 */
 export const CROSS_MAX_RUNS = 30;
-/** L3 公因數的選項：每一題都一樣、順序固定（和正確答案無關），學生要自己從原式算出公因數。 */
-export const CROSS_K_OPTIONS = [-5, -4, -3, -2, -1, 1, 2, 3, 4, 5];
+/** L3 公因數的選項：每一題都一樣、順序固定（和正確答案無關），學生要自己從原式算出公因數。和老師大板共用 shared/cross.ts 的清單。 */
+export const CROSS_K_OPTIONS: number[] = [...SHARED_K_OPTIONS];
 /** 勾了「自動進到下一個重點」時，同一個重點連對幾題前進到下一個重點。 */
 export const CROSS_LIVE_STREAK = 3;
 /** 兩次動作最少間隔（毫秒）。 */
@@ -134,7 +134,7 @@ export function liveCards(item: CrossItem): CrossCard[] {
 }
 /** L3 公因數的選項：固定的 −5～5（不含 0），每一題都一樣；選項本身看不出答案。 */
 export function kOptions(): number[] {
-  return [...CROSS_K_OPTIONS];
+  return crossKOptions();
 }
 
 export const crossSize = (run: CrossRun): Record<DuelTeam, number> => {
