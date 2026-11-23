@@ -116,6 +116,9 @@ test('formative quiz for the class, then PK battles picked on the seat map and b
   await expect(teacher.page.getByTestId('pk-waiting')).toContainText('23 號');
   await teacher.page.getByTestId('pk-bot').click();
   await expect(teacher.page.getByTestId('pk-pair')).toHaveCount(2);
+  // 配好之後才上線的 24 號：觀眾（跟著做）
+  const s24 = (await surface(browser, 1080, 810, true)).page;
+  await loginStudent(s24, 24);
   // 大螢幕顯示配好的組別
   await expect(teacher.page.getByTestId('quiz-board')).toContainText('配對中');
   await expect(teacher.page.getByTestId('quiz-board').locator('.pk-card')).toHaveCount(2);
@@ -137,6 +140,17 @@ test('formative quiz for the class, then PK battles picked on the seat map and b
   await expect(teacher.page.getByTestId('pk-card').first()).toHaveClass(/over/);
   await shot(teacher.page, 'teacher-pk-board');
   await shot(s21, 'student-pk-result');
+  // 觀眾跟著做：選了就跳下一題，但不說對錯；做完也要等 PK 結束才公布
+  await answerTab(s24);
+  await expect(s24.getByTestId('quiz-card')).toContainText('跟著做');
+  for (let i = 0; i < 10; i++) {
+    await expect(s24.locator('.mini-label')).toContainText(`第 ${i + 1}／10 題`);
+    await s24.getByTestId('quiz-option-0').click();
+    if (i < 9) await expect(s24.locator('.quiz-flash')).toHaveText('已作答，PK 結束後公布答案');
+  }
+  await expect(s24.getByTestId('quiz-summary')).toHaveText('答完了，PK 結束後公布答案與解析。');
+  await expect(s24.locator('.quiz-review')).toHaveCount(0);
+  await shot(s24, 'student-pk-spectator-wait');
   // 比完（23 號對電腦按「結束對戰」）：大螢幕有每題 ✓／✗、錯題紀錄、PK 戰績
   await teacher.page.getByTestId('quiz-end').click().catch(() => {});
   await expect(teacher.page.getByTestId('pk-again')).toBeVisible({ timeout: 10_000 });
@@ -144,6 +158,11 @@ test('formative quiz for the class, then PK battles picked on the seat map and b
   await expect(teacher.page.getByTestId('quiz-record')).toContainText('錯題紀錄');
   await expect(teacher.page.getByTestId('quiz-record')).toContainText('本堂 PK 戰績');
   await shot(teacher.page, 'teacher-pk-record');
+  // 結束後觀眾也看到對錯、正解與解析
+  await expect(s24.getByTestId('quiz-summary')).toContainText('／10 題');
+  await expect(s24.locator('.quiz-review li')).toHaveCount(10);
+  await expect(s24.locator('.quiz-review li').first()).toContainText('正解');
+  await shot(s24, 'student-pk-spectator-revealed');
   // 錯題練習：每人只做自己錯的題型（換數字），答了馬上看到正解與解析
   await teacher.page.getByTestId('quiz-review').click();
   await expect(s21.getByTestId('quiz-card')).toContainText('錯題練習');

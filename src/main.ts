@@ -1905,6 +1905,9 @@ function quizCard(): string {
         const r = st.result === 'draw' ? '平手' : st.result ? ((st.result === 'a') === (m.a === me) ? '你贏了！' : '這次輸了，再接再厲') : '';
         result = st.over ? `<p class="pk-result" data-testid="pk-result">${r}</p>` : `<p class="muted">答完了，等${seatName(opp!)}…</p>`;
       }
+      // PK 觀眾：作答鎖定前伺服器不給對錯與正解
+      if (pk && !m && q.questions.every((x) => x.answer === undefined))
+        return `<section class="quiz-card" data-testid="quiz-card"><h2>${glyph}${title}</h2><p class="quiz-summary" data-testid="quiz-summary">答完了，PK 結束後公布答案與解析。</p></section>`;
       const right = mine.correct.filter((x) => x === true).length;
       return `<section class="quiz-card" data-testid="quiz-card"><h2>${glyph}${title}</h2>${progress}${result}<p class="quiz-summary" data-testid="quiz-summary">答對 ${right}／${n} 題${pk && quizScoreOf(q, me).timeMs !== null ? `，用時 ${secText(quizScoreOf(q, me).timeMs)}` : ''}</p>${review()}</section>`;
     }
@@ -3459,8 +3462,11 @@ async function action(el: HTMLElement) {
           if (r.correct) playCorrect();
           const x = cur.questions[k];
           // 錯題練習附上正解與解析，看懂再做下一題；PK 只說對錯（節奏快）
+          // PK 觀眾：伺服器只收下作答，對錯等 PK 結束才公布
           quizFlash =
-            q.run.mode !== 'pk' && x.answer !== undefined
+            r.correct === undefined
+              ? '已作答，PK 結束後公布答案'
+              : q.run.mode !== 'pk' && x.answer !== undefined
               ? `<b>${r.correct ? '✓ 答對了！' : '✗ 答錯了'}</b> 正解 ${String.fromCharCode(65 + x.answer)}. ${md(x.options[x.answer])}${x.explanation ? `<small>${md(x.explanation)}</small>` : ''}`
               : r.correct ? '✓ 上一題答對！' : '✗ 上一題答錯了';
         } else if (i === quizIndex && quizIndex < n - 1 && (cur.mine.conf?.[k] ?? q.mine?.conf?.[i] ?? null) !== null) quizIndex++; // 把握程度還在路上時，推送換掉的畫面沒有它：看點選時的畫面
