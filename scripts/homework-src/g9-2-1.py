@@ -1043,6 +1043,35 @@ ITEM_LINKS = {
     },
 }
 
+# 魔王戰（g9-2-1c，涵蓋整節）題目 ID 是「new-…」、對不回題位的 topic：手動對到最接近的題型
+RAID_MANUAL = {
+    '判斷直線與圓位置': 'g9-2-1b:q10',
+}
+
+
+def raid_links(lid, banks):
+    """魔王戰 topic → 題型：同 topic 有「課程-題位-n」的題目就用它的題位，否則看 RAID_MANUAL（只列有對不回題位的題目的 topic）。"""
+    import re
+    path = ROOT / 'content/raids' / f'{lid}.json'
+    if not path.exists():
+        return {}
+    qs = [q for pool in json.loads(path.read_text(encoding='utf8'))['pools'].values() for q in pool]
+    seen, need = {}, []
+    for q in qs:
+        m = re.match(r'^(g[\w-]+?)-(q\d+)-\d+$', q['id'])
+        if m and m.group(2) in banks.get(m.group(1), ()):
+            seen.setdefault(q['topic'], f'{m.group(1)}:{m.group(2)}')
+        elif q['topic'] not in need:
+            need.append(q['topic'])
+    used = {}
+    for t in need:
+        ref = seen.get(t) or RAID_MANUAL.get(t)
+        assert ref, f'{lid} 魔王戰 topic「{t}」沒有對應題型（加進 RAID_MANUAL）'
+        l, s = ref.split(':')
+        assert s in banks.get(l, ()), f'{lid} 魔王戰 topic「{t}」對到不存在的 {ref}'
+        used[t] = ref
+    return dict(raidTopics=used) if used else {}
+
 LESSONS = {
     'g9-2-1a': dict(
         title='2-1(1) 圓、弧長與扇形面積',
@@ -1118,7 +1147,8 @@ def main():
             slots.append(dict(id=sid, topic=topics[sid], objective=obj, performance=L['perf'].get(sid, L['default_perf']),
                               content=L['content'], variants=out))
         data = dict(lessonId=lid, section='9-2-1', title=L['title'], source=L['source'], curriculum=L['curriculum'],
-                    slots=slots, links=dict(activities=L['activities'], **({'items': ITEM_LINKS[lid]} if lid in ITEM_LINKS else {})))
+                    slots=slots, links=dict(activities=L['activities'], **({'items': ITEM_LINKS[lid]} if lid in ITEM_LINKS else {}),
+                                            **raid_links(lid, {l: {s[0] for s in x['slots']} for l, x in LESSONS.items()})))
         path = ROOT / 'content/homework' / f'{lid}.json'
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + '\n', encoding='utf8')

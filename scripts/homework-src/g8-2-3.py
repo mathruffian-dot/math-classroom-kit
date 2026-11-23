@@ -894,6 +894,39 @@ ITEM_LINKS = {
     },
 }
 
+# 魔王戰（g8-2-3c，涵蓋整節）題目 ID 是「new-…」、對不回題位的 topic：手動對到最接近的題型
+RAID_MANUAL = {
+    '找出正確算法：兩股求斜邊': 'g8-2-3a:q4',
+    '用距離公式求兩點距離（整數／根式）': 'g8-2-3c:q5',
+    '找錯：兩股求斜邊開根號': 'g8-2-3a:q4',
+    '找錯：求另一股開根號': 'g8-2-3a:q6',
+    '找錯：距離公式': 'g8-2-3c:q5',
+    '判斷＋理由：誰的斜邊較長': 'g8-2-3a:q4',
+}
+
+
+def raid_links(lid, banks):
+    """魔王戰 topic → 題型：同 topic 有「課程-題位-n」的題目就用它的題位，否則看 RAID_MANUAL（只列有對不回題位的題目的 topic）。"""
+    path = ROOT / 'content/raids' / f'{lid}.json'
+    if not path.exists():
+        return {}
+    qs = [q for pool in json.loads(path.read_text(encoding='utf8'))['pools'].values() for q in pool]
+    seen, need = {}, []
+    for q in qs:
+        m = re.match(r'^(g[\w-]+?)-(q\d+)-\d+$', q['id'])
+        if m and m.group(2) in banks.get(m.group(1), ()):
+            seen.setdefault(q['topic'], f'{m.group(1)}:{m.group(2)}')
+        elif q['topic'] not in need:
+            need.append(q['topic'])
+    used = {}
+    for t in need:
+        ref = seen.get(t) or RAID_MANUAL.get(t)
+        assert ref, f'{lid} 魔王戰 topic「{t}」沒有對應題型（加進 RAID_MANUAL）'
+        l, s = ref.split(':')
+        assert s in banks.get(l, ()), f'{lid} 魔王戰 topic「{t}」對到不存在的 {ref}'
+        used[t] = ref
+    return dict(raidTopics=used) if used else {}
+
 LESSONS = [
     ('g8-2-3a', '2-3(1) 畢氏定理與邊長計算',
      f'八上課本 2-3 p.92–96（斜邊與股、畢氏定理、例 1、例 2 與隨堂）；{GUIDE} p.30–31（2-3 教學活動連結分析表：學習表現 s-IV-7、學習內容 S-8-6）、'
@@ -935,7 +968,8 @@ def build():
         out = dict(lessonId=lid, section='8-2-3', title=title, source=source,
                    curriculum=dict(performance=[dict(code=c, text=CODES[c][1]) for c in used_p],
                                    content=[dict(code=c, text=CODES[c][1]) for c in used_c]),
-                   slots=out_slots, links=dict(activities=acts, **({'items': ITEM_LINKS[lid]} if lid in ITEM_LINKS else {})))
+                   slots=out_slots, links=dict(activities=acts, **({'items': ITEM_LINKS[lid]} if lid in ITEM_LINKS else {}),
+                                               **raid_links(lid, {e[0]: {s[0] for s in e[3]} for e in LESSONS})))
         path = ROOT / 'content/homework' / f'{lid}.json'
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(out, ensure_ascii=False, indent=2) + '\n', encoding='utf8')
