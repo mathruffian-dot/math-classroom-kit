@@ -577,6 +577,8 @@ async function answerRight(page: Page) {
   // 畫面上的重點標籤和原式的分類一致
   expect(crossClassify({ poly: sol.poly })).toBe(level);
   await place(page, sol.right, sol.k);
+  // 伺服器限速：拿題後至少隔 0.3 秒才能送出（CROSS_MIN_GAP）。測試放卡太快時會被 429 擋下（偶發失敗），先等一下
+  await page.waitForTimeout(350);
   await page.getByTestId('xl-submit').tap();
   await expect(page.getByTestId('xl-flash')).toHaveAttribute('data-ok', 'true');
   return level;

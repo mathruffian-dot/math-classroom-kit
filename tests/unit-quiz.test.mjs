@@ -185,6 +185,8 @@ test('class and PK unit quizzes run like the after-class quiz; banks and answers
   const odd = structuredClone(f.data.sessions[sid]);
   const oddRun = odd.quizRuns.find((x) => x.unit);
   oddRun.bank.slots[0].id = 'g8-2-3a__q1__x';
+  // topic 也改成對不到的：否則 slot 0 剛好是 g8-2-3a:q1 的題型時，用 topic 對回去也會得到 g8-2-3a:q1（測試偶發失敗）
+  oddRun.bank.slots[0].topic = '（對不到的題型）';
   assert(sessionRecords(odd).some((r) => r.item === 'g8-2-3a__q1__x' && r.slot !== 'g8-2-3a:q1'));
   // PK：配對、開戰都用單元題庫；答過的題才看得到答案
   assert.equal((await ctl({ action: 'pk-lobby', unit: true })).status, 200);
