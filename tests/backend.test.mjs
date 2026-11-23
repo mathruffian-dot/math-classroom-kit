@@ -1146,6 +1146,49 @@ test('quiz answers stay hidden from students through the grace period; teachers 
   assert((await look('seat1')).quiz.questions.every(q=>q.answer!==undefined));
 });
 
+test('PK spectators answer along but get no answers, verdicts or scores until the quiz locks; players still get instant feedback',async()=>{
+  const {f,session:first}=await setup();
+  await f.call(`/api/sessions/${first.id}/control`,'POST',{action:'end'});
+  const quiz={title:'觀眾題庫',slots:Array.from({length:10},(_,q)=>({id:`g${q+1}`,topic:`題位 ${q+1}`,variants:[0,1,2].map(v=>({stem:`題幹 ${q+1}（${v}）`,options:['對','錯A','錯B','錯C'],answer:0,explanation:`解析 ${q+1}（${v}）`}))}))};
+  const base=(await f.call('/api/dashboard')).body.lessons[0];
+  assert.equal((await f.call('/api/lessons/watch','PUT',{lesson:{...base,id:'watch',title:'觀眾',quiz}})).status,200);
+  await goOnline(f,[1,2,3]);
+  const s=(await f.call('/api/sessions','POST',{lessonId:'watch',classId:'demo-class'})).body.session;
+  const ctl=(body)=>f.call(`/api/sessions/${s.id}/control`,'POST',body);
+  const look=(who)=>f.call(`/api/sessions/${s.id}`,'GET',null,who).then(r=>r.body);
+  const answer=(who,body)=>f.call(`/api/sessions/${s.id}/quiz`,'POST',body,who);
+  await ctl({action:'pk-lobby'});await ctl({action:'pk-pick',seat:1});await ctl({action:'pk-pick',seat:2});
+  await ctl({action:'pk-start',seconds:60});
+  f.data.sessions[s.id].session.quiz.startedAt=Date.now()-1000; // 倒數結束、開始作答
+  const runId=(await look('teacher')).quiz.run.id;
+  const key=(await look('teacher')).quiz.questions[0].options.indexOf('對');
+  // 觀眾（3 號）作答：收下，但不回對錯、正解、解析、分數
+  const watched=await answer('seat3',{runId,q:0,choice:key});
+  assert.equal(watched.status,200);
+  for(const k of ['correct','answer','explanation','score']) assert.equal(watched.body[k],undefined,`spectator response has ${k}`);
+  assert.equal((await answer('seat3',{runId,q:0,choice:(key+1)%4})).status,409,'one answer per question, like the players');
+  for(const who of ['seat3','seat1']){
+    const v=await look(who);
+    assert(v.quiz.questions.every(q=>q.answer===undefined&&q.explanation===undefined),`${who} sees no answers yet`);
+    assert.equal(v.quiz.scores['3'],undefined,`${who} does not see the spectator's score`);
+    assert(!JSON.stringify(v).includes('解析 '));
+  }
+  assert.equal((await look('seat3')).quiz.mine.correct[0],null);
+  // 上場的人照舊馬上知道對錯
+  const played=await answer('seat1',{runId,q:0,choice:key});
+  assert.equal(played.body.correct,true);
+  assert.equal(played.body.answer,key);
+  assert.equal((await look('seat1')).quiz.questions[0].answer,key);
+  // 老師看得到觀眾
+  assert.equal((await look('teacher')).quiz.scores['3'].correct,1);
+  // 老師結束：觀眾也看到答案與自己的對錯
+  await ctl({action:'quiz-end'});
+  const after=await look('seat3');
+  assert.equal(after.quiz.questions[0].answer,key);
+  assert.equal(after.quiz.mine.correct[0],true);
+  assert.equal(after.quiz.scores['3'].correct,1);
+});
+
 test('quiz scoring: more correct wins, ties go to the faster one; the computer follows its timetable',()=>{
   const s=(correct,timeMs,finished=true)=>({answered:10,correct,timeMs,finished});
   assert.equal(quizLib.decide(s(8,90000),s(7,30000)),'a');

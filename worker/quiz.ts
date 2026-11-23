@@ -127,6 +127,13 @@ export function score(bank: QuizBank, run: QuizRun, sheet: QuizSheet | undefined
 }
 /** 作答後馬上知道對錯：PK、錯題練習、間隔複習。 */
 export const instantFeedback = (run: QuizRun) => run.mode === 'pk' || run.mode === 'review' || run.mode === 'spaced';
+/** PK 上場的座號（不是觀眾）。 */
+export const inMatch = (run: QuizRun, seat: string | number) => !!run.matches?.some((m) => String(m.a) === String(seat) || String(m.b) === String(seat));
+/**
+ * 這個座號作答後馬上知道對錯與正解。PK 只有上場的人；觀眾（跟著做）和全班測驗一樣等作答鎖定才公布——
+ * 所有組與觀眾同一份卷子，觀眾先拿到正解就能告訴場上的同學。
+ */
+export const instantFor = (run: QuizRun, seat: string | number) => instantFeedback(run) && (run.mode !== 'pk' || inMatch(run, seat));
 /** 這一次用的題庫：間隔複習用上一課的（存在這一次裡），其他用這一課的。 */
 export const runBank = (lessonBank: QuizBank | undefined, run: QuizRun) => run.bank ?? lessonBank;
 /** 一份卷子的答對題數與題數（全班測驗的成績紀錄、同程度配對用）。 */
@@ -169,16 +176,19 @@ export function quizView(lesson: Lesson, store: QuizStore, run: QuizRun, user: U
   const mineSheet = teacher ? undefined : sheets[me];
   const scores: Record<string, QuizScore> = {};
   if (teacher || run.mode === 'pk')
-    for (const [seat, sheet] of Object.entries(sheets))
+    for (const [seat, sheet] of Object.entries(sheets)) {
+      // 觀眾的答對題數在鎖定前也不給學生看（看自己的答對數變化就知道答對沒）
+      if (!teacher && !locked && seat !== '0' && !inMatch(run, seat)) continue;
       scores[seat] = seat === '0' ? botScore(botTimeline(bank, run, sheet), run, now) : score(bank, run, sheet, now, seat);
+    }
   // 老師看全班同一份（錯題練習每人不同，老師看題位清單）；學生看自己的卷子
   const { picks, slots } = teacher ? { picks: run.paper.picks, slots: bank.slots.map((_, i) => i) } : paperFor(bank, run, me);
   const answeredByMe = (q: number) => mineSheet?.answers[q] !== null && mineSheet?.answers[q] !== undefined;
   const questions = slots.map((q) => {
     const it = item(bank, picks, q),
       order = picks[q].order;
-    // PK、錯題練習：答過就看得到對錯；全班測驗：作答鎖定後才公布
-    const reveal = teacher || locked || (instantFeedback(run) && answeredByMe(q));
+    // PK 上場的人、錯題練習：答過就看得到對錯；全班測驗、PK 觀眾：作答鎖定後才公布
+    const reveal = teacher || locked || (instantFor(run, me) && answeredByMe(q));
     return {
       slot: q,
       topic: bank.slots[q].topic,
@@ -193,7 +203,7 @@ export function quizView(lesson: Lesson, store: QuizStore, run: QuizRun, user: U
     const answers = mineSheet?.answers || [];
     view.mine = {
       answers: slots.map((q) => (answers[q] === null || answers[q] === undefined ? null : picks[q].order.indexOf(answers[q]!))),
-      correct: slots.map((q) => (instantFeedback(run) || locked ? isCorrect(bank, picks, q, answers[q]) : null)),
+      correct: slots.map((q) => (instantFor(run, me) || locked ? isCorrect(bank, picks, q, answers[q]) : null)),
       ...(mineSheet?.done !== undefined ? { done: mineSheet.done } : {}),
       ...(mineSheet?.conf ? { conf: slots.map((q) => mineSheet.conf![q] ?? null) } : {}),
     };

@@ -24,7 +24,7 @@ import catalog from '../content/catalog.generated.json';
 import { normalizeChars, parseNumberAnswer } from '../shared/expr';
 import { PRACTICE_GRACE_MS, practiceStatus, practiceTotal } from '../shared/practice';
 import { PK_COUNTDOWN_MS, decide, quizLocked, quizOver } from '../shared/quiz';
-import { drawPaper, drawReview, drawUnit, instantFeedback, isCorrect, levelPairs, makeBot, newMatch, paperFor, quizRecord, quizView, restoreQuiz, runBank, score, sheetResult, viewRun, type QuizStore } from './quiz';
+import { drawPaper, drawReview, drawUnit, instantFeedback, instantFor, isCorrect, levelPairs, makeBot, newMatch, paperFor, quizRecord, quizView, restoreQuiz, runBank, score, sheetResult, viewRun, type QuizStore } from './quiz';
 import { analysisContext, analysisTaken, answerRaid, newQuestion, questionFor, raidBank, raidCorrect, raidHasAnalysis, skipRaid, raidCsvRows, raidOver, raidState, raidView, restoreRaid, type RaidStore } from './raid';
 import { RAID_ALL_KINDS, RAID_COUNTDOWN_MS, RAID_ROLES, raidConfig, type RaidDifficulty, type RaidKind, type RaidRole } from '../shared/raid';
 import { answerDuel, duelBank, duelCsvRows, duelJoin, duelOver, duelState, duelTeams, duelView, problemView, restoreDuel, startProblem, type DuelStore } from './duel';
@@ -2302,9 +2302,10 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
         s.seen[String(user.seat)] = now();
         session.revision++;
         const correct = isCorrect(bank, own.picks, q, original);
-        // PK、錯題練習：直接回傳正解（顯示位置）與解析，學生端不用再等畫面更新
+        // PK 上場的人、錯題練習：直接回傳正解（顯示位置）與解析，學生端不用再等畫面更新；
+        // PK 觀眾只收下作答，正解等作答鎖定才公布（同一份卷子，先拿到正解就能告訴場上的同學）
         const it = bank.slots[q].variants[own.picks[q].variant];
-        const reveal = instantFeedback(run) ? { correct, answer: order.indexOf(it.answer), ...(it.explanation ? { explanation: it.explanation } : {}), score: score(bank, run, sheet, t, String(user.seat)) } : { ok: true };
+        const reveal = instantFor(run, user.seat!) ? { correct, answer: order.indexOf(it.answer), ...(it.explanation ? { explanation: it.explanation } : {}), score: score(bank, run, sheet, t, String(user.seat)) } : { ok: true };
         // revision：學生端用它丟掉比這次作答更舊的畫面（避免已答的題目又出現）
         return save({ ...reveal, revision: session.revision });
       }
