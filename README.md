@@ -56,7 +56,7 @@ npm run dev
 
 5. 在「設定 → AI 批改」輸入 API key。預設為 OpenAI `gpt-6-luna`，也可改用 Gemini、Claude 或其他 OpenAI 相容 API。
 
-**資料存放位置**：課堂資料、作答照片與 API key 都存在 Cloudflare Durable Object。詳見 [部署指南](docs/DEPLOYMENT.md)，含免費額度與費用估算。
+**資料存放位置**：課堂資料與 API key 存在 Cloudflare Durable Object；作答照片與回家作業照片存在 Cloudflare R2（2026-11-24 起，之前的照片仍在 Durable Object，照樣讀得到）。詳見 [部署指南](docs/DEPLOYMENT.md)，含免費額度與費用估算。
 
 ## 教材怎麼做
 

@@ -85,7 +85,7 @@ import {
   sheetView,
   slotInfo,
 } from './homework';
-import { type PhotoEnv, base64Bytes, photoStore } from './photos';
+import { PHOTO_CHECK, PHOTO_CHECK_PREFIX, type PhotoEnv, answerPhotos, base64Bytes, decodedBytes, notePhotos, parseDataUrl, photoHash, photoKind, photoStore, r2Prefix, settlePhotos, sweepR2 } from './photos';
 import {
   type Vault,
   GRADER_SYSTEM,
@@ -184,6 +184,8 @@ interface ImageMeta {
   type: string;
   bytes: number;
   createdAt: string;
+  /** 存在 R2（沒有＝Durable Object，改用 R2 之前的照片）。 */
+  where?: 'r2';
 }
 export interface State {
   version: 1;
@@ -421,6 +423,185 @@ function closeRaid(s: StoredSession, state?: State) {
   if (kept) kept.endedAt ??= run.endedAt;
   if (state) recordRaidBest(state, s);
   s.session.raid = null;
+}
+/** 結束目前這一場魔王戰（記上結束時間，戰況停在這一刻；畫面保留結算）。 */
+function endRaidRun(s: StoredSession) {
+  const run = s.session.raid;
+  if (!run) return;
+  run.endedAt ??= Date.now();
+  const kept = s.raidRuns?.find((r) => r.id === run.id);
+  if (kept) kept.endedAt ??= run.endedAt;
+}
+/** 遊戲區開魔王戰的計畫（見 POST /api/games/raid）。 */
+interface RaidGamePlan {
+  mode: 'enter' | 'start' | 'replace' | 'new';
+  /** 這一班進行中的課（沒有就是 null）。 */
+  sessionId: string | null;
+  title?: string;
+  /** 開戰會收起的活動（給老師看）。 */
+  busy: string[];
+  token: string;
+}
+/**
+ * 開戰會影響的狀態：同一張表產生給老師看的名稱與給伺服器比對的指紋（兩者一定一致，只列真的會被改到的）。
+ * - end（取代別的課，`endSessionState`）：進行中的測驗／對戰／魔王戰記上結束、PK 配對停止搶答上場、作答、補救練習、搶答、拍照、彈幕都停止。
+ * - move（換頁，`moveSlide`）：作答、拍照、限時、補救練習、公布結果、搶答。
+ * - start（在這一堂開戰，`startRaid`）：測驗（含結束後還在檢討的結果）、PK 配對、作答、補救練習、步驟格鬥、十字交乘、上一場魔王戰的結算都收起來。
+ * 每一項的指紋放實際的值與輪次（作答開放時間、限時、每種活動自己的 rounds、公布結果與拍照題的頁碼），同一題重新開放、取消再重開都算變了。
+ */
+function interruptions(s: StoredSession, how: { end: boolean; move: boolean; start: boolean }, now: number): { names: string[]; print: string } {
+  const x = s.session;
+  const items: [string, unknown][] = [];
+  const add = (on: unknown, name: string, value: unknown) => {
+    if (on) items.push([name, value]);
+  };
+  const r = x.rounds || {};
+  const quizLive = !!x.quiz && !quizLocked(x.quiz, now); // 截止後的寬限時間內還收得到答案，也算進行中
+  // 和師生畫面同一個判定：時間到了、還沒寫入結束時間的也算結束（畫面已經是結算）
+  const raidLive = !!x.raid && !x.raid.endedAt && !raidOver(x.raid, raidState(x.raid, s, now));
+  const duelLive = !!x.duel && !x.duel.endedAt && !duelOver(x.duel, duelState(x.duel, s, now));
+  const crossLive = !!x.cross && !x.cross.endedAt && !crossOver(x.cross, now);
+  // 換課（end）也會收掉學生正在檢討的結果，所以結束後的結果在 start 與 end 都列出
+  if (x.quiz) add(quizLive || how.start || how.end, quizLive ? (x.quiz.mode === 'pk' ? 'PK 戰' : '課後檢核／測驗') : '測驗結果（檢討中）', [x.quiz.id, quizLive]);
+  // PK 配對：開戰會收起整個配對；結束那一堂，配對也不能再開始。兩種都列出、指紋帶配對內容（等待者、分組）與輪次
+  add(x.pkLobby && (how.start || how.end), 'PK 配對', [x.pkLobby, r.pk ?? 0, x.pkLobby?.buzz ? (r.pkBuzz ?? 0) : null]);
+  add(x.pkLobby?.buzz && how.end && !how.start, 'PK 搶答上場', r.pkBuzz ?? 0);
+  add(x.activityOpen, '作答', [x.slideIndex, x.activityOpenedAt ?? null, x.activityDeadline ?? null]);
+  add(x.practice, '補救練習', x.practice);
+  if (x.duel) add(duelLive || how.start || how.end, duelLive ? '步驟格鬥' : '步驟格鬥結果', [x.duel.id, duelLive]);
+  // 暫停／恢復、個人／紅藍拔河（分隊與勝負規則不同）都算不同的狀態
+  const crossName = x.cross?.team ? '十字交乘紅藍拔河' : '十字交乘對戰';
+  if (x.cross) add(crossLive || how.start || how.end, crossLive ? (x.cross.pausedAt ? `${crossName}（暫停中）` : crossName) : x.cross.team ? '十字交乘紅藍拔河結果' : '十字交乘結果', [x.cross.id, crossLive, x.cross.pausedAt, x.cross.deadline, x.cross.team]);
+  if (x.raid) add(raidLive || how.start || how.end, raidLive ? '魔王戰' : '上一場魔王戰的結算', [x.raid.id, raidLive]);
+  add((how.end || how.move) && (x.buzzOpen || x.buzzWinner), '搶答', [x.buzzOpen, x.buzzWinner, r.buzz ?? 0]);
+  add((how.end || how.move) && x.photoOpen, '拍照作答', [x.photoSlide ?? null, r.photo ?? 0]);
+  add((how.move || how.end) && x.resultsVisible, '公布中的結果', [x.resultsSlide ?? null, r.results ?? 0]);
+  // 這一頁已經發回的個別批改（學生正在看老師的回饋）：換頁、換課都會把它蓋掉。指紋只放活動 ID、發回幾份與發回輪次
+  const act = s.lesson.slides[x.slideIndex]?.activity;
+  const released = act ? Object.values(s.grades || {}).filter((g) => g.activityId === act.id && g.released).length : 0;
+  add((how.move || how.end) && released > 0, '已發回的個別批改', [act?.id ?? null, released, act ? (x.releaseRev?.[act.id] ?? 0) : 0]);
+  add(how.end && x.danmakuOpen, '彈幕', r.danmaku ?? 0);
+  return { names: items.map(([n]) => n), print: JSON.stringify([x.id, how, items]) };
+}
+function raidGamePlan(state: State, lessonId: string, classId: string): RaidGamePlan {
+  const now = Date.now();
+  const active = Object.values(state.sessions)
+    .filter((s) => s.session.classId === classId && !s.session.ended)
+    .sort((a, b) => b.session.createdAt.localeCompare(a.session.createdAt));
+  const cur = active[0];
+  // token 綁定班級、目標教材、計畫種類與活動指紋：換了目標或狀態都對不上
+  const token = (mode: RaidGamePlan['mode'], print: string) => JSON.stringify([classId, lessonId, mode, active.map((s) => s.session.id), print]);
+  if (!cur) return { mode: 'new', sessionId: null, busy: [], token: token('new', '') };
+  if (cur.session.lessonId !== lessonId) {
+    const { names, print } = interruptions(cur, { end: true, move: false, start: false }, now);
+    return { mode: 'replace', sessionId: cur.session.id, title: cur.session.title, busy: names, token: token('replace', print) };
+  }
+  // 同一課、這一場魔王戰還在打：直接進去（不改任何東西）
+  const r = cur.session.raid;
+  if (r && !r.endedAt && !raidOver(r, raidState(r, cur, now))) return { mode: 'enter', sessionId: cur.session.id, title: cur.session.title, busy: [], token: token('enter', r.id) };
+  const index = cur.lesson.slides.findIndex((x) => x.raidPage);
+  assert(index >= 0, '這一班正在上的這一堂課沒有魔王戰頁（開課後才加的），請重新開課', 409);
+  const { names, print } = interruptions(cur, { end: false, move: cur.session.slideIndex !== index, start: true }, now);
+  return { mode: 'start', sessionId: cur.session.id, title: cur.session.title, busy: names, token: token('start', print) };
+}
+/** 這個活動的批改又發回了一次（整批或單份）：遊戲區開戰前的確認要重新看。 */
+function bumpRelease(session: Session, activityId: string) {
+  session.releaseRev = { ...(session.releaseRev || {}), [activityId]: (session.releaseRev?.[activityId] ?? 0) + 1 };
+}
+function bumpRound(session: Session, kind: keyof NonNullable<Session['rounds']>) {
+  (session.rounds ||= {})[kind] = (session.rounds[kind] ?? 0) + 1;
+}
+/** 換頁：關閉這一頁的作答、搶答與結果顯示。 */
+function moveSlide(session: Session, index: number) {
+  session.slideIndex = index;
+  session.activityOpen = false;
+  session.photoOpen = false;
+  session.activityDeadline = null;
+  session.practice = null;
+  session.resultsVisible = false;
+  session.buzzOpen = false;
+  session.buzzWinner = null;
+}
+/** 結束課堂的狀態變更（「結束課堂」與開新課取代舊課共用）：測驗、對戰、魔王戰、步驟格鬥都記上結束時間與紀錄。 */
+function endSessionState(state: State, s: StoredSession) {
+  const session = s.session;
+  endRaidRun(s);
+  recordRaidBest(state, s);
+  endQuiz(s, state);
+  endCross(s);
+  if (session.duel) {
+    session.duel.endedAt ??= Date.now();
+    const kept = s.duelRuns?.find((r) => r.id === session.duel!.id);
+    if (kept) kept.endedAt ??= session.duel.endedAt;
+  }
+  if (session.pkLobby) session.pkLobby.buzz = false;
+  session.ended = true;
+  session.endedAt = Date.now();
+  session.danmakuOpen = false;
+  session.activityOpen = false;
+  session.activityDeadline = null;
+  session.practice = null;
+  session.buzzOpen = false;
+}
+/** 被新開的課取代：先結算到期的十字交乘，再正常結束，並重排對戰 alarm。 */
+async function finishSession(state: State, s: StoredSession, ctx: AppContext) {
+  const before = crossDue(s);
+  if (s.session.cross) settleCrossSession(state, s.session.id, Date.now());
+  endSessionState(state, s);
+  s.session.revision++;
+  if (crossDue(s) !== before) await ctx.scheduleCross?.(s.session.id, crossDue(s));
+}
+/** 開一堂新課（課程內容複製一份，之後改課程不影響這一堂）。 */
+function openSession(state: State, lesson: Owned<Lesson>, cl: StoredClass, ownerId: string): StoredSession {
+  const session: Session = {
+    id: uuid(),
+    classId: cl.classroom.id,
+    className: cl.classroom.name,
+    lessonId: lesson.id,
+    title: lesson.title,
+    createdAt: now(),
+    ended: false,
+    slideIndex: 0,
+    activityOpen: false,
+    resultsVisible: false,
+    followTeacher: true,
+    buzzOpen: false,
+    buzzWinner: null,
+    drawnSeat: null,
+    drawnSeats: [],
+    revision: 1,
+  };
+  const stored: StoredSession = { session, ownerId, lesson: cleanLesson(clone(lesson)), answers: [], whiteboard: {}, seen: {}, grades: {} };
+  state.sessions[session.id] = stored;
+  return stored;
+}
+/** 開一場魔王戰（課堂裡的「開戰」與遊戲區共用）：其他活動先收起來。 */
+function startRaid(state: State, s: StoredSession, difficulty: RaidDifficulty, seconds: number, online?: Presence) {
+  const session = s.session;
+  const players = Math.max(1, onlineSeats(state, s, online).size);
+  endQuiz(s, state);
+  session.quiz = null;
+  session.pkLobby = null;
+  session.activityOpen = false;
+  session.activityDeadline = null;
+  session.practice = null;
+  closeRaid(s, state);
+  closeDuel(s);
+  closeCross(s);
+  // 開戰時記下每個人之前的個人最佳（結算時比較有沒有突破）
+  // 只用這一課的紀錄來比；別課的題庫、難度、答對題數不能互比
+  const prevBest = { ...lessonRaidBest(state, session.classId, session.lessonId) };
+  // 困難魔王＋題庫有分析題：有護盾（設定存在這一場的紀錄裡，之後改規則也不影響已開戰的場次）
+  const analysisN = raidBank(session.lessonId)!.pools.analysis?.length || 0;
+  const run = { id: uuid(), difficulty, startedAt: Date.now() + RAID_COUNTDOWN_MS, seconds, config: raidConfig(difficulty, players, seconds, analysisN), prevBest };
+  session.raid = run;
+  (s.raidRuns ||= []).push(clone(run));
+  // 上一場選過的角色留著，不用再選一次
+  const before = s.raidRuns.length > 1 ? s.raidPlay?.[s.raidRuns[s.raidRuns.length - 2].id]?.seats : undefined;
+  (s.raidPlay ||= {})[run.id] = {
+    actions: [],
+    seats: Object.fromEntries(Object.entries(before || {}).flatMap(([seat, x]) => (x.role ? [[seat, { role: x.role, used: {} }]] : []))),
+  };
 }
 /** 收起步驟格鬥（記上結束時間）。 */
 function closeDuel(s: StoredSession) {
@@ -1222,17 +1403,34 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
       requireTeacher(user);
       const usage = await ctx.usage?.();
       const images = Object.values(state.images);
-      const hwPhotos = Object.values(state.homework || {}).flatMap((h) => Object.values(h.sheets));
+      // 回家作業照片從作業內容算（舊的摘要沒有張數）
+      const hwPhotos: { photoBytes: number; r2Bytes: number; photoCount: number }[] = [];
+      for (const meta of Object.values(state.homework || {})) {
+        const hw = await loadHw(vault, meta.id);
+        for (const sh of Object.values(hw?.sheets || {}))
+          hwPhotos.push({ photoBytes: sh.photos.reduce((n, p) => n + p.bytes, 0), r2Bytes: sh.photos.filter((p) => p.where === 'r2').reduce((n, p) => n + p.bytes, 0), photoCount: sh.photos.length });
+      }
+      const kind = photoKind(env as PhotoEnv);
+      // 每張照片記著存在哪裡：Durable Object 的照片以 base64 文字存（約大 1/3），R2 存原始大小
+      const doImages = images.filter((m) => m.where !== 'r2').reduce((sum, m) => sum + m.bytes, 0);
+      const r2Images = images.filter((m) => m.where === 'r2').reduce((sum, m) => sum + m.bytes, 0);
+      const hwAll = hwPhotos.reduce((sum, s) => sum + (s.photoBytes || 0), 0);
+      const hwR2 = hwPhotos.reduce((sum, s) => sum + (s.r2Bytes || 0), 0);
+      // Supabase 存的作業照片不占 Durable Object，也不在 R2
+      const hwDurable = kind === 'supabase' ? 0 : hwAll - hwR2;
+      // R2 一天清理一次沒有紀錄指到的照片（刪除失敗、紀錄沒寫進去留下的）
+      await maybeSweep(state, ctx, vault);
       return json({
         available: !!usage,
         dataBytes: usage?.dataBytes || 0,
         rowsToday: usage?.rowsToday || 0,
         sessions: usage?.sessions || Object.keys(state.sessions).length,
         archived: Object.keys(state.archive || {}).length,
-        photos: images.length,
-        // 照片以 base64 文字存，約比原檔大 1/3（含回家作業照片；存到 Supabase 時不占 Durable Object）
-        photoBytes: Math.round((images.reduce((sum, m) => sum + m.bytes, 0) + (photoStore(env as PhotoEnv, vault).kind === 'durable' ? hwPhotos.reduce((sum, s) => sum + (s.photoBytes || 0), 0) : 0)) * 4 / 3),
-        homeworkPhotoBytes: Math.round(hwPhotos.reduce((sum, s) => sum + (s.photoBytes || 0), 0) * 4 / 3),
+        photos: images.length + hwPhotos.reduce((n, s) => n + (s.photoCount || 0), 0),
+        photoBytes: Math.round((doImages + hwDurable) * 4 / 3),
+        r2Bytes: r2Images + hwR2,
+        homeworkPhotoBytes: hwAll,
+        photoStorage: kind,
         limits: { storageBytes: 5 * 1024 ** 3, rowsPerDay: 100_000 },
       });
     }
@@ -1242,13 +1440,20 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
       const days = integer(Number(body.days), 7, 3650),
         before = Date.now() - days * 86400_000;
       let removed = 0;
-      for (const [id, meta] of Object.entries(state.images)) {
-        const owner = state.sessions[meta.sessionId]?.ownerId ?? state.archive?.[meta.sessionId]?.ownerId;
-        if (Date.parse(meta.createdAt) >= before || owner !== user.id) continue;
-        await vault.delete(`blob:${id}`);
-        delete state.images[id];
-        removed++;
+      const oldImages = Object.entries(state.images)
+        .filter(([, meta]) => Date.parse(meta.createdAt) < before && (state.sessions[meta.sessionId]?.ownerId ?? state.archive?.[meta.sessionId]?.ownerId) === user.id)
+        .map(([id]) => id);
+      await notePhotos(vault, oldImages.map((id) => `a:${id}`));
+      for (const id of oldImages) delete state.images[id];
+      // 先存檔（紀錄不會指到已刪的照片），再刪照片；刪不掉的留在待檢查清單，由清理收尾
+      if (oldImages.length) {
+        await store.write(state);
+        await answerPhotos(env as PhotoEnv, vault)
+          .deleteMany(oldImages)
+          .then(() => settlePhotos(vault, oldImages.map((id) => `a:${id}`)))
+          .catch(() => undefined);
       }
+      removed += oldImages.length;
       // 回家作業照片：批改結果（每題對錯、評語）留著，只刪照片。先寫入新的照片清單再刪照片，刪到一半出錯時清單不會指到已刪的照片
       const photos = photoStore(env as PhotoEnv, vault);
       for (const meta of Object.values(state.homework || {})) {
@@ -1276,10 +1481,17 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
           }
         }
         if (!drop.length) continue;
+        await notePhotos(vault, drop.map((k) => `h:${k}`));
         await saveHw(vault, state, hw);
-        for (const key of drop) await photos.delete(key);
+        await store.write(state);
+        await photos
+          .deleteMany(drop)
+          .then(() => settlePhotos(vault, drop.map((k) => `h:${k}`)))
+          .catch(() => undefined);
       }
-      return save({ removed });
+      // 順便清掉沒有任何紀錄指到的照片（刪除失敗、紀錄沒寫進去留下的）；回報的張數只算上面拿掉的照片
+      await sweepPhotos(state, ctx, vault).catch(() => undefined);
+      return json({ removed });
     }
     const assetGet = path.match(/^\/api\/assets\/lessons\/([a-z0-9][a-z0-9-]*\/[A-Za-z0-9._-]+\.(?:png|jpe?g|webp|mp4))$/);
     if (assetGet && method === 'GET') {
@@ -1329,11 +1541,11 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
         '無權讀取此圖片',
         403,
       );
-      const dataUrl = await vault.get<string>(`blob:${id}`);
+      const dataUrl = await answerPhotos(env as PhotoEnv, vault).get(id);
       assert(dataUrl, '圖片資料遺失', 404);
       const bytes = Uint8Array.from(atob(dataUrl.split(',')[1]), (c) => c.charCodeAt(0));
       return new Response(bytes, {
-        headers: { 'Content-Type': meta.type, 'Cache-Control': 'private, max-age=3600' },
+        headers: { 'Content-Type': meta.type, 'Cache-Control': 'private, no-store' },
       });
     }
     const customMatch = path.match(/^\/api\/(sessions|lessons)\/([\w-]+)\/slides\/([\w-]+)\/html$/);
@@ -1356,6 +1568,8 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
     }
     if (path === '/api/dashboard' && method === 'GET') {
       requireTeacher(user);
+      // 照片清理一天一次（老師每天都會打開首頁）
+      await maybeSweep(state, ctx, vault);
       return json({
         lessons: Object.values(state.lessons)
           .filter((l) => l.ownerId === user.id)
@@ -1452,20 +1666,26 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
       // 有課堂紀錄時要明確要求一起刪除（作答、照片一併刪掉）
       assert(!records.length || body.withRecords === true, '請先刪除這個班級的課堂紀錄', 409);
       const ids = new Set(records.map((s) => s.session.id));
-      for (const [id, meta] of Object.entries(state.images))
-        if (ids.has(meta.sessionId)) {
-          await vault.delete(`blob:${id}`);
-          delete state.images[id];
-        }
+      const gone = Object.entries(state.images).filter(([, meta]) => ids.has(meta.sessionId)).map(([id]) => id);
+      await notePhotos(vault, gone.map((id) => `a:${id}`));
+      for (const id of gone) delete state.images[id];
       for (const id of ids) {
         delete state.sessions[id];
         delete state.archive?.[id];
       }
       for (const [key, login] of Object.entries(state.logins))
         if (login.user.classId === cl.classroom.id) delete state.logins[key];
-      for (const meta of Object.values(state.homework || {})) if (meta.classId === cl.classroom.id) await deleteHomework(env, vault, state, meta.id);
+      const jobs: HwPurge[] = [];
+      for (const meta of Object.values(state.homework || {})) if (meta.classId === cl.classroom.id) jobs.push(await detachHomework(vault, state, meta.id));
       delete state.classes[cl.classroom.id];
-      return save({ ok: true });
+      // 先存檔（紀錄不會指到已刪的照片），再刪課堂照片與回家作業；刪不掉的由清理收尾
+      const done = await save({ ok: true });
+      await purgeHomework(env, vault, jobs);
+      await answerPhotos(env as PhotoEnv, vault)
+        .deleteMany(gone)
+        .then(() => settlePhotos(vault, gone.map((id) => `a:${id}`)))
+        .catch(() => undefined);
+      return done;
     }
     const hwRoute = await homeworkRoutes(request, ctx, state, vault, user, body, save);
     if (hwRoute) return hwRoute;
@@ -1478,42 +1698,56 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
         '找不到課程或班級',
         404,
       );
+      // 同一班進行中的課先正常結束（測驗、對戰、魔王戰都記上結束時間與紀錄）
       for (const s of Object.values(state.sessions))
-        if (s.session.classId === cl.classroom.id && !s.session.ended) {
-          s.session.ended = true;
-          s.session.endedAt = Date.now();
-          s.session.activityOpen = false;
-          s.session.buzzOpen = false;
-          s.session.revision++;
-        }
-      const session: Session = {
-        id: uuid(),
-        classId: cl.classroom.id,
-        className: cl.classroom.name,
-        lessonId: lesson.id,
-        title: lesson.title,
-        createdAt: now(),
-        ended: false,
-        slideIndex: 0,
-        activityOpen: false,
-        resultsVisible: false,
-        followTeacher: true,
-        buzzOpen: false,
-        buzzWinner: null,
-        drawnSeat: null,
-        drawnSeats: [],
-        revision: 1,
-      };
-      state.sessions[session.id] = {
-        session,
-        ownerId: user.id,
-        lesson: cleanLesson(clone(lesson)),
-        answers: [],
-        whiteboard: {},
-        seen: {},
-        grades: {},
-      };
+        if (s.session.classId === cl.classroom.id && !s.session.ended) await finishSession(state, s, ctx);
+      const { session } = openSession(state, lesson, cl, user.id);
       return save({ session });
+    }
+    // 遊戲區：可以開魔王戰的單元（伺服器依題庫決定，不靠前端猜課程 ID）
+    if (path === '/api/games' && method === 'GET') {
+      requireTeacher(user);
+      const raids = Object.values(state.lessons)
+        .filter((l) => l.ownerId === user.id && raidBank(l.id) && l.slides.some((x) => x.raidPage))
+        .map((l) => ({ lessonId: l.id, lessonTitle: l.title, title: l.slides.find((x) => x.raidPage)!.title, section: raidBank(l.id)!.section || '' }))
+        .sort((a, b) => a.lessonId.localeCompare(b.lessonId, 'en', { numeric: true }));
+      return json({ raids });
+    }
+    // 遊戲區開魔王戰（兩步）：
+    // 1. dryRun：伺服器算出計畫（直接進入正在打的那一場／開新課／取代別的課／在這一堂開戰），列出會被收起的活動，附上一個 token（課堂＋活動狀態的指紋）。
+    // 2. 老師確認後帶 token 送出；伺服器重算，狀態只要有變（換課、另一個分頁開了測驗、PK 配對…）就回 409 與新計畫，不改任何東西。
+    if (path === '/api/games/raid' && method === 'POST') {
+      requireTeacher(user);
+      const lesson = state.lessons[identifier(body.lessonId)],
+        cl = state.classes[identifier(body.classId)];
+      assert(lesson && lesson.ownerId === user.id && cl && cl.ownerId === user.id, '找不到課程或班級', 404);
+      assert(raidBank(lesson.id), '這一課沒有魔王戰題庫', 409);
+      assert(lesson.slides.some((x) => x.raidPage), '這一課沒有魔王戰頁', 409);
+      const difficulty = String(body.difficulty || 'normal') as RaidDifficulty;
+      assert(['easy', 'normal', 'hard'].includes(difficulty), '難度不正確');
+      const seconds = integer(body.seconds ?? 300, 300, 600);
+      const plan = raidGamePlan(state, lesson.id, cl.classroom.id);
+      // 唯讀的回應（計畫、直接進入正在打的那一場）不觸發全班畫面推送
+      const quiet = { 'X-Classroom-Quiet': '1' };
+      if (body.dryRun === true) return json({ plan }, 200, quiet);
+      if (body.token !== plan.token) return json({ error: '這個班級的課或活動已經變了，請再確認一次', plan }, 409);
+      if (plan.mode === 'enter') return json({ sessionId: plan.sessionId, raidId: state.sessions[plan.sessionId!].session.raid!.id }, 200, quiet);
+      const current = plan.sessionId ? state.sessions[plan.sessionId] : undefined;
+      let s = plan.mode === 'start' ? current! : undefined;
+      if (!s) {
+        if (current) await finishSession(state, current, ctx);
+        s = openSession(state, lesson, cl, user.id);
+        // 沿用舊課的上線紀錄：輪詢的學生也算進開戰人數
+        if (current) s.seen = { ...current.seen };
+      }
+      const index = s.lesson.slides.findIndex((x) => x.raidPage);
+      assert(index >= 0, '這一堂課的教材沒有魔王戰頁（開課後才加的），請重新開課', 409);
+      if (s.session.slideIndex !== index) moveSlide(s.session, index);
+      const before = crossDue(s);
+      startRaid(state, s, difficulty, seconds, ctx.online?.());
+      s.session.revision++;
+      if (crossDue(s) !== before) await ctx.scheduleCross?.(s.session.id, crossDue(s));
+      return save({ sessionId: s.session.id, raidId: s.session.raid!.id });
     }
     if (path === '/api/student/session' && method === 'GET') {
       assert(user.role === 'student', '需要學生身分', 403);
@@ -1540,14 +1774,18 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
       if (!action && method === 'GET') return json(sessionView(state, s, user, ctx.online?.()));
       if (!action && method === 'DELETE') {
         requireTeacher(user);
-        for (const [id, meta] of Object.entries(state.images))
-          if (meta.sessionId === session.id) {
-            await vault.delete(`blob:${id}`);
-            delete state.images[id];
-          }
+        const gone = Object.entries(state.images).filter(([, meta]) => meta.sessionId === session.id).map(([id]) => id);
+        await notePhotos(vault, gone.map((id) => `a:${id}`));
+        for (const id of gone) delete state.images[id];
         delete state.sessions[session.id];
         delete state.archive?.[session.id];
-        return save({ ok: true });
+        // 先存檔（紀錄不會指到已刪的照片），再刪照片；刪不掉的由清理收尾
+        const done = await save({ ok: true });
+        await answerPhotos(env as PhotoEnv, vault)
+          .deleteMany(gone)
+          .then(() => settlePhotos(vault, gone.map((id) => `a:${id}`)))
+          .catch(() => undefined);
+        return done;
       }
       if (action === 'control' && method === 'POST') {
         requireTeacher(user);
@@ -1559,14 +1797,7 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
         if (session.cross) settleCrossSession(state, session.id, Date.now());
         switch (body.action) {
           case 'slide':
-            session.slideIndex = integer(body.index, 0, s.lesson.slides.length - 1);
-            session.activityOpen = false;
-            session.photoOpen = false;
-            session.activityDeadline = null;
-            session.practice = null;
-            session.resultsVisible = false;
-            session.buzzOpen = false;
-            session.buzzWinner = null;
+            moveSlide(session, integer(body.index, 0, s.lesson.slides.length - 1));
             break;
           case 'activity': {
             assert(typeof body.value === 'boolean', '活動狀態不正確');
@@ -1625,10 +1856,15 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
             // 派發／收回拍照題：可拍照的數值題，老師按下才讓學生拍照交計算過程
             assert(typeof body.value === 'boolean', '拍照題狀態不正確');
             assert(s.lesson.slides[session.slideIndex].activity?.photoWork, '這一題不能拍照作答', 409);
+            if (body.value && !session.photoOpen) {
+              bumpRound(session, 'photo');
+              session.photoSlide = session.slideIndex;
+            }
             session.photoOpen = body.value;
             break;
           case 'danmaku':
             assert(typeof body.value === 'boolean', '彈幕狀態不正確');
+            if (body.value && !session.danmakuOpen) bumpRound(session, 'danmaku');
             session.danmakuOpen = body.value;
             break;
           case 'danmaku-clear':
@@ -1640,39 +1876,12 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
             assert(raidBank(session.lessonId), '這一課沒有魔王戰題庫', 409);
             const difficulty = String(body.difficulty || 'normal') as RaidDifficulty;
             assert(['easy', 'normal', 'hard'].includes(difficulty), '難度不正確');
-            const seconds = integer(body.seconds ?? 300, 300, 600);
-            const players = Math.max(1, onlineSeats(state, s, ctx.online?.()).size);
-            // 開戰時其他活動都先收起來
-            endQuiz(s, state);
-            session.quiz = null;
-            session.pkLobby = null;
-            session.activityOpen = false;
-            session.activityDeadline = null;
-            session.practice = null;
-            closeRaid(s, state);
-            closeDuel(s);
-            closeCross(s);
-            // 開戰時記下每個人之前的個人最佳（結算時比較有沒有突破）
-            // 只用這一課的紀錄來比；別課的題庫、難度、答對題數不能互比
-            const prevBest = { ...lessonRaidBest(state, session.classId, session.lessonId) };
-            // 困難魔王＋題庫有分析題：有護盾（設定存在這一場的紀錄裡，之後改規則也不影響已開戰的場次）
-            const analysisN = raidBank(session.lessonId)!.pools.analysis?.length || 0;
-            const run = { id: uuid(), difficulty, startedAt: Date.now() + RAID_COUNTDOWN_MS, seconds, config: raidConfig(difficulty, players, seconds, analysisN), prevBest };
-            session.raid = run;
-            (s.raidRuns ||= []).push(clone(run));
-            // 上一場選過的角色留著，不用再選一次
-            const before = s.raidRuns.length > 1 ? s.raidPlay?.[s.raidRuns[s.raidRuns.length - 2].id]?.seats : undefined;
-            (s.raidPlay ||= {})[run.id] = {
-              actions: [],
-              seats: Object.fromEntries(Object.entries(before || {}).flatMap(([seat, x]) => (x.role ? [[seat, { role: x.role, used: {} }]] : []))),
-            };
+            startRaid(state, s, difficulty, integer(body.seconds ?? 300, 300, 600), ctx.online?.());
             break;
           }
           case 'raid-end': {
             assert(session.raid, '目前沒有魔王戰', 409);
-            session.raid.endedAt ??= Date.now();
-            const kept = s.raidRuns?.find((r) => r.id === session.raid!.id);
-            if (kept) kept.endedAt ??= session.raid.endedAt;
+            endRaidRun(s);
             recordRaidBest(state, s);
             break;
           }
@@ -1848,6 +2057,7 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
             closeCross(s);
             session.quiz = null;
             session.pkLobby = { pairs: [], waiting: null, buzz: false, ...(unit ? { unit } : {}) };
+            bumpRound(session, 'pk');
             break;
           }
           case 'pk-random': {
@@ -1886,6 +2096,7 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
           }
           case 'pk-buzz':
             assert(typeof body.value === 'boolean', '搶答狀態不正確');
+            if (body.value && !pkLobby(session).buzz) bumpRound(session, 'pkBuzz');
             pkLobby(session).buzz = body.value;
             break;
           case 'pk-bot': {
@@ -1919,6 +2130,10 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
           }
           case 'results':
             assert(typeof body.value === 'boolean', '顯示狀態不正確');
+            if (body.value && !session.resultsVisible) {
+              bumpRound(session, 'results');
+              session.resultsSlide = session.slideIndex;
+            }
             session.resultsVisible = body.value;
             break;
           case 'mode':
@@ -1928,6 +2143,7 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
           case 'buzz-open':
             session.buzzOpen = true;
             session.buzzWinner = null;
+            bumpRound(session, 'buzz');
             break;
           case 'buzz-reset':
             session.buzzOpen = false;
@@ -1982,26 +2198,13 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
           case 'release-grades': {
             const activityId = identifier(body.activityId);
             assert(typeof body.value === 'boolean', '發回狀態不正確');
+            if (body.value) bumpRelease(session, activityId); // 每次發回是新的版本（開戰前的確認要重新看）
             for (const grade of Object.values(s.grades!))
               if (grade.activityId === activityId) grade.released = body.value;
             break;
           }
           case 'end':
-            recordRaidBest(state, s);
-            endQuiz(s, state);
-            endCross(s);
-            if (session.duel) {
-              session.duel.endedAt ??= Date.now();
-              const kept = s.duelRuns?.find((r) => r.id === session.duel!.id);
-              if (kept) kept.endedAt ??= session.duel.endedAt;
-            }
-            session.ended = true;
-            session.endedAt = Date.now();
-            session.danmakuOpen = false;
-            session.activityOpen = false;
-            session.activityDeadline = null;
-            session.practice = null;
-            session.buzzOpen = false;
+            endSessionState(state, s);
             break;
           default:
             throw new HttpError(400, '未知控制指令');
@@ -2022,17 +2225,22 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
           (x) => x.ownerId === user.id && x.sessionId === session.id,
         ).length;
         assert(mine < 60, '本堂課上傳的圖片已達上限', 429);
+        parseDataUrl(dataUrl);
         const id = uuid(),
-          bytes = Math.floor((m[2].length * 3) / 4);
-        await vault.put(`blob:${id}`, dataUrl);
+          bytes = decodedBytes(m[2]);
+        await notePhotos(vault, [`a:${id}`]);
+        await answerPhotos(env as PhotoEnv, vault).put(id, dataUrl);
         state.images[id] = {
           ownerId: user.id,
           sessionId: session.id,
           type: m[1],
           bytes,
           createdAt: now(),
+          ...(photoKind(env as PhotoEnv) === 'r2' ? { where: 'r2' as const } : {}),
         };
-        return save({ imageId: id });
+        const done = await save({ imageId: id });
+        await settlePhotos(vault, [`a:${id}`]);
+        return done;
       }
       if (action === 'grades' && method === 'PUT') {
         requireTeacher(user);
@@ -2052,6 +2260,7 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
             'teacher',
           );
           verdict.released = body.released === true || (body.released === undefined && !!previous?.released);
+          if (verdict.released) bumpRelease(session, answer.activityId); // 學生看得到這次的修改：新的發回版本
           // 拍照交的數值題：老師判對錯就是這份作答的對錯（IRS 統計、補救練習跟著改）
           if (activity.type === 'numeric' && activity.photoWork) {
             answer.correct = body.verdict;
@@ -2074,6 +2283,7 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
           true,
         );
         grade.released = body.released === true || (body.released === undefined && !!previous?.released);
+        if (grade.released) bumpRelease(session, answer.activityId); // 學生看得到這次的修改：新的發回版本
         if (previous?.finals) grade.finals = previous.finals;
         s.grades![answerId] = grade;
         session.revision++;
@@ -2239,7 +2449,7 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
           limit = Number(env.OCR_DAILY_LIMIT || 3000);
         assert((state.aiUsage[usage] || 0) < limit, `今日辨識已達 ${limit} 次上限，可以直接送出照片`, 429);
         state.aiUsage[usage] = (state.aiUsage[usage] || 0) + 1;
-        const image = await vault.get<string>(`blob:${imageId}`);
+        const image = await answerPhotos(env as PhotoEnv, vault).get(imageId);
         assert(image, '找不到這張照片', 404);
         const operation = async () => {
           const reply = await chat(
@@ -2465,6 +2675,7 @@ export async function handleApi(request: Request, ctx: AppContext): Promise<Resp
       if (action === 'pk-buzz' && method === 'POST') {
         // 搶答上場 PK：搶到的人成為等待中那一位的對手（沒有人等待就成為第一位）
         assert(user.role === 'student', '只有學生可搶答', 403);
+        assert(!session.ended, '課堂已結束', 409);
         const lobby = session.pkLobby;
         assert(lobby?.buzz, '目前沒有開放搶答上場', 409);
         assert(!pkTaken(lobby).has(user.seat!), '你已經在對戰名單裡', 409);
@@ -2816,7 +3027,8 @@ function restoreBackup(input: unknown, state: State, user: User): void {
       const seat = integer(a.seat, 1, cl.classroom.seats);
       const id = uuid();
       if (typeof a.id === 'string') idMap.set(a.id, id);
-      const value = validateAnswer(activity, a.value);
+      // 照片不在備份裡：還原的作答不指向任何照片（否則可能指到別份作答的照片），改記 imageLost，可以再匯出、再還原
+      const value = validateAnswer(activity, a.value, true);
       const answer: Answer = {
         id,
         submissionId: identifier(a.submissionId),
@@ -2828,6 +3040,11 @@ function restoreBackup(input: unknown, state: State, user: User): void {
       };
       const verdict = judge(activity, value);
       if (verdict !== undefined) answer.correct = verdict;
+      else if (value && typeof value === 'object' && !Array.isArray(value)) {
+        // 拍照交的數值題：對錯是批改時判的，照備份還原（補救練習只重做錯的小題）
+        if (typeof a.correct === 'boolean') answer.correct = a.correct;
+        if (Array.isArray(a.itemsCorrect) && a.itemsCorrect.length <= 20 && a.itemsCorrect.every((b) => typeof b === 'boolean')) answer.itemsCorrect = a.itemsCorrect as boolean[];
+      }
       return answer;
     });
     const grades: Record<string, Grade> = {};
@@ -2839,13 +3056,24 @@ function restoreBackup(input: unknown, state: State, user: User): void {
           rubric = lesson.slides.find((s) => s.activity?.id === answer?.activityId)?.activity
             ?.rubric;
         if (!answer || !rubric) continue;
-        const grade = normalizeGrade(
-          g,
-          rubric,
-          { answerId: answer.id, activityId: answer.activityId, seat: answer.seat },
-          g.mode === 'live' || g.mode === 'mock' ? g.mode : 'teacher',
-          true,
-        );
+        const base = { answerId: answer.id, activityId: answer.activityId, seat: answer.seat },
+          gmode = g.mode === 'live' || g.mode === 'mock' ? g.mode : 'teacher';
+        // 第 1 層（只判對錯，scores 是空的）照對錯還原；第 2 層依規準逐項還原
+        const grade = g.depth === 'verdict' ? normalizeVerdict({ correct: g.correct === true, feedback: g.feedback }, rubric, base, gmode) : normalizeGrade(g, rubric, base, gmode, true);
+        if (typeof g.feedback === 'string') grade.feedback = g.feedback.slice(0, 600);
+        // 辨識稿上的批註：用還原的辨識稿重新核對行號與引文，對得上的才留
+        const w = answer.value && typeof answer.value === 'object' && !Array.isArray(answer.value) && 'work' in answer.value ? answer.value.work : undefined;
+        if (Array.isArray(g.marks) && w) {
+          const marks = parseMarks({ marks: g.marks }, w);
+          if (marks.length) grade.marks = marks;
+        }
+        if (g.basis === 'text' || g.basis === 'image') grade.basis = g.basis;
+        if (Array.isArray(g.finals)) grade.finals = g.finals.slice(0, 20).map((x) => String(x).slice(0, 60));
+        if (typeof g.transcript === 'string' && g.transcript.trim()) grade.transcript = g.transcript.slice(0, 3000);
+        if (typeof g.gradedAt === 'string' && !Number.isNaN(Date.parse(g.gradedAt))) grade.gradedAt = g.gradedAt.slice(0, 40);
+        if (typeof g.confidence === 'number' && Number.isFinite(g.confidence)) grade.confidence = Math.min(1, Math.max(0, g.confidence));
+        if (Array.isArray(g.votes)) grade.votes = g.votes.slice(0, 5).map(Number).filter(Number.isFinite);
+        if (typeof g.needsReview === 'boolean') grade.needsReview = g.needsReview;
         grade.released = g.released === true;
         grades[answer.id] = grade;
       }
@@ -2875,12 +3103,12 @@ function restoreBackup(input: unknown, state: State, user: User): void {
   Object.assign(state, draft);
 }
 
-function redact(text: string): string {
+function redact(text: string, max = 2000): string {
   return text
     .replace(/[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}/g, '[信箱已移除]')
     .replace(/(?:\+?886[- ]?|0)9\d{2}[- ]?\d{3}[- ]?\d{3}/g, '[電話已移除]')
     .replace(/[A-Z][12]\d{8}/g, '[識別資料已移除]')
-    .slice(0, 2000);
+    .slice(0, max);
 }
 async function analyze(
   body: Record<string, unknown>,
@@ -2976,12 +3204,22 @@ async function analyze(
     const work = typeof value === 'object' && value && 'work' in value ? value.work : undefined;
     // 快速批改：有學生確認過的辨識稿時只送文字（不送圖、不畫紅筆、低推理深度）
     const fast = body.depth === 'fast' && !!work;
-    const image = imageId && !fast ? await vault.get<string>(`blob:${imageId}`) : undefined;
+    // 照片一定要是這一堂、這位學生上傳的（還原的資料可能帶著別份作答的照片 ID）
+    const photoMeta = imageId ? state.images?.[imageId] : undefined;
+    const ownPhoto = !!photoMeta && photoMeta.sessionId === s.session.id && photoMeta.ownerId === answer.userId;
+    const image = imageId && !fast && ownPhoto ? await answerPhotos(env as PhotoEnv, vault).get(imageId) : undefined;
+    // 照實際要送給 AI 的內容檢查：照片（快速批改不送）、辨識稿、文字至少要有一樣
+    assert(image || work || text, '這份作答沒有可以批改的內容（原照片沒有隨備份還原、也沒有文字或辨識稿），請老師直接批改', 409);
     // 第 1 層（預設）只判對錯；第 2 層依規準給分並加紅筆批註。
     const full = body.depth === 'full' || fast;
     system = fast ? FAST_GRADER_SYSTEM : full ? GRADER_SYSTEM : VERDICT_SYSTEM;
     // 快速批改：辨識稿每行加上行號，AI 才能指出「第幾行的哪一段」錯了
-    const said = fast ? [numberedWork(redact(work!)), text ? `（學生另外的說明：${text}）` : ''].filter(Boolean).join('\n') : text;
+    // 沒有照片（還原的作答）但有辨識稿：第 1、2 層也改送辨識稿文字
+    const said = fast
+      ? [numberedWork(redact(work!, 3000)), text ? `（學生另外的說明：${text}）` : ''].filter(Boolean).join('\n')
+      : !image && work
+        ? [`（原照片不在，以下是學生確認的辨識稿）\n${redact(work, 3000)}`, text ? `（學生另外的說明：${text}）` : ''].filter(Boolean).join('\n')
+        : text;
     content = [{ type: 'text', text: gradingPrompt(activity, rubric, said) }];
     if (image) content.push({ type: 'image_url', image_url: { url: image } });
     maxTokens = fast ? 700 : full ? 2500 : 900;
@@ -3006,6 +3244,7 @@ async function analyze(
     };
     combine = (runs) => {
       const grade = full ? aggregateVotes(runs as Grade[], rubric) : aggregateVerdicts(runs as Grade[]);
+      if (!image && work) grade.basis = 'text';
       if (photoNumeric) grade.finals = (runs as Grade[]).find((r) => r.finals?.some(Boolean))?.finals || (runs[0] as Grade).finals;
       return { mode: 'live', grade };
     };
@@ -3025,6 +3264,7 @@ async function analyze(
     };
     mock = () => {
       const grade = full ? mockGrade(rubric, base, !!image) : mockVerdict(rubric, base);
+      if (!image && work) grade.basis = 'text';
       if (fast) {
         grade.basis = 'text';
         grade.transcript = work;
@@ -3121,7 +3361,12 @@ async function loadHw(vault: Vault, id: string): Promise<Homework | undefined> {
 function hwMeta(hw: Homework): HomeworkMeta {
   const sheets: HomeworkMeta['sheets'] = {};
   for (const [seat, s] of Object.entries(hw.sheets))
-    sheets[seat] = { status: s.status, ...(s.result ? { score: s.result.score, max: s.result.max } : {}), ...(s.photos.length ? { photoBytes: s.photos.reduce((n, p) => n + p.bytes, 0) } : {}) };
+    sheets[seat] = {
+      status: s.status,
+      ...(s.result ? { score: s.result.score, max: s.result.max } : {}),
+      ...(s.photos.length ? { photoBytes: s.photos.reduce((n, p) => n + p.bytes, 0), photoCount: s.photos.length } : {}),
+      ...(s.photos.some((p) => p.where === 'r2') ? { r2Bytes: s.photos.filter((p) => p.where === 'r2').reduce((n, p) => n + p.bytes, 0) } : {}),
+    };
   const { id, ownerId, classId, className, title, lessonIds, scope, createdAt } = hw;
   return { id, ownerId, classId, className, title, lessonIds, scope, createdAt, sheets };
 }
@@ -3129,26 +3374,162 @@ async function saveHw(vault: Vault, state: State, hw: Homework) {
   await vault.put(`hw:${hw.id}`, hw);
   (state.homework ||= {})[hw.id] = hwMeta(hw);
 }
+/** 先寫主檔（摘要）、最後寫作業內容：作業內容是準，寫到一半失敗時以作業內容為準（老師清單會重新整理）。 */
+async function commitHw(ctx: AppContext, vault: Vault, state: State, hw: Homework) {
+  (state.homework ||= {})[hw.id] = hwMeta(hw);
+  await ctx.store.write(state);
+  await vault.put(`hw:${hw.id}`, hw);
+}
+/**
+ * 學生的請求帶的作業卷版本對不對得上：帶了就要等於目前的 `sheet.version`；
+ * 沒帶（舊版畫面）只限從來沒送出、也沒批改過的初始卷（升級前已經在訂正的卷沒有 version，也擋得住）。
+ */
+function sheetVersionOk(sheet: HomeworkSheet, body: Record<string, unknown>) {
+  if (body.version !== undefined) return body.version === (sheet.version || 0);
+  return freshSheet(sheet);
+}
+/** 從來沒進過批改流程的初始卷（學生沒送出過、老師也沒批改或重新批改過）。 */
+function freshSheet(sheet: HomeworkSheet) {
+  return sheet.status === 'assigned' && !(sheet.version || 0) && !(sheet.submissions || 0) && !sheet.result && !sheet.jobAt && !sheet.submittedAt;
+}
+/** 不看欄位順序的 JSON（比對摘要有沒有變）。 */
+function canonical(x: unknown): string {
+  return JSON.stringify(x, (_k, v) => (v && typeof v === 'object' && !Array.isArray(v) ? Object.fromEntries(Object.entries(v).sort(([a], [b]) => a.localeCompare(b))) : v));
+}
+const SWEEP_KEY = 'photo-sweep-at';
+/**
+ * 照片清理：
+ * 1. 待檢查清單（photo-check）裡放超過 1 小時的：還有紀錄指到就移出清單；沒有就刪掉（R2 與 Durable Object 兩邊），刪成功才移出清單。
+ * 2. 有 R2 時再掃一次自己這一套站的資料夾，刪掉沒有紀錄指到、放超過 1 小時的照片（多一道保險）。
+ */
+async function sweepPhotos(state: State, ctx: AppContext, vault: Vault) {
+  const env = ctx.env as PhotoEnv;
+  const keepA = new Set(Object.keys(state.images || {}));
+  const keepH = new Set<string>();
+  // 主檔還有、但作業內容讀不到（資料遺失）的作業：整份的照片都留著（不知道有哪幾張，不能當成沒人用）
+  const keepHw: string[] = [];
+  for (const meta of Object.values(state.homework || {})) {
+    const hw = await loadHw(vault, meta.id);
+    if (!hw) keepHw.push(`${meta.id}/`);
+    for (const sheet of Object.values(hw?.sheets || {})) for (const k of photoKeys(hw!, sheet)) keepH.add(k);
+  }
+  const usedH = (k: string) => keepH.has(k) || keepHw.some((p) => k.startsWith(p));
+  const now = Date.now();
+  let removed = 0;
+  const answers = answerPhotos(env, vault),
+    homework = photoStore(env, vault);
+  // 舊版的單一清單搬成一筆一個 key
+  const legacy = await vault.get<Record<string, number>>(PHOTO_CHECK);
+  if (legacy) {
+    for (const [ref, at] of Object.entries(legacy)) await vault.put(PHOTO_CHECK_PREFIX + ref, Math.max(at, (await vault.get<number>(PHOTO_CHECK_PREFIX + ref)) || 0));
+    await vault.delete(PHOTO_CHECK);
+  }
+  // 一次處理一批（最多 1000 筆）；處理掉的會刪除，下次接著做
+  for (const name of (await vault.list?.(PHOTO_CHECK_PREFIX, 1000)) || []) {
+    const at = (await vault.get<number>(name)) || 0;
+    if (now - at < 3600_000) continue;
+    const ref = name.slice(PHOTO_CHECK_PREFIX.length);
+    const [kind, key] = [ref.slice(0, 1), ref.slice(2)];
+    const used = kind === 'a' ? keepA.has(key) : usedH(key);
+    if (!used) {
+      try {
+        await (kind === 'a' ? answers : homework).delete(key);
+        removed++;
+      } catch {
+        continue; // 刪不掉：留在清單，下次再試
+      }
+    }
+    await vault.delete(name);
+  }
+  const trash = (await vault.get<Record<string, number[]>>(HW_TRASH)) || {};
+  if (Object.keys(trash).length) {
+    for (const [id, seats] of Object.entries(trash)) {
+      if (state.homework?.[id]) {
+        delete trash[id]; // 刪除沒寫進主檔（作業還在）：取消這筆，不刪
+        continue;
+      }
+      try {
+        for (const seat of seats) await vault.delete(frozenKey(id, seat));
+        // 改用 R2 以前存在 Durable Object 的照片（作業內容遺失時也找得到：依名稱前綴列出）
+        // list 會連照片內容一起讀進來：一批 50 張
+        const left = (await vault.list?.(`hwphoto:${id}/`, 50)) || [];
+        for (const k of left) await vault.delete(k);
+        await vault.delete(`hw:${id}`);
+        if (left.length < 50) delete trash[id]; // 還有剩：下次接著刪
+      } catch {
+        /* 下次再試 */
+      }
+    }
+    await vault.put(HW_TRASH, trash);
+  }
+  if (env.PHOTOS) {
+    const p = r2Prefix(env);
+    const r = await sweepR2(env.PHOTOS, p, (k) => (k.startsWith(`${p}answers/`) ? keepA.has(k.slice(p.length + 8)) : usedH(k.slice(p.length + 9))));
+    removed += r.removed;
+  }
+  await vault.put(SWEEP_KEY, now);
+  return { removed };
+}
+/** 一天最多清理一次（設定頁、老師首頁會呼叫）；失敗不影響原本的請求。 */
+async function maybeSweep(state: State, ctx: AppContext, vault: Vault) {
+  try {
+    if (Date.now() - ((await vault.get<number>(SWEEP_KEY)) || 0) < 86400_000) return;
+    // 先記這次嘗試的時間：清理失敗也是隔天才再試，不會每次打開首頁都重掃
+    await vault.put(SWEEP_KEY, Date.now());
+    await sweepPhotos(state, ctx, vault);
+  } catch {
+    /* 清理失敗不影響原本的請求 */
+  }
+}
 /** 一位同學的作業卷畫面（題目讀凍結的版本；學生在批改完成前拿不到答案）。 */
 async function viewOf(vault: Vault, hw: Homework, sheet: HomeworkSheet, origin: string, teacher: boolean) {
   const answers = teacher || (sheet.status === 'graded' && !!sheet.result);
   return sheetView(hw, sheet, origin, await questionsOf(vault, hw.id, sheet, answers));
 }
 const photoKeys = (hw: Homework, sheet: HomeworkSheet, list = sheet.photos) => list.map((p) => photoKey(hw.id, sheet.seat, p.id));
+/** 刪掉的作業還沒清完的部分（vault 的 hw-trash：作業 ID → 座號）：凍結的題目與作業內容，清理時收尾。 */
+const HW_TRASH = 'hw-trash';
+type HwPurge = { id: string; seats: number[]; keys: string[] };
 /**
- * 刪除一份作業：每張照片（Durable Object 的 hwphoto:）、凍結的題目、作業內容，最後才拿掉主檔摘要。
- * 中途出錯時整個請求失敗、主檔不寫入；全部都是「刪除」，老師再按一次會把剩下的刪完。
+ * 刪除一份作業，第一步：照片記進待檢查清單、作業記進 hw-trash，拿掉主檔摘要與批改佇列（還沒存檔）。
+ * 呼叫端存檔之後才 `purgeHomework`：學生與老師一看不到這份作業，才刪照片、凍結的題目、作業內容；
+ * 中途失敗不會留下「看得到、但缺圖」的作業，刪不掉的由清理（sweepPhotos）收尾。
  */
-async function deleteHomework(env: StorageEnv, vault: Vault, state: State, id: string) {
+async function detachHomework(vault: Vault, state: State, id: string): Promise<HwPurge> {
   const hw = await loadHw(vault, id);
-  const photos = photoStore(env as PhotoEnv, vault);
-  for (const sheet of Object.values(hw?.sheets || {})) {
-    for (const key of photoKeys(hw!, sheet)) await photos.delete(key);
-    await vault.delete(frozenKey(id, sheet.seat));
-  }
-  await vault.delete(`hw:${id}`);
+  const sheets = Object.values(hw?.sheets || {});
+  // 作業內容不見了（資料遺失）時，座號從主檔摘要取，凍結的題目照樣刪得掉
+  const seats = [...new Set([...sheets.map((s) => s.seat), ...Object.keys(state.homework?.[id]?.sheets || {}).map(Number)])].filter((n) => Number.isInteger(n) && n > 0);
+  const job = { id, seats, keys: sheets.flatMap((sheet) => photoKeys(hw!, sheet)) };
+  await notePhotos(vault, job.keys.map((k) => `h:${k}`));
+  const trash = (await vault.get<Record<string, number[]>>(HW_TRASH)) || {};
+  trash[id] = job.seats;
+  await vault.put(HW_TRASH, trash);
   delete state.homework?.[id];
   if (state.hwQueue) state.hwQueue = state.hwQueue.filter((k) => !k.startsWith(`${id}:`));
+  return job;
+}
+/** 刪除一份作業，第二步（主檔已存檔）：照片、凍結的題目、作業內容。失敗不影響回應，清理時再收。 */
+async function purgeHomework(env: StorageEnv, vault: Vault, jobs: HwPurge[]) {
+  if (!jobs.length) return;
+  const photos = photoStore(env as PhotoEnv, vault);
+  try {
+    const done: string[] = [];
+    for (const job of jobs) {
+      await photos.deleteMany(job.keys);
+      await settlePhotos(vault, job.keys.map((k) => `h:${k}`));
+      for (const seat of job.seats) await vault.delete(frozenKey(job.id, seat));
+      const left = (await vault.list?.(`hwphoto:${job.id}/`, 50)) || [];
+      for (const k of left) await vault.delete(k);
+      await vault.delete(`hw:${job.id}`);
+      if (left.length < 50) done.push(job.id);
+    }
+    const trash = (await vault.get<Record<string, number[]>>(HW_TRASH)) || {};
+    for (const id of done) delete trash[id];
+    await vault.put(HW_TRASH, trash);
+  } catch {
+    /* 留在 hw-trash 與待檢查清單，清理時收尾 */
+  }
 }
 /** QR code 連結的憑證：作業 ID＋座號＋token 都對才能看、能上傳。 */
 async function sheetByToken(vault: Vault, state: State, id: string, seat: string, token: string | null) {
@@ -3271,13 +3652,15 @@ export async function drainHomework(
     let result: HomeworkSheet['result'],
       error = '';
     try {
+      // 每一張都要讀得到才批改（示範批改也一樣）：少一張會算錯分，紅筆也會標到錯的照片
+      const images: string[] = [];
+      for (const k of job.keys) {
+        const d = await photos.get(k);
+        if (!d) throw new HttpError(503, '有照片暫時讀不到，請老師按「重新批改」，或請學生重新上傳');
+        images.push(d);
+      }
       if (!job.config) result = mockHomework(job.questions.length, Math.max(1, job.keys.length));
       else {
-        const images: string[] = [];
-        for (const k of job.keys) {
-          const d = await photos.get(k);
-          if (d) images.push(d);
-        }
         assert(images.length, '找不到作答照片', 409);
         const content: Parameters<typeof chat>[2] = [{ type: 'text', text: homeworkPrompt(job.questions, images.length) }, ...images.map((url) => ({ type: 'image_url' as const, image_url: { url } }))];
         // 答錯的題目要逐行列出外框，輸出比只對答案長
@@ -3293,10 +3676,13 @@ export async function drainHomework(
       if (!state) return;
       const hw = await loadHw(vault, job.id);
       const sheet = hw?.sheets[job.seat];
-      // 批改期間學生重新上傳、老師重新批改、租約被接手：這一次的結果不要了（佇列交給新的那一次）
+      // 批改期間學生重新上傳、老師重新批改、租約被接手：這一次的結果不要了（佇列交給新的那一次）。
+      // 作業已經刪掉（主檔沒有了、工作不在佇列）：丟掉結果，不讓刪掉的作業復活
+      if (!state.homework?.[job.id] || !(state.hwQueue || []).includes(job.key)) return;
       if (!hw || !sheet || sheet.jobAt !== job.jobAt || sheet.lease?.id !== job.lease) return;
       if (result) {
         sheet.result = result;
+        sheet.version = (sheet.version || 0) + 1;
         sheet.status = 'graded';
         delete sheet.error;
       } else {
@@ -3376,57 +3762,117 @@ async function homeworkPublic(request: Request, ctx: AppContext, state: State, v
   }
   assert(!['queued', 'grading'].includes(sheet.status), 'AI 正在批改，請稍候', 409);
   if (m[3] === 'photos' && !m[4] && method === 'POST') {
-    const restart = sheet.status === 'graded';
-    if (restart) {
-      // 訂正後重新上傳：新照片存好、新狀態寫入後，才清掉上一次的照片與結果
-      assert(body.restart === true, '已經批改完了；要重新上傳請按「重新上傳」', 409);
-      assert((sheet.submissions || 0) < HW_MAX_SUBMISSIONS, `每份作業最多送出 ${HW_MAX_SUBMISSIONS} 次`, 429);
-    } else assert(sheet.photos.length < HW_MAX_PHOTOS, `最多 ${HW_MAX_PHOTOS} 張照片`, 429);
+    // 同一個請求重送（回應沒收到、延遲很久才到）：已經做過了，直接回目前的畫面（不會清掉之後的批改結果）
+    const reqId = body.requestId === undefined ? null : identifier(body.requestId);
     // Durable Object 一筆資料上限約 2 MB（和課堂作答照片同樣上限）
     const dataUrl = str(body.dataUrl, '照片', 1_900_000, 30);
     const p = dataUrl.match(/^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/]+=*)$/);
     assert(p, '只接受 JPEG、PNG 或 WebP 圖片');
-    // 1. 先存新照片（hwphoto:<作業>/<座號>/<新 ID>）：失敗時什麼都沒改
-    const id = uuid(),
+    parseDataUrl(dataUrl); // 解不開的照片在記待檢查之前就擋下（400）
+    const hash = await photoHash(dataUrl);
+    // 同一個請求重送（回應沒收到、延遲很久才到）：已經做過了，不再做一次（不會清掉之後的批改結果）。
+    // 同一張照片再傳一次（例如上一次其實存好了、只是回應沒收到）：不會變成兩張。
+    // 兩種情況都回目前的畫面；照片清單裡這張的檔案不見了（缺圖）就補存回原位。在張數上限之前判斷（第 6 張重送不會被擋）
+    // 照片 ID 用請求 ID：這個 ID 已經在照片清單裡，也是同一個請求。紀錄是「請求 ID|照片雜湊」：同一個 ID 送了不同的照片就回 409
+    const receipt = reqId ? sheet.uploads?.find((u) => u === reqId || u.startsWith(`${reqId}|`)) : undefined;
+    const byId = reqId ? sheet.photos.find((x) => x.id === reqId) : undefined;
+    assert(!(receipt?.includes('|') && receipt.split('|')[1] !== hash) && !(byId?.hash && byId.hash !== hash), '同一個上傳請求送了不同的照片，請重新整理後再傳', 409);
+    const replay = !!receipt || !!byId;
+    // 一般上傳帶著學生看到的作業卷版本（version）：前一份卷子的請求延遲到現在、老師之後又批改過，都不會把舊照片加進新的卷子。
+    // 沒帶版本（舊版畫面）只限還沒批改過的初始卷
+    if (!replay && body.restart !== true) {
+      assert(sheetVersionOk(sheet, body), '這份作業已經更新了，請重新整理後再傳', 409);
+      if (body.round !== undefined) assert(Number(body.round) === (sheet.submissions || 0), '這份作業已經更新了，請重新整理後再傳', 409);
+    }
+    // 訂正（restart）一定要帶「按訂正時看到的成績版本」，而且現在要是已批改、版本相同；
+    // 舊分頁、沒帶版本、老師之後又改判或重批、已經開始新一輪訂正，都回 409（不清成績、不混進舊照片）
+    if (body.restart === true && !replay)
+      assert(sheet.status === 'graded' && !!sheet.result && body.restartOf === (sheet.version || 0), '這份作業已經更新了，請重新整理後再訂正', 409);
+    const restart = !replay && sheet.status === 'graded';
+    const same = restart ? undefined : sheet.photos.find((x) => x.hash === hash);
+    if (replay || same) {
+      if (same) {
+        const k = photoKey(hw.id, sheet.seat, same.id);
+        // 讀圖服務故障會丟錯（503），只有確定「不存在」才補存
+        if ((await photos.get(k)) === undefined) {
+          await notePhotos(vault, [`h:${k}`]);
+          await photos.put(k, dataUrl);
+          await settlePhotos(vault, [`h:${k}`]);
+        }
+        // 同一張照片換了新的請求 ID：也記下來（之後這個請求再到，認得出是重送）
+        if (reqId && !receipt) {
+          sheet.uploads = [...(sheet.uploads || []), `${reqId}|${hash}`].slice(-12);
+          await commitHw(ctx, vault, state, hw);
+        }
+      }
+      return view();
+    }
+    if (restart) {
+      // 訂正後重新上傳：新照片存好、新狀態寫入後，才清掉上一次的照片與結果
+      assert(body.restart === true, '已經批改完了；要重新上傳請按「重新上傳」', 409);
+      assert((sheet.submissions || 0) < HW_MAX_SUBMISSIONS, `每份作業最多送出 ${HW_MAX_SUBMISSIONS} 次`, 429);
+    }
+    if (!restart) assert(sheet.photos.length < HW_MAX_PHOTOS, `最多 ${HW_MAX_PHOTOS} 張照片`, 429);
+    // 寫入之後要回的畫面：題目先讀好（寫入成功後不會因為讀不到題目而回失敗；上傳後一定還沒批改，不含答案）
+    const questions = await questionsOf(vault, hw.id, sheet, false);
+    // 1. 先記待檢查、再存新照片：失敗時什麼都沒改（存好了但後面失敗，清理會收掉沒人用的照片）
+    const id = reqId || uuid(),
       key = photoKey(hw.id, sheet.seat, id);
+    await notePhotos(vault, [`h:${key}`, ...(restart ? photoKeys(hw, sheet).map((k) => `h:${k}`) : [])]);
     await photos.put(key, dataUrl);
     // 2. 再一次寫入新的照片清單與狀態（作業內容 hw:<id> 一筆；主檔只放摘要）
-    const old = restart ? photoKeys(hw, sheet) : [];
-    const before = { photos: sheet.photos, result: sheet.result, status: sheet.status };
+    const old = restart ? photoKeys(hw, sheet).filter((k) => k !== key) : [];
+    const before = { photos: sheet.photos, result: sheet.result, status: sheet.status, uploads: sheet.uploads };
     if (restart) {
       sheet.photos = [];
       delete sheet.result;
       sheet.status = 'assigned';
     }
-    sheet.photos = [...sheet.photos, { id, type: p[1], bytes: Math.floor((p[2].length * 3) / 4), at: now() }];
+    sheet.photos = [...sheet.photos, { id, type: p[1], bytes: decodedBytes(p[2]), at: now(), hash, ...(photos.kind === 'r2' ? { where: 'r2' as const } : {}) }];
+    if (reqId) sheet.uploads = [...(sheet.uploads || []), `${reqId}|${hash}`].slice(-12);
+    if (restart) sheet.version = (sheet.version || 0) + 1; // 成績清掉了：新的版本
     try {
-      await saveHw(vault, state, hw);
-      await ctx.store.write(state);
+      // 作業內容（hw:<id>）是準、最後才寫：主檔沒寫進去時作業內容完全沒動；
+      // 主檔寫進去、作業內容沒寫進去時，老師的清單會依作業內容重新整理（GET /api/homework）
+      await commitHw(ctx, vault, state, hw);
     } catch (e) {
-      // 沒寫進去：舊照片與結果原封不動。作業內容可能已寫入、只有主檔沒寫進去，
-      // 先把舊內容寫回，成功了才收回新照片（避免清單指到不存在的照片）
+      // 沒寫進去：舊照片與結果原封不動。新照片沒人用，收回（收不回的由 R2 清理刪掉）
       Object.assign(sheet, before);
       if (!before.result) delete sheet.result;
-      if (await saveHw(vault, state, hw).then(() => true, () => false)) await photos.delete(key).catch(() => undefined);
+      if (!before.uploads) delete sheet.uploads;
+      await photos.delete(key).catch(() => undefined);
       throw e;
     }
-    // 3. 新清單寫入成功後才刪舊照片。這時已經沒有任何清單指到它們；刪除失敗只會留下沒人用的舊照片，不影響作業
-    for (const k of old) await photos.delete(k).catch(() => undefined);
-    return view();
+    // 3. 新清單寫入成功後才刪舊照片。這時已經沒有任何清單指到它們；刪除失敗只會留下沒人用的舊照片，由清理收尾
+    const settled = [`h:${key}`];
+    for (const k of old)
+      await photos
+        .delete(k)
+        .then(() => settled.push(`h:${k}`))
+        .catch(() => undefined);
+    await settlePhotos(vault, settled);
+    // 回應用寫入時的資料組（不再讀一次）：寫入成功就一定回成功
+    return json({ sheet: sheetView(hw, sheet, url.origin, questions) });
   }
   if (m[3] === 'photos' && m[4] && method === 'DELETE') {
     assert(sheet.status !== 'graded', '已經批改完了', 409);
     const gone = sheet.photos.find((x) => x.id === m[4]);
     assert(gone, '找不到照片', 404);
-    // 先寫入新的照片清單，再刪照片（清單不會指到已刪的照片）
+    // 先記待檢查、寫入新的照片清單，再刪照片（清單不會指到已刪的照片；刪不掉的由清理收尾）
+    await notePhotos(vault, [`h:${photoKey(hw.id, sheet.seat, gone.id)}`]);
     sheet.photos = sheet.photos.filter((x) => x !== gone);
     await saveHw(vault, state, hw);
     await ctx.store.write(state);
     await photos.delete(photoKey(hw.id, sheet.seat, gone.id));
+    await settlePhotos(vault, [`h:${photoKey(hw.id, sheet.seat, gone.id)}`]);
     return view();
   }
   if (m[3] === 'submit' && method === 'POST') {
     assert(sheet.status !== 'graded', '已經批改完了', 409);
+    // 帶著學生看到的作業卷版本：舊分頁的「送出批改」不會把還沒傳完的新訂正卷送去批改
+    assert(sheetVersionOk(sheet, body), '這份作業已經更新了，請重新整理後再送出', 409);
+    // 輪次（送出過幾次）：有帶就要相同；沒帶（上一版畫面）只限初始卷，第一次送出後同樣的請求就失效
+    assert(body.round !== undefined ? Number(body.round) === (sheet.submissions || 0) : freshSheet(sheet), '這份作業已經送出過了，請重新整理後再送出', 409);
     assert(sheet.photos.length, '請先拍照上傳作答紙', 400);
     assert((sheet.submissions || 0) < HW_MAX_SUBMISSIONS, `每份作業最多送出 ${HW_MAX_SUBMISSIONS} 次`, 429);
     const before = structuredClone(sheet);
@@ -3518,15 +3964,34 @@ async function homeworkRoutes(
     const list = Object.values(state.homework || {})
       .filter((h) => h.ownerId === user.id && (!classId || h.classId === classId))
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-    return json({ homework: list });
+    // 摘要以作業內容為準：寫到一半失敗留下的不一致，在這裡修回來（修回失敗也照樣回正確的清單）
+    let healed = false;
+    const out: (HomeworkMeta & { broken?: boolean })[] = [];
+    for (const meta of list) {
+      const hw = await loadHw(vault, meta.id);
+      if (!hw) {
+        out.push({ ...meta, broken: true });
+        continue;
+      }
+      const fresh = hwMeta(hw);
+      if (canonical(fresh) !== canonical(meta)) {
+        state.homework![meta.id] = fresh;
+        healed = true;
+      }
+      out.push(fresh);
+    }
+    if (healed) await ctx.store.write(state).catch(() => undefined);
+    return json({ homework: out });
   }
   const one = path.match(/^\/api\/homework\/([\w-]+)(?:\/(\d+)\/(items|regrade|photos)(?:\/([\w-]+))?)?$/);
   assert(one, '找不到 API', 404);
   const meta = state.homework?.[one[1]];
   assert(meta && meta.ownerId === user.id, '找不到這份作業', 404);
   if (!one[2] && method === 'DELETE') {
-    await deleteHomework(ctx.env, vault, state, meta.id);
-    return save({ ok: true });
+    const job = await detachHomework(vault, state, meta.id);
+    const done = await save({ ok: true });
+    await purgeHomework(ctx.env, vault, [job]);
+    return done;
   }
   const hw = await loadHw(vault, meta.id);
   assert(hw, '作業資料遺失', 404);
@@ -3560,6 +4025,7 @@ async function homeworkRoutes(
       mark.step = { ...mark.step, ...validateHomeworkStepEdit(body.step), teacher: true };
     }
     scoreResult(sheet.result);
+    sheet.version = (sheet.version || 0) + 1; // 新的成績版本（學生訂正要帶這個版本）
     await saveHw(vault, state, hw);
     return save({ sheet: await viewOf(vault, hw, sheet, url.origin, true) });
   }

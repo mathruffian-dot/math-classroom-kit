@@ -661,3 +661,204 @@ export function columnsSteps({ columns, captions, size = 19, caption }) {
     ...(caption ? { caption } : {}),
   });
 }
+
+/* ───────────── 十字交乘（八上 3-2） ───────────── */
+const CIRC = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧'];
+/** mx 的 LaTeX：1 → x、−1 → −x、0 → 0。 */
+export const mx = (m, v = 'x') => (m === 0 ? '0' : m === 1 ? v : m === -1 ? `-${v}` : `${m}${v}`);
+/** 十字右欄的數：+3、−2。 */
+export const signed = (v) => (v < 0 ? `-${-v}` : `+${v}`);
+/** ax²＋bx＋c 的 LaTeX（a、b、c 是整數）。 */
+export function quadTex(a, b, c, v = 'x') {
+  const t = [mx(a, `${v}^2`)];
+  if (b) t.push(b < 0 ? `-${mx(-b, v)}` : `+${mx(b, v)}`);
+  if (c) t.push(signed(c));
+  return t.join('');
+}
+/** 交叉相乘的和：u x ＋ w x ＝ (u＋w) x（第二項是負的加括號，同課本例 2、例 3）。 */
+export const crossSumTex = (u, w) => `${mx(u)}+${w < 0 ? `(${mx(w)})` : mx(w)}=${mx(u + w)}`;
+
+/** 一個靜態的十字：左欄 m x、n x，右欄 p、q；左上×右下＝m·q（紫線），左下×右上＝n·p（橘線）。 */
+function crossAt({ m, n, p, q, b, cx, cy, size = 19, dx = 1.3, dy = 0.62, mask = false, note = '', extra = {} }) {
+  const L = cx - dx,
+    R = cx + dx;
+  return [
+    { type: 'text', x: L, y: cy + dy, text: `$${mx(m)}$`, size, color: C.ink, ...extra },
+    { type: 'text', x: L, y: cy - dy, text: `$${mx(n)}$`, size, color: C.ink, ...extra },
+    { type: 'text', x: R, y: cy + dy, text: `$${signed(p)}$`, size, color: C.ink, ...extra },
+    { type: 'text', x: R, y: cy - dy, text: mask ? '$?$' : `$${signed(q)}$`, size, color: mask ? C.red : C.ink, ...extra },
+    { type: 'segment', points: [[L + 0.5, cy + dy - 0.15], [R - 0.55, cy - dy + 0.15]], color: C.violet, width: 2.2, ...extra },
+    { type: 'segment', points: [[L + 0.5, cy - dy + 0.15], [R - 0.55, cy + dy - 0.15]], color: C.orange, width: 2.2, ...extra },
+    { type: 'segment', points: [[L - 0.75, cy - dy - 0.42], [R + 0.85, cy - dy - 0.42]], color: '#6b7394', width: 1.3, ...extra },
+    {
+      type: 'text',
+      x: cx + 0.05,
+      y: cy - dy - 0.95,
+      text: mask ? `$${mx(n * p)}+${mx(m)}\\cdot(?)=${mx(b)}$` : `$${crossSumTex(n * p, m * q)}$${note}`,
+      size: size - 3,
+      color: mask ? C.red : '#5a3fd6',
+      ...extra,
+    },
+  ];
+}
+
+/**
+ * 十字交乘的嘗試（課本例 1～例 5 的 ①②③…）：按「下一步」一組一組試，目前那一組發光，
+ * 合的那一組框起來；最後一步寫結論。trials：[{ m, n, p, q, mask? }]（mask：右下留「?」，半完成範例用）。
+ */
+export function crossSteps({ a = 1, b, c, trials, cols, conclusion, captions, caption, size, header, pre }) {
+  // pre：第 0 步只顯示題目（header），十字從第 1 步才出現（學生端在老師公布前只看得到第 0 步，十字本身就是答案時用）
+  const off = pre ? 1 : 0;
+  const n = trials.length,
+    k = cols ?? (n <= 2 ? n : n <= 4 ? 2 : 3),
+    rows = Math.ceil(n / k),
+    cw = 12 / k,
+    ch = 3.05,
+    top = rows * ch + 1.3 + (header ? 0.9 : 0),
+    last = n + off,
+    shapes = [],
+    auto = [];
+  // header：十字上方的一行（例如先提公因數），從第 0 步就顯示，每一步都亮著
+  if (header) shapes.push({ type: 'text', x: 6, y: top - 0.45, text: header, size: 20, color: C.ink, focus: Array.from({ length: n + 1 + off }, (_, i) => i) });
+  trials.forEach((t, i) => {
+    if (t.m * t.n !== a || t.p * t.q !== c) throw new Error(`crossSteps：第 ${i + 1} 組的左欄或右欄乘起來不對 ${JSON.stringify(t)}`);
+    const ok = t.m * t.q + t.n * t.p === b,
+      cx = cw * ((i % k) + 0.5) + 0.25,
+      cy = top - (header ? 0.9 : 0) - Math.floor(i / k) * ch - 1.25,
+      focus = ok ? [i + off, last] : [i + off],
+      // 半完成範例留空的那一組從第 0 步就顯示（學生端在老師公布前只看得到第 0 步）
+      extra = t.mask ? { focus: Array.from({ length: n + 1 + off }, (_, j) => j) } : { step: i + off, focus };
+    if (n > 1) shapes.push({ type: 'text', x: cx - cw * 0.45, y: cy + 0.95, text: CIRC[i], size: 15, color: '#6b7394', ...extra });
+    shapes.push(...crossAt({ ...t, b, cx, cy, size: size ?? (k === 3 ? 17 : 19), dx: k === 3 ? 1.05 : 1.3, mask: t.mask, note: t.mask || n === 1 ? '' : ok ? '（合）' : '（不合）', extra }));
+    if (ok && !t.mask && n > 1) shapes.push({ type: 'rect', x: cx - cw * 0.46, y: cy - 1.95, w: cw * 0.9, h: 3.0, color: C.red, width: 2, ...extra });
+    auto.push(
+      t.mask
+        ? `右下的數是多少，交叉相乘的和才會是 ${mx(b).replace('-', '−')}？`
+        : `${n > 1 ? CIRC[i] + ' ' : ''}交叉相乘：${crossSumTex(t.n * t.p, t.m * t.q).replace(/-/g, '−')}，${ok ? '合' : '不合'}`,
+    );
+  });
+  shapes.push({ type: 'text', x: 6, y: 0.55, text: conclusion, size: 20, color: '#5a3fd6', step: last, focus: [last] });
+  const steps = captions ?? [...(pre ? [pre] : []), ...auto, '合的那一組：左右兩欄各自橫著讀，就是兩個因式'];
+  if (steps.length !== n + 1 + off) throw new Error(`crossSteps：${n} 組嘗試要配 ${n + 1 + off} 句說明`);
+  return { view: { xMin: 0, xMax: 12, yMin: 0, yMax: top + 0.2, aspect: 'fill' }, shapes, steps, ...(caption ? { caption } : {}) };
+}
+
+/**
+ * 可操作的十字圖：拖拉右欄的 p、q（二次項係數不為 1 時再選左欄的拆法 k），交叉相乘的和即時算出，
+ * 和一次項相符時顯示「合」。lefts：x² 項的拆法 [[m, n], …]（省略＝二次項係數為 1，左欄固定 x、x）。
+ */
+export function crossPlay({ a = 1, b, c, lefts, k = 0, p = 1, q = 1, range = 9, caption }) {
+  const multi = !!lefts,
+    pick = (j) => lefts.slice(0, -1).reduceRight((acc, pair, i) => `(k==${i}?${pair[j]}:${acc})`, String(lefts.at(-1)[j])),
+    M = multi ? pick(0) : '1',
+    N = multi ? pick(1) : '1',
+    s1 = multi ? `${N}*p` : 'p',
+    s2 = multi ? `${M}*q` : 'q',
+    sum = `${s1}+${s2}`,
+    L = 3.3,
+    R = 6.5,
+    T = 4.75,
+    B = 3.15;
+  if (multi && !lefts.every(([m, n]) => m * n === a)) throw new Error('crossPlay：左欄的拆法乘起來要等於二次項係數');
+  const shapes = [{ type: 'text', x: 6, y: 6.4, text: `要分解：$${quadTex(a, b, c)}$`, size: 20, color: C.ink }];
+  if (multi)
+    lefts.forEach(([m, n], i) =>
+      shapes.push(
+        { type: 'text', x: L, y: T, text: `$${mx(m)}$`, size: 22, color: C.ink, show: `k==${i}` },
+        { type: 'text', x: L, y: B, text: `$${mx(n)}$`, size: 22, color: C.ink, show: `k==${i}` },
+      ),
+    );
+  else shapes.push({ type: 'text', x: L, y: T, text: '$x$', size: 22, color: C.ink }, { type: 'text', x: L, y: B, text: '$x$', size: 22, color: C.ink });
+  for (const [id, y] of [['p', T], ['q', B]])
+    shapes.push(
+      { type: 'text', x: R, y, text: '$+{' + id + '}$', size: 22, color: C.ink, show: `${id}>=0` },
+      { type: 'text', x: R, y, text: '${' + id + '}$', size: 22, color: C.ink, show: `${id}<0` },
+    );
+  shapes.push(
+    { type: 'segment', points: [[L + 0.55, T - 0.18], [R - 0.6, B + 0.18]], color: C.violet, width: 2.6 },
+    { type: 'segment', points: [[L + 0.55, B + 0.18], [R - 0.6, T - 0.18]], color: C.orange, width: 2.6 },
+    { type: 'text', x: 1.0, y: (T + B) / 2, text: multi ? `$${mx(a, 'x^2')}$` : '$x\\cdot x=x^2$', size: 17, color: '#5a3fd6' },
+    { type: 'segment', points: [[1.7, 2.45], [8.3, 2.45]], color: '#6b7394', width: 1.4 },
+  );
+  const par = (id, plain) => (plain ? '{' + id + '}' : '({' + id + '})');
+  for (const [cp, cq] of [[true, true], [true, false], [false, true], [false, false]])
+    shapes.push({
+      type: 'text',
+      x: 9.3,
+      y: (T + B) / 2,
+      text: '$' + par('p', cp) + '\\times ' + par('q', cq) + '={p*q}$',
+      size: 17,
+      color: C.teal,
+      show: `${cp ? 'p>=0' : 'p<0'} && ${cq ? 'q>=0' : 'q<0'}`,
+    });
+  const head = '$\\textcolor{#ff8a3d}{{' + s1 + '}x}+';
+  shapes.push(
+    { type: 'text', x: 4.9, y: 1.75, text: head + '\\textcolor{#7b61ff}{{' + s2 + '}x}={' + sum + '}x$', size: 20, color: C.ink, show: `${s2}>=0` },
+    { type: 'text', x: 4.9, y: 1.75, text: head + '(\\textcolor{#7b61ff}{{' + s2 + '}x})={' + sum + '}x$', size: 20, color: C.ink, show: `${s2}<0` },
+    { type: 'text', x: 9.8, y: 1.75, text: `目標 $${mx(b)}$`, size: 16, color: '#6b7394' },
+    { type: 'text', x: 6, y: 0.65, text: '合！左右兩欄橫著讀，就是兩個因式', size: 17, color: '#16824f', show: `p*q==${c} && ${sum}==${b}` },
+    { type: 'text', x: 6, y: 0.65, text: `右欄兩數相乘，要等於常數項 ${String(c).replace('-', '−')}`, size: 16, color: C.red, show: `p*q!=${c}` },
+    { type: 'text', x: 6, y: 0.65, text: '常數項對了，交叉相乘的和還不是一次項：換一組', size: 16, color: C.orange, show: `p*q==${c} && ${sum}!=${b}` },
+  );
+  return {
+    view: { xMin: 0, xMax: 12, yMin: 0.1, yMax: 7, aspect: 'fill' },
+    params: [
+      ...(multi ? [{ id: 'k', label: '左欄：x² 項的第幾種拆法', min: 0, max: lefts.length - 1, step: 1, value: k }] : []),
+      { id: 'p', label: '右上的數', min: -range, max: range, step: 1, value: p },
+      { id: 'q', label: '右下的數', min: -range, max: range, step: 1, value: q },
+    ],
+    shapes,
+    readouts: [
+      { label: '右欄相乘', expr: 'p*q' },
+      { label: '交叉相乘的和（$x$ 的係數）', expr: sum },
+    ],
+    caption: caption ?? '紫線：左上×右下；橘線：左下×右上。兩個乘積加起來要等於一次項，右欄相乘要等於常數項。',
+  };
+}
+
+/**
+ * 代數磚（二次項係數不為 1）：a 張 x² 排成一列，長是 a·x＋p、寬是 x＋q；
+ * x 磚 a·q＋p 張、1 磚 p·q 張。拖拉 a、p、q 拼出指定的多項式（每個設定都是完整的長方形，沒有中間狀態）。
+ */
+export function algebraTilesAx({ a = 1, p = 1, q = 1, xLen = 2.4, maxA = 3, max = 5 } = {}) {
+  const shapes = [];
+  for (let k = 0; k < maxA; k++) {
+    shapes.push(
+      { type: 'rect', x: k * xLen, y: 'q', w: xLen, h: xLen, fill: C.fViolet, color: C.violet, width: 2, show: `a>${k}` },
+      { type: 'text', x: k * xLen + xLen / 2, y: `q+${xLen / 2}`, text: '$x^2$', size: 18, color: '#5a3fd6', show: `a>${k}` },
+    );
+    for (let i = 0; i < max; i++)
+      shapes.push(
+        { type: 'rect', x: k * xLen, y: i, w: xLen, h: 1, fill: C.fBlue, color: C.blue, show: `a>${k} && q>${i}` },
+        { type: 'text', x: k * xLen + xLen / 2, y: i + 0.5, text: '$x$', size: 14, color: '#1d4fa3', show: `a>${k} && q>${i}` },
+      );
+  }
+  for (let i = 0; i < max; i++) {
+    shapes.push(
+      { type: 'rect', x: `a*${xLen}+${i}`, y: 'q', w: 1, h: xLen, fill: C.fBlue, color: C.blue, show: `p>${i}` },
+      { type: 'text', x: `a*${xLen}+${i + 0.5}`, y: `q+${xLen / 2}`, text: '$x$', size: 14, color: '#1d4fa3', show: `p>${i}` },
+    );
+    for (let j = 0; j < max; j++) shapes.push({ type: 'rect', x: `a*${xLen}+${i}`, y: j, w: 1, h: 1, fill: C.fOrange, color: C.orange, show: `p>${i} && q>${j}` });
+  }
+  shapes.push(
+    { type: 'brace', points: [[0, `q+${xLen}`], [`a*${xLen}+p`, `q+${xLen}`]], text: '長 $x+{p}$', show: 'a==1' },
+    { type: 'brace', points: [[0, `q+${xLen}`], [`a*${xLen}+p`, `q+${xLen}`]], text: '長 ${a}x+{p}$', show: 'a>1' },
+    { type: 'brace', points: [[0, 0], [0, `q+${xLen}`]] },
+    { type: 'text', x: -1.5, y: `(q+${xLen})/2`, text: '寬 $x+{q}$', size: 15, color: C.ink },
+  );
+  return {
+    view: { xMin: -2.8, xMax: maxA * xLen + max + 0.6, yMin: -0.6, yMax: xLen + max + 1.4, aspect: 'equal' },
+    params: [
+      { id: 'a', label: '$x^2$ 磚幾張（長的 $x$ 係數）', min: 1, max: maxA, step: 1, value: a },
+      { id: 'p', label: '右邊加幾排（長的常數）', min: 1, max, step: 1, value: p },
+      { id: 'q', label: '下面加幾排（寬的常數）', min: 1, max, step: 1, value: q },
+    ],
+    shapes,
+    readouts: [
+      { label: '$x^2$ 磚（紫）', expr: 'a' },
+      { label: '$x$ 磚（藍）', expr: 'a*q+p' },
+      { label: '$1$ 磚（橘）', expr: 'p*q' },
+    ],
+    caption: '總面積 ＝ 長 × 寬：$x$ 磚的張數就是「交叉相乘」的和，$1$ 磚的張數是兩個常數的積',
+  };
+}

@@ -1,6 +1,8 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "math-classroom-kit",
+  // 固定部署到數感課堂的 Cloudflare 帳號：wrangler 登入的是別的帳號時，部署、建 bucket 會直接失敗，不會跑到別的帳號
+  "account_id": "b87e54acd78dd4acfbdc96e3bfa8d230",
   "main": "worker/index.ts",
   "compatibility_date": "2026-10-01",
   "assets": {
@@ -13,6 +15,8 @@
     "bindings": [{ "name": "CLASSROOM", "class_name": "ClassroomDurableObject" }],
   },
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["ClassroomDurableObject"] }],
+  // 照片（課堂作答照片、回家作業照片）存 R2。本機開發是模擬的 bucket，不連到雲端。
+  "r2_buckets": [{ "binding": "PHOTOS", "bucket_name": "math-classroom-photos" }],
   // 本機開發：示範模式（只允許 127.0.0.1）。
   "vars": {
     "APP_MODE": "demo",
@@ -22,13 +26,15 @@
   },
   "dev": { "ip": "127.0.0.1", "port": 8787 },
   "env": {
-    // 正式部署：npm run deploy。資料與作答照片都存在 Durable Object，不需要 Supabase。
+    // 正式部署：npm run deploy。課堂資料存在 Durable Object，照片存在 R2（下面的 r2_buckets），不需要 Supabase。
     // 教師帳號以 secret 設定：npx wrangler secret put TEACHER_ACCOUNT --env production
     "production": {
       "name": "math-classroom-kit",
       "durable_objects": {
         "bindings": [{ "name": "CLASSROOM", "class_name": "ClassroomDurableObject" }],
       },
+      // 正式站的照片 bucket：部署前要先建立（npx wrangler r2 bucket create math-classroom-photos），見 docs/DEPLOYMENT.md
+      "r2_buckets": [{ "binding": "PHOTOS", "bucket_name": "math-classroom-photos" }],
       "vars": {
         "APP_MODE": "cloudflare",
         "APP_INSTANCE": "default",

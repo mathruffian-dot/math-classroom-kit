@@ -274,6 +274,34 @@ test('C-16: a failed re-upload after correction can be retried', async ({ browse
   await expect(sp.getByRole('button', { name: '送出批改（1 張）' })).toBeEnabled();
 });
 
+test('R2 round 9: while a picked photo is still uploading, the submit button is disabled', async ({ browser }) => {
+  test.setTimeout(90_000);
+  const { tp, sheetUrl } = await teacherWithHomework(browser, false);
+  const phone = await browser.newContext({ baseURL, viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  contexts.push(phone);
+  const sp = await phone.newPage();
+  await sp.goto(sheetUrl.pathname + sheetUrl.hash);
+  const photo = join(test.info().outputDir, 'hw-first.png');
+  await tp.screenshot({ path: photo });
+  await sp.getByTestId('hw-upload').setInputFiles(photo);
+  await expect(sp.getByRole('button', { name: '送出批改（1 張）' })).toBeEnabled();
+  // 第二頁的上傳攔住：這段時間送出按鈕停用
+  let release!: () => void;
+  const held = new Promise<void>((r) => (release = r));
+  await sp.route('**/photos?t=*', async (route) => {
+    if (route.request().method() === 'POST') await held;
+    await route.continue();
+  });
+  const photo2 = join(test.info().outputDir, 'hw-second.png');
+  await tp.screenshot({ path: photo2, clip: { x: 0, y: 0, width: 400, height: 300 } });
+  await sp.getByTestId('hw-upload').setInputFiles(photo2);
+  await expect(sp.getByTestId('hw-submit')).toBeDisabled();
+  // 上傳中也不能再選下一批（兩批重疊時，先傳完的那批不會提早開放送出）
+  await expect(sp.getByTestId('hw-upload')).toBeDisabled();
+  release();
+  await expect(sp.getByRole('button', { name: '送出批改（2 張）' })).toBeEnabled();
+});
+
 // 2026-10-30 Codex 複審 R-1：公開作業頁的晚到回覆（初載、輪詢、上傳）在換人後都要丟掉
 test('R-1: a late first load of the homework page is dropped after logout and another student logs in', async ({ browser }) => {
   test.setTimeout(90_000);

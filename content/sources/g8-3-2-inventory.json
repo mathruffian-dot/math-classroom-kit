@@ -1,0 +1,91 @@
+{
+  "source": {
+    "pdf": "八年級/115上_國中_數學_教材資源_課本_學用PDF_二年級/08-115國中數學2上-課本-3-2-學用(115f231564).pdf",
+    "pages": {
+      "pdfPages": "1-16",
+      "printedPages": "128-143",
+      "printedPage": "pdfPage + 127"
+    },
+    "answers": "八年級/115上_國中_數學_教材資源_備課用書_備課PDF_二年級/04-115國中數學2上-備課-L03(115f231512).pdf（備課 PDF 第 23–34 頁＝課本 p.128–139，備課 PDF 第 n＋22 頁＝課本 PDF 第 n 頁；紅字解答與教學眉批）。每一題的 lhs、rhs（與 alt 其他寫法）都由 scripts/lessons-src/g8-3-2-check.py 用 SymPy 展開核對。",
+    "curriculum": "學習表現 a-IV-6、學習內容 A-8-4、A-8-5：備課用書 01-115國中數學2上-備課-目次(115f231509).pdf 第 32–33 頁（教學活動連結分析表 3-2，授課 5 節），L03 第 4 頁（本章學習內容解析）與第 23 頁（12年國教：A-8-5 只處理整係數 ax²＋bx＋c）。",
+    "assessmentForms": "課堂作答形式與課本原題的差異：例題與隨堂的因式分解改為數值填空——寫成指定形式（(x＋a)(x＋b) 且 a＜b；(px＋a)(qx＋b) 且 p＜q；2(x＋a)(3x＋b) 等），填 a（或 a、b），格式同 111 會考第 8 題「可因式分解成 (3x＋a)(bx＋c)，a、b、c 均為整數」；核算程式確認每一格只有一個整數解。完整的十字與分解由學生寫在課本。例 2、例 5 的第 ④／⑥ 組改為半完成範例（右下留空）。自我評量 p.138 第 1 題改為單選；p.139 第 2 題 (5)(7)(8) 改為數值填空的交錯練習。其餘提問、操作、錯誤分析、出場券、自評與暖身皆為自編，各頁 source 欄有標示。",
+    "answerCheck": "自行計算與教用版全部一致，沒有不一致的題目。教用版列出多種正確寫法的題目（例 6、例 7、p.135 隨堂）都記在 alt。",
+    "pageImages": "八年級/115上_視覺化互動教學/textbook-pages/3-2/page-NN.png",
+    "crops": "math-classroom-kit/public/lesson-assets/g8-3-2/，pymupdf 2.5x 渲染；box 見 scripts/textbook-crops/g8-3-2-boxes.json（以 927×1157 頁面預覽圖為準），28 張",
+    "lessons": {
+      "g8-3-2a": "二次項係數為 1、常數項為正：p.128–130（(x＋p)(x＋q) 的展開、表格與十字、b＝p＋q 與 c＝pq、例 1、例 2、隨堂）",
+      "g8-3-2b": "二次項係數為 1、常數項為負：p.131（例 3、隨堂、x² 拆成 (−x)(−x) 的說明）＋p.138 自我評量第 1 題",
+      "g8-3-2c": "二次項係數不為 1：p.132–133（(x＋5)(3x＋1) 與 3x²＋16x＋5、例 4、例 5、分解步驟、隨堂）",
+      "g8-3-2d": "先提公因數、二次項係數為負、十字交乘與乘法公式：p.134–136（例 6、例 7、例 8 與隨堂）＋p.137 重點回顧＋p.139 自我評量第 2 題 (5)(7)(8)"
+    },
+    "notIncluded": "p.137 補給站「代換法因式分解」（教用版教學眉批：教師可視班級情況補充）沒有做成頁面，也不在課後檢核、回家作業與魔王戰範圍；p.138–139 自我評量第 2 題 (1)–(4)、(6)、(9)、(10) 沒有放進課堂頁面（改寫進回家作業題庫）；p.140 自我挑戰（地墊拼圖）、p.141–143 第 3 章總複習未收錄；備課用書「會考觀測站」「數問速答」未列入課堂頁面。",
+    "generated": "2026-11-24"
+  },
+  "items": [
+    { "kind": "concept", "label": "多項式乘法回顧：(x＋2)(x＋3)、(x＋p)(x＋q)", "pdfPage": 1, "printedPage": 128, "crop": { "file": "expand-pq.png" }, "problems": [
+      { "expr": "(x＋2)(x＋3)", "answer": "x²＋5x＋6", "lhs": "(x+2)*(x+3)", "rhs": "x**2+5*x+6", "official": "一致" },
+      { "expr": "(x＋p)(x＋q)", "answer": "x²＋(p＋q)x＋pq", "lhs": "(x+p)*(x+q)", "rhs": "x**2+(p+q)*x+p*q", "official": "一致" } ] },
+    { "kind": "concept", "label": "先找 p×q＝6、再檢驗 p＋q＝5 的表格；十字交乘法的記錄", "pdfPage": 1, "printedPage": 128, "crop": { "file": "pq-table.png, cross-record.png" }, "problems": [
+      { "expr": "x²＋5x＋6", "answer": "(x＋2)(x＋3)", "lhs": "x**2+5*x+6", "rhs": "(x+2)*(x+3)", "official": "一致" } ] },
+    { "kind": "keybox", "label": "b＝p＋q、c＝pq", "pdfPage": 2, "printedPage": 129, "crop": { "file": "bc-rule.png" }, "problems": [] },
+    { "kind": "example", "label": "例 1 二次項係數為 1，常數項為正", "pdfPage": 2, "printedPage": 129, "crop": { "file": "ex1.png" }, "problems": [
+      { "expr": "x²＋10x＋21", "answer": "(x＋3)(x＋7)", "lhs": "x**2+10*x+21", "rhs": "(x+3)*(x+7)", "official": "一致" } ] },
+    { "kind": "example", "label": "例 2 二次項係數為 1，常數項為正", "pdfPage": 3, "printedPage": 130, "crop": { "file": "ex2.png" }, "irsForm": "半完成範例：第 ④ 組右下留空填數", "problems": [
+      { "expr": "x²−6x＋8", "answer": "(x−2)(x−4)", "lhs": "x**2-6*x+8", "rhs": "(x-2)*(x-4)", "official": "一致" } ] },
+    { "kind": "practice", "label": "例 1、例 2 隨堂", "pdfPage": 3, "printedPage": 130, "crop": { "file": "ex12-practice.png" }, "problems": [
+      { "expr": "(1) x²＋4x＋3", "answer": "(x＋1)(x＋3)", "lhs": "x**2+4*x+3", "rhs": "(x+1)*(x+3)", "official": "一致" },
+      { "expr": "(2) x²−11x＋18", "answer": "(x−9)(x−2)", "lhs": "x**2-11*x+18", "rhs": "(x-9)*(x-2)", "official": "一致" } ] },
+    { "kind": "example", "label": "例 3 二次項係數為 1，常數項為負", "pdfPage": 4, "printedPage": 131, "crop": { "file": "ex3.png" }, "problems": [
+      { "expr": "x²−x−6", "answer": "(x＋2)(x−3)", "lhs": "x**2-x-6", "rhs": "(x+2)*(x-3)", "official": "一致" } ] },
+    { "kind": "practice", "label": "例 3 隨堂", "pdfPage": 4, "printedPage": 131, "crop": { "file": "ex3-practice.png" }, "problems": [
+      { "expr": "(1) x²＋x−2", "answer": "(x＋2)(x−1)", "lhs": "x**2+x-2", "rhs": "(x+2)*(x-1)", "official": "一致" },
+      { "expr": "(2) x²−7x−30", "answer": "(x＋3)(x−10)", "lhs": "x**2-7*x-30", "rhs": "(x+3)*(x-10)", "official": "一致" } ] },
+    { "kind": "concept", "label": "x² 項分解為 (−x)·(−x) 的說明", "pdfPage": 4, "printedPage": 131, "crop": { "file": "neg-x.png" }, "problems": [
+      { "expr": "(−x−2)(−x＋3)", "answer": "(x＋2)(x−3)", "lhs": "(-x-2)*(-x+3)", "rhs": "(x+2)*(x-3)", "official": "一致" } ] },
+    { "kind": "concept", "label": "二次項係數不為 1 的十字交乘法：(x＋5)(3x＋1) 與 3x²＋16x＋5", "pdfPage": 5, "printedPage": 132, "crop": { "file": "a-not-1-intro.png" }, "problems": [
+      { "expr": "3x²＋16x＋5", "answer": "(x＋5)(3x＋1)", "lhs": "3*x**2+16*x+5", "rhs": "(x+5)*(3*x+1)", "official": "一致" } ] },
+    { "kind": "example", "label": "例 4 二次項係數不為 1", "pdfPage": 5, "printedPage": 132, "crop": { "file": "ex4.png" }, "problems": [
+      { "expr": "5x²−17x＋6", "answer": "(x−3)(5x−2)", "lhs": "5*x**2-17*x+6", "rhs": "(x-3)*(5*x-2)", "official": "一致" } ] },
+    { "kind": "example", "label": "例 5 二次項係數不為 1", "pdfPage": 6, "printedPage": 133, "crop": { "file": "ex5.png" }, "irsForm": "半完成範例：第 ⑥ 組右下留空填數", "problems": [
+      { "expr": "4x²＋11x−3", "answer": "(4x−1)(x＋3)", "lhs": "4*x**2+11*x-3", "rhs": "(4*x-1)*(x+3)", "official": "一致" } ] },
+    { "kind": "keybox", "label": "分解 ax²＋bx＋c 的步驟", "pdfPage": 6, "printedPage": 133, "crop": { "file": "procedure.png" }, "problems": [] },
+    { "kind": "practice", "label": "例 4、例 5 隨堂", "pdfPage": 6, "printedPage": 133, "crop": { "file": "ex5-practice.png" }, "problems": [
+      { "expr": "(1) 8x²＋14x＋3", "answer": "(4x＋1)(2x＋3)", "lhs": "8*x**2+14*x+3", "rhs": "(4*x+1)*(2*x+3)", "official": "一致" },
+      { "expr": "(2) 12x²−7x−10", "answer": "(3x＋2)(4x−5)", "lhs": "12*x**2-7*x-10", "rhs": "(3*x+2)*(4*x-5)", "official": "一致" } ] },
+    { "kind": "example", "label": "例 6 先提公因數", "pdfPage": 7, "printedPage": 134, "crop": { "file": "ex6.png, ex6-alt.png" }, "problems": [
+      { "expr": "2x²＋4x−16", "answer": "2(x−2)(x＋4)，也可寫 (2x−4)(x＋4) 或 (x−2)(2x＋8)", "lhs": "2*x**2+4*x-16", "rhs": "2*(x-2)*(x+4)", "alt": ["(2*x-4)*(x+4)", "(x-2)*(2*x+8)"], "official": "一致" } ] },
+    { "kind": "practice", "label": "例 6 隨堂", "pdfPage": 7, "printedPage": 134, "crop": { "file": "ex6-practice.png" }, "problems": [
+      { "expr": "(1) 6x²＋8x−14", "answer": "2(x−1)(3x＋7)", "lhs": "6*x**2+8*x-14", "rhs": "2*(x-1)*(3*x+7)", "official": "一致" },
+      { "expr": "(2) 15x²−33x＋6", "answer": "3(5x−1)(x−2)", "lhs": "15*x**2-33*x+6", "rhs": "3*(5*x-1)*(x-2)", "official": "一致" } ] },
+    { "kind": "example", "label": "例 7 二次項係數為負數", "pdfPage": 8, "printedPage": 135, "crop": { "file": "ex7.png, ex7-forms.png" }, "problems": [
+      { "expr": "−3x²＋4x−1", "answer": "−(3x−1)(x−1)，也可寫 (−3x＋1)(x−1) 或 (3x−1)(−x＋1)", "lhs": "-3*x**2+4*x-1", "rhs": "-(3*x-1)*(x-1)", "alt": ["(-3*x+1)*(x-1)", "(3*x-1)*(-x+1)"], "official": "一致" } ] },
+    { "kind": "practice", "label": "例 7 隨堂", "pdfPage": 8, "printedPage": 135, "crop": { "file": "ex7-practice.png" }, "problems": [
+      { "expr": "−6x²−11x＋10", "answer": "−(3x−2)(2x＋5)，或 (3x−2)(−2x−5)，或 (−3x＋2)(2x＋5)", "lhs": "-6*x**2-11*x+10", "rhs": "-(3*x-2)*(2*x+5)", "alt": ["(3*x-2)*(-2*x-5)", "(-3*x+2)*(2*x+5)"], "official": "一致" } ] },
+    { "kind": "example", "label": "例 8 十字交乘法與乘法公式", "pdfPage": 9, "printedPage": 136, "crop": { "file": "ex8.png" }, "problems": [
+      { "expr": "9x²−24x＋16", "answer": "(3x−4)²", "lhs": "9*x**2-24*x+16", "rhs": "(3*x-4)**2", "official": "一致" } ] },
+    { "kind": "practice", "label": "例 8 隨堂", "pdfPage": 9, "printedPage": 136, "crop": { "file": "ex8-practice.png" }, "problems": [
+      { "expr": "(1) 4x²＋12x＋9", "answer": "(2x＋3)²", "lhs": "4*x**2+12*x+9", "rhs": "(2*x+3)**2", "official": "一致" },
+      { "expr": "(2) 25x²−10x＋1", "answer": "(5x−1)²", "lhs": "25*x**2-10*x+1", "rhs": "(5*x-1)**2", "official": "一致" } ] },
+    { "kind": "keybox", "label": "通常先利用十字交乘法", "pdfPage": 9, "printedPage": 136, "crop": { "file": "method-note.png" }, "problems": [] },
+    { "kind": "summary", "label": "重點回顧", "pdfPage": 10, "printedPage": 137, "crop": { "file": "summary.png" }, "problems": [
+      { "expr": "x²＋3x＋2", "answer": "(x＋1)(x＋2)", "lhs": "x**2+3*x+2", "rhs": "(x+1)*(x+2)", "official": "一致" },
+      { "expr": "3x²−11x＋10", "answer": "(x−2)(3x−5)", "lhs": "3*x**2-11*x+10", "rhs": "(x-2)*(3*x-5)", "official": "一致" } ] },
+    { "kind": "notIncluded", "label": "補給站：代換法因式分解（未收錄）", "pdfPage": 10, "printedPage": 137, "problems": [
+      { "expr": "(x＋1)²＋9(x＋1)＋8", "answer": "(x＋2)(x＋9)", "lhs": "(x+1)**2+9*(x+1)+8", "rhs": "(x+2)*(x+9)", "official": "一致" },
+      { "expr": "9(x−2)²−4", "answer": "(3x−4)(3x−8)", "lhs": "9*(x-2)**2-4", "rhs": "(3*x-4)*(3*x-8)", "official": "一致" } ] },
+    { "kind": "self", "label": "自我評量第 1 題（妙麗的四種十字）", "pdfPage": 11, "printedPage": 138, "crop": { "file": "self1.png" }, "irsForm": "改為單選：選出合的那一種", "problems": [
+      { "expr": "x²−11x＋24", "answer": "(3) 合，(x−3)(x−8)", "lhs": "x**2-11*x+24", "rhs": "(x-3)*(x-8)", "official": "一致" } ] },
+    { "kind": "self", "label": "自我評量第 2 題 (1)～(4)（改寫進回家作業）", "pdfPage": 11, "printedPage": 138, "problems": [
+      { "expr": "(1) x²＋9x＋20", "answer": "(x＋4)(x＋5)", "lhs": "x**2+9*x+20", "rhs": "(x+4)*(x+5)", "official": "一致" },
+      { "expr": "(2) x²−5x＋6", "answer": "(x−2)(x−3)", "lhs": "x**2-5*x+6", "rhs": "(x-2)*(x-3)", "official": "一致" },
+      { "expr": "(3) x²＋5x−36", "answer": "(x＋9)(x−4)", "lhs": "x**2+5*x-36", "rhs": "(x+9)*(x-4)", "official": "一致" },
+      { "expr": "(4) 3x²−19x＋28", "answer": "(x−4)(3x−7)", "lhs": "3*x**2-19*x+28", "rhs": "(x-4)*(3*x-7)", "official": "一致" } ] },
+    { "kind": "self", "label": "自我評量第 2 題 (5)～(10)（(5)(7)(8) 放 d 堂交錯練習；全部改寫進回家作業）", "pdfPage": 12, "printedPage": 139, "crop": { "file": "self2-5.png, self2-78.png" }, "problems": [
+      { "expr": "(5) 5x²＋17x−12", "answer": "(x＋4)(5x−3)", "lhs": "5*x**2+17*x-12", "rhs": "(x+4)*(5*x-3)", "official": "一致" },
+      { "expr": "(6) 4x²−3x−10", "answer": "(4x＋5)(x−2)", "lhs": "4*x**2-3*x-10", "rhs": "(4*x+5)*(x-2)", "official": "一致" },
+      { "expr": "(7) 3x²−45x＋108", "answer": "3(x−12)(x−3)", "lhs": "3*x**2-45*x+108", "rhs": "3*(x-3)*(x-12)", "official": "一致" },
+      { "expr": "(8) −2x²−13x＋24", "answer": "−(2x−3)(x＋8)", "lhs": "-2*x**2-13*x+24", "rhs": "-(x+8)*(2*x-3)", "official": "一致" },
+      { "expr": "(9) 36x²−84x＋49", "answer": "(6x−7)²", "lhs": "36*x**2-84*x+49", "rhs": "(6*x-7)**2", "official": "一致" },
+      { "expr": "(10) 25x²＋90x＋81", "answer": "(5x＋9)²", "lhs": "25*x**2+90*x+81", "rhs": "(5*x+9)**2", "official": "一致" } ] }
+  ]
+}

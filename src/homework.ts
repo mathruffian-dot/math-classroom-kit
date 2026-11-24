@@ -498,6 +498,8 @@ function resultHtml(v: HomeworkSheetView, teacher: boolean) {
  * 舊實例的計時器停掉、在途請求中止；晚到的回覆（成功或失敗）用 alive() 檢查後丟掉，不會畫回前一位同學的作業與照片。
  */
 interface PubSheet {
+  /** 正在上傳照片（從選檔開始到這一批傳完）：這段時間不能送出批改。 */
+  uploading?: boolean;
   id: string;
   seat: string;
   token: string;
@@ -506,6 +508,8 @@ interface PubSheet {
   abort: AbortController;
   /** 學生按了「訂正後重新上傳」：下一張照片帶 restart，伺服器才清掉上一次的照片與結果。 */
   restart?: boolean;
+  /** 按「訂正」時看到的成績版本：之後又批改過就不清掉新成績。 */
+  restartOf?: number;
 }
 let pub: PubSheet | null = null;
 const pubPath = (p: { id: string; seat: string; token: string }, rest = '') => `/hw/${p.id}/${p.seat}${rest}?t=${p.token}`;
@@ -562,7 +566,7 @@ function drawStudentSheet(app: HTMLElement, p: PubSheet) {
     main = `${resultHtml(v, false)}${btn('訂正後重新上傳', 'hw-restart', 'secondary', 'camera')}`;
   } else {
     const thumbs = v.photos.map((ph, i) => `<figure class="hw-thumb"><img src="/api${pubPath(p, `/photos/${ph.id}`)}" alt="第 ${i + 1} 張"><figcaption>第 ${i + 1} 張</figcaption><button class="icon-btn" data-action="hw-del-photo" data-photo="${ph.id}" aria-label="刪除第 ${i + 1} 張">${icon('trash')}</button></figure>`).join('');
-    main = `<section class="panel hw-upload">${v.status === 'error' ? `<p class="form-error" role="alert">${esc(v.error || '批改失敗')}</p>` : ''}<h2>拍照上傳作答紙</h2><p class="muted">每一頁都要拍，拍正、拍清楚（光線充足、不要有陰影）。</p><div class="hw-thumbs">${thumbs}</div><label class="btn secondary hw-pick-photo">${icon('camera')}<span>${v.photos.length ? '再拍一張' : '拍照／選照片'}</span><input type="file" accept="image/*" capture="environment" multiple data-hw-upload hidden data-testid="hw-upload"></label>${btn(`送出批改（${v.photos.length} 張）`, 'hw-submit', 'primary', 'check', `data-testid="hw-submit" ${v.photos.length ? '' : 'disabled'}`)}</section>`;
+    main = `<section class="panel hw-upload">${v.status === 'error' ? `<p class="form-error" role="alert">${esc(v.error || '批改失敗')}</p>` : ''}<h2>拍照上傳作答紙</h2><p class="muted">每一頁都要拍，拍正、拍清楚（光線充足、不要有陰影）。</p><div class="hw-thumbs">${thumbs}</div><label class="btn secondary hw-pick-photo">${icon('camera')}<span>${v.photos.length ? '再拍一張' : '拍照／選照片'}</span><input type="file" accept="image/*" capture="environment" multiple data-hw-upload hidden data-testid="hw-upload" ${p.uploading ? 'disabled' : ''}></label>${btn(p.uploading ? '照片上傳中…' : `送出批改（${v.photos.length} 張）`, 'hw-submit', 'primary', 'check', `data-testid="hw-submit" ${v.photos.length && !p.uploading ? '' : 'disabled'}`)}</section>`;
   }
   const qs = v.status === 'graded' ? '' : `<details class="panel hw-questions"><summary>看題目（${v.questions.length} 題）</summary><ol>${v.questions.map((q) => `<li>${md(q.stem)}${figure(q.figure)}</li>`).join('')}</ol>${btn('下載作業卷 PDF', 'hw-own-pdf', 'quiet', 'download')}</details>`;
   app.innerHTML = `<header class="hw-top"><span class="brand-mark small">${icon('sigma')}</span><div><strong>${esc(v.title)}</strong><small>${esc(v.className)}・${v.seat} 號</small></div>${tag(STATUS_LABEL[v.status], STATUS_CLASS[v.status])}</header><main class="hw-main" data-testid="hw-student">${main}${qs}</main>`;
@@ -602,7 +606,16 @@ document.addEventListener('change', async (e) => {
   const input = e.target as HTMLInputElement;
   const p = pub;
   if (!p || !alive(p) || !input.matches?.('[data-hw-upload]') || !input.files?.length) return;
+  // 上一批還在傳：不接新的一批（選檔按鈕在上傳中也是停用的）
+  if (p.uploading) {
+    input.value = '';
+    H.toast('照片還在上傳，傳完再選下一張', true);
+    return;
+  }
   const app = document.querySelector<HTMLElement>('#app')!;
+  // 從選檔開始就算「上傳中」：送出按鈕停用，傳完（或失敗）才恢復
+  p.uploading = true;
+  drawStudentSheet(app, p);
   try {
     for (const file of [...input.files]) {
       H.toast('正在上傳照片…');
@@ -613,11 +626,21 @@ document.addEventListener('change', async (e) => {
       if (!view) return;
       p.view = view;
     }
+    p.uploading = false;
     drawStudentSheet(app, p);
     H.toast('照片已上傳');
   } catch (err) {
+    p.uploading = false;
     if (!alive(p)) return;
     H.toast((err as Error).message, true);
+    const fresh = await pubApi(p).catch(() => null);
+    // 伺服器那邊已經變了（上一張其實存好了、訂正已經開始）：照伺服器的畫面。
+    // 還是「已批改」而且正在訂正：訂正還沒開始，留在訂正畫面讓學生再傳一次
+    // （老師之後又改判了：版本不同，照伺服器的畫面，讓學生看過新成績再決定要不要訂正）
+    if (fresh && alive(p) && !(fresh.status === 'graded' && p.restart && fresh.version === p.restartOf)) {
+      p.view = fresh;
+      p.restart = false;
+    }
     drawStudentSheet(app, p);
   }
 });
@@ -632,6 +655,9 @@ export async function renderHomeworkList() {
       const graded = all.filter((s) => s.status === 'graded');
       const handed = all.filter((s) => s.status !== 'assigned').length;
       const avg = graded.length ? graded.reduce((n, s) => n + (s.score || 0) / (s.max || 10), 0) / graded.length : null;
+      // 作業內容不見了（只剩摘要）：不能開啟，只能刪除
+      if ((h as { broken?: boolean }).broken)
+        return `<tr><td><strong>${esc(h.title)}</strong><small>${esc(h.className)}</small></td><td>${dateTime(h.createdAt)}</td><td colspan="4">${tag('作業資料遺失', 'red')}</td><td><div class="actions">${btn('刪除', 'hw-delete', 'quiet danger', 'trash', `data-id="${h.id}"`)}</div></td></tr>`;
       return `<tr><td><strong>${esc(h.title)}</strong><small>${esc(h.className)}</small></td><td>${dateTime(h.createdAt)}</td><td>${all.length} 人</td><td>${handed} / ${all.length}</td><td>${graded.length}</td><td>${pct(avg)}</td><td><div class="actions">${btn('開啟', 'hw-open', 'quiet', 'eye', `data-id="${h.id}"`)}${btn('zip', 'hw-zip', 'quiet', 'download', `data-id="${h.id}"`)}${btn('刪除', 'hw-delete', 'quiet danger', 'trash', `data-id="${h.id}"`)}</div></td></tr>`;
     })
     .join('');
@@ -856,7 +882,11 @@ export async function homeworkAction(el: HTMLElement): Promise<boolean> {
     case 'hw-del-photo': {
       const p = pub;
       if (!p || !alive(p)) return true;
-      const view = act === 'hw-submit' ? await pubApi(p, '/submit', 'POST', {}) : await pubApi(p, `/photos/${el.dataset.photo}`, 'DELETE', {});
+      if (act === 'hw-submit' && p.uploading) {
+        H.toast('照片還在上傳，傳完再送出', true);
+        return true;
+      }
+      const view = act === 'hw-submit' ? await pubApi(p, '/submit', 'POST', { version: p.view?.version ?? 0, round: p.view?.round ?? 0 }) : await pubApi(p, `/photos/${el.dataset.photo}`, 'DELETE', {});
       if (!view) return true;
       p.view = view;
       drawStudentSheet(document.querySelector('#app')!, p);
@@ -865,6 +895,7 @@ export async function homeworkAction(el: HTMLElement): Promise<boolean> {
     case 'hw-restart': {
       const p = pub;
       if (!p?.view || !alive(p)) return true;
+      p.restartOf = p.view.version ?? 0;
       p.view = { ...p.view, status: 'assigned', photos: [], result: undefined };
       p.restart = true;
       drawStudentSheet(document.querySelector('#app')!, p);
@@ -887,7 +918,8 @@ export async function homeworkAction(el: HTMLElement): Promise<boolean> {
 }
 /** 上傳一張照片；實例失效（離開、換人）時回傳 null。 */
 async function uploadBody(p: PubSheet, dataUrl: string) {
-  const view = await pubApi(p, '/photos', 'POST', { dataUrl, ...(p.restart ? { restart: true } : {}) });
+  // requestId：同一個請求重送時伺服器認得出來，不會再做一次（例如訂正重傳延遲到下一次批改後才到）
+  const view = await pubApi(p, '/photos', 'POST', { dataUrl, requestId: crypto.randomUUID(), ...(p.restart ? { restart: true, restartOf: p.restartOf ?? 0 } : { version: p.view?.version ?? 0, round: p.view?.round ?? 0 }) });
   // 上傳成功、伺服器換掉舊照片後才清旗標；失敗時下一張照片仍帶 restart
   if (view) p.restart = false;
   return view;
