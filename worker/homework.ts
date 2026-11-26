@@ -330,6 +330,8 @@ export function sheetView(hw: Homework, sheet: HomeworkSheet, origin: string, qu
     ...(sheet.submittedAt ? { submittedAt: sheet.submittedAt } : {}),
     ...(sheet.result ? { result: sheet.result } : {}),
     ...(sheet.error ? { error: sheet.error } : {}),
+    version: sheet.version || 0,
+    round: sheet.submissions || 0,
   };
 }
 

@@ -7,6 +7,8 @@ export interface Vault {
   get<T>(key: string): Promise<T | undefined>;
   put(key: string, value: unknown): Promise<void>;
   delete(key: string): Promise<boolean>;
+  /** 依前綴列出 key（最多 limit 個，依名稱排序）；照片待檢查清單與清理用。 */
+  list?(prefix: string, limit?: number): Promise<string[]>;
 }
 export function memoryVault(map = new Map<string, unknown>()): Vault {
   return {
@@ -19,6 +21,9 @@ export function memoryVault(map = new Map<string, unknown>()): Vault {
     },
     async delete(key) {
       return map.delete(key);
+    },
+    async list(prefix, limit = 1000) {
+      return [...map.keys()].filter((k) => k.startsWith(prefix)).sort().slice(0, limit);
     },
   };
 }

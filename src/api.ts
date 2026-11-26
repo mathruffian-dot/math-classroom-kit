@@ -2,6 +2,8 @@ export class ApiError extends Error {
   constructor(
     message: string,
     public status: number,
+    /** 伺服器回應的其他欄位（例如 409 時最新的課堂）。 */
+    public data?: Record<string, unknown>,
   ) {
     super(message);
   }
@@ -38,7 +40,7 @@ export async function api<T = any>(path: string, method = 'GET', body?: unknown,
   }
   const data = await response.json().catch(() => ({ error: '伺服器回應格式不正確' }));
   if (!response.ok)
-    throw new ApiError(data.error || `連線失敗 (${response.status})`, response.status);
+    throw new ApiError(data.error || `連線失敗 (${response.status})`, response.status, data);
   syncClock(data);
   return data;
 }

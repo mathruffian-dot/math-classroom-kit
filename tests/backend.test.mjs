@@ -40,8 +40,8 @@ function memoryStorage(values=new Map(),failKey=()=>false) {
 
 function fixture(env={APP_MODE:'demo'},assets,opts={}) {
   let data;const vaultMap=new Map();
-  // opts.failPut(key, value)／opts.failWrite(state)：回傳 true 時這次 vault／主檔寫入失敗（故障注入）；opts.kick：模擬 Durable Object 的 alarm
-  const vault={async get(k){const v=vaultMap.get(k);return v===undefined?undefined:structuredClone(v);},async put(k,v){if(opts.failPut?.(k,v))throw new Error('Injected vault failure');vaultMap.set(k,structuredClone(v));},async delete(k){return vaultMap.delete(k);}};
+  // opts.failPut(key, value)／opts.failDelete(key)／opts.failWrite(state)：回傳 true 時這次 vault／主檔寫入失敗（故障注入）；opts.kick：模擬 Durable Object 的 alarm
+  const vault={async get(k){const v=vaultMap.get(k);return v===undefined?undefined:structuredClone(v);},async put(k,v){if(opts.failPut?.(k,v))throw new Error('Injected vault failure');vaultMap.set(k,structuredClone(v));},async delete(k){if(opts.failDelete?.(k))throw new Error('Injected vault failure');return vaultMap.delete(k);},async list(prefix,limit=1000){return[...vaultMap.keys()].filter(k=>k.startsWith(prefix)).sort().slice(0,limit);}};
   const store={async read(){return data&&structuredClone(data);},async write(next){if(opts.failWrite?.(next))throw new Error('Injected store failure');data=structuredClone(next);}};
   const cookies=new Map();
   return {
@@ -1995,7 +1995,7 @@ test('homework: plan suggests the lowest third, each seat gets 10 items from its
   const meta=(await f.call('/api/homework')).body.homework[0];
   assert.equal(meta.sheets['1'].status,'graded');assert.equal(meta.sheets['4'].status,'assigned');
   // 重新上傳（訂正後）
-  const again=(await f.call(`/api/hw/${id}/1/photos?t=${token}`,'POST',{dataUrl:JPEG,restart:true},'nobody')).body.sheet;
+  const again=(await f.call(`/api/hw/${id}/1/photos?t=${token}`,'POST',{dataUrl:JPEG,restart:true,restartOf:ver(f,id)},'nobody')).body.sheet;
   assert.equal(again.status,'assigned');assert.equal(again.photos.length,1);assert.equal(again.result,undefined);
   assert(![...f.vaultMap.keys()].includes(`hwphoto:${id}/1/${photoId}`),'old photo removed');
   // 第二份作業避開出過的題目
@@ -2036,6 +2036,12 @@ async function hwWithPhoto(f,cl,seat=1){
   return {id,token,sheet:created.body.sheets[0]};
 }
 const storedHw=(f,id)=>f.vaultMap.get(`hw:${id}`);
+/** 學生按「訂正」時看到的成績版本（前端送 restartOf）。 */
+const ver=(f,id,seat='1')=>storedHw(f,id).sheets[seat].version||0;
+/** 「送出批改」的請求內容（和前端一樣帶作業卷版本與輪次）。 */
+const sub=(f,id,seat='1')=>({version:ver(f,id,seat),round:storedHw(f,id).sheets[seat].submissions||0});
+/** 待檢查清單（每張照片一個 pc: key）的名稱。 */
+const pending=(f)=>[...f.vaultMap.keys()].filter(k=>k.startsWith('pc:')).map(k=>k.slice(3));
 
 test('C-2: multi-item IRS answers are recorded per item on their own topic; no items × topics product; one answer on two topics counts once overall',()=>{
   const slides=[{id:'a-ex1',activity:{id:'a-ex1-q'}},{id:'a-two',activity:{id:'two-q'}},{id:'a-both',activity:{id:'both-q'}}];
@@ -2219,30 +2225,32 @@ test('C-6 / C-16: a failed re-upload (bad image or storage failure) keeps the pr
   const {id,token}=await hwWithPhoto(f,cl);
   assert.equal((await f.call(`/api/hw/${id}/1/submit?t=${token}`,'POST',{},'nobody')).body.sheet.status,'graded');
   const old=storedHw(f,id).sheets['1'].photos[0].id;
-  const bad=await f.call(`/api/hw/${id}/1/photos?t=${token}`,'POST',{dataUrl:'data:image/jpeg;base64,!!!!',restart:true},'nobody');
+  const bad=await f.call(`/api/hw/${id}/1/photos?t=${token}`,'POST',{dataUrl:'data:image/jpeg;base64,!!!!',restart:true,restartOf:ver(f,id)},'nobody');
   assert.equal(bad.status,400);
   const kept=storedHw(f,id).sheets['1'];
   assert.equal(kept.status,'graded');assert(kept.result);assert.deepEqual(kept.photos.map(p=>p.id),[old]);
   assert(f.vaultMap.has(`hwphoto:${id}/1/${old}`),'old photo still stored');
   failPhoto=true;
-  assert.notEqual((await f.call(`/api/hw/${id}/1/photos?t=${token}`,'POST',{dataUrl:JPEG,restart:true},'nobody')).status,200);
+  assert.notEqual((await f.call(`/api/hw/${id}/1/photos?t=${token}`,'POST',{dataUrl:JPEG,restart:true,restartOf:ver(f,id)},'nobody')).status,200);
   assert.equal(storedHw(f,id).sheets['1'].status,'graded');assert(f.vaultMap.has(`hwphoto:${id}/1/${old}`));
   // 用戶端重試同一個 restart 請求（旗標沒有被清掉）就成功，舊照片這時才刪
   failPhoto=false;
-  const ok=await f.call(`/api/hw/${id}/1/photos?t=${token}`,'POST',{dataUrl:JPEG,restart:true},'nobody');
+  const ok=await f.call(`/api/hw/${id}/1/photos?t=${token}`,'POST',{dataUrl:JPEG,restart:true,restartOf:ver(f,id)},'nobody');
   assert.equal(ok.status,200);assert.equal(ok.body.sheet.status,'assigned');assert.equal(ok.body.sheet.photos.length,1);
   assert(!f.vaultMap.has(`hwphoto:${id}/1/${old}`));
 });
 
+// 內容不同的照片（同一張照片重傳不會變成兩張，所以測「很多張」要用不同的內容）
+const PHOTO=(n)=>'data:image/jpeg;base64,'+Buffer.from(`photo ${n}`).toString('base64');
 test('C-6 (Durable Object): at most 6 photos, one photo ≤ 1,900,000 characters; rejected uploads store nothing',async()=>{
   const {f,cl}=await homeworkSetup();
   const {id,token}=await hwWithPhoto(f,cl);
   const up=(dataUrl,extra={})=>f.call(`/api/hw/${id}/1/photos?t=${token}`,'POST',{dataUrl,...extra},'nobody');
-  for(let k=2;k<=6;k++)assert.equal((await up(JPEG)).status,200,`photo ${k}`);
+  for(let k=2;k<=6;k++)assert.equal((await up(PHOTO(k))).status,200,`photo ${k}`);
   const photoKeys=()=>[...f.vaultMap.keys()].filter(k=>k.startsWith(`hwphoto:${id}/1/`)).sort();
   const six=photoKeys();
   assert.equal(six.length,6);assert.equal(storedHw(f,id).sheets['1'].photos.length,6);
-  assert.equal((await up(JPEG)).status,429,'7th photo rejected');
+  assert.equal((await up(PHOTO(7))).status,429,'7th photo rejected');
   assert.deepEqual(photoKeys(),six,'nothing stored for the rejected 7th photo');
   // 刪掉一張再傳：清單先寫入再刪照片，Durable Object 裡也真的刪掉
   const gone=storedHw(f,id).sheets['1'].photos[0].id;
@@ -2254,8 +2262,11 @@ test('C-6 (Durable Object): at most 6 photos, one photo ≤ 1,900,000 characters
   const big=head+'A'.repeat(1_900_000-head.length+4);
   assert.equal((await up(big)).status,400,'over 1,900,000 characters');
   assert.equal(photoKeys().length,5);
-  const max=head+'A'.repeat(1_900_000-head.length);
-  assert.equal((await up(max)).status,200,'exactly at the limit is accepted');
+  // 上限內最長的合法 base64（長度要是 4 的倍數；解不開的 base64 一律 400）
+  assert.equal((await up(head+'A'.repeat(4001))).status,400,'base64 that cannot be decoded is rejected (400, not stored)');
+  assert.equal(photoKeys().length,5);
+  const max=head+'A'.repeat(Math.floor((1_900_000-head.length)/4)*4);
+  assert.equal((await up(max)).status,200,'the longest valid photo within the limit is accepted');
   assert.equal(photoKeys().length,6);
 });
 
@@ -2265,7 +2276,7 @@ test('C-6 (Durable Object): deleting homework, a class, or old photos really rem
   const id=created.body.homework.id;
   for(const sh of created.body.sheets){
     const t=new URL(sh.url).hash.split('/')[4];
-    for(let k=0;k<2;k++)assert.equal((await f.call(`/api/hw/${id}/${sh.seat}/photos?t=${t}`,'POST',{dataUrl:JPEG},'nobody')).status,200);
+    for(let k=0;k<2;k++)assert.equal((await f.call(`/api/hw/${id}/${sh.seat}/photos?t=${t}`,'POST',{dataUrl:PHOTO(`${sh.seat}-${k}`)},'nobody')).status,200);
   }
   const mine=()=>[...f.vaultMap.keys()].filter(k=>k.startsWith(`hwphoto:${id}/`)||k.startsWith(`hwq:${id}/`)||k===`hw:${id}`);
   assert.equal(mine().length,4+2+1,'4 photos, 2 frozen sheets, 1 homework');
@@ -2609,3 +2620,834 @@ test('C-12: the backup says what it does not contain (homework is not backed up 
     assert.equal(pruned.step.photo,undefined);
   });
 }
+
+test('games raid: dry run returns a plan with a token; a changed class or activity gets 409 with the new plan; ending mid-battle closes the run and keeps personal bests',async()=>{
+  const {f}=await setup();
+  const active=Object.values(f.data.sessions).find(x=>!x.session.ended).session.id;
+  assert((await f.call('/api/games')).body.raids.some(g=>g.lessonId==='g8-2-2d'));
+  assert.equal((await f.call('/api/games','GET',null,'student')).status,403);
+  const go=(body)=>f.call('/api/games/raid','POST',{lessonId:'g8-2-2d',classId:'demo-class',...body});
+  // 計畫：要取代正在上的課
+  const p1=(await go({dryRun:true})).body.plan;
+  assert.equal(p1.mode,'replace');assert.equal(p1.sessionId,active);
+  // 沒帶對 token：409，附新計畫，不結束任何課
+  const stale=await go({token:'old'});
+  assert.equal(stale.status,409);assert.equal(stale.body.plan.token,p1.token);assert.equal(f.data.sessions[active].session.ended,false);
+  // 沒有魔王戰題庫的課不能開
+  assert.equal((await f.call('/api/games/raid','POST',{lessonId:'g8-2-2a',classId:'demo-class',dryRun:true})).status,409);
+  await goOnline(f,[1,2,3]);
+  // 上線紀錄變了不影響 token（只看課與活動）
+  const r=await go({token:p1.token,difficulty:'easy',seconds:300});
+  assert.equal(r.status,200);
+  const id=r.body.sessionId,s=f.data.sessions[id];
+  assert.equal(f.data.sessions[active].session.ended,true,'the old lesson is ended');
+  assert.equal(s.session.raid.id,r.body.raidId);assert.equal(s.session.raid.difficulty,'easy');
+  assert.equal(s.lesson.slides[s.session.slideIndex].raidPage,true);
+  assert(s.session.raid.config.players>=3,'online seats carried over from the replaced lesson');
+  // 正在打：計畫是直接進去，同一場
+  const p2=(await go({dryRun:true})).body.plan;
+  assert.equal(p2.mode,'enter');
+  assert.equal((await go({token:p2.token})).body.raidId,r.body.raidId);
+  // 2 號答對一題，老師直接結束課堂：場次結束、個人最佳記下
+  f.data.sessions[id].session.raid.startedAt-=4000;
+  const raid=(who,body)=>f.call(`/api/sessions/${id}/raid`,'POST',{runId:r.body.raidId,...body},who);
+  const {readFile}=await import('node:fs/promises');
+  const bank=JSON.parse(await readFile('content/raids/g8-2-2d.json','utf8'));
+  const right=(q)=>{const it=bank.pools[q.kind].find(x=>x.id===q.id);return q.options.indexOf(it.options[it.answer]);};
+  await raid('seat2',{op:'role',role:'mage'});
+  const q=(await raid('seat2',{op:'draw',kind:'attack'})).body.question;
+  assert.equal((await raid('seat2',{op:'answer',choice:right(q)})).body.correct,true);
+  assert.equal((await f.call(`/api/sessions/${id}/control`,'POST',{action:'end'})).status,200);
+  const ended=f.data.sessions[id];
+  assert(ended.session.raid.endedAt,'the battle stops when the lesson ends');
+  assert(ended.raidRuns.at(-1).endedAt);
+  assert.equal(f.data.classes['demo-class'].raidBestBy['g8-2-2d']['2'],1,'personal best recorded');
+  // 同一課、沒有活動：直接開；讀完計畫後另一個分頁開了 PK 配對 → 409，配對還在
+  const fresh=(await f.call('/api/sessions','POST',{lessonId:'g8-2-2d',classId:'demo-class'})).body.session.id;
+  const p3=(await go({dryRun:true})).body.plan;
+  assert.equal(p3.mode,'start');assert.deepEqual(p3.busy,[]);
+  await f.call(`/api/sessions/${fresh}/control`,'POST',{action:'pk-lobby'});
+  const raced=await go({token:p3.token});
+  assert.equal(raced.status,409);assert(raced.body.plan.busy.includes('PK 配對'));
+  assert(f.data.sessions[fresh].session.pkLobby,'PK pairing untouched until the teacher confirms again');
+  assert.equal(f.data.sessions[fresh].session.raid??null,null);
+  assert.equal((await go({token:raced.body.plan.token})).status,200);
+  assert.equal(f.data.sessions[fresh].session.pkLobby,null);
+});
+
+test('games raid plan: results shown, a reopened question, the quiz grace period and the buzzer count as interruptions; a token only works for its own lesson',async()=>{
+  const {f}=await setup();
+  const s=(await f.call('/api/sessions','POST',{lessonId:'g8-2-2d',classId:'demo-class'})).body.session;
+  const ctl=(body)=>f.call(`/api/sessions/${s.id}/control`,'POST',body);
+  const go=(body,lessonId='g8-2-2d')=>f.call('/api/games/raid','POST',{lessonId,classId:'demo-class',...body});
+  const plan=async()=>(await go({dryRun:true})).body.plan;
+  const lesson=f.data.sessions[s.id].lesson;
+  const q=lesson.slides.findIndex(x=>x.activity?.type==='single');
+  await ctl({action:'slide',index:q});
+  // 這一頁沒有任何活動：直接開
+  const idle=await plan();
+  assert.equal(idle.mode,'start');assert.deepEqual(idle.busy,[]);
+  // token 只能用在自己的教材：拿去開別的課回 409，原課還在
+  assert.equal((await go({token:idle.token},'g9-1-4c')).status,409);
+  assert.equal(f.data.sessions[s.id].session.ended,false);
+  // 公布結果（換頁會清掉）
+  await ctl({action:'results',value:true});
+  const shown=await plan();
+  assert(shown.busy.includes('公布中的結果'));assert.notEqual(shown.token,idle.token);
+  assert.equal((await go({token:idle.token})).status,409);
+  await ctl({action:'results',value:false});
+  // 開放作答 → 關掉 → 同一題重新開放：每一輪的 token 都不一樣
+  await ctl({action:'activity',value:true});
+  const open1=await plan();
+  assert(open1.busy.includes('作答'));
+  await ctl({action:'activity',value:false});
+  f.data.sessions[s.id].session.activityOpenedAt=1;
+  await ctl({action:'activity',value:true,seconds:60});
+  assert.equal((await go({token:open1.token})).status,409,'a new round of answers is not the one the teacher agreed to stop');
+  await ctl({action:'activity',value:false});
+  // 搶答
+  await ctl({action:'buzz-open'});
+  assert((await plan()).busy.includes('搶答'));
+  await ctl({action:'buzz-reset'});
+  // 測驗截止後的寬限時間（還收得到答案）也算進行中
+  await ctl({action:'quiz-class',seconds:600});
+  const quiz=f.data.sessions[s.id].session.quiz;
+  quiz.startedAt=Date.now()-600_000-500; // 截止後 0.5 秒
+  assert((await plan()).busy.includes('課後檢核／測驗'));
+  quiz.startedAt=Date.now()-600_000-5000; // 寬限也過了
+  const review=await plan();
+  assert(!review.busy.includes('課後檢核／測驗'));
+  assert(review.busy.includes('測驗結果（檢討中）'),'a finished quiz still on screen is listed too');
+  await ctl({action:'quiz-close'});
+  // 取消再重開搶答、PK 配對：新一輪，舊 token 回 409
+  await ctl({action:'buzz-open'});
+  const b1=await plan();
+  await ctl({action:'buzz-reset'});await ctl({action:'buzz-open'});
+  assert.notEqual((await plan()).token,b1.token);
+  assert.equal((await go({token:b1.token})).status,409);
+  assert.equal(f.data.sessions[s.id].session.buzzOpen,true,'the new buzzer round is untouched');
+  await ctl({action:'buzz-reset'});
+  await ctl({action:'pk-lobby'});
+  const k1=await plan();
+  assert(k1.busy.includes('PK 配對'));
+  await ctl({action:'pk-lobby'});
+  assert.equal((await go({token:k1.token})).status,409);
+  assert(f.data.sessions[s.id].session.pkLobby,'the new pairing is untouched');
+  await ctl({action:'quiz-close'});
+  // 已經在魔王戰頁：開搶答不影響開戰（不列、token 也不變），開戰後搶答照常
+  const raidIndex=lesson.slides.findIndex(x=>x.raidPage);
+  await ctl({action:'slide',index:raidIndex});
+  const onPage=await plan();
+  await ctl({action:'buzz-open'});
+  const onPage2=await plan();
+  assert.deepEqual(onPage2.busy,onPage.busy);assert.equal(onPage2.token,onPage.token,'no false conflict for things the raid keeps');
+  assert.equal((await go({token:onPage.token})).status,200);
+  assert.equal(f.data.sessions[s.id].session.buzzOpen,true);
+});
+
+test('ending a lesson stops PK buzz-in; a late buzz on an ended lesson gets 409',async()=>{
+  const {f}=await setup();
+  const s=(await f.call('/api/sessions','POST',{lessonId:'g8-2-2d',classId:'demo-class'})).body.session;
+  const ctl=(body)=>f.call(`/api/sessions/${s.id}/control`,'POST',body);
+  await ctl({action:'pk-lobby'});
+  await ctl({action:'pk-buzz',value:true});
+  assert.equal(f.data.sessions[s.id].session.pkLobby.buzz,true);
+  await ctl({action:'end'});
+  assert.equal(f.data.sessions[s.id].session.pkLobby.buzz,false,'buzz-in closed, pairs kept for the teacher');
+  assert.equal((await f.call(`/api/sessions/${s.id}/pk-buzz`,'POST',{},'student')).status,409);
+});
+
+test('photos go to R2 when the PHOTOS binding exists; photos saved earlier in the Durable Object still load and delete',async()=>{
+  const objects=new Map();let deleteCalls=0;
+  const r2={
+    async put(k,v,o){objects.set(k,{bytes:new Uint8Array(v),type:o?.httpMetadata?.contentType,uploaded:new Date()});},
+    async get(k){const x=objects.get(k);return x?{arrayBuffer:async()=>x.bytes.buffer.slice(0),httpMetadata:{contentType:x.type}}:null;},
+    async delete(k){deleteCalls++;for(const key of[].concat(k))objects.delete(key);},
+    async list({prefix='',cursor,limit=1000}){const all=[...objects.entries()].filter(([k])=>k.startsWith(prefix)).map(([key,x])=>({key,size:x.bytes.length,uploaded:x.uploaded}));const start=Number(cursor||0);const page=all.slice(start,start+limit);return{objects:page,truncated:start+limit<all.length,cursor:String(start+limit)};},
+  };
+  const f=fixture({APP_MODE:'demo',PHOTOS:r2});
+  assert.equal((await f.call('/api/login','POST',TEACHER)).status,200);
+  const s=(await f.call('/api/sessions','POST',{lessonId:'g8-2-2a',classId:'demo-class'})).body.session;
+  const JPEG='data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q==';
+  const up=await f.call(`/api/sessions/${s.id}/images`,'POST',{dataUrl:JPEG});
+  assert.equal(up.status,200);
+  const id=up.body.imageId;
+  assert(objects.has(`default/answers/${id}`),'new answer photo in R2');
+  assert(![...f.vaultMap.keys()].includes(`blob:${id}`),'not in the Durable Object');
+  const img=await f.call(`/api/images/${id}`);
+  assert.equal(img.status,200);assert.equal(img.headers.get('Content-Type'),'image/jpeg');
+  // 改用 R2 之前存在 Durable Object 的舊照片
+  f.vaultMap.set('blob:old1',JPEG);
+  f.data.images.old1={ownerId:f.data.sessions[s.id].ownerId,sessionId:s.id,type:'image/jpeg',bytes:100,createdAt:new Date().toISOString()};
+  assert.equal((await f.call('/api/images/old1')).status,200,'old photo still loads');
+  // 讀圖不讓瀏覽器快取（共用 iPad 換帳號）
+  assert.match(img.headers.get('Cache-Control'),/no-store/);
+  // 一張沒有紀錄指到、放了 2 小時的照片（刪除失敗或紀錄沒寫進去留下的）：設定頁一打開就清掉；剛放的不動
+  await r2.put('default/answers/orphan',new Uint8Array([1,2,3]),{});objects.get('default/answers/orphan').uploaded=new Date(Date.now()-7200_000);
+  await r2.put('default/homework/fresh/1/x',new Uint8Array([1]),{});
+  const usage=(await f.call('/api/settings/usage')).body;
+  assert.equal(usage.photoStorage,'r2');
+  assert(!objects.has('default/answers/orphan'),'orphan swept');assert(objects.has('default/homework/fresh/1/x'),'recent upload kept');
+  assert(objects.has(`default/answers/${id}`),'referenced photo kept');
+  // 用量：R2 照片算 R2、不算 Durable Object；舊的 Durable Object 照片照算
+  assert.equal(usage.photos,2);assert(usage.r2Bytes>0);
+  assert.equal(usage.photoBytes,Math.round(100*4/3));
+  // 刪除課堂：R2 與 Durable Object 兩邊都刪掉，R2 一次刪（不是一張一個請求）
+  const before=deleteCalls;
+  assert.equal((await f.call(`/api/sessions/${s.id}`,'DELETE',{})).status,200);
+  assert.equal(deleteCalls-before,1,'one bulk delete');
+  assert(!objects.has(`default/answers/${id}`));assert(!f.vaultMap.has('blob:old1'));
+  // 沒有 R2 時照舊存在 Durable Object
+  const g=fixture();
+  assert.equal((await g.call('/api/login','POST',TEACHER)).status,200);
+  const s2=(await g.call('/api/sessions','POST',{lessonId:'g8-2-2a',classId:'demo-class'})).body.session;
+  const id2=(await g.call(`/api/sessions/${s2.id}/images`,'POST',{dataUrl:JPEG})).body.imageId;
+  assert(g.vaultMap.has(`blob:${id2}`));
+  assert.equal((await g.call('/api/settings/usage')).body.photoStorage,'durable');
+});
+
+test('games raid plan, round 7: results on another page, PK buzz-in and danmaku reopened are new rounds; the buzzer does not invalidate PK; naturally expired duel and cross count as results',async()=>{
+  const {f}=await setup();
+  const go=(body,lessonId='g8-2-2d')=>f.call('/api/games/raid','POST',{lessonId,classId:'demo-class',...body});
+  const plan=async(lessonId='g8-2-2d')=>(await go({dryRun:true},lessonId)).body.plan;
+  const s=(await f.call('/api/sessions','POST',{lessonId:'g8-2-2d',classId:'demo-class'})).body.session;
+  const ctl=(body)=>f.call(`/api/sessions/${s.id}/control`,'POST',body);
+  const slides=f.data.sessions[s.id].lesson.slides;
+  const qs=slides.map((x,i)=>x.activity&&!x.raidPage?i:-1).filter(i=>i>=0);
+  // A 頁公布結果 → 取得計畫 → 翻到 B 頁也公布：舊 token 回 409，B 頁的結果還在
+  await ctl({action:'slide',index:qs[0]});await ctl({action:'results',value:true});
+  const pa=await plan();
+  await ctl({action:'slide',index:qs[1]});await ctl({action:'results',value:true});
+  assert.equal((await go({token:pa.token})).status,409);
+  assert.equal(f.data.sessions[s.id].session.resultsVisible,true);assert.equal(f.data.sessions[s.id].session.raid??null,null);
+  await ctl({action:'results',value:false});
+  // 換課（別的課）：PK 搶答上場關掉再開、彈幕關掉再開，都是新的一輪
+  await ctl({action:'pk-lobby'});await ctl({action:'pk-buzz',value:true});
+  const r1=await plan('g9-1-4c');
+  assert.equal(r1.mode,'replace');assert(r1.busy.includes('PK 搶答上場'));
+  await ctl({action:'pk-buzz',value:false});await ctl({action:'pk-buzz',value:true});
+  assert.equal((await go({token:r1.token},'g9-1-4c')).status,409);
+  assert.equal(f.data.sessions[s.id].session.ended,false);
+  await ctl({action:'danmaku',value:true});
+  const r2=await plan('g9-1-4c');assert(r2.busy.includes('彈幕'));
+  await ctl({action:'danmaku',value:false});await ctl({action:'danmaku',value:true});
+  assert.equal((await go({token:r2.token},'g9-1-4c')).status,409);
+  // 已在魔王戰頁、有 PK 配對：另一個分頁開一般搶答，不讓 PK 配對的確認失效
+  const raidIndex=slides.findIndex(x=>x.raidPage);
+  await ctl({action:'slide',index:raidIndex});
+  const p1=await plan();
+  assert.deepEqual(p1.busy,['PK 配對']);
+  await ctl({action:'buzz-open'});
+  assert.equal((await plan()).token,p1.token,'the buzzer is kept on the raid page, so it does not change the plan');
+  await ctl({action:'buzz-reset'});await ctl({action:'quiz-close'});
+  // 步驟格鬥、十字交乘時間到了、還沒寫入結束時間：算「結果」，不是「進行中」
+  await ctl({action:'duel-start',seconds:180});
+  f.data.sessions[s.id].session.duel.startedAt-=200_000;
+  const d=await plan();
+  assert(d.busy.includes('步驟格鬥結果'));assert(!d.busy.includes('步驟格鬥'));
+  await ctl({action:'duel-close'});
+  await ctl({action:'cross-start',focus:'a1',seconds:180});
+  f.data.sessions[s.id].session.cross.deadline=Date.now()-1000;
+  const c=await plan();
+  assert(c.busy.includes('十字交乘結果'),JSON.stringify(c.busy));assert(!c.busy.includes('十字交乘對戰'));
+});
+
+test('R2 round 2: sweep stays inside its own APP_INSTANCE prefix; journaled Durable Object photos left by a failed delete are swept; re-uploading the same homework photo does not duplicate it',async()=>{
+  const objects=new Map();
+  const r2={
+    async put(k,v,o){objects.set(k,{bytes:new Uint8Array(v),type:o?.httpMetadata?.contentType,uploaded:new Date()});},
+    async get(k){const x=objects.get(k);return x?{arrayBuffer:async()=>x.bytes.buffer.slice(0),httpMetadata:{contentType:x.type}}:null;},
+    async delete(k){for(const key of[].concat(k))objects.delete(key);},
+    async list({prefix='',cursor,limit=1000}){const all=[...objects.entries()].filter(([k])=>k.startsWith(prefix)).map(([key,x])=>({key,size:x.bytes.length,uploaded:x.uploaded}));const start=Number(cursor||0);return{objects:all.slice(start,start+limit),truncated:start+limit<all.length,cursor:String(start+limit)};},
+  };
+  const {f,cl}=await homeworkSetup({APP_MODE:'demo',PHOTOS:r2});
+  // 1. 另一套站（共用同一個 bucket）的舊照片：清理不動
+  await r2.put('other/answers/x',new Uint8Array([1]),{});objects.get('other/answers/x').uploaded=new Date(Date.now()-7200_000);
+  await r2.put('default/answers/gone',new Uint8Array([1]),{});objects.get('default/answers/gone').uploaded=new Date(Date.now()-7200_000);
+  // 2. 刪除失敗留在 Durable Object 的舊照片：記在待檢查清單、沒有紀錄指到 → 清掉；還有紀錄指到的不動
+  f.vaultMap.set('blob:leftover',JPEG);
+  f.vaultMap.set('photo-check',{'a:leftover':Date.now()-7200_000,'a:recent':Date.now()});
+  f.vaultMap.set('blob:recent',JPEG);
+  // 3. 同一張作業照片再傳一次（上一次存好了、只是回應沒收到）：不會變兩張
+  const {id,token}=await hwWithPhoto(f,cl,1);
+  const again=await f.call(`/api/hw/${id}/1/photos?t=${token}`,'POST',{dataUrl:JPEG},'nobody');
+  assert.equal(again.status,200);
+  assert.equal(storedHw(f,id).sheets['1'].photos.length,1,'same photo not duplicated');
+  assert.equal([...objects.keys()].filter((k)=>k.startsWith(`default/homework/${id}/`)).length,1,'one object in R2');
+  // 不同的照片照樣加上去
+  assert.equal((await f.call(`/api/hw/${id}/1/photos?t=${token}`,'POST',{dataUrl:PHOTO('b')},'nobody')).status,200);
+  assert.equal(storedHw(f,id).sheets['1'].photos.length,2);
+  // 首頁已經跑過今天的清理（一天一次）：今天不會再跑
+  await f.call('/api/settings/usage');
+  assert(objects.has('default/answers/gone'),'swept at most once a day');
+  f.vaultMap.delete('photo-sweep-at');
+  const usage=(await f.call('/api/settings/usage')).body;
+  assert.equal(usage.photoStorage,'r2');
+  assert(objects.has('other/answers/x'),'other instance untouched');
+  assert(!objects.has('default/answers/gone'),'own orphan swept');
+  assert(!f.vaultMap.has('blob:leftover'),'journaled leftover swept');
+  assert(f.vaultMap.has('blob:recent'),'recent journal entry waits');
+  assert.equal(usage.photos,2,'both homework photos counted');
+  // 作業照片有紀錄指到：留著
+  assert.equal([...objects.keys()].filter((k)=>k.startsWith(`default/homework/${id}/`)).length,2);
+});
+
+test('games raid plan, round 8: a cross duel paused when the plan was made and resumed since is a new state (both modes); PK buzz-in opened and closed again keeps the same pairing plan',async()=>{
+  const {f}=await setup();
+  const go=(body,lessonId='g8-2-2d')=>f.call('/api/games/raid','POST',{lessonId,classId:'demo-class',...body});
+  const plan=async(lessonId='g8-2-2d')=>(await go({dryRun:true},lessonId)).body.plan;
+  const s=(await f.call('/api/sessions','POST',{lessonId:'g8-2-2d',classId:'demo-class'})).body.session;
+  const ctl=(body)=>f.call(`/api/sessions/${s.id}/control`,'POST',body);
+  // 十字交乘：暫停時拿的計畫，恢復作答後送出 → 409，對戰照常進行（同一課的 start 與別課的 replace 都一樣）
+  await ctl({action:'cross-start',focus:'a1',seconds:180});
+  await ctl({action:'cross-pause',value:true});
+  const p=await plan();
+  assert.equal(p.mode,'start');assert(p.busy.includes('十字交乘對戰（暫停中）'),JSON.stringify(p.busy));
+  const r=await plan('g9-1-4c');
+  assert.equal(r.mode,'replace');
+  await ctl({action:'cross-pause',value:false});
+  assert(!(await plan()).busy.includes('十字交乘對戰（暫停中）'));
+  assert.equal((await go({token:p.token})).status,409);
+  assert.equal((await go({token:r.token},'g9-1-4c')).status,409);
+  const live=f.data.sessions[s.id].session;
+  assert.equal(live.ended,false);assert(live.cross&&!live.cross.endedAt&&!live.cross.pausedAt,'the resumed duel is still running');
+  await ctl({action:'cross-end'});
+  // PK 配對：搶答上場開了又關、沒人加入 → 同一份計畫照樣能用
+  const raidIndex=f.data.sessions[s.id].lesson.slides.findIndex(x=>x.raidPage);
+  await ctl({action:'slide',index:raidIndex});
+  await ctl({action:'pk-lobby'});
+  const k=await plan();
+  assert.deepEqual(k.busy,['PK 配對'],JSON.stringify(k.busy));
+  await ctl({action:'pk-buzz',value:true});await ctl({action:'pk-buzz',value:false});
+  assert.equal((await plan()).token,k.token,'closed buzz-in round does not change the plan');
+  // 開著的時候再開一輪：舊的確認失效（第 7 輪的情境）
+  await ctl({action:'pk-buzz',value:true});
+  const k2=await plan();
+  await ctl({action:'pk-buzz',value:false});await ctl({action:'pk-buzz',value:true});
+  assert.equal((await go({token:k2.token})).status,409);
+  assert.equal((await go({token:(await plan()).token})).status,200);
+});
+
+function fakeR2(){
+  const objects=new Map();const calls={list:0,failList:false};
+  const r2={
+    objects,calls,
+    async put(k,v,o){objects.set(k,{bytes:new Uint8Array(v),type:o?.httpMetadata?.contentType,uploaded:new Date()});},
+    async get(k){const x=objects.get(k);return x?{arrayBuffer:async()=>x.bytes.buffer.slice(0),httpMetadata:{contentType:x.type}}:null;},
+    async delete(k){for(const key of[].concat(k))objects.delete(key);},
+    async list({prefix='',cursor,limit=1000}){calls.list++;if(calls.failList)throw new Error('Injected list failure');const all=[...objects.entries()].filter(([k])=>k.startsWith(prefix)).map(([key,x])=>({key,size:x.bytes.length,uploaded:x.uploaded}));const start=Number(cursor||0);return{objects:all.slice(start,start+limit),truncated:start+limit<all.length,cursor:String(start+limit)};},
+  };
+  return r2;
+}
+test('R2 round 3: instance names that differ only in punctuation get different folders; a failed sweep waits a day; bad photos are not journaled; settled photos leave the journal',async()=>{
+  const r2=fakeR2();
+  // 兩套站共用 bucket：class.a 與 class_a
+  const a=fixture({APP_MODE:'demo',PHOTOS:r2,APP_INSTANCE:'class.a'}),b=fixture({APP_MODE:'demo',PHOTOS:r2,APP_INSTANCE:'class_a'});
+  for(const f of[a,b])assert.equal((await f.call('/api/login','POST',TEACHER)).status,200);
+  const s=(await a.call('/api/sessions','POST',{lessonId:'g8-2-2a',classId:'demo-class'})).body.session;
+  const up=await a.call(`/api/sessions/${s.id}/images`,'POST',{dataUrl:JPEG});
+  assert.equal(up.status,200);
+  const key=[...r2.objects.keys()].find(k=>k.endsWith(up.body.imageId));
+  assert(key.startsWith('class.a/'),key);
+  r2.objects.get(key).uploaded=new Date(Date.now()-7200_000);
+  // 存好、紀錄也寫進去：待檢查清單裡沒有它
+  assert(!pending(a).includes(`a:${up.body.imageId}`),'settled upload leaves the journal');
+  await b.call('/api/settings/usage');
+  assert(r2.objects.has(key),'the other instance does not sweep class.a photos');
+  // 壞的照片（400）不留在待檢查清單
+  const before=pending(a).length;
+  assert.equal((await a.call(`/api/sessions/${s.id}/images`,'POST',{dataUrl:'data:image/jpeg;base64,AAAAA'})).status,400);
+  assert.equal(pending(a).length,before);
+  // 清理失敗：隔天才再試（不會每次打開首頁都重掃）；讀不到清理時間也不影響首頁
+  const c=fixture({APP_MODE:'demo',PHOTOS:r2,APP_INSTANCE:'c'});
+  assert.equal((await c.call('/api/login','POST',TEACHER)).status,200);
+  r2.calls.failList=true;r2.calls.list=0;
+  assert.equal((await c.call('/api/dashboard')).status,200);
+  assert.equal((await c.call('/api/dashboard')).status,200);
+  assert.equal(r2.calls.list,1,'one attempt per day');
+  r2.calls.failList=false;
+});
+
+test('R2 round 3: homework upload replays — the same request after a regrade changes nothing; a lost photo file is written back; a replayed 6th photo is not rejected',async()=>{
+  const r2=fakeR2();
+  const {f,cl}=await homeworkSetup({APP_MODE:'demo',PHOTOS:r2});
+  const {id,token}=await hwWithPhoto(f,cl,1);
+  const url=`/api/hw/${id}/1`;
+  assert.equal((await f.call(`${url}/submit?t=${token}`,'POST',{},'nobody')).body.sheet.status,'graded');
+  // 訂正重傳 → 再送出批改 → 同一個請求延遲才到：不會清掉新的批改結果
+  const req={dataUrl:PHOTO('fix'),restart:true,restartOf:ver(f,id),requestId:'req-1'};
+  const first=await f.call(`${url}/photos?t=${token}`,'POST',req,'nobody');
+  assert.equal(first.status,200);assert.equal(first.body.sheet.status,'assigned');
+  assert.equal((await f.call(`${url}/submit?t=${token}`,'POST',sub(f,id),'nobody')).body.sheet.status,'graded');
+  const photosNow=storedHw(f,id).sheets['1'].photos.map(p=>p.id);
+  const replay=await f.call(`${url}/photos?t=${token}`,'POST',req,'nobody');
+  assert.equal(replay.status,200);
+  const after=storedHw(f,id).sheets['1'];
+  assert.equal(after.status,'graded');assert(after.result,'new result kept');
+  assert.deepEqual(after.photos.map(p=>p.id),photosNow);
+  // 照片檔不見了（缺圖）：重傳原檔補回原位
+  const other=await hwWithPhoto(f,cl,2);
+  const sheet2=storedHw(f,other.id).sheets['2'];
+  const k=`default/homework/${other.id}/2/${sheet2.photos[0].id}`;
+  assert(r2.objects.has(k));r2.objects.delete(k);
+  assert.equal((await f.call(`/api/hw/${other.id}/2/photos?t=${other.token}`,'POST',{dataUrl:JPEG},'nobody')).status,200);
+  assert(r2.objects.has(k),'lost file written back');
+  assert.equal(storedHw(f,other.id).sheets['2'].photos.length,1);
+  // 第 6 張其實存好了、回應沒收到，重送第 6 張：不會撞到 6 張上限
+  for(let n=2;n<=6;n++)assert.equal((await f.call(`/api/hw/${other.id}/2/photos?t=${other.token}`,'POST',{dataUrl:PHOTO(`six-${n}`)},'nobody')).status,200);
+  assert.equal((await f.call(`/api/hw/${other.id}/2/photos?t=${other.token}`,'POST',{dataUrl:PHOTO('six-6')},'nobody')).status,200);
+  assert.equal(storedHw(f,other.id).sheets['2'].photos.length,6);
+  assert.equal((await f.call(`/api/hw/${other.id}/2/photos?t=${other.token}`,'POST',{dataUrl:PHOTO('seven')},'nobody')).status,429);
+});
+
+test('restore: photo answers come back as "photo not restored" and the restored backup can be exported and restored again',async()=>{
+  const {f,lesson,session}=await setup();
+  await openSlide(f,session,lesson,'error-canvas');
+  const imageId=(await f.call(`/api/sessions/${session.id}/images`,'POST',{dataUrl:PNG},'student')).body.imageId;
+  assert.equal((await f.call(`/api/sessions/${session.id}/answers`,'POST',{submissionId:'lost1',activityId:'error-canvas',value:{imageId,source:'photo'}},'student')).status,200);
+  const backup=(await f.call('/api/backup')).body;
+  const g=fixture();assert.equal((await g.call('/api/login','POST',TEACHER)).status,200);
+  assert.equal((await g.call('/api/restore','POST',{backup})).status,200);
+  const restored=Object.values(g.data.sessions).flatMap(s=>s.answers).find(a=>a.activityId==='error-canvas');
+  assert(restored,'answer restored');assert.equal(restored.value.imageId,undefined);assert.equal(restored.value.imageLost,true);
+  const again=(await g.call('/api/backup')).body;
+  const h=fixture();assert.equal((await h.call('/api/login','POST',TEACHER)).status,200);
+  assert.equal((await h.call('/api/restore','POST',{backup:again})).status,200,'a restored backup restores again');
+  // 學生作答不能只送 imageLost
+  assert.throws(()=>validateAnswer({id:'c',type:'canvas'},{imageLost:true}));
+});
+
+test('games raid plan, round 9: switching a cross duel to tug-of-war is a new state (both modes); a crossPage slide cannot also carry an activity',async()=>{
+  const {f}=await setup();
+  const go=(body,lessonId='g8-2-2d')=>f.call('/api/games/raid','POST',{lessonId,classId:'demo-class',...body});
+  const plan=async(lessonId='g8-2-2d')=>(await go({dryRun:true},lessonId)).body.plan;
+  const s=(await f.call('/api/sessions','POST',{lessonId:'g8-2-2d',classId:'demo-class'})).body.session;
+  const ctl=(body)=>f.call(`/api/sessions/${s.id}/control`,'POST',body);
+  await ctl({action:'cross-start',focus:'a1',seconds:180});
+  const p=await plan(),r=await plan('g9-1-4c');
+  assert(p.busy.includes('十字交乘對戰'));
+  assert.equal((await ctl({action:'cross-team',value:true})).status,200);
+  assert((await plan()).busy.includes('十字交乘紅藍拔河'));
+  assert.equal((await go({token:p.token})).status,409);
+  assert.equal((await go({token:r.token},'g9-1-4c')).status,409);
+  const live=f.data.sessions[s.id].session;
+  assert.equal(live.ended,false);assert(live.cross&&!live.cross.endedAt&&live.cross.team,'tug-of-war keeps going');
+  // 平台測試自己組最小的教材（不依賴 content/ 裡的課程）
+  const lesson={schemaVersion:1,id:'cross-only',title:'對戰頁測試',description:'',subject:'數學',duration:45,objectives:[],slides:[]};
+  const page={id:'a-cross',title:'十字交乘全班對戰',crossPage:{focus:'a1'}};
+  const single={id:'q1',type:'single',prompt:'哪一個？',options:['甲','乙'],correct:[0]};
+  assert.doesNotThrow(()=>validateLesson({...lesson,slides:[page,{id:'p2',title:'作答',activity:single}]}));
+  assert.throws(()=>validateLesson({...lesson,slides:[{...page,activity:single}]}),/crossPage/);
+});
+
+test('R2 round 4: deleting a class or homework hides it before anything is removed; leftovers are cleaned later; a failed main write leaves everything readable',async()=>{
+  const r2=fakeR2();let failFrozen=false,failMain=false;
+  const {f,cl}=await homeworkSetup({APP_MODE:'demo',PHOTOS:r2},{failDelete:(k)=>failFrozen&&k.startsWith('hwq:'),failWrite:()=>failMain});
+  const {id,token}=await hwWithPhoto(f,cl,1);
+  const photoUrl=`/api/hw/${id}/1/photos/${storedHw(f,id).sheets['1'].photos[0].id}?t=${token}`;
+  // 主檔寫入失敗：班級、作業、照片都還在、讀得到
+  failMain=true;
+  assert.notEqual((await f.call(`/api/classes/${cl.id}`,'DELETE',{withRecords:true})).status,200);
+  failMain=false;
+  assert(f.data.classes[cl.id]);assert(f.data.homework[id]);
+  assert.equal((await f.call(photoUrl,'GET',null,'nobody')).status,200,'photo still readable');
+  // 刪凍結的題目失敗：刪班級照樣成功，作業已經看不到；留下的部分清理時收掉
+  failFrozen=true;
+  assert.equal((await f.call(`/api/classes/${cl.id}`,'DELETE',{withRecords:true})).status,200);
+  assert(!f.data.homework[id]);
+  assert.equal((await f.call(`/api/hw/${id}/1?t=${token}`,'GET',null,'nobody')).status,404);
+  assert(f.vaultMap.get('hw-trash')?.[id],'leftover recorded');
+  failFrozen=false;
+  f.vaultMap.delete('photo-sweep-at');
+  await f.call('/api/settings/usage');
+  assert(!f.vaultMap.has(`hw:${id}`),'detail cleaned');assert(!f.vaultMap.get('hw-trash')?.[id]);
+  assert(![...f.vaultMap.keys()].some(k=>k.startsWith(`hwq:${id}/`)),'frozen questions cleaned');
+});
+
+test('R2 round 4: a correction request replayed after many later uploads still changes nothing; a replay restores a lost photo file',async()=>{
+  const r2=fakeR2();
+  const {f,cl}=await homeworkSetup({APP_MODE:'demo',PHOTOS:r2});
+  const {id,token}=await hwWithPhoto(f,cl,1);
+  const url=`/api/hw/${id}/1`;
+  assert.equal((await f.call(`${url}/submit?t=${token}`,'POST',{},'nobody')).body.sheet.status,'graded');
+  const seen=(await f.call(`${url}?t=${token}`,'GET',null,'nobody')).body.sheet.version;
+  const req={dataUrl:PHOTO('fix-a'),restart:true,restartOf:seen,requestId:'restart-1'};
+  assert.equal((await f.call(`${url}/photos?t=${token}`,'POST',req,'nobody')).body.sheet.status,'assigned');
+  // 之後加圖、刪圖 13 次（一般上傳的紀錄只留 12 筆）
+  for(let n=0;n<13;n++){
+    const up=await f.call(`${url}/photos?t=${token}`,'POST',{dataUrl:PHOTO(`churn-${n}`),requestId:`churn-${n}`,version:ver(f,id)},'nobody');
+    assert.equal(up.status,200);
+    const last=storedHw(f,id).sheets['1'].photos.at(-1).id;
+    assert.equal((await f.call(`${url}/photos/${last}?t=${token}`,'DELETE',{},'nobody')).status,200);
+  }
+  assert.equal((await f.call(`${url}/submit?t=${token}`,'POST',sub(f,id),'nobody')).body.sheet.status,'graded');
+  const ids=storedHw(f,id).sheets['1'].photos.map(p=>p.id);
+  // 超過 12 筆、請求 ID 已經不在紀錄裡：它的照片還在清單裡（照片 ID 就是請求 ID），當成重送、什麼都不改
+  assert.equal((await f.call(`${url}/photos?t=${token}`,'POST',req,'nobody')).status,200);
+  // 舊分頁換了新的請求 ID（回應遺失後重新選檔）：一樣 409
+  assert.equal((await f.call(`${url}/photos?t=${token}`,'POST',{...req,requestId:'restart-new'},'nobody')).status,409);
+  const after=storedHw(f,id).sheets['1'];
+  assert.equal(after.status,'graded');assert(after.result);assert.deepEqual(after.photos.map(p=>p.id),ids);
+  // 看著新成績按訂正：照常可以
+  const fresh=(await f.call(`${url}?t=${token}`,'GET',null,'nobody')).body.sheet.version;
+  assert.equal((await f.call(`${url}/photos?t=${token}`,'POST',{dataUrl:PHOTO('fix-b'),restart:true,restartOf:fresh,requestId:'restart-2'},'nobody')).body.sheet.status,'assigned');
+  // 用原本的請求 ID 補傳：照片清單裡這張的檔案不見了就補回
+  const other=await hwWithPhoto(f,cl,2);
+  const p2=storedHw(f,other.id).sheets['2'].photos[0];
+  const first=await f.call(`/api/hw/${other.id}/2/photos?t=${other.token}`,'POST',{dataUrl:PHOTO('orig'),requestId:'orig-1'},'nobody');
+  assert.equal(first.status,200);
+  const p3=storedHw(f,other.id).sheets['2'].photos.find(p=>p.id!==p2.id);
+  const k=`default/homework/${other.id}/2/${p3.id}`;r2.objects.delete(k);
+  assert.equal((await f.call(`/api/hw/${other.id}/2/photos?t=${other.token}`,'POST',{dataUrl:PHOTO('orig'),requestId:'orig-1'},'nobody')).status,200);
+  assert(r2.objects.has(k),'replay restores the lost file');
+});
+
+test('restore keeps a released layer-1 verdict (full marks stay full marks); an answer with only "photo not restored" is not sent to AI grading',async()=>{
+  const {f,lesson,session}=await setup();
+  await openSlide(f,session,lesson,'error-canvas');
+  const imageId=(await f.call(`/api/sessions/${session.id}/images`,'POST',{dataUrl:PNG},'student')).body.imageId;
+  const answer=(await f.call(`/api/sessions/${session.id}/answers`,'POST',{submissionId:'v-lost',activityId:'error-canvas',value:{imageId,source:'photo'}},'student')).body.answer;
+  const set=(await f.call(`/api/sessions/${session.id}/grades/${answer.id}`,'PUT',{verdict:true,released:true,feedback:'很好'})).body.grade;
+  assert.equal(set.total,set.max);
+  const backup=(await f.call('/api/backup')).body;
+  const g=fixture();assert.equal((await g.call('/api/login','POST',TEACHER)).status,200);
+  assert.equal((await g.call('/api/restore','POST',{backup})).status,200);
+  const sid=Object.keys(g.data.sessions).find(id=>g.data.sessions[id].answers.some(a=>a.activityId==='error-canvas'));
+  const s2=g.data.sessions[sid];
+  const a2=s2.answers.find(a=>a.activityId==='error-canvas');
+  const g2=s2.grades[a2.id];
+  assert.equal(g2.depth,'verdict');assert.equal(g2.correct,true);assert.equal(g2.total,set.max);assert.equal(g2.released,true);assert.equal(g2.feedback,'很好');
+  // 二次還原後也一樣
+  const h=fixture();assert.equal((await h.call('/api/login','POST',TEACHER)).status,200);
+  assert.equal((await h.call('/api/restore','POST',{backup:(await g.call('/api/backup')).body})).status,200);
+  const s3=Object.values(h.data.sessions).find(s=>s.answers.some(a=>a.activityId==='error-canvas'));
+  const g3=s3.grades[s3.answers.find(a=>a.activityId==='error-canvas').id];
+  assert.equal(g3.total,set.max);assert.equal(g3.released,true);
+  // 只剩「原照片未還原」：AI 批改回 409
+  const r=await g.call('/api/ai','POST',{task:'grade',sessionId:sid,answerId:a2.id});
+  assert.equal(r.status,409,JSON.stringify(r.body));
+});
+
+test('R2 round 5: a grading job finishing after its homework was deleted does not bring it back; deleting a homework whose detail is lost still removes frozen questions; a retried failed upload keeps one photo id',async()=>{
+  const r2=fakeR2();let failFrozen=false;
+  let pause,resume;const gate=new Promise(r=>(resume=r));
+  const {f,cl}=await homeworkSetup({APP_MODE:'demo',PHOTOS:r2},{failDelete:(k)=>failFrozen&&k.startsWith('hwq:'),kick:async()=>{}});
+  const {id,token}=await hwWithPhoto(f,cl,1);
+  // 送出：排進佇列（kick 什麼都不做），批改晚一點才跑
+  assert.equal((await f.call(`/api/hw/${id}/1/submit?t=${token}`,'POST',{},'nobody')).status,200);
+  const r2get=r2.get.bind(r2);let started;const seen=new Promise(r=>(started=r));
+  r2.get=async(k)=>{started();await gate;return r2get(k);};
+  const job=drainHomework({env:f.env,store:f.store,vault:f.vault});
+  await seen;
+  failFrozen=true;
+  assert.equal((await f.call(`/api/homework/${id}`,'DELETE',{})).status,200);
+  failFrozen=false;
+  resume();await job;r2.get=r2get;
+  assert(!f.data.homework[id],'deleted homework stays deleted');
+  assert.equal((await f.call(`/api/hw/${id}/1?t=${token}`,'GET',null,'nobody')).status,404);
+  f.vaultMap.delete('photo-sweep-at');await f.call('/api/settings/usage');
+  assert(!f.vaultMap.has(`hw:${id}`));assert(!f.vaultMap.get('hw-trash')?.[id]);
+  // 作業內容遺失（只剩主檔摘要）：刪除後凍結的題目也清掉
+  const other=await hwWithPhoto(f,cl,2);
+  f.vaultMap.delete(`hw:${other.id}`);
+  assert(f.vaultMap.has(`hwq:${other.id}/2`)||[...f.vaultMap.keys()].some(k=>k.startsWith(`hwq:${other.id}/`)));
+  assert.equal((await f.call(`/api/homework/${other.id}`,'DELETE',{})).status,200);
+  assert(![...f.vaultMap.keys()].some(k=>k.startsWith(`hwq:${other.id}/`)),'frozen questions of a broken homework removed');
+  // 同一個請求寫入 R2 失敗後重試：同一個照片 ID（待檢查只有一筆）
+  const third=await hwWithPhoto(f,cl,3);
+  const put=r2.put.bind(r2);r2.put=async()=>{throw new Error('Injected R2 failure');};
+  for(let n=0;n<3;n++)assert.equal((await f.call(`/api/hw/${third.id}/3/photos?t=${third.token}`,'POST',{dataUrl:PHOTO('retry'),requestId:'same-req'},'nobody')).status,503);
+  r2.put=put;
+  const left=pending(f).filter(k=>k.includes(`${third.id}/3/`));
+  assert.equal(left.length,1,JSON.stringify(left));
+  assert.equal((await f.call(`/api/hw/${third.id}/3/photos?t=${third.token}`,'POST',{dataUrl:PHOTO('retry'),requestId:'same-req'},'nobody')).status,200);
+  assert(storedHw(f,third.id).sheets['3'].photos.some(p=>p.id==='same-req'));
+});
+
+test('restore keeps per-item verdicts of photo numeric answers and review flags; a restored answer with only its transcript is graded on the transcript',async()=>{
+  const {f}=await setup();
+  const s=(await f.call('/api/sessions','POST',{lessonId:'g8-2-2a',classId:'demo-class'})).body.session;
+  const backup=(await f.call('/api/backup')).body;
+  const sess=backup.sessions.find(x=>x.session.id===s.id)||backup.sessions[0];
+  const slide=sess.lesson.slides.find(x=>x.activity?.type==='canvas');
+  assert(slide,'canvas slide');
+  sess.answers=[{id:'old-a',submissionId:'sub-a',seat:1,activityId:slide.activity.id,value:{work:'(2x+3)^2\n=4x^2+12x+9',imageId:'gone1',source:'photo'},submittedAt:'2026-11-20T01:00:00Z',correct:false,itemsCorrect:[true,false]}];
+  sess.grades=[{answerId:'old-a',activityId:slide.activity.id,seat:1,mode:'live',depth:'verdict',correct:true,scores:[],total:3,max:3,feedback:'ok',annotations:[],gradedAt:'2026-11-20T02:00:00Z',released:true,needsReview:true,confidence:0.4,votes:[3,0]}];
+  const g=fixture();assert.equal((await g.call('/api/login','POST',TEACHER)).status,200);
+  const res=await g.call('/api/restore','POST',{backup});
+  assert.equal(res.status,200,JSON.stringify(res.body));
+  const st=Object.values(g.data.sessions).find(x=>x.answers.some(a=>a.submissionId==='sub-a'));
+  const a=st.answers.find(x=>x.submissionId==='sub-a');
+  assert.equal(a.correct,false);assert.deepEqual(a.itemsCorrect,[true,false]);
+  const gr=st.grades[a.id];
+  assert.equal(gr.needsReview,true);assert.equal(gr.confidence,0.4);assert.deepEqual(gr.votes,[3,0]);assert.equal(gr.released,true);
+  // 沒有照片、只有辨識稿：第 1 層批改照樣送辨識稿（mock 模式回 200）
+  const r=await g.call('/api/ai','POST',{task:'grade',sessionId:st.session.id,answerId:a.id,depth:'verdict'});
+  assert.equal(r.status,200,JSON.stringify(r.body));
+});
+
+test('games raid plan, round 10: replacing a lesson counts a PK pairing even while buzz-in is closed; the old token fails and PK can still start',async()=>{
+  const {f}=await setup();
+  const go=(body,lessonId)=>f.call('/api/games/raid','POST',{lessonId,classId:'demo-class',...body});
+  const plan=async(lessonId)=>(await go({dryRun:true},lessonId)).body.plan;
+  const s=(await f.call('/api/sessions','POST',{lessonId:'g8-2-2d',classId:'demo-class'})).body.session;
+  const ctl=(body)=>f.call(`/api/sessions/${s.id}/control`,'POST',body);
+  const before=await plan('g9-1-4c');
+  assert.equal(before.mode,'replace');assert.deepEqual(before.busy,[]);
+  assert.equal((await ctl({action:'pk-lobby'})).status,200);
+  const after=await plan('g9-1-4c');
+  assert(after.busy.includes('PK 配對'),JSON.stringify(after.busy));
+  assert.notEqual(after.token,before.token);
+  assert.equal((await go({token:before.token},'g9-1-4c')).status,409);
+  assert.equal(f.data.sessions[s.id].session.ended,false,'the lesson with the pairing keeps going');
+});
+
+test('games raid plan, round 11: replacing a lesson counts results students are reviewing (shown IRS results, an ended quiz, an ended cross duel)',async()=>{
+  const {f}=await setup();
+  const go=(body,lessonId)=>f.call('/api/games/raid','POST',{lessonId,classId:'demo-class',...body});
+  const plan=async(lessonId)=>(await go({dryRun:true},lessonId)).body.plan;
+  const s=(await f.call('/api/sessions','POST',{lessonId:'g8-2-2d',classId:'demo-class'})).body.session;
+  const ctl=(body)=>f.call(`/api/sessions/${s.id}/control`,'POST',body);
+  const slides=f.data.sessions[s.id].lesson.slides;
+  const q=slides.findIndex(x=>x.activity&&!x.raidPage);
+  await ctl({action:'slide',index:q});
+  // 1. 公布當頁 IRS 結果
+  let p=await plan('g9-1-4c');
+  await ctl({action:'results',value:true});
+  assert((await plan('g9-1-4c')).busy.includes('公布中的結果'));
+  assert.equal((await go({token:p.token},'g9-1-4c')).status,409);
+  await ctl({action:'results',value:false});
+  // 2. 全班測驗結束、留在檢討畫面
+  p=await plan('g9-1-4c');
+  assert.equal((await ctl({action:'quiz-class',seconds:600})).status,200);
+  await ctl({action:'quiz-end'});
+  assert((await plan('g9-1-4c')).busy.includes('測驗結果（檢討中）'));
+  assert.equal((await go({token:p.token},'g9-1-4c')).status,409);
+  await ctl({action:'quiz-close'});
+  // 3. 十字交乘結束、留在結果畫面
+  p=await plan('g9-1-4c');
+  await ctl({action:'cross-start',focus:'a1',seconds:180});await ctl({action:'cross-end'});
+  assert((await plan('g9-1-4c')).busy.includes('十字交乘結果'));
+  assert.equal((await go({token:p.token},'g9-1-4c')).status,409);
+  assert.equal(f.data.sessions[s.id].session.ended,false,'students keep reviewing');
+});
+
+test('R2 round 6: a correction must carry the current grade version — missing, after a teacher edit, or once a new round started all get 409; a request id already used as a photo id is a replay',async()=>{
+  const r2=fakeR2();
+  const {f,cl}=await homeworkSetup({APP_MODE:'demo',PHOTOS:r2});
+  const {id,token}=await hwWithPhoto(f,cl,1);
+  const url=`/api/hw/${id}/1`;
+  assert.equal((await f.call(`${url}/submit?t=${token}`,'POST',{},'nobody')).body.sheet.status,'graded');
+  const v1=ver(f,id);
+  // 沒帶版本：409
+  assert.equal((await f.call(`${url}/photos?t=${token}`,'POST',{dataUrl:PHOTO('x1'),restart:true,requestId:'nr-1'},'nobody')).status,409);
+  // 老師改判後，舊版本：409，成績不變
+  assert.equal((await f.call(`/api/homework/${id}/1/items/1`,'PUT',{correct:true})).status,200);
+  assert.notEqual(ver(f,id),v1);
+  assert.equal((await f.call(`${url}/photos?t=${token}`,'POST',{dataUrl:PHOTO('x2'),restart:true,restartOf:v1,requestId:'nr-2'},'nobody')).status,409);
+  assert.equal(storedHw(f,id).sheets['1'].status,'graded');
+  // 新的版本：訂正開始
+  const v2=ver(f,id);
+  assert.equal((await f.call(`${url}/photos?t=${token}`,'POST',{dataUrl:PHOTO('x3'),restart:true,restartOf:v2,requestId:'nr-3'},'nobody')).body.sheet.status,'assigned');
+  // 另一個舊分頁在新一輪訂正時送 restart：409，不會把舊照片混進來
+  assert.equal((await f.call(`${url}/photos?t=${token}`,'POST',{dataUrl:PHOTO('x4'),restart:true,restartOf:v1,requestId:'nr-4'},'nobody')).status,409);
+  assert.deepEqual(storedHw(f,id).sheets['1'].photos.map(p=>p.id),['nr-3']);
+  // 請求 ID 已經是清單裡的照片 ID：當成重送，照片讀得到
+  assert.equal((await f.call(`${url}/photos?t=${token}`,'POST',{dataUrl:PHOTO('x3'),restart:true,restartOf:v2,requestId:'nr-3'},'nobody')).status,200);
+  assert.equal((await f.call(`${url}/photos/nr-3?t=${token}`,'GET',null,'nobody')).status,200);
+  assert.deepEqual(storedHw(f,id).sheets['1'].photos.map(p=>p.id),['nr-3']);
+});
+
+test('games raid plan, round 12: grades released on the current page count for both start and replace; the old token fails and students still see the feedback',async()=>{
+  const {f,lesson,session}=await setup();
+  await openSlide(f,session,lesson,'error-canvas');
+  const answer=(await f.call(`/api/sessions/${session.id}/answers`,'POST',{submissionId:'rel-1',activityId:'error-canvas',value:{text:'(2x+3)^2=4x^2+12x+9'}},'student')).body.answer;
+  await f.call(`/api/sessions/${session.id}/control`,'POST',{action:'activity',value:false});
+  await f.call(`/api/sessions/${session.id}/grades/${answer.id}`,'PUT',{verdict:true});
+  const go=(body,lessonId)=>f.call('/api/games/raid','POST',{lessonId,classId:'demo-class',...body});
+  const plan=async(lessonId)=>(await go({dryRun:true},lessonId)).body.plan;
+  const lid=f.data.sessions[session.id].session.lessonId;
+  const other=lid==='g9-1-4c'?'g8-2-2d':'g9-1-4c';
+  const before=await plan(other);
+  assert.equal((await f.call(`/api/sessions/${session.id}/control`,'POST',{action:'release-grades',activityId:'error-canvas',value:true})).status,200);
+  const after=await plan(other);
+  assert(after.busy.includes('已發回的個別批改'),JSON.stringify(after.busy));
+  assert.equal((await go({token:before.token},other)).status,409);
+  assert.equal(f.data.sessions[session.id].session.ended,false);
+  assert.equal((await f.call(`/api/sessions/${session.id}`,'GET',null,'student')).body.grades.length,1,'student still sees the feedback');
+});
+
+test('R2 round 7: the sweep keeps photos of a homework whose detail is unreadable; deleting it removes old Durable Object photos by prefix; a rewritten photo restarts its grace time; the journal is one key per photo',async()=>{
+  const {f,cl}=await homeworkSetup({APP_MODE:'demo'});
+  const {id,token}=await hwWithPhoto(f,cl,1);
+  const pid=storedHw(f,id).sheets['1'].photos[0].id;
+  // 改用 R2 以前的照片存在 Durable Object（hwphoto:）；之後才接上 R2
+  assert(f.vaultMap.has(`hwphoto:${id}/1/${pid}`));
+  const r2=fakeR2();f.env.PHOTOS=r2;
+  // 作業內容讀不到（資料遺失）、照片放了兩小時：清理不刪
+  const detail=f.vaultMap.get(`hw:${id}`);f.vaultMap.delete(`hw:${id}`);
+  f.vaultMap.set(`pc:h:${id}/1/${pid}`,Date.now()-7200_000);
+  f.vaultMap.delete('photo-sweep-at');await f.call('/api/settings/usage');
+  assert(f.vaultMap.has(`hwphoto:${id}/1/${pid}`),'photo of a broken homework kept');
+  f.vaultMap.set(`hw:${id}`,detail);
+  assert.equal((await f.call(`/api/hw/${id}/1/photos/${pid}?t=${token}`,'GET',null,'nobody')).status,200,'still readable once the detail is back');
+  // 作業內容又不見了，老師刪除：Durable Object 的舊照片依名稱前綴刪掉
+  f.vaultMap.delete(`hw:${id}`);
+  assert.equal((await f.call(`/api/homework/${id}`,'DELETE',{})).status,200);
+  assert(![...f.vaultMap.keys()].some(k=>k.startsWith(`hwphoto:${id}/`)),'old DO photos removed');
+  // 待檢查清單：一張照片一個 key；舊版的單一物件會搬過來
+  f.vaultMap.set('photo-check',{'a:legacy':Date.now()});
+  f.vaultMap.delete('photo-sweep-at');await f.call('/api/settings/usage');
+  assert(!f.vaultMap.has('photo-check'));assert(pending(f).includes('a:legacy'));
+});
+
+test('R2 round 7: one request id cannot carry two photos; an ordinary upload from an earlier round is refused; a duplicate photo with a new id is remembered',async()=>{
+  const r2=fakeR2();
+  const {f,cl}=await homeworkSetup({APP_MODE:'demo',PHOTOS:r2});
+  const {id,token}=await hwWithPhoto(f,cl,1);
+  const url=`/api/hw/${id}/1`;
+  const round=(await f.call(`${url}?t=${token}`,'GET',null,'nobody')).body.sheet.round;
+  assert.equal((await f.call(`${url}/photos?t=${token}`,'POST',{dataUrl:PHOTO('a'),requestId:'id-a',round},'nobody')).status,200);
+  assert.equal((await f.call(`${url}/photos?t=${token}`,'POST',{dataUrl:PHOTO('b'),requestId:'id-a',round},'nobody')).status,409,'same id, other photo');
+  // 同一張照片、新的請求 ID：不重複，但記下這個 ID
+  assert.equal((await f.call(`${url}/photos?t=${token}`,'POST',{dataUrl:PHOTO('a'),requestId:'id-dup',round},'nobody')).status,200);
+  assert(storedHw(f,id).sheets['1'].uploads.some(u=>u.startsWith('id-dup|')));
+  // 送出 → 批改 → 訂正：上一輪的一般上傳延遲才到，不會加進新的一輪
+  assert.equal((await f.call(`${url}/submit?t=${token}`,'POST',{},'nobody')).body.sheet.status,'graded');
+  assert.equal((await f.call(`${url}/photos?t=${token}`,'POST',{dataUrl:PHOTO('fix'),restart:true,restartOf:ver(f,id),requestId:'fix-1'},'nobody')).body.sheet.status,'assigned');
+  assert.equal((await f.call(`${url}/photos?t=${token}`,'POST',{dataUrl:PHOTO('late'),requestId:'late-1',round},'nobody')).status,409,'earlier round refused');
+  assert.deepEqual(storedHw(f,id).sheets['1'].photos.map(p=>p.id),['fix-1']);
+  // 重寫同一個 key 時重新計時：放了兩小時的舊待辦不會刪掉剛寫的照片
+  f.vaultMap.set(`pc:h:${id}/1/fix-1`,Date.now()-7200_000);
+  const k=`default/homework/${id}/1/fix-1`;r2.objects.delete(k);
+  assert.equal((await f.call(`${url}/photos?t=${token}`,'POST',{dataUrl:PHOTO('fix'),requestId:'fix-1'},'nobody')).status,200);
+  assert(r2.objects.has(k),'rewritten');
+  assert(!pending(f).includes(`h:${id}/1/fix-1`)||Date.now()-f.vaultMap.get(`pc:h:${id}/1/fix-1`)<60_000,'grace restarted');
+  f.vaultMap.delete('photo-sweep-at');await f.call('/api/settings/usage');
+  assert(r2.objects.has(k),'referenced photo kept after the sweep');
+});
+
+test('games raid plan, round 13: withdrawing and re-releasing one answer from its grading form is a new release; another page releasing does not invalidate this one',async()=>{
+  const {f,lesson,session}=await setup();
+  await openSlide(f,session,lesson,'error-canvas');
+  const answer=(await f.call(`/api/sessions/${session.id}/answers`,'POST',{submissionId:'rr-1',activityId:'error-canvas',value:{text:'(2x+3)^2=4x^2+12x+9'}},'student')).body.answer;
+  await f.call(`/api/sessions/${session.id}/control`,'POST',{action:'activity',value:false});
+  const put=(body)=>f.call(`/api/sessions/${session.id}/grades/${answer.id}`,'PUT',body);
+  assert.equal((await put({verdict:true,released:true,feedback:'第一次'})).status,200);
+  const go=(body,lessonId)=>f.call('/api/games/raid','POST',{lessonId,classId:'demo-class',...body});
+  const plan=async(lessonId)=>(await go({dryRun:true},lessonId)).body.plan;
+  const lid=f.data.sessions[session.id].session.lessonId;
+  const other=lid==='g9-1-4c'?'g8-2-2d':'g9-1-4c';
+  const old=await plan(other);
+  assert(old.busy.includes('已發回的個別批改'));
+  // 收回 → 改評語、單份「儲存並發回」：發回份數一樣，但是新的發回
+  await f.call(`/api/sessions/${session.id}/control`,'POST',{action:'release-grades',activityId:'error-canvas',value:false});
+  assert.equal((await put({verdict:true,released:true,feedback:'改過了'})).status,200);
+  assert.equal((await go({token:old.token},other)).status,409);
+  assert.equal(f.data.sessions[session.id].session.ended,false);
+  const own=(await f.call(`/api/sessions/${session.id}`,'GET',null,'student')).body.grades;
+  assert.equal(own[0].feedback,'改過了');
+});
+
+test('R2 round 8: an upload or a submit from an earlier sheet (an older tab after a teacher regrade and a new correction) is refused',async()=>{
+  const r2=fakeR2();
+  const {f,cl}=await homeworkSetup({APP_MODE:'demo',PHOTOS:r2});
+  const {id,token}=await hwWithPhoto(f,cl,1);
+  const url=`/api/hw/${id}/1`;
+  assert.equal((await f.call(`${url}/submit?t=${token}`,'POST',{version:0},'nobody')).body.sheet.status,'graded');
+  // 開始訂正（第一份訂正卷）
+  assert.equal((await f.call(`${url}/photos?t=${token}`,'POST',{dataUrl:PHOTO('c1'),restart:true,restartOf:ver(f,id),requestId:'c1'},'nobody')).body.sheet.status,'assigned');
+  const firstSheet=ver(f,id);
+  // 老師重新批改 → 學生再開一份訂正卷
+  assert.equal((await f.call(`/api/homework/${id}/1/regrade`,'POST',{})).status,200);
+  await drainHomework({env:f.env,store:f.store,vault:f.vault});
+  assert.equal(storedHw(f,id).sheets['1'].status,'graded');
+  assert.equal((await f.call(`${url}/photos?t=${token}`,'POST',{dataUrl:PHOTO('c2'),restart:true,restartOf:ver(f,id),requestId:'c2'},'nobody')).body.sheet.status,'assigned');
+  assert.notEqual(ver(f,id),firstSheet);
+  // 第一份訂正卷的舊分頁：加圖、沒帶版本的加圖、送出批改，全部 409
+  assert.equal((await f.call(`${url}/photos?t=${token}`,'POST',{dataUrl:PHOTO('old-page'),requestId:'op-1',version:firstSheet},'nobody')).status,409);
+  assert.equal((await f.call(`${url}/photos?t=${token}`,'POST',{dataUrl:PHOTO('old-page2'),requestId:'op-2'},'nobody')).status,409);
+  assert.equal((await f.call(`${url}/submit?t=${token}`,'POST',{version:firstSheet},'nobody')).status,409);
+  assert.equal((await f.call(`${url}/submit?t=${token}`,'POST',{},'nobody')).status,409);
+  const now=storedHw(f,id).sheets['1'];
+  assert.equal(now.status,'assigned');assert.deepEqual(now.photos.map(p=>p.id),['c2']);
+  // 目前的卷子：第二頁照常可以傳、可以送出
+  assert.equal((await f.call(`${url}/photos?t=${token}`,'POST',{dataUrl:PHOTO('c2-p2'),requestId:'c2-p2',version:ver(f,id)},'nobody')).status,200);
+  assert.equal((await f.call(`${url}/submit?t=${token}`,'POST',sub(f,id),'nobody')).body.sheet.status,'graded');
+});
+
+test('games raid plan, round 14: editing an already released grade (judge again, or a plain save) is a new release for both start and replace',async()=>{
+  const {f,lesson,session}=await setup();
+  await openSlide(f,session,lesson,'error-canvas');
+  const answer=(await f.call(`/api/sessions/${session.id}/answers`,'POST',{submissionId:'ed-1',activityId:'error-canvas',value:{text:'(2x+3)^2=4x^2+12x+9'}},'student')).body.answer;
+  await f.call(`/api/sessions/${session.id}/control`,'POST',{action:'activity',value:false});
+  const put=(body)=>f.call(`/api/sessions/${session.id}/grades/${answer.id}`,'PUT',body);
+  assert.equal((await put({verdict:true,released:true,feedback:'v1'})).status,200);
+  const go=(body,lessonId)=>f.call('/api/games/raid','POST',{lessonId,classId:'demo-class',...body});
+  const plan=async(lessonId)=>(await go({dryRun:true},lessonId)).body.plan;
+  const lid=f.data.sessions[session.id].session.lessonId;
+  const other=lid==='g9-1-4c'?'g8-2-2d':'g9-1-4c';
+  // 直接判對錯（沒帶 released，沿用已發回）
+  let old=await plan(other);
+  assert.equal((await put({verdict:false,feedback:'v2'})).status,200);
+  assert.equal((await go({token:old.token},other)).status,409);
+  // 依規準一般儲存（沒帶 released）
+  old=await plan(other);
+  assert.equal((await put({scores:[{criterionId:'kai',score:1}],feedback:'v3'})).status,200);
+  assert.equal((await go({token:old.token},other)).status,409);
+  assert.equal(f.data.sessions[session.id].session.ended,false);
+  assert.equal((await f.call(`/api/sessions/${session.id}`,'GET',null,'student')).body.grades[0].feedback,'v3');
+  // 還沒發回的草稿照常編輯（不影響計畫）
+});
+
+test('R2 round 9: a sheet already in correction before this version (no version field) refuses old-tab uploads and submits; a submit resent after failed grading does not use up another try',async()=>{
+  const r2=fakeR2();
+  const {f,cl}=await homeworkSetup({APP_MODE:'demo',PHOTOS:r2});
+  const {id,token}=await hwWithPhoto(f,cl,1);
+  const url=`/api/hw/${id}/1`;
+  // 升級前就開始訂正的卷：送出過 1 次、沒有 version 欄位
+  assert.equal((await f.call(`${url}/submit?t=${token}`,'POST',{},'nobody')).body.sheet.status,'graded');
+  const hw=storedHw(f,id);const sh=hw.sheets['1'];
+  delete sh.version;delete sh.result;sh.status='assigned';f.vaultMap.set(`hw:${id}`,hw);
+  assert.equal((await f.call(`${url}/photos?t=${token}`,'POST',{dataUrl:PHOTO('old-tab')},'nobody')).status,409,'old tab upload refused');
+  assert.equal((await f.call(`${url}/submit?t=${token}`,'POST',{},'nobody')).status,409,'old tab submit refused');
+  // 新版畫面讀到 version 0，照常可以
+  const v=(await f.call(`${url}?t=${token}`,'GET',null,'nobody')).body.sheet;
+  assert.equal(v.version,0);
+  assert.equal((await f.call(`${url}/photos?t=${token}`,'POST',{dataUrl:PHOTO('new-tab'),version:v.version,requestId:'nt-1'},'nobody')).status,200);
+  // 批改失敗（讀不到照片）→ 同一個送出請求重送：不會再扣一次
+  const get=r2.get.bind(r2);r2.get=async()=>{throw new Error('Injected R2 read failure');};
+  const before=storedHw(f,id).sheets['1'].submissions||0;
+  const req={version:ver(f,id),round:before};
+  assert.equal((await f.call(`${url}/submit?t=${token}`,'POST',req,'nobody')).status,200);
+  assert.equal(storedHw(f,id).sheets['1'].status,'error');
+  r2.get=get;
+  assert.equal((await f.call(`${url}/submit?t=${token}`,'POST',req,'nobody')).status,409,'resent submit refused');
+  assert.equal(storedHw(f,id).sheets['1'].submissions,before+1);
+  // 學生重新整理後主動重試：照常可以
+  const now=(await f.call(`${url}?t=${token}`,'GET',null,'nobody')).body.sheet;
+  assert.equal((await f.call(`${url}/submit?t=${token}`,'POST',{version:now.version,round:now.round},'nobody')).body.sheet.status,'graded');
+});
+
+test('R2 round 10: an old correction sheet first graded by the teacher (jobAt, no student submit, no version) refuses old-tab uploads and submits; a submit without round is refused once the sheet has history',async()=>{
+  const r2=fakeR2();
+  const {f,cl}=await homeworkSetup({APP_MODE:'demo',PHOTOS:r2});
+  const {id,token}=await hwWithPhoto(f,cl,1);
+  const url=`/api/hw/${id}/1`;
+  // 升級前：老師先按「重新批改」、學生開始訂正 → jobAt 有、送出 0 次、沒有 version、沒有 result
+  const hw=storedHw(f,id);const sh=hw.sheets['1'];
+  sh.jobAt=new Date().toISOString();sh.status='assigned';delete sh.version;delete sh.result;delete sh.submissions;
+  f.vaultMap.set(`hw:${id}`,hw);
+  assert.equal((await f.call(`${url}/photos?t=${token}`,'POST',{dataUrl:PHOTO('old-tab')},'nobody')).status,409);
+  assert.equal((await f.call(`${url}/submit?t=${token}`,'POST',{},'nobody')).status,409);
+  // 上一版只帶 version 的送出：初始卷可以一次，之後同樣的請求就失效
+  const g=await homeworkSetup({APP_MODE:'demo',PHOTOS:fakeR2()});
+  const other=await hwWithPhoto(g.f,g.cl,2);
+  const ourl=`/api/hw/${other.id}/2`;
+  const r2b=g.f.env.PHOTOS;const get=r2b.get.bind(r2b);r2b.get=async()=>{throw new Error('Injected R2 read failure');};
+  assert.equal((await g.f.call(`${ourl}/submit?t=${other.token}`,'POST',{version:0},'nobody')).status,200);
+  assert.equal(storedHw(g.f,other.id).sheets['2'].status,'error');
+  assert.equal((await g.f.call(`${ourl}/submit?t=${other.token}`,'POST',{version:0},'nobody')).status,409,'resent version-only submit refused');
+  r2b.get=get;
+  assert.equal(storedHw(g.f,other.id).sheets['2'].submissions,1);
+});

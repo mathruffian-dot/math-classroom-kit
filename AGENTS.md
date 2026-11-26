@@ -40,6 +40,19 @@
 - **測試**：學生端流程必須用獨立的 browser context 測試，只看教師畫面不能宣稱學生端正常。
 - **Windows 注意**：在 bash heredoc 裡寫含反斜線的內容（例如 LaTeX）時，反斜線可能被吃掉。請改用檔案編輯工具或 `String.raw`。
 
+## 完成後的審核（老師 2026-11-24 規定，每次都要做）
+
+1. 改完並自測過後，寫一份審核交接檔 `docs/REVIEW-<日期>-<主題>.md`（需求、改了哪些檔、設計重點、已驗證／沒驗證、要特別審的地方），範例見 `docs/REVIEW-2026-10-30-homework.md`。
+2. 請 Codex CLI 審核：模型 **gpt-6.2-astra**、思考強度 **high**，唯讀。結果寫到 `docs/CODEX-REVIEW-<日期>-<主題>.md`。
+
+   ```sh
+   codex exec -m gpt-6.2-astra -c model_reasoning_effort=high -s read-only - < docs/<審核任務>.txt
+   ```
+
+3. 依審核意見修改，重跑測試，再請 Codex 複審（`docs/CODEX-REREVIEW-…`），直到沒有阻擋級問題。採用或不採用的理由都寫進審核檔。
+   - 停止條件（老師 2026-11-24 決定）：Codex 不再列「阻擋」（合併前必修）就停；剩下的應修、建議寫進審核檔的「已知限制／另案處理」。審核任務裡請 Codex 把兩者分開列。
+4. 審核過後才 commit；部署與推送仍要等老師明確指示。
+
 ## 部署原則
 
 - 預設用 `APP_MODE=cloudflare`：資料存在 Durable Object。教師帳號由 secret `TEACHER_ACCOUNT` 設定，預設密碼 11235813，首次登入要提醒修改。

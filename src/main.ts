@@ -48,10 +48,10 @@ import { RAID_SKIP_COOLDOWN_MS } from '../shared/raid';
 import { duelBlanks, duelBoardHtml, duelCardHtml, duelCardKey, duelLocal, duelPanelHtml, duelPhase, duelPutTile, initDuelUi, updateDuelBoard } from './duel-ui';
 import { DUEL_TEAM_NAME, type DuelTok } from '../shared/duel';
 import QRCode from 'qrcode';
-import { crossGameCardHtml, renderCrossBoard } from './cross-board';
+import { crossGameCardHtml, focusOptionHtml, renderCrossBoard } from './cross-board';
 import { crossDuelGameCardHtml, renderCrossDuel } from './cross-duel';
 import { crossAct, crossBoardHtml, crossCardHtml, crossEnsureScope, crossCardKey, crossFocusChanged, crossFocusValue, crossLiveGameCardHtml, crossLocal, crossPanelHtml, crossPanelKey, fetchNext, initCrossLive, maybeSettle, mergeCrossPush, resetCrossLocal, updateCrossBoard, updateCrossCard } from './cross-live';
-import { isCrossFocus } from '../shared/game-focus';
+import { crossFocusById, isCrossFocus, type CrossFocusId } from '../shared/game-focus';
 import { homeworkAction, initHomeworkUi, leaveStudentSheet, openPlan, renderHomeworkDetail, renderHomeworkList, renderLearning, renderStudentSheet, studentHomeworkHtml } from './homework';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
@@ -71,6 +71,8 @@ let currentTool: Tool = 'cursor',
   drawFilter: 'all' | 'unanswered' | 'correct' | 'incorrect' = 'all';
 let pollBusy = false,
   routeVersion = 0,
+  /** 遊戲區魔王戰：每按一次「開始魔王戰」加 1；只有最後一次的計畫能跳確認框、能送出（兩張卡的回應交錯時不會開錯班）。 */
+  raidPick = 0,
   formBusy = false;
 let currentRoute = '',
   modalReturnFocus: HTMLElement | null = null;
@@ -176,7 +178,7 @@ const NAV: [string, string, string][] = [
   ['records', 'chart', '紀錄'],
   ['learning', 'target', '學習'],
   ['homework', 'pen', '作業'],
-  ['games', 'dice', '遊戲'],
+  ['games', 'dice', '遊戲區'],
   ['settings', 'settings', '設定'],
 ];
 function shell(active: string, title: string, body: string, actions = '') {
@@ -190,9 +192,12 @@ function landing(role = 'teacher') {
   const studentFields = `<label>班級代碼<input name="classCode" autocomplete="off" value="${demo ? 'DEMO801' : ''}" required placeholder="由老師提供"></label><div class="field-row"><label>座號<input name="seat" type="number" inputmode="numeric" min="1" max="100" value="1" required></label><label>識別碼<input name="code" autocomplete="off" autocapitalize="characters" value="" placeholder="老師有要求才填"></label></div>`;
   app.innerHTML = `<section class="landing-art" aria-hidden="true"><div class="landing-brand">${brand()}</div><div class="hero-graph"><svg viewBox="0 0 400 300"><defs><pattern id="g" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" fill="none" stroke="#ffffff1c"/></pattern></defs><rect width="400" height="300" fill="url(#g)"/><rect x="60" y="70" width="150" height="150" fill="#7b61ff55" stroke="#b9a9ff" stroke-width="2"/><rect x="210" y="70" width="60" height="150" fill="#2f80ed55" stroke="#8fc0ff" stroke-width="2"/><rect x="60" y="220" width="150" height="60" fill="#2f80ed55" stroke="#8fc0ff" stroke-width="2"/><rect x="210" y="220" width="60" height="60" fill="#ff8a3d66" stroke="#ffc08f" stroke-width="2"/><text x="135" y="152" fill="#fff" font-size="26" text-anchor="middle">a²</text><text x="240" y="152" fill="#fff" font-size="20" text-anchor="middle">ab</text><text x="135" y="256" fill="#fff" font-size="20" text-anchor="middle">ab</text><text x="240" y="256" fill="#fff" font-size="20" text-anchor="middle">b²</text><circle cx="270" cy="70" r="9" fill="#ffc93c"/></svg></div><h1>看得見的數學，<br><span>摸得到的思考。</span></h1><p>拖拉滑桿、切開圖形、逐頁提問；學生手寫或拍照作答，依評量規準即時批改與紅筆回饋。</p><ul class="hero-points"><li>${icon('sliders')}可操作視覺化</li><li>${icon('chart')}每頁 IRS</li><li>${icon('stamp')}規準批改</li></ul></section><section class="login-card"><h2>進入課堂</h2><div class="segmented" role="group" aria-label="登入身分"><button class="${role === 'teacher' ? 'selected' : ''}" data-action="login-tab" data-role="teacher" aria-pressed="${role === 'teacher'}">${icon('book')}教師</button><button class="${role === 'student' ? 'selected' : ''}" data-action="login-tab" data-role="student" aria-pressed="${role === 'student'}">${icon('users')}學生</button></div><form id="login-form" data-role="${role}">${role === 'teacher' ? teacherFields : studentFields}<button type="submit" class="btn primary full">${icon('arrow')}<span>登入</span></button><p id="login-error" class="form-error" role="alert"></p></form><p class="login-foot">${icon('shield')}${demo ? (role === 'teacher' ? `示範帳號 ${esc(config.teacherHint || 'teacher')}・預設密碼 11235813` : '示範班 DEMO801・座號 1–40（老師開啟識別碼時：DEMO01–DEMO40）') : role === 'teacher' ? '首次登入使用部署時設定的帳號與預設密碼，登入後請立即修改。' : '班級代碼、座號由老師提供；老師開啟驗證時才需要識別碼。'}</p></section>`;
 }
-async function loadDashboard() {
-  dashboard = await api<Dashboard>('/dashboard');
-  return dashboard;
+/** still：回應回來時還算數才寫入（例如遊戲區的舊卡片：老師已經按了別張卡就不覆寫）。 */
+async function loadDashboard(still?: () => boolean): Promise<Dashboard> {
+  const d = await api<Dashboard>('/dashboard');
+  if (still && !still()) return dashboard || d;
+  dashboard = d;
+  return d;
 }
 function lessonThumb(l: Lesson) {
   const phases = l.slides.map((s) => s.phase).filter(Boolean);
@@ -220,12 +225,44 @@ function renderDashboard() {
     `${btn('匯入 JSON', 'import', 'secondary', 'upload', 'data-testid="import-lesson"')}${btn('新增課程', 'new-lesson', 'primary', 'plus')}`,
   );
 }
-/** 遊戲活動：獨立於課程頁的課堂活動（老師畫面操作） */
-function renderGames() {
+/** 遊戲區：可以開魔王戰的單元（伺服器依題庫決定）。 */
+interface RaidGame {
+  lessonId: string;
+  lessonTitle: string;
+  title: string;
+  section: string;
+}
+const GRADE_NAME: Record<string, string> = { '7': '七年級', '8': '八年級', '9': '九年級' };
+/** 「八年級 2-2」：年級從課程 ID（g8-…）來，單元編號從課程名稱開頭來。 */
+function unitLabel(lessonId: string, lessonTitle: string) {
+  const grade = GRADE_NAME[/^g(\d)/.exec(lessonId)?.[1] || ''] || '';
+  const unit = /^(\d+-\d+)/.exec(lessonTitle)?.[1] || '';
+  return `${grade} ${unit}`.trim();
+}
+const RAID_DIFFICULTY_NAME: Record<string, string> = { easy: '簡單', normal: '普通', hard: '困難' };
+function raidGameCardHtml(g: RaidGame) {
+  const classes = dashboard?.classes || [];
+  const unit = unitLabel(g.lessonId, g.section || g.lessonTitle);
+  const label = `${unit} ${g.title}`;
+  // 預設選上次開魔王戰的班級
+  const last = prefs.get('raidClass', '');
+  const options = classes.map((c) => `<option value="${esc(c.id)}" ${c.id === last ? 'selected' : ''}>${esc(c.name)}</option>`).join('');
+  const diff = prefs.get('raidDifficulty', 'normal'),
+    secs = prefs.get('raidSeconds', 300);
+  const controls = classes.length
+    ? `<div class="raid-game-form"><label>班級<select data-raid-class aria-label="${esc(label)}：班級">${options}</select></label><label>難度<select data-raid-difficulty aria-label="${esc(label)}：難度">${['easy', 'normal', 'hard'].map((d) => `<option value="${d}" ${d === diff ? 'selected' : ''}>${RAID_DIFFICULTY_NAME[d]}</option>`).join('')}</select></label><label>時間<select data-raid-seconds aria-label="${esc(label)}：時間">${[300, 360, 420, 480, 540, 600].map((x) => `<option value="${x}" ${x === secs ? 'selected' : ''}>${x / 60} 分鐘</option>`).join('')}</select></label></div>${btn('開始魔王戰', 'game-raid', 'primary', 'play', `data-lesson="${esc(g.lessonId)}" data-unit="${esc(label)}" data-testid="game-raid-start" aria-label="${esc(label)}：開始魔王戰"`)}`
+    : '<p class="muted small-text">先到「班級」建立班級。</p>';
+  return `<article class="course-card raid-game-card" data-testid="game-raid-${esc(g.lessonId.replace(/[a-z]$/, ''))}"><div class="course-thumb raid-game-thumb"><span>${esc(unit)}</span><strong>魔王<small>戰</small></strong><em>全班合作・整節題目</em></div><div class="course-details"><h3>${esc(g.title)}</h3><p>整節每個重點的題目都在裡面。按下就開戰：全班用 iPad 一起答題攻擊魔王，學生用平常的班級代碼＋座號登入。</p>${controls}</div></article>`;
+}
+/** 遊戲區：魔王戰（選單元）＋八年級 3-2 十字交乘的三種玩法。 */
+async function renderGames(still?: () => boolean) {
+  const version = routeVersion;
+  const { raids } = await api<{ raids: RaidGame[] }>('/games');
+  if (version !== routeVersion || (still && !still())) return;
   shell(
     'games',
-    '遊戲活動',
-    `<p class="page-description">不屬於任何一堂課的課堂活動，在老師的大螢幕或 iPad 上直接操作，學生不用登入。</p><div class="games-grid">${crossGameCardHtml()}${crossLiveGameCardHtml(dashboard?.sessions || [])}${crossDuelGameCardHtml()}</div>`,
+    '遊戲區',
+    `<p class="page-description">依單元挑遊戲。魔王戰選好班級就開戰，學生用平常的班級代碼＋座號登入；十字交乘的大板與雙人對戰在老師畫面直接操作。</p><section class="game-unit" data-testid="game-raids"><h2>魔王戰：選單元</h2><div class="games-grid">${raids.map(raidGameCardHtml).join('') || '<p class="empty-state">還沒有魔王戰題庫。</p>'}</div></section><section class="game-unit" data-testid="game-unit-g8-3-2"><h2>八年級 3-2 利用十字交乘法因式分解</h2><div class="games-grid">${crossGameCardHtml()}${crossLiveGameCardHtml(dashboard?.sessions || [])}${crossDuelGameCardHtml()}</div></section>`,
   );
 }
 function renderClasses() {
@@ -256,8 +293,10 @@ function meter(used: number, limit: number): string {
 function usagePanel(u: StorageUsageInfo | null): string {
   if (!u?.available)
     return `<section class="panel settings-panel"><h2>${icon('screen')}儲存空間</h2><p class="muted">這個部署模式沒有用量資料。</p></section>`;
+  // photoBytes 只算存在 Durable Object 的照片（改用 R2 之前的舊照片）；R2 另外列，不算在 5 GB 裡
+  const inR2 = u.photoStorage === 'r2';
   const total = u.dataBytes + u.photoBytes;
-  return `<section class="panel settings-panel" id="usage-panel"><h2>${icon('screen')}儲存空間（Cloudflare 免費額度）</h2><dl class="setting-list"><div><dt>課堂資料</dt><dd>${bytesText(u.dataBytes)}・${u.sessions} 堂（封存 ${u.archived}）</dd></div><div><dt>作答照片</dt><dd>${u.photos} 張・約 ${bytesText(u.photoBytes)}${u.homeworkPhotoBytes ? `（含回家作業照片 ${bytesText(u.homeworkPhotoBytes)}）` : ''}</dd></div></dl><p class="usage-label">合計 ${bytesText(total)} / 5 GB</p>${meter(total, u.limits.storageBytes)}<p class="usage-label">今天寫入約 ${u.rowsToday.toLocaleString()} / ${u.limits.rowsPerDay.toLocaleString()} 列</p>${meter(u.rowsToday, u.limits.rowsPerDay)}<p class="muted small-text">結束超過 1 小時的課堂會自動封存，只在打開時讀取。照片最占空間：清除舊照片後，辨識稿、分數與圈記號都還在（備份本來就不含照片）。</p><div class="actions"><label class="inline-field">清除<select id="prune-days">${[30, 60, 90, 180].map((d) => `<option value="${d}" ${d === 90 ? 'selected' : ''}>${d} 天前</option>`).join('')}</select>的照片</label>${btn('清除', 'prune-photos', 'quiet danger', 'trash')}</div></section>`;
+  return `<section class="panel settings-panel" id="usage-panel"><h2>${icon('screen')}儲存空間（Cloudflare 免費額度）</h2><dl class="setting-list"><div><dt>課堂資料</dt><dd>${bytesText(u.dataBytes)}・${u.sessions} 堂（封存 ${u.archived}）</dd></div><div><dt>作答照片${inR2 ? '（新照片存在 R2）' : ''}</dt><dd>${u.photos} 張・Durable Object 約 ${bytesText(u.photoBytes)}${u.r2Bytes ? `・R2 ${bytesText(u.r2Bytes)}（免費 10 GB）` : ''}${u.homeworkPhotoBytes ? `（含回家作業照片 ${bytesText(u.homeworkPhotoBytes)}）` : ''}</dd></div></dl><p class="usage-label">合計 ${bytesText(total)} / 5 GB</p>${meter(total, u.limits.storageBytes)}<p class="usage-label">今天寫入約 ${u.rowsToday.toLocaleString()} / ${u.limits.rowsPerDay.toLocaleString()} 列</p>${meter(u.rowsToday, u.limits.rowsPerDay)}<p class="muted small-text">結束超過 1 小時的課堂會自動封存，只在打開時讀取。照片最占空間：清除舊照片後，辨識稿、分數與圈記號都還在（備份本來就不含照片）。</p><div class="actions"><label class="inline-field">清除<select id="prune-days">${[30, 60, 90, 180].map((d) => `<option value="${d}" ${d === 90 ? 'selected' : ''}>${d} 天前</option>`).join('')}</select>的照片</label>${btn('清除', 'prune-photos', 'quiet danger', 'trash')}</div></section>`;
 }
 async function renderSettings() {
   let ai: AiSettings | null = null,
@@ -418,18 +457,27 @@ function slideMarkup(slide: Slide, index: number, total: number) {
   const figs = !!(slide.figures?.length || slide.animation || slideVideos(slide).length);
   // 標了 visual 的選擇／自評題：卡片由選項產生（不需要 bullets）
   const optionCards = !!slide.visual && ['single', 'multiple', 'scale'].includes(slide.activity?.type || '');
-  const hasVisual = slide.interactive || slide.customHtml || slide.bullets?.length || optionCards || figs || slide.activity?.type === 'make';
+  const hasVisual = slide.interactive || slide.customHtml || slide.bullets?.length || optionCards || figs || slide.activity?.type === 'make' || !!slide.crossPage;
   const full = slide.fullSlide ? ' full-slide' : '';
-  return `<div class="slide-head${full}"><p class="slide-eyebrow">${slide.phase ? `<span class="phase-chip">${esc(slide.phase)}</span>` : ''}<span>${esc(slide.eyebrow || `${index + 1} / ${total}`)}</span></p><h1>${md(slide.title)}</h1>${slide.body ? `<p class="slide-body">${md(slide.body)}</p>` : ''}</div>${hasVisual ? `<div class="slide-visual ${figs ? 'with-figure' : ''} ${figs && !slide.interactive && !slide.customHtml ? 'figure-only' : ''}${full}">${figuresHtml(slide)}${slide.customHtml ? '<iframe id="custom-activity" class="custom-activity" title="自訂互動教材" sandbox="allow-scripts" referrerpolicy="no-referrer"></iframe>' : slide.interactive ? '<div class="viz-host"></div>' : figs ? '' : visual(slide)}</div>` : ''}${slide.source ? `<p class="slide-source">${icon('book')}${esc(slide.source)}</p>` : ''}`;
+  return `<div class="slide-head${full}"><p class="slide-eyebrow">${slide.phase ? `<span class="phase-chip">${esc(slide.phase)}</span>` : ''}<span>${esc(slide.eyebrow || `${index + 1} / ${total}`)}</span></p><h1>${md(slide.title)}</h1>${slide.body ? `<p class="slide-body">${md(slide.body)}</p>` : ''}</div>${hasVisual ? `<div class="slide-visual ${figs ? 'with-figure' : ''} ${figs && !slide.interactive && !slide.customHtml ? 'figure-only' : ''}${full}">${figuresHtml(slide)}${slide.customHtml ? '<iframe id="custom-activity" class="custom-activity" title="自訂互動教材" sandbox="allow-scripts" referrerpolicy="no-referrer"></iframe>' : slide.interactive ? '<div class="viz-host"></div>' : figs ? '' : slide.crossPage ? crossPageHtml(slide.crossPage.focus) : visual(slide)}</div>` : ''}${slide.source ? `<p class="slide-source">${icon('book')}${esc(slide.source)}</p>` : ''}`;
+}
+/** 十字交乘對戰頁的投影片：這一頁練的重點（名稱＋例子）與玩法。 */
+function crossPageHtml(focus: NonNullable<Slide['crossPage']>['focus']) {
+  return `<div class="cross-page" data-testid="cross-page"><div class="fx-option selected">${focusOptionHtml(crossFocusById(focus))}</div><ol class="cross-page-steps"><li>每個人在 iPad 上各自一題，數字都不一樣。</li><li>把數字卡放進十字圖，交叉相乘的和要等於一次項係數。</li><li>答對加分、連對加更多；答錯要等幾秒才能再試。</li></ol></div>`;
 }
 function latestBySeat(v: SessionView, activityId: string): Answer[] {
   const map = new Map<number, Answer>();
   for (const a of v.answers) if (a.activityId === activityId) map.set(a.seat, a);
   return [...map.values()].sort((a, b) => a.seat - b.seat);
 }
+/** 從備份還原、原照片不在、也沒有文字與辨識稿的作答（AI 沒東西可批）。 */
+function lostOnly(value: Answer['value']): boolean {
+  const v = value as CanvasAnswer | null;
+  return !!v && typeof v === 'object' && !Array.isArray(v) && !!v.imageLost && !v.imageId && !v.text && !v.work;
+}
 /** 拍照交的作答（畫布題或可拍照的數值題）。 */
 function isPhotoValue(value: Answer['value']): boolean {
-  return !!value && typeof value === 'object' && !Array.isArray(value) && 'imageId' in value;
+  return !!value && typeof value === 'object' && !Array.isArray(value) && ('imageId' in value || 'imageLost' in value);
 }
 /** 要 AI 批改的作答：畫布／短答全部；可拍照的數值題只有拍照交的（直接送答案的由系統判對錯）。 */
 function workAnswers(v: SessionView, a: Activity): Answer[] {
@@ -1153,6 +1201,7 @@ function studentPanel(a: Activity | undefined, index: number) {
   if (s.pkLobby?.buzz && !pkTakenSeats(s.pkLobby).has(user!.seat!)) return `<div class="panel-scroll"><div id="student-answer">${pkBuzzCard()}</div></div>`;
   if (index !== s.slideIndex)
     return `<div class="quiet-moment"><h2>自主瀏覽中</h2><p>作答只開放在老師目前的頁面。</p>${btn('回到目前頁面', 'go-slide', 'primary', 'arrow', `data-index="${s.slideIndex}"`)}</div>`;
+  if (!a && view!.lesson.slides[index]?.crossPage) return `<div class="quiet-moment" data-testid="cross-wait">${icon('grid')}<h2>等老師開始十字交乘對戰</h2><p>開始後這裡會出現你的題目。</p></div><div id="class-events">${eventsHtml()}</div>`;
   if (!a) return `<div class="quiet-moment">${icon('sigma')}<h2>先看、先想</h2><p>這一頁沒有題目，跟著老師操作圖形。</p></div><div id="class-events">${eventsHtml()}</div>`;
   const released = feedbackHtml(a);
   return `<div class="panel-scroll"><div id="student-answer">${answerForm(a)}</div>${s.resultsVisible ? `<details class="student-results" open><summary>全班結果</summary><div id="aggregate">${aggregateHtml(view!)}</div>${ownVerdict(a)}</details>` : ''}<div id="student-feedback">${released}</div><div id="class-events">${eventsHtml()}</div></div>`;
@@ -1180,15 +1229,16 @@ function teacherPanel(a: Activity | undefined, screen: boolean) {
   // 步驟格鬥在課後檢核頁前面那一頁；進行中時其他頁也留著控制區
   const onDuelPage = !!view!.lesson.slides[s.slideIndex]?.duelPage;
   const duelSection = onDuelPage || s.duel ? `<section class="quiz-tools duel-tools" id="duel-panel">${duelPanel()}</section>` : '';
-  // 十字交乘對戰：老師工具列按「十字交乘對戰」打開；進行中一直留著控制區
-  const crossSection = s.cross || crossPanelOpen ? `<section class="quiz-tools xl-tools" id="cross-panel" data-testid="xl-panel">${crossPanel()}</section>` : '';
+  // 十字交乘對戰：十字交乘對戰頁、或老師工具列按「十字交乘對戰」打開；進行中一直留著控制區
+  const onCrossPage = !!view!.lesson.slides[s.slideIndex]?.crossPage;
+  const crossSection = s.cross || crossPanelOpen || onCrossPage ? `<section class="quiz-tools xl-tools" id="cross-panel" data-testid="xl-panel">${crossPanel()}</section>` : '';
   // 間隔複習：課堂一開始（第一頁）先做上一課全班錯最多的題型
   const sp = view!.spaced;
   const spacedSection =
     s.slideIndex === 0 && sp && !s.quiz && !s.pkLobby && !s.raid && !s.ended
       ? `<section class="quiz-tools spaced-tools" data-testid="spaced-panel"><header><strong>${icon('target')}間隔複習（約 3 分鐘）</strong></header><p class="muted small-text">上一課〈${esc(sp.title)}〉全班錯最多的 ${sp.topics.length} 個題型：${sp.topics.map(esc).join('、')}。每題換數字，答完馬上看到對錯與解析。</p>${btn('派間隔複習', 'quiz-spaced', 'primary', 'target', 'data-testid="quiz-spaced"')}</section>`
       : '';
-  return `<div class="panel-scroll">${spacedSection}${crossSection}${duelSection}${raidSection}${quizSection}${onQuizPage || onRaidPage || onDuelPage ? '' : activity}<section class="seat-map" id="seat-map" data-testid="seat-map">${seatMapInner()}</section>${gradable && !screen ? gradingBar(a!) : ''}<section class="class-tools">${screen && a ? drawFilterBar() : ''}<div class="tool-row">${btn(drawLabel(a), 'draw', 'secondary', 'dice', 'data-testid="draw-seat"')}${btn('搶答', 'buzz-open', 'secondary', 'bolt', 'data-testid="buzz-open"')}${btn('十字交乘對戰', 'xl-panel', `secondary ${s.cross || crossPanelOpen ? 'selected' : ''}`, 'grid', `data-testid="xl-panel-open" ${s.ended ? 'disabled' : ''}`)}</div><div id="danmaku-tools">${danmakuTools()}</div><div id="class-events">${eventsHtml()}</div></section>${screen ? '' : `<section class="room-options">${btn(s.followTeacher ? '同步翻頁中' : '學生自主瀏覽', 'toggle-follow', 'quiet', s.followTeacher ? 'screen' : 'book', s.ended ? 'disabled' : '')}${btn('學生加入', 'join-info', 'quiet', 'users')}${btn('派發作業', 'hw-plan-session', 'quiet', 'pen', 'data-testid="hw-plan-open"')}${btn('結束課堂', 'end-session', 'quiet danger', 'logout', s.ended ? 'disabled' : '')}</section>${view!.lesson.slides[s.slideIndex]?.notes ? `<details class="teacher-notes"><summary>教師備註（學生看不到）</summary><p>${esc(view!.lesson.slides[s.slideIndex].notes)}</p></details>` : ''}`}</div>`;
+  return `<div class="panel-scroll">${spacedSection}${crossSection}${duelSection}${raidSection}${quizSection}${onQuizPage || onRaidPage || onDuelPage || onCrossPage ? '' : activity}<section class="seat-map" id="seat-map" data-testid="seat-map">${seatMapInner()}</section>${gradable && !screen ? gradingBar(a!) : ''}<section class="class-tools">${screen && a ? drawFilterBar() : ''}<div class="tool-row">${btn(drawLabel(a), 'draw', 'secondary', 'dice', 'data-testid="draw-seat"')}${btn('搶答', 'buzz-open', 'secondary', 'bolt', 'data-testid="buzz-open"')}${btn('十字交乘對戰', 'xl-panel', `secondary ${s.cross || crossPanelOpen ? 'selected' : ''}`, 'grid', `data-testid="xl-panel-open" ${s.ended ? 'disabled' : ''}`)}</div><div id="danmaku-tools">${danmakuTools()}</div><div id="class-events">${eventsHtml()}</div></section>${screen ? '' : `<section class="room-options">${btn(s.followTeacher ? '同步翻頁中' : '學生自主瀏覽', 'toggle-follow', 'quiet', s.followTeacher ? 'screen' : 'book', s.ended ? 'disabled' : '')}${btn('學生加入', 'join-info', 'quiet', 'users')}${btn('派發作業', 'hw-plan-session', 'quiet', 'pen', 'data-testid="hw-plan-open"')}${btn('結束課堂', 'end-session', 'quiet danger', 'logout', s.ended ? 'disabled' : '')}</section>${view!.lesson.slides[s.slideIndex]?.notes ? `<details class="teacher-notes"><summary>教師備註（學生看不到）</summary><p>${esc(view!.lesson.slides[s.slideIndex].notes)}</p></details>` : ''}`}</div>`;
 }
 /* ───────────── 作答限時與補救練習 ───────────── */
 const TIME_LIMITS: [number, string][] = [
@@ -1582,9 +1632,14 @@ setInterval(() => {
 initCrossLive({ esc, btn, icon, tex, serverTime, api: (path, method, body) => api(path, method, body), view: () => view, route: () => routeVersion, toast: (m, e) => toast(m, e), resync: () => void refreshSession(), playCorrect });
 let crossPanelOpen = false,
   crossPanelKeyNow = '';
+/** 十字交乘對戰頁上老師改選、還沒開戰的重點（課堂 ID:頁面 ID → 重點）。 */
+const crossPageFocus = new Map<string, CrossFocusId>();
 function crossPanel() {
   const v = view!;
-  const focus = prefs.get('xlFocus', 'a1');
+  // 十字交乘對戰頁：重點預設為這一頁指定的（老師可以在面板裡改）
+  const slide = v.lesson.slides[v.session.slideIndex];
+  const page = slide?.crossPage;
+  const focus = page && !v.session.cross ? crossPageFocus.get(`${v.session.id}:${slide.id}`) ?? page.focus : prefs.get('xlFocus', 'a1');
   return crossPanelHtml(v.cross && v.session.cross ? v.cross : undefined, { focus: isCrossFocus(focus) ? focus : 'a1', seconds: prefs.get('xlSeconds', 0), team: prefs.get('xlTeam', false), escalate: prefs.get('xlEscalate', false), margin: prefs.get('xlMargin', 300) });
 }
 function renderCrossCard() {
@@ -2225,7 +2280,7 @@ function chipAnswer(x: Answer, a?: Activity) {
 }
 function gradingBar(a: Activity) {
   const answers = workAnswers(view!, a);
-  const ungraded = answers.filter((x) => needsGrading(x.id) && !grading.inFlight.has(x.id)).length;
+  const ungraded = answers.filter((x) => needsGrading(x.id) && !grading.inFlight.has(x.id) && !lostOnly(x.value)).length;
   const redpen = prefs.get('redpen', false);
   const right = answers.filter((x) => gradeFor(x.id)?.correct ?? (gradeFor(x.id) ? gradeFor(x.id)!.total === gradeFor(x.id)!.max : false)).length;
   const graded = answers.filter((x) => gradeFor(x.id));
@@ -2383,6 +2438,12 @@ function enqueueGrades(answerIds: string[], depth?: 'verdict' | 'full' | 'fast')
   if (!view) return;
   for (const answerId of answerIds) {
     if (grading.inFlight.has(answerId) || grading.queue.some((q) => q.answerId === answerId)) continue;
+    // 還原後沒有照片、文字、辨識稿：AI 沒東西可批，留給老師直接批改
+    const val = view.answers.find((x) => x.id === answerId)?.value;
+    if (val !== undefined && lostOnly(val)) {
+      if (answerIds.length === 1) toast('這份作答的原照片沒有隨備份還原，也沒有文字或辨識稿：請直接判對錯或給分', true);
+      continue;
+    }
     const d = depth ?? (fastGrade() && hasWork(answerId) ? 'fast' : gradeDepth());
     grading.queue.push({ sessionId: view.session.id, answerId, depth: d });
     grading.total++;
@@ -2437,7 +2498,8 @@ function autoGradeCheck() {
   const a = view.lesson.slides[view.session.slideIndex]?.activity;
   if (!a?.rubric) return;
   const ids = workAnswers(view, a)
-    .filter((x) => needsGrading(x.id))
+    // 還原後沒有照片、也沒有文字與辨識稿的作答：留給老師直接批改
+    .filter((x) => needsGrading(x.id) && !lostOnly(x.value))
     .map((x) => x.id);
   if (ids.length) enqueueGrades(ids);
 }
@@ -2467,7 +2529,7 @@ function openGrade(answerId: string) {
   const pos = list.findIndex((x) => x.id === answerId);
   modal(
     `${answer.seat} 號作答`,
-    `<div class="grade-layout"><div class="grade-work">${v.imageId ? `<div class="redpen-host big" data-image="${esc(v.imageId)}"></div>` : ''}${v.work ? `<section class="work-confirmed"><h3>學生確認的辨識稿${workEdited(v) ? '<em class="st edited">學生改過</em>' : ''}</h3><div class="work-lines">${workHtml(v.work, g?.marks)}</div>${workEdited(v) ? `<details><summary>AI 原始辨識</summary><pre>${esc(v.ocr!)}</pre></details>` : ''}</section>` : ''}${text ? `<blockquote class="student-text">${md(text)}</blockquote>` : ''}${g?.transcript && !v.work ? `<details><summary>AI 轉寫的手寫內容</summary><pre>${esc(g.transcript)}</pre></details>` : ''}${g?.basis === 'text' ? '<p class="muted small-text">快速批改：依辨識稿給分（沒有看圖、沒有紅筆）。需要時按「AI 紅筆批改」看圖重改。</p>' : ''}</div><form id="grade-form" class="grade-form" data-answer="${esc(answerId)}">${g ? `<p class="grade-meta">${tag(g.depth === 'verdict' ? '第 1 層・對錯' : '第 2 層・紅筆')}${tag(g.mode === 'live' ? 'AI 初評' : g.mode === 'mock' ? '模擬批改' : '教師批改', g.mode === 'teacher' ? 'green' : '')}${g.confidence !== undefined ? tag(`信心 ${g.confidence}`, g.needsReview ? 'warn' : '') : ''}${g.votes && g.votes.length > 1 ? tag(`投票 ${g.votes.join('、')}`) : ''}${g.released ? tag('已發回', 'green') : ''}</p>` : '<p class="muted">尚未批改。</p>'}<section class="layer1"><h3>第 1 層：判斷對錯</h3>${g?.depth === 'verdict' ? `<p class="verdict ${g.correct ? 'ok' : 'no'}">${icon(g.correct ? 'check' : 'x')}<span>${g.correct ? '判定：正確' : '判定：不正確'}</span></p>` : ''}<label>給學生的一句話<textarea name="feedback" rows="2" maxlength="600">${esc(g?.feedback || '')}</textarea></label><div class="grade-actions"><button type="submit" class="btn primary" name="mode" value="right" data-testid="judge-right">${icon('check')}<span>判對</span></button><button type="submit" class="btn secondary" name="mode" value="wrong" data-testid="judge-wrong">${icon('x')}<span>判錯</span></button>${btn('AI 判斷', 'regrade', 'quiet', 'wand', `data-id="${esc(answerId)}" data-depth="verdict"`)}</div></section><details class="layer2" ${g?.depth === 'full' || prefs.get('redpen', false) ? 'open' : ''}><summary>第 2 層：依規準給分＋紅筆批註</summary>${a.rubric.criteria
+    `<div class="grade-layout"><div class="grade-work">${v.imageId ? `<div class="redpen-host big" data-image="${esc(v.imageId)}"></div>` : ''}${v.imageLost ? '<p class="muted small-text" data-testid="image-lost">原照片未隨備份還原。</p>' : ''}${v.work ? `<section class="work-confirmed"><h3>學生確認的辨識稿${workEdited(v) ? '<em class="st edited">學生改過</em>' : ''}</h3><div class="work-lines">${workHtml(v.work, g?.marks)}</div>${workEdited(v) ? `<details><summary>AI 原始辨識</summary><pre>${esc(v.ocr!)}</pre></details>` : ''}</section>` : ''}${text ? `<blockquote class="student-text">${md(text)}</blockquote>` : ''}${g?.transcript && !v.work ? `<details><summary>AI 轉寫的手寫內容</summary><pre>${esc(g.transcript)}</pre></details>` : ''}${g?.basis === 'text' ? `<p class="muted small-text">依辨識稿給分（沒有看圖、沒有紅筆）。${v.imageId ? '需要時按「AI 紅筆批改」看圖重改。' : ''}</p>` : ''}</div><form id="grade-form" class="grade-form" data-answer="${esc(answerId)}">${g ? `<p class="grade-meta">${tag(g.depth === 'verdict' ? '第 1 層・對錯' : '第 2 層・紅筆')}${tag(g.mode === 'live' ? 'AI 初評' : g.mode === 'mock' ? '模擬批改' : '教師批改', g.mode === 'teacher' ? 'green' : '')}${g.confidence !== undefined ? tag(`信心 ${g.confidence}`, g.needsReview ? 'warn' : '') : ''}${g.votes && g.votes.length > 1 ? tag(`投票 ${g.votes.join('、')}`) : ''}${g.released ? tag('已發回', 'green') : ''}</p>` : '<p class="muted">尚未批改。</p>'}<section class="layer1"><h3>第 1 層：判斷對錯</h3>${g?.depth === 'verdict' ? `<p class="verdict ${g.correct ? 'ok' : 'no'}">${icon(g.correct ? 'check' : 'x')}<span>${g.correct ? '判定：正確' : '判定：不正確'}</span></p>` : ''}<label>給學生的一句話<textarea name="feedback" rows="2" maxlength="600">${esc(g?.feedback || '')}</textarea></label><div class="grade-actions"><button type="submit" class="btn primary" name="mode" value="right" data-testid="judge-right">${icon('check')}<span>判對</span></button><button type="submit" class="btn secondary" name="mode" value="wrong" data-testid="judge-wrong">${icon('x')}<span>判錯</span></button>${btn('AI 判斷', 'regrade', 'quiet', 'wand', `data-id="${esc(answerId)}" data-depth="verdict"`)}</div></section><details class="layer2" ${g?.depth === 'full' || prefs.get('redpen', false) ? 'open' : ''}><summary>第 2 層：依規準給分＋紅筆批註</summary>${a.rubric.criteria
       .map((c) => {
         const s = g?.scores.find((x) => x.criterionId === c.id);
         return `<fieldset class="criterion"><legend>${md(c.label)}<small>${c.points} 分</small></legend>${c.levels
@@ -2810,6 +2872,8 @@ async function loadStudent() {
 }
 async function renderRoute() {
   const version = ++routeVersion;
+  // 遊戲區開魔王戰的確認框不跟著換頁（按下去的是舊的狀態）
+  if (document.querySelector('#modal-root [data-testid="game-raid-confirm"]')) closeModal();
   currentRoute = location.hash.slice(1) || '/dashboard';
   clearTimeout(poll);
   // 離開作業頁（QR code 連結）：停掉輪詢、中止在途請求，晚到的回覆不會畫回來
@@ -2864,7 +2928,7 @@ async function renderRoute() {
     }
     await loadDashboard();
     if (version !== routeVersion) return;
-    if (currentRoute === '/games') renderGames();
+    if (currentRoute === '/games') await renderGames();
     else if (currentRoute === '/classes') renderClasses();
     else if (currentRoute === '/records') renderRecords();
     else if (currentRoute === '/learning') await renderLearning();
@@ -3050,6 +3114,40 @@ async function action(el: HTMLElement) {
   if (/^(hw|learn)-/.test(act || '') && (await homeworkAction(el))) return;
   if (act?.startsWith('xl-') && (await crossAction(act, el))) return;
   switch (act) {
+    case 'game-raid': {
+      // 遊戲區的魔王戰：選班級（難度、時間）→ 伺服器一次完成開課、翻到魔王戰頁、開戰
+      // 已經離開遊戲區（新頁面還在載入、舊卡片還在畫面上）：不動作
+      if (currentRoute !== '/games') return;
+      const card = el.closest('article');
+      const pick = (sel: string) => card?.querySelector<HTMLSelectElement>(sel)?.value;
+      const classId = pick('[data-raid-class]');
+      if (!classId) return toast('請先選班級', true);
+      const opts = {
+        lessonId: el.dataset.lesson!,
+        classId,
+        difficulty: pick('[data-raid-difficulty]') || 'normal',
+        seconds: Number(pick('[data-raid-seconds]') || 300),
+        pick: ++raidPick,
+        className: dashboard?.classes.find((c) => c.id === classId)?.name || '',
+        unit: el.dataset.unit || '',
+      };
+      prefs.set('raidDifficulty', opts.difficulty);
+      prefs.set('raidSeconds', opts.seconds);
+      prefs.set('raidClass', classId);
+      const rv = routeVersion;
+      let plan: RaidGamePlan;
+      try {
+        plan = (await api<{ plan: RaidGamePlan }>('/games/raid', 'POST', { ...raidBody(opts), dryRun: true })).plan;
+      } catch (e) {
+        return raidGameError(e, rv, opts);
+      }
+      return confirmRaidGame(opts, plan, rv);
+    }
+    case 'game-raid-ok': {
+      closeModal();
+      const { token, ...opts } = JSON.parse(el.dataset.opts!) as RaidGameOpts & { token: string };
+      return startRaidGame(opts, token, Number(el.dataset.rv));
+    }
     case 'hw-plan-session':
       if (view) await openPlan(view.session.classId, view.session.lessonId);
       return;
@@ -3732,6 +3830,60 @@ async function action(el: HTMLElement) {
     }
   }
 }
+/** pick：第幾次按「開始魔王戰」（raidPick）；className、unit：確認框寫出要開哪一班、哪個單元。 */
+type RaidGameOpts = { lessonId: string; classId: string; difficulty: string; seconds: number; pick: number; className: string; unit: string };
+const raidBody = (o: RaidGameOpts) => ({ lessonId: o.lessonId, classId: o.classId, difficulty: o.difficulty, seconds: o.seconds });
+/** 這次的計畫還算數：還在遊戲區、沒換過頁、而且是最後一次按的那張卡。 */
+const raidCurrent = (opts: RaidGameOpts, rv: number) => rv === routeVersion && currentRoute === '/games' && opts.pick === raidPick;
+const raidTarget = (opts: RaidGameOpts) => `<p class="muted">班級：${esc(opts.className)}　單元：${esc(opts.unit)}</p>`;
+type RaidGamePlan = { mode: 'enter' | 'start' | 'replace' | 'new'; sessionId: string | null; title?: string; busy: string[]; token: string };
+/**
+ * 照伺服器算的計畫決定要不要確認：
+ * - enter：這一課的魔王戰正在打，直接進去（不改任何東西）。
+ * - new，或同一課沒有任何活動：直接開戰。
+ * - 其他（取代別的課、會收起進行中的活動）：寫出會發生什麼，老師確認後才送出。
+ */
+function confirmRaidGame(opts: RaidGameOpts, plan: RaidGamePlan, rv: number): void | Promise<void> {
+  if (!raidCurrent(opts, rv)) return;
+  if (plan.mode === 'enter') return navigate(`/session/${plan.sessionId}`);
+  if (plan.mode === 'new' || (plan.mode === 'start' && !plan.busy.length)) return startRaidGame(opts, plan.token, rv);
+  const busy = plan.busy.length ? `正在進行：${plan.busy.map(esc).join('、')}。` : '';
+  const text =
+    plan.mode === 'replace'
+      ? `這個班級正在上〈${esc(plan.title || '')}〉。${busy}開始魔王戰會結束那一堂課（作答與批改都會保存）。`
+      : `這個班級正在上〈${esc(plan.title || '')}〉。${busy}開始魔王戰會收起這些活動（作答都會保存）。`;
+  modal('開始魔王戰？', `${raidTarget(opts)}<p>${text}</p>${btn(plan.mode === 'replace' ? '結束那堂課，開始魔王戰' : '收起活動，開始魔王戰', 'game-raid-ok', 'primary', 'play', `data-opts="${esc(JSON.stringify({ ...opts, token: plan.token }))}" data-rv="${rv}" data-testid="game-raid-confirm"`)}`);
+}
+/** 帶著確認過的 token 開戰；伺服器狀態變了就回 409 與新計畫，再照新計畫問一次。 */
+async function startRaidGame(opts: RaidGameOpts, token: string, rv: number): Promise<void> {
+  // 老師已經離開遊戲區、或後來又按了別張卡（舊的確認框還開著）：不送出
+  if (!raidCurrent(opts, rv)) return closeModal();
+  try {
+    const r = await api<{ sessionId: string }>('/games/raid', 'POST', { ...raidBody(opts), token });
+    if (raidCurrent(opts, rv)) navigate(`/session/${r.sessionId}`);
+  } catch (e) {
+    const err = e as { status?: number; message: string; data?: { plan?: RaidGamePlan } };
+    // 回應晚到、老師已經按了別張卡或離開遊戲區：不導頁、不提示、不重載（那邊的畫面不動）
+    if (!raidCurrent(opts, rv)) return;
+    if (err.status === 409 && err.data?.plan) {
+      toast(err.message, true);
+      const plan = err.data.plan;
+      // 計畫變了：沒有任何東西會被收起時才直接執行，其他一律再確認
+      if (plan.mode === 'enter') return navigate(`/session/${plan.sessionId}`);
+      return modal('這個班級的狀態變了', `${raidTarget(opts)}<p>${plan.mode === 'new' ? '現在沒有進行中的課。' : `現在正在上〈${esc(plan.title || '')}〉。${plan.busy.length ? `正在進行：${plan.busy.map(esc).join('、')}。` : ''}`}${plan.mode === 'replace' ? '開始魔王戰會結束那一堂課（作答與批改都會保存）。' : plan.busy.length ? '開始魔王戰會收起這些活動（作答都會保存）。' : ''}</p>${btn('開始魔王戰', 'game-raid-ok', 'primary', 'play', `data-opts="${esc(JSON.stringify({ ...opts, token: plan.token }))}" data-rv="${rv}" data-testid="game-raid-confirm"`)}`);
+    }
+    return raidGameError(e, rv, opts);
+  }
+}
+/** 教材或班級不能用了（刪除、沒有題庫或魔王戰頁）：提示並重新列出遊戲卡；老師已經離開遊戲區就不動畫面。 */
+async function raidGameError(e: unknown, rv: number, opts?: RaidGameOpts): Promise<void> {
+  const err = e as { status?: number; message: string };
+  if (rv !== routeVersion || (opts && !raidCurrent(opts, rv))) return;
+  if (err.status !== 409 && err.status !== 404) throw e;
+  toast(err.message, true);
+  await loadDashboard(() => rv === routeVersion && currentRoute === '/games' && (!opts || raidCurrent(opts, rv)));
+  if (rv === routeVersion && currentRoute === '/games' && (!opts || raidCurrent(opts, rv))) await renderGames(opts ? () => raidCurrent(opts, rv) : undefined);
+}
 async function control(actionName: string, extra: Record<string, unknown> = {}) {
   if (!view) return;
   await board?.flush();
@@ -4011,7 +4163,12 @@ document.addEventListener('submit', (e) => {
 });
 document.addEventListener('change', (e) => {
   // 十字交乘對戰的重點選項：標出選中的、混合時停用「自動進到下一個重點」
-  if (crossFocusChanged(e.target as HTMLInputElement)) return;
+  const xlInput = e.target as HTMLInputElement;
+  if (xlInput.dataset?.xlFocus === 'xl-focus' && view && isCrossFocus(xlInput.value)) {
+    const sl = view.lesson.slides[view.session.slideIndex];
+    if (sl?.crossPage) crossPageFocus.set(`${view.session.id}:${sl.id}`, xlInput.value);
+  }
+  if (crossFocusChanged(xlInput)) return;
   const el = e.target as HTMLSelectElement;
   if (el.name !== 'provider' || el.form?.id !== 'ai-form') return;
   const presets: Record<string, [string, string]> = {

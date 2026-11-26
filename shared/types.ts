@@ -228,6 +228,8 @@ export interface Slide {
   raidPage?: boolean;
   /** 步驟格鬥頁（根式運算步驟練習）：投影片區是紅藍兩隊的戰況，右側是開戰設定。 */
   duelPage?: boolean;
+  /** 十字交乘對戰頁：右側直接打開全班連線對戰的開始設定，重點預設為 focus（a1／a-not-1／gcf／mix）。 */
+  crossPage?: { focus: 'a1' | 'a-not-1' | 'gcf' | 'mix' };
   eyebrow?: string;
   body: string;
   bullets?: string[];
@@ -489,6 +491,8 @@ export interface CanvasAnswer {
   work?: string;
   /** 拍照作答：AI 原始辨識結果（和 work 不同表示學生改過，老師端會標示）。 */
   ocr?: string;
+  /** 從備份還原的作答：原本有照片，但照片不在備份裡（不指向任何照片）。 */
+  imageLost?: true;
 }
 export interface ManipulateAnswer {
   vars: Record<string, number>;
@@ -611,6 +615,16 @@ export interface Session {
   drawnSeats: number[];
   drawFilter?: 'all' | 'unanswered' | 'correct' | 'incorrect';
   revision: number;
+  /**
+   * 每一種可以被收起的活動各自的「開了第幾次」（搶答、PK 配對、PK 搶答上場、彈幕、公布結果、派發拍照題），
+   * 遊戲區開魔王戰用來比對「老師確認時看到的是不是同一輪」。
+   */
+  rounds?: Partial<Record<'buzz' | 'pk' | 'pkBuzz' | 'danmaku' | 'results' | 'photo', number>>;
+  /** 每個活動的批改發回了幾次（整批或單份）：遊戲區開戰的指紋用。 */
+  releaseRev?: Record<string, number>;
+  /** 公布結果、派發拍照題時在第幾頁。 */
+  resultsSlide?: number;
+  photoSlide?: number;
   /** 老師按「派發拍照題」後，可拍照的數值題才出現拍照交計算過程（換頁收回）。 */
   photoOpen?: boolean;
   /** 這一次開放作答的時間（毫秒時間戳）：彈幕的「每題 3 則」從這裡重新計算。 */
@@ -727,6 +741,10 @@ export interface StorageUsageInfo {
   photoBytes: number;
   /** 回家作業照片（存在 Durable Object 時算在 photoBytes 裡）。 */
   homeworkPhotoBytes?: number;
+  /** 新照片存在哪裡：R2、Supabase 或 Durable Object。 */
+  photoStorage?: 'r2' | 'supabase' | 'durable';
+  /** 存在 R2 的照片（原始大小，位元組；不算在 Durable Object 的 5 GB）。 */
+  r2Bytes?: number;
   /** 今天（UTC）大約寫入的列數。 */
   rowsToday: number;
   sessions: number;
@@ -1032,6 +1050,10 @@ export interface HomeworkPhoto {
   type: string;
   bytes: number;
   at: string;
+  /** 存在 R2（沒有＝Durable Object 或 Supabase，改用 R2 之前的照片）。 */
+  where?: 'r2';
+  /** 內容指紋：同一張照片重傳（例如回應沒收到）不會變成兩張。 */
+  hash?: string;
 }
 export interface HomeworkSheet {
   seat: number;
@@ -1048,6 +1070,10 @@ export interface HomeworkSheet {
   lease?: { id: string; until: number };
   /** 派發時已把題目、附圖、答案、詳解凍結存檔（vault 的 hwq:<作業>/<座號>）；之後改題庫不影響這份作業。 */
   frozen?: boolean;
+  /** 最近 12 次上傳的「請求 ID|照片雜湊」：同一個請求重送（回應沒收到、延遲重送）不會再做一次；同一個 ID 換了照片回 409。 */
+  uploads?: string[];
+  /** 成績版本：每次批改寫入、老師改判、訂正清掉成績都加 1。學生訂正要帶這個版本（restartOf）。 */
+  version?: number;
   result?: HomeworkResult;
   error?: string;
 }
@@ -1072,7 +1098,7 @@ export interface HomeworkMeta {
   lessonIds: string[];
   scope: 'lesson' | 'section';
   createdAt: string;
-  sheets: Record<string, { status: HomeworkStatus; score?: number; max?: number; photoBytes?: number }>;
+  sheets: Record<string, { status: HomeworkStatus; score?: number; max?: number; photoBytes?: number; photoCount?: number; r2Bytes?: number }>;
 }
 /** 作業卷上的一題（印 PDF、學生看結果用）；answer、solution 只給老師，或批改後給學生。 */
 export interface HomeworkQuestion {
@@ -1100,4 +1126,8 @@ export interface HomeworkSheetView {
   submittedAt?: string;
   result?: HomeworkResult;
   error?: string;
+  /** 成績版本（訂正時帶回 restartOf）。 */
+  version?: number;
+  /** 送出過幾次（一般上傳時帶回 round）。 */
+  round?: number;
 }

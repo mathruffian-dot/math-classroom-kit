@@ -5528,6 +5528,49 @@ button.link {
   color: #444;
 }
 /* 學生的作業頁（QR code 連結） */
+/* 遊戲區：依單元分段 */
+.game-unit {
+  margin-bottom: 26px;
+}
+.game-unit > h2 {
+  margin: 0 0 12px;
+  font-size: 20px;
+}
+.raid-game-thumb {
+  background: linear-gradient(135deg, #3b1d5e, #b4232a);
+  color: #fff;
+}
+.raid-game-form {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr;
+  gap: 8px;
+  margin: 10px 0;
+}
+.raid-game-form label {
+  margin: 0;
+}
+@media (max-width: 520px) {
+  .raid-game-form {
+    grid-template-columns: 1fr;
+  }
+}
+.cross-page {
+  display: grid;
+  gap: 18px;
+  align-content: center;
+  height: 100%;
+  padding: 12px 4px;
+}
+.cross-page .fx-option {
+  justify-self: start;
+  font-size: clamp(18px, 2.2vw, 30px);
+}
+.cross-page-steps {
+  margin: 0;
+  padding-left: 1.4em;
+  font-size: clamp(16px, 1.8vw, 24px);
+  line-height: 1.8;
+}
 #app.hw-student {
   overflow: auto;
   background: var(--paper);

@@ -12,6 +12,7 @@ import type {
   Rubric,
   Stroke,
 } from '../shared/types';
+import { isCrossFocus } from '../shared/game-focus';
 import {
   ExprError,
   compile,
@@ -464,6 +465,11 @@ export function validateLesson(input: unknown): Lesson {
         if (s.raidPage === true) slide.raidPage = true;
         if (s.unitQuizPage === true) slide.unitQuizPage = true;
         if (s.duelPage === true) slide.duelPage = true;
+        if (s.crossPage !== undefined) {
+          const focus = record(s.crossPage).focus;
+          assert(isCrossFocus(focus), '十字交乘對戰頁的重點只能是 a1、a-not-1、gcf、mix');
+          slide.crossPage = { focus };
+        }
         if (s.visual !== undefined) {
           assert(
             ['balance', 'steps', 'cards', 'bars'].includes(String(s.visual)),
@@ -535,6 +541,8 @@ export function validateLesson(input: unknown): Lesson {
           });
         }
         if (s.activity) {
+          // 十字交乘對戰頁的右側是對戰設定（沒有 IRS 控制）：同一頁不能再放作答
+          assert(!slide.crossPage, '十字交乘對戰頁（crossPage）不能同時有 activity，請把作答放在別頁');
           slide.activity = validateActivity(s.activity, slide.interactive);
           assert(!activityIds.has(slide.activity.id), '活動 ID 不可重複');
           activityIds.add(slide.activity.id);
@@ -693,7 +701,7 @@ export function validateDuelBank(input: unknown): DuelBank {
 }
 
 /** 畫布／拍照作答：文字說明、圖片、辨識稿。 */
-function canvasValue(value: unknown, photoOnly = false): CanvasAnswer {
+function canvasValue(value: unknown, photoOnly = false, restore = false): CanvasAnswer {
   const v = record(value),
     out: CanvasAnswer = {};
   if (v.text !== undefined && v.text !== '') out.text = str(v.text, '文字說明', 2000).trim();
@@ -704,17 +712,23 @@ function canvasValue(value: unknown, photoOnly = false): CanvasAnswer {
     assert(['draw', 'photo'].includes(String(v.source)), '作答來源不正確');
     out.source = v.source as 'draw' | 'photo';
   }
-  assert(out.text || out.imageId, '請在畫布作答、拍照或寫下說明');
-  if (photoOnly) assert(out.imageId, '請拍照上傳計算過程');
+  // 還原備份：照片不在備份裡，作答只記「原本有照片」（imageLost），不指向任何照片；這樣的備份可以再匯出、再還原
+  if (restore && (out.imageId || v.imageLost === true)) {
+    delete out.imageId;
+    out.imageLost = true;
+  }
+  assert(out.text || out.imageId || out.imageLost, '請在畫布作答、拍照或寫下說明');
+  if (photoOnly) assert(out.imageId || out.imageLost, '請拍照上傳計算過程');
   return out;
 }
-export function validateAnswer(a: Activity, value: unknown): AnswerValue {
+/** restore：還原備份（照片改記 imageLost，見 canvasValue）。學生作答一律 false。 */
+export function validateAnswer(a: Activity, value: unknown, restore = false): AnswerValue {
   if (a.type === 'short') return str(str(value, '短答', 2000, 1).trim(), '短答', 2000, 1);
   if (a.type === 'scale') return integer(value, a.min!, a.max!);
   if (a.type === 'single') return integer(value, 0, a.options!.length - 1);
   if (a.type === 'numeric') {
     // 可拍照的數值題：學生也可以交照片＋辨識稿（AI 批改時讀出答案）
-    if (a.photoWork && value && typeof value === 'object' && !Array.isArray(value)) return canvasValue(value, true);
+    if (a.photoWork && value && typeof value === 'object' && !Array.isArray(value)) return canvasValue(value, true, restore);
     const one = (v: unknown) => {
       const text = str(v, '數值答案', 60, 1).trim();
       try {
@@ -733,7 +747,7 @@ export function validateAnswer(a: Activity, value: unknown): AnswerValue {
     }
     return one(value);
   }
-  if (a.type === 'canvas') return canvasValue(value);
+  if (a.type === 'canvas') return canvasValue(value, false, restore);
   if (a.type === 'make') {
     // 每張卡都要用到、算式完整才能送出（湊不湊得到目標由 judge 判定）
     const text = str(value, '算式', 200, 1).replace(/\s+/g, '');

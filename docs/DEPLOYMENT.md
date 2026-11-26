@@ -1,8 +1,10 @@
 # 部署（Cloudflare）
 
-數感課堂預設只用 Cloudflare：Worker 提供網站與 API，Durable Object 保存所有資料。不需要 Supabase。
+數感課堂預設只用 Cloudflare：Worker 提供網站與 API，Durable Object 保存課程、班級、作答等資料，照片存在 R2（見〈照片存到 R2〉）。不需要 Supabase。
 
 ## 步驟
+
+> 這台電腦用專用的 `math-classroom` profile（mathruffian 帳號，和 `wrangler.jsonc` 固定的 `account_id` 同一個），2026-11-26 已綁到本資料夾，下面的指令照原樣執行就會用它。不要用 `teaching-cloud`（現在登入的是另一個帳號）或 `school`。換電腦或登入過期時：`npx wrangler auth create math-classroom`（瀏覽器先登入 mathruffian 再按 Allow）→ `npx wrangler auth activate math-classroom .` → `npx wrangler whoami` 確認帳號。
 
 1. **登入 Cloudflare：**
 
@@ -41,7 +43,7 @@
 | 資料 | 位置 | 是否在備份檔中 |
 | --- | --- | --- |
 | 課程、班級、課堂、作答、批改 | Durable Object（SQLite），以 64 KiB 分塊保存的快照 | 是 |
-| 學生作答照片／畫布圖 | Durable Object，每張一筆 | 否（太大） |
+| 學生作答照片／畫布圖、回家作業照片 | R2 bucket `math-classroom-photos`，每張一個物件（2026-11-24 之前的照片在 Durable Object） | 否（太大） |
 | 教師密碼雜湊、AI key | Durable Object 的 vault | 否 |
 | 課本截圖 | 部署的靜態資產，需登入才能讀取 | 否 |
 
@@ -79,11 +81,35 @@
 - 第 2 層紅筆批改用的額度較多。
 - 每份作答投票 3 次時，費用是 3 倍。
 
+## 照片存到 R2（2026-11-24 起）
+
+課堂作答照片與回家作業照片存在 Cloudflare R2 的 `math-classroom-photos` bucket（綁定名稱 `PHOTOS`，見 `wrangler.jsonc`）。R2 免費額度每月 10 GB 儲存、100 萬次寫入、1000 萬次讀取，下載不收流量費，也不占 Durable Object 的空間。
+
+第一次啟用：
+1. 老師在 Cloudflare 後台（Storage & Databases → R2）啟用 R2。這一步要自己做，可能需要付款資料。
+2. 登入 wrangler，再用 `npx wrangler whoami` 確認是數感課堂的帳號（`account_id` 已固定在 `wrangler.jsonc`）。兩種擇一，之後的建 bucket、設 secret、部署都用同一種：
+   - 預設登入：`npx wrangler login`。
+   - 專用 profile（這台電腦的做法）：`npx wrangler auth create math-classroom`，再 `npx wrangler auth activate math-classroom .`（綁到本資料夾）。
+3. 建立 bucket：`npx wrangler r2 bucket create math-classroom-photos`，然後 `npx wrangler r2 bucket list` 確認有這個名稱。
+4. 確認 bucket 是私人的：後台 R2 → `math-classroom-photos` → Settings，不要開 Public Development URL（r2.dev），也不要接自訂網域。照片只經過 Worker 讀寫。
+5. 部署：`npm run deploy`（已綁 profile 時也一樣，不用另外加參數）。
+   - Wrangler 4 有「自動配置資源」：bucket 不存在、而且帳號有建立權限時，部署會自動建立同名 bucket（一樣是私人的）。
+   - R2 還沒啟用、或權限不足時，部署會失敗並說明原因：回到第 1 步。
+
+說明：
+- 改用 R2 之前存在 Durable Object 的舊照片照樣讀得到、刪得掉，程式會先讀 R2，讀不到再讀 Durable Object；新照片一律存 R2。
+- 本機 `npm run dev` 用模擬的 R2，存在 `.wrangler/state`（測試存在暫存資料夾），不連到雲端。
+- 設定頁「儲存空間」把 Durable Object 裡的舊照片與 R2 的照片分開列，合計只算 Durable Object 的 5 GB。
+- 沒有任何紀錄指到的照片（刪除失敗、上傳到一半中斷留下的），放超過 1 小時後由清理收掉：老師打開首頁或設定頁時一天跑一次，按「清除舊照片」時也會跑。清理只看這一套站（`APP_INSTANCE`）自己的資料夾。
+- `wrangler.jsonc` 固定了 `account_id`（數感課堂的帳號）：不管用預設登入或哪一個 profile，登入的帳號沒有這個 account 的權限時，部署、建 bucket 都會直接失敗，不會跑到別的帳號（`school` profile 是另一個帳號，不要用）。
+- 每一套站（`APP_INSTANCE`）在 bucket 裡有自己的資料夾（站名經過 `encodeURIComponent`，不同站名不會撞在一起）。另一個 Worker 要共用這個 bucket 時，`APP_INSTANCE` 一定要不同；最穩的是每個部署用自己的 bucket。
+- 清理記下「這次嘗試的時間」：失敗也是隔天才再試；清理失敗不影響首頁與設定頁。
+
 ## 選用：回家作業照片存到 Supabase Storage
 
-> 2026-10-30 老師決定：**目前不用**，作業照片以 Cloudflare Durable Object 為準，這一節只留作參考。啟用前要先修審核 C-7、C-8（見 `docs/REVIEW-2026-10-30-homework.md`）。
+> 2026-10-30 老師決定：**目前不用**；2026-11-24 起照片改存 R2，這一節只留作參考。啟用前要先修審核 C-7、C-8（見 `docs/REVIEW-2026-10-30-homework.md`）。
 
-回家作業的照片預設存在 Durable Object。要改存到 Supabase Storage（私人 bucket），只要設定 `SUPABASE_URL`、`SUPABASE_SECRET_KEY` 兩個 secret，`APP_MODE` 不用改。步驟見 [HOMEWORK.md](HOMEWORK.md#supabase-storage參考目前不用)。
+有 R2（`PHOTOS` 綁定）時一律用 R2，Supabase 設定不會生效。只有拿掉 R2 綁定、又設定了 `SUPABASE_URL`、`SUPABASE_SECRET_KEY` 兩個 secret 時，回家作業照片才會存到 Supabase Storage（私人 bucket），`APP_MODE` 不用改。步驟見 [HOMEWORK.md](HOMEWORK.md#supabase-storage參考目前不用)。
 
 ## 選用：Supabase 模式
 
@@ -91,7 +117,7 @@
 
 在這個模式下：
 
-- 作答照片與 AI key 仍然存在 Durable Object。
+- 照片照樣存 R2；沒有 R2 時，課堂作答照片存 Durable Object，回家作業照片存 Durable Object（或設定了 Supabase Storage 時存 Supabase，見上一節）。AI key 仍然存在 Durable Object。
 - 教師改用 Supabase Auth 登入。
 
 ## 安全

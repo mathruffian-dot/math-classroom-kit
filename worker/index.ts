@@ -34,7 +34,7 @@ declare const WebSocketPair: { new (): { 0: LiveSocket; 1: LiveSocket } };
 declare const WebSocketRequestResponsePair: { new (request: string, response: string): unknown };
 
 interface DurableState {
-  storage: LocalStorage & { setAlarm?(at: number): Promise<void>; getAlarm?(): Promise<number | null> };
+  storage: LocalStorage & { setAlarm?(at: number): Promise<void>; getAlarm?(): Promise<number | null>; list?(options: { prefix: string; limit?: number }): Promise<Map<string, unknown>> };
   acceptWebSocket?(socket: LiveSocket, tags?: string[]): void;
   getWebSockets?(tag?: string): LiveSocket[];
   setWebSocketAutoResponse?(pair: unknown): void;
@@ -342,6 +342,8 @@ export class ClassroomDurableObject {
       get: (key) => storage.get(key),
       put: (key, value) => (count(), storage.put(key, value)),
       delete: (key) => (count(), storage.delete(key)),
+      // 正式的 Durable Object storage 一定有 list；測試用的假 storage 沒有時當成空的
+      list: async (prefix, limit = 1000) => (storage.list ? [...(await storage.list({ prefix, limit })).keys()] : []),
     };
   }
   /**

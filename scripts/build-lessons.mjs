@@ -37,7 +37,7 @@ function lint(lesson) {
   if (!lesson.slides.some((s) => s.activity?.type === 'canvas')) warnings.push('沒有手寫／拍照（canvas）題，無法看到學生的推理過程。');
   for (const [i, s] of lesson.slides.entries()) {
     const where = `第 ${i + 1} 頁「${s.title}」`;
-    if (!s.activity && !s.quizPage && !s.unitQuizPage && !s.raidPage && !s.duelPage) warnings.push(`${where}沒有 IRS 題目。`);
+    if (!s.activity && !s.quizPage && !s.unitQuizPage && !s.raidPage && !s.duelPage && !s.crossPage) warnings.push(`${where}沒有 IRS 題目。`);
     if ((s.body || '').length > 90) warnings.push(`${where}內文 ${s.body.length} 字，超過 90 字（分段原則：一頁一重點）。`);
     if (!s.phase) warnings.push(`${where}沒有標 phase（認知設計階段）。`);
     if (s.interactive?.steps?.length && !s.interactive.shapes.some((x) => x.step !== undefined || x.focus))

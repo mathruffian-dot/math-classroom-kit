@@ -1,0 +1,759 @@
+[
+ {
+  "id": "a-warmup-q#1",
+  "kind": "fill",
+  "prompt": "$(x+4)(x+8)=x^2+\\square x+32$",
+  "answer": "12",
+  "lhs": "(x+4)*(x+8)",
+  "rhs": "x**2+B*x+32",
+  "ask": "B",
+  "cond": ""
+ },
+ {
+  "id": "a-warmup-q#2",
+  "kind": "fill",
+  "prompt": "$(x+3)(x+11)=x^2+14x+\\square$",
+  "answer": "33",
+  "lhs": "(x+3)*(x+11)",
+  "rhs": "x**2+14*x+B",
+  "ask": "B",
+  "cond": ""
+ },
+ {
+  "id": "a-warmup-q#3",
+  "kind": "fill",
+  "prompt": "$(x-2)(x-6)=x^2-\\square x+12$",
+  "answer": "8",
+  "lhs": "(x-2)*(x-6)",
+  "rhs": "x**2-B*x+12",
+  "ask": "B",
+  "cond": ""
+ },
+ {
+  "id": "a-predict-q",
+  "kind": "pick",
+  "lhs": "x**2+7*x+12",
+  "options": [
+   "(x+2)*(x+6)",
+   "(x+3)*(x+4)",
+   "(x+1)*(x+12)",
+   "(x+7)*(x+12)"
+  ],
+  "correct": [
+   1
+  ]
+ },
+ {
+  "id": "a-pq-q",
+  "kind": "pick",
+  "lhs": "x**2+8*x+12",
+  "options": [
+   "(x+2)*(x+6)",
+   "(x+3)*(x+4)",
+   "(x+1)*(x+12)",
+   "(x-2)*(x-6)"
+  ],
+  "correct": [
+   0
+  ]
+ },
+ {
+  "id": "a-rule-q#1",
+  "kind": "fill",
+  "prompt": "$(x+3)(x+6)$ 的 $b$",
+  "answer": "9",
+  "lhs": "(x+3)*(x+6)",
+  "rhs": "x**2+B*x+18",
+  "ask": "B",
+  "cond": ""
+ },
+ {
+  "id": "a-rule-q#2",
+  "kind": "fill",
+  "prompt": "$(x+3)(x+6)$ 的 $c$",
+  "answer": "18",
+  "lhs": "(x+3)*(x+6)",
+  "rhs": "x**2+9*x+B",
+  "ask": "B",
+  "cond": ""
+ },
+ {
+  "id": "a-rule-q#3",
+  "kind": "fill",
+  "prompt": "$(x-3)(x-8)$ 的 $b$",
+  "answer": "-11",
+  "lhs": "(x-3)*(x-8)",
+  "rhs": "x**2+B*x+24",
+  "ask": "B",
+  "cond": ""
+ },
+ {
+  "id": "a-ex1-q#1",
+  "kind": "fill",
+  "prompt": "$a$",
+  "answer": "3",
+  "lhs": "x**2+10*x+21",
+  "rhs": "(x+a)*(x+b)",
+  "ask": "a",
+  "cond": "a<b"
+ },
+ {
+  "id": "a-ex1-q#2",
+  "kind": "fill",
+  "prompt": "$b$",
+  "answer": "7",
+  "lhs": "x**2+10*x+21",
+  "rhs": "(x+a)*(x+b)",
+  "ask": "b",
+  "cond": "a<b"
+ },
+ {
+  "id": "a-ex2-q#1",
+  "kind": "fill",
+  "prompt": "例 2 第 ④ 組右下的 ?",
+  "answer": "-4",
+  "lhs": "x**2-6*x+8",
+  "rhs": "(x-2)*(x+B)",
+  "ask": "B",
+  "cond": ""
+ },
+ {
+  "id": "a-ex2-q#2",
+  "kind": "fill",
+  "prompt": "$x^2-9x+14$ 的 $a$",
+  "answer": "-7",
+  "lhs": "x**2-9*x+14",
+  "rhs": "(x+a)*(x+b)",
+  "ask": "a",
+  "cond": "a<b"
+ },
+ {
+  "id": "a-practice-q#1",
+  "kind": "fill",
+  "prompt": "$x^2+4x+3$ 的 $a$",
+  "answer": "1",
+  "lhs": "x**2+4*x+3",
+  "rhs": "(x+a)*(x+b)",
+  "ask": "a",
+  "cond": "a<b"
+ },
+ {
+  "id": "a-practice-q#2",
+  "kind": "fill",
+  "prompt": "$x^2-11x+18$ 的 $a$",
+  "answer": "-9",
+  "lhs": "x**2-11*x+18",
+  "rhs": "(x+a)*(x+b)",
+  "ask": "a",
+  "cond": "a<b"
+ },
+ {
+  "id": "b-warmup-q#1",
+  "kind": "fill",
+  "prompt": "$x^2+9x+20$ 的 $a$",
+  "answer": "4",
+  "lhs": "x**2+9*x+20",
+  "rhs": "(x+a)*(x+b)",
+  "ask": "a",
+  "cond": "a<b"
+ },
+ {
+  "id": "b-warmup-q#2",
+  "kind": "fill",
+  "prompt": "$x^2-7x+12$ 的 $a$",
+  "answer": "-4",
+  "lhs": "x**2-7*x+12",
+  "rhs": "(x+a)*(x+b)",
+  "ask": "a",
+  "cond": "a<b"
+ },
+ {
+  "id": "b-warmup-q#3",
+  "kind": "fill",
+  "prompt": "$(-5)\\times2$",
+  "answer": "-10",
+  "lhs": "(-5)*2",
+  "rhs": "B",
+  "ask": "B",
+  "cond": ""
+ },
+ {
+  "id": "b-predict-q",
+  "kind": "pick",
+  "lhs": "x**2-x-6",
+  "options": [
+   "(x+2)*(x-3)",
+   "(x-2)*(x+3)",
+   "(x-2)*(x-3)",
+   "(x+2)*(x+3)"
+  ],
+  "correct": [
+   0
+  ]
+ },
+ {
+  "id": "b-ex3-q#1",
+  "kind": "fill",
+  "prompt": "$a$",
+  "answer": "-3",
+  "lhs": "x**2-x-6",
+  "rhs": "(x+a)*(x+b)",
+  "ask": "a",
+  "cond": "a<b"
+ },
+ {
+  "id": "b-ex3-q#2",
+  "kind": "fill",
+  "prompt": "$b$",
+  "answer": "2",
+  "lhs": "x**2-x-6",
+  "rhs": "(x+a)*(x+b)",
+  "ask": "b",
+  "cond": "a<b"
+ },
+ {
+  "id": "b-faded-q#1",
+  "kind": "fill",
+  "prompt": "第 ④ 組右下的 ?",
+  "answer": "-3",
+  "lhs": "x**2+2*x-15",
+  "rhs": "(x+5)*(x+B)",
+  "ask": "B",
+  "cond": ""
+ },
+ {
+  "id": "b-faded-q#2",
+  "kind": "fill",
+  "prompt": "$x^2-4x-21$ 的 $a$",
+  "answer": "-7",
+  "lhs": "x**2-4*x-21",
+  "rhs": "(x+a)*(x+b)",
+  "ask": "a",
+  "cond": "a<b"
+ },
+ {
+  "id": "b-ex3-practice-q#1",
+  "kind": "fill",
+  "prompt": "$x^2+x-2$ 的 $a$",
+  "answer": "-1",
+  "lhs": "x**2+x-2",
+  "rhs": "(x+a)*(x+b)",
+  "ask": "a",
+  "cond": "a<b"
+ },
+ {
+  "id": "b-ex3-practice-q#2",
+  "kind": "fill",
+  "prompt": "$x^2-7x-30$ 的 $a$",
+  "answer": "-10",
+  "lhs": "x**2-7*x-30",
+  "rhs": "(x+a)*(x+b)",
+  "ask": "a",
+  "cond": "a<b"
+ },
+ {
+  "id": "b-negx-q",
+  "kind": "pick",
+  "lhs": "x**2+x-12",
+  "options": [
+   "(-x-4)*(-x+3)",
+   "(-x+4)*(-x-3)",
+   "(-x-4)*(x-3)",
+   "(-x+4)*(-x+3)"
+  ],
+  "correct": [
+   0
+  ]
+ },
+ {
+  "id": "c-warmup-q#1",
+  "kind": "fill",
+  "prompt": "$(x+5)(3x+1)=3x^2+\\square x+5$",
+  "answer": "16",
+  "lhs": "(x+5)*(3*x+1)",
+  "rhs": "3*x**2+B*x+5",
+  "ask": "B",
+  "cond": ""
+ },
+ {
+  "id": "c-warmup-q#2",
+  "kind": "fill",
+  "prompt": "$(2x-3)(x+4)=2x^2+\\square x-12$",
+  "answer": "5",
+  "lhs": "(2*x-3)*(x+4)",
+  "rhs": "2*x**2+B*x-12",
+  "ask": "B",
+  "cond": ""
+ },
+ {
+  "id": "c-warmup-q#3",
+  "kind": "fill",
+  "prompt": "$x^2-x-12$ 的 $a$",
+  "answer": "-4",
+  "lhs": "x**2-x-12",
+  "rhs": "(x+a)*(x+b)",
+  "ask": "a",
+  "cond": "a<b"
+ },
+ {
+  "id": "c-predict-q",
+  "kind": "pick",
+  "lhs": "2*x**2+7*x+3",
+  "options": [
+   "(2*x+1)*(x+3)",
+   "(2*x+3)*(x+1)",
+   "(2*x+3)*(2*x+1)",
+   "(2*x+7)*(x+3)"
+  ],
+  "correct": [
+   0
+  ]
+ },
+ {
+  "id": "c-intro-q#1",
+  "kind": "fill",
+  "prompt": "$(2x+3)(x+4)$",
+  "answer": "11",
+  "lhs": "(2*x+3)*(x+4)",
+  "rhs": "2*x**2+B*x+12",
+  "ask": "B",
+  "cond": ""
+ },
+ {
+  "id": "c-intro-q#2",
+  "kind": "fill",
+  "prompt": "$(3x-2)(x+5)$",
+  "answer": "13",
+  "lhs": "(3*x-2)*(x+5)",
+  "rhs": "3*x**2+B*x-10",
+  "ask": "B",
+  "cond": ""
+ },
+ {
+  "id": "c-ex4-q#1",
+  "kind": "fill",
+  "prompt": "$a$",
+  "answer": "-3",
+  "lhs": "5*x**2-17*x+6",
+  "rhs": "(x+a)*(5*x+b)",
+  "ask": "a",
+  "cond": ""
+ },
+ {
+  "id": "c-ex4-q#2",
+  "kind": "fill",
+  "prompt": "$b$",
+  "answer": "-2",
+  "lhs": "5*x**2-17*x+6",
+  "rhs": "(x+a)*(5*x+b)",
+  "ask": "b",
+  "cond": ""
+ },
+ {
+  "id": "c-ex5-q#1",
+  "kind": "fill",
+  "prompt": "例 5 第 ⑥ 組右下的 ?",
+  "answer": "3",
+  "lhs": "4*x**2+11*x-3",
+  "rhs": "(4*x-1)*(x+B)",
+  "ask": "B",
+  "cond": ""
+ },
+ {
+  "id": "c-ex5-q#2",
+  "kind": "fill",
+  "prompt": "$3x^2+5x-2$ 的 $a$",
+  "answer": "-1",
+  "lhs": "3*x**2+5*x-2",
+  "rhs": "(3*x+a)*(x+b)",
+  "ask": "a",
+  "cond": ""
+ },
+ {
+  "id": "c-ex5-practice-q#1",
+  "kind": "fill",
+  "prompt": "$8x^2+14x+3$ 的 $a$",
+  "answer": "3",
+  "lhs": "8*x**2+14*x+3",
+  "rhs": "(p*x+a)*(q*x+b)",
+  "ask": "a",
+  "cond": "p<q"
+ },
+ {
+  "id": "c-ex5-practice-q#2",
+  "kind": "fill",
+  "prompt": "$12x^2-7x-10$ 的 $a$",
+  "answer": "2",
+  "lhs": "12*x**2-7*x-10",
+  "rhs": "(p*x+a)*(q*x+b)",
+  "ask": "a",
+  "cond": "p<q"
+ },
+ {
+  "id": "d-warmup-q#1",
+  "kind": "fill",
+  "prompt": "$6x^2+8x-14=\\square(3x^2+4x-7)$",
+  "answer": "2",
+  "lhs": "6*x**2+8*x-14",
+  "rhs": "B*(3*x**2+4*x-7)",
+  "ask": "B",
+  "cond": ""
+ },
+ {
+  "id": "d-warmup-q#2",
+  "kind": "fill",
+  "prompt": "$-(3x^2-4x+1)=-3x^2+\\square x-1$",
+  "answer": "4",
+  "lhs": "-(3*x**2-4*x+1)",
+  "rhs": "-3*x**2+B*x-1",
+  "ask": "B",
+  "cond": ""
+ },
+ {
+  "id": "d-warmup-q#3",
+  "kind": "fill",
+  "prompt": "$x^2-10x+25=(x-\\square)^2$",
+  "answer": "5",
+  "lhs": "x**2-10*x+25",
+  "rhs": "(x-B)**2",
+  "ask": "B",
+  "cond": ""
+ },
+ {
+  "id": "d-ex6-q#1",
+  "kind": "fill",
+  "prompt": "$a$",
+  "answer": "-2",
+  "lhs": "2*x**2+4*x-16",
+  "rhs": "2*(x+a)*(x+b)",
+  "ask": "a",
+  "cond": "a<b"
+ },
+ {
+  "id": "d-ex6-q#2",
+  "kind": "fill",
+  "prompt": "$b$",
+  "answer": "4",
+  "lhs": "2*x**2+4*x-16",
+  "rhs": "2*(x+a)*(x+b)",
+  "ask": "b",
+  "cond": "a<b"
+ },
+ {
+  "id": "d-ex6-practice-q#1",
+  "kind": "fill",
+  "prompt": "$6x^2+8x-14$ 的 $a$",
+  "answer": "-1",
+  "lhs": "6*x**2+8*x-14",
+  "rhs": "2*(x+a)*(3*x+b)",
+  "ask": "a",
+  "cond": ""
+ },
+ {
+  "id": "d-ex6-practice-q#2",
+  "kind": "fill",
+  "prompt": "$15x^2-33x+6$ 的 $a$",
+  "answer": "-1",
+  "lhs": "15*x**2-33*x+6",
+  "rhs": "3*(5*x+a)*(x+b)",
+  "ask": "a",
+  "cond": ""
+ },
+ {
+  "id": "d-ex7-q#1",
+  "kind": "fill",
+  "prompt": "$a$",
+  "answer": "-1",
+  "lhs": "-3*x**2+4*x-1",
+  "rhs": "-(3*x+a)*(x+b)",
+  "ask": "a",
+  "cond": ""
+ },
+ {
+  "id": "d-ex7-q#2",
+  "kind": "fill",
+  "prompt": "$b$",
+  "answer": "-1",
+  "lhs": "-3*x**2+4*x-1",
+  "rhs": "-(3*x+a)*(x+b)",
+  "ask": "b",
+  "cond": ""
+ },
+ {
+  "id": "d-ex7-practice-q#1",
+  "kind": "fill",
+  "prompt": "$a$",
+  "answer": "-2",
+  "lhs": "-6*x**2-11*x+10",
+  "rhs": "-(3*x+a)*(2*x+b)",
+  "ask": "a",
+  "cond": ""
+ },
+ {
+  "id": "d-ex7-practice-q#2",
+  "kind": "fill",
+  "prompt": "$b$",
+  "answer": "5",
+  "lhs": "-6*x**2-11*x+10",
+  "rhs": "-(3*x+a)*(2*x+b)",
+  "ask": "b",
+  "cond": ""
+ },
+ {
+  "id": "d-ex8-q#1",
+  "kind": "fill",
+  "prompt": "$a$",
+  "answer": "-4",
+  "lhs": "9*x**2-24*x+16",
+  "rhs": "(3*x+a)**2",
+  "ask": "a",
+  "cond": ""
+ },
+ {
+  "id": "d-ex8-practice-q#1",
+  "kind": "fill",
+  "prompt": "$4x^2+12x+9$ 的 $a$",
+  "answer": "3",
+  "lhs": "4*x**2+12*x+9",
+  "rhs": "(2*x+a)**2",
+  "ask": "a",
+  "cond": ""
+ },
+ {
+  "id": "d-ex8-practice-q#2",
+  "kind": "fill",
+  "prompt": "$25x^2-10x+1$ 的 $a$",
+  "answer": "-1",
+  "lhs": "25*x**2-10*x+1",
+  "rhs": "(5*x+a)**2",
+  "ask": "a",
+  "cond": ""
+ },
+ {
+  "id": "d-mix-q#1",
+  "kind": "fill",
+  "prompt": "自評 (5) $5x^2+17x-12$ 的 $a$",
+  "answer": "4",
+  "lhs": "5*x**2+17*x-12",
+  "rhs": "(p*x+a)*(q*x+b)",
+  "ask": "a",
+  "cond": "p<q"
+ },
+ {
+  "id": "d-mix-q#2",
+  "kind": "fill",
+  "prompt": "自評 (7) $3x^2-45x+108$ 的 $a$",
+  "answer": "-12",
+  "lhs": "3*x**2-45*x+108",
+  "rhs": "3*(x+a)*(x+b)",
+  "ask": "a",
+  "cond": "a<b"
+ },
+ {
+  "id": "d-mix-q#3",
+  "kind": "fill",
+  "prompt": "自評 (8) $-2x^2-13x+24$ 的 $a$",
+  "answer": "8",
+  "lhs": "-2*x**2-13*x+24",
+  "rhs": "-(p*x+a)*(q*x+b)",
+  "ask": "a",
+  "cond": "p<q"
+ },
+ {
+  "id": "g8-3-2a:a-tiles",
+  "kind": "viz",
+  "polys": [
+   "(1*x+(1))*(1*x+(1))"
+  ]
+ },
+ {
+  "id": "g8-3-2a:a-pq",
+  "kind": "viz",
+  "polys": [
+   "1*x**2+(5)*x+(6)",
+   "(1*x+(1))*(1*x+(6))"
+  ]
+ },
+ {
+  "id": "g8-3-2a:a-ex1",
+  "kind": "viz",
+  "polys": [
+   "1*x**2+(10)*x+(21)",
+   "(1*x+(1))*(1*x+(21))",
+   "(1*x+(-1))*(1*x+(-21))",
+   "(1*x+(3))*(1*x+(7))",
+   "(1*x+(-3))*(1*x+(-7))"
+  ]
+ },
+ {
+  "id": "g8-3-2a:a-ex2",
+  "kind": "viz",
+  "polys": [
+   "1*x**2+(-6)*x+(8)",
+   "(1*x+(1))*(1*x+(8))",
+   "(1*x+(-1))*(1*x+(-8))",
+   "(1*x+(2))*(1*x+(4))"
+  ]
+ },
+ {
+  "id": "g8-3-2a:a-sign",
+  "kind": "viz",
+  "polys": [
+   "1*x**2+(-9)*x+(14)",
+   "(1*x+(2))*(1*x+(7))"
+  ]
+ },
+ {
+  "id": "g8-3-2a:a-practice",
+  "kind": "viz",
+  "polys": [
+   "1*x**2+(-8)*x+(15)",
+   "(1*x+(-1))*(1*x+(-15))",
+   "(1*x+(-3))*(1*x+(-5))"
+  ]
+ },
+ {
+  "id": "g8-3-2b:b-concrete",
+  "kind": "viz",
+  "polys": [
+   "1*x**2+(-1)*x+(-6)",
+   "(1*x+(1))*(1*x+(1))"
+  ]
+ },
+ {
+  "id": "g8-3-2b:b-ex3",
+  "kind": "viz",
+  "polys": [
+   "1*x**2+(-1)*x+(-6)",
+   "(1*x+(1))*(1*x+(-6))",
+   "(1*x+(-1))*(1*x+(6))",
+   "(1*x+(2))*(1*x+(-3))",
+   "(1*x+(-2))*(1*x+(3))"
+  ]
+ },
+ {
+  "id": "g8-3-2b:b-faded",
+  "kind": "viz",
+  "polys": [
+   "1*x**2+(2)*x+(-15)",
+   "(1*x+(1))*(1*x+(-15))",
+   "(1*x+(-1))*(1*x+(15))",
+   "(1*x+(3))*(1*x+(-5))"
+  ]
+ },
+ {
+  "id": "g8-3-2b:b-ex3-practice",
+  "kind": "viz",
+  "polys": [
+   "1*x**2+(3)*x+(-10)",
+   "(1*x+(2))*(1*x+(-5))",
+   "(1*x+(-2))*(1*x+(5))"
+  ]
+ },
+ {
+  "id": "g8-3-2b:b-mix",
+  "kind": "viz",
+  "polys": [
+   "1*x**2+(-11)*x+(24)",
+   "(1*x+(-1))*(1*x+(-24))",
+   "(1*x+(-2))*(1*x+(-12))",
+   "(1*x+(-3))*(1*x+(-8))",
+   "(1*x+(-4))*(1*x+(-6))"
+  ]
+ },
+ {
+  "id": "g8-3-2c:c-tiles",
+  "kind": "viz",
+  "polys": [
+   "(1*x+(1))*(1*x+(1))"
+  ]
+ },
+ {
+  "id": "g8-3-2c:c-intro",
+  "kind": "viz",
+  "polys": [
+   "3*x**2+(16)*x+(5)",
+   "(1*x+(5))*(3*x+(1))"
+  ]
+ },
+ {
+  "id": "g8-3-2c:c-ex4",
+  "kind": "viz",
+  "polys": [
+   "5*x**2+(-17)*x+(6)",
+   "(1*x+(-1))*(5*x+(-6))",
+   "(1*x+(-6))*(5*x+(-1))",
+   "(1*x+(-2))*(5*x+(-3))",
+   "(1*x+(-3))*(5*x+(-2))"
+  ]
+ },
+ {
+  "id": "g8-3-2c:c-ex5",
+  "kind": "viz",
+  "polys": [
+   "4*x**2+(11)*x+(-3)",
+   "(2*x+(1))*(2*x+(-3))",
+   "(2*x+(-1))*(2*x+(3))",
+   "(1*x+(1))*(4*x+(-3))",
+   "(1*x+(-1))*(4*x+(3))",
+   "(4*x+(1))*(1*x+(-3))"
+  ]
+ },
+ {
+  "id": "g8-3-2c:c-play",
+  "kind": "viz",
+  "polys": [
+   "6*x**2+(1)*x+(-2)",
+   "(1*x+(1))*(6*x+(-2))"
+  ]
+ },
+ {
+  "id": "g8-3-2c:c-ex5-practice",
+  "kind": "viz",
+  "polys": [
+   "6*x**2+(7)*x+(2)",
+   "(1*x+(1))*(6*x+(2))",
+   "(2*x+(1))*(3*x+(2))"
+  ]
+ },
+ {
+  "id": "g8-3-2d:d-ex6",
+  "kind": "viz",
+  "polys": [
+   "1*x**2+(2)*x+(-8)",
+   "(1*x+(-2))*(1*x+(4))"
+  ]
+ },
+ {
+  "id": "g8-3-2d:d-ex6-practice",
+  "kind": "viz",
+  "polys": [
+   "1*x**2+(-1)*x+(-12)",
+   "(1*x+(-4))*(1*x+(3))"
+  ]
+ },
+ {
+  "id": "g8-3-2d:d-ex7",
+  "kind": "viz",
+  "polys": [
+   "3*x**2+(-4)*x+(1)",
+   "(3*x+(-1))*(1*x+(-1))"
+  ]
+ },
+ {
+  "id": "g8-3-2d:d-ex7-practice",
+  "kind": "viz",
+  "polys": [
+   "2*x**2+(-5)*x+(-3)",
+   "(2*x+(1))*(1*x+(-3))"
+  ]
+ },
+ {
+  "id": "g8-3-2d:d-ex8-practice",
+  "kind": "viz",
+  "polys": [
+   "9*x**2+(30)*x+(25)",
+   "(3*x+(5))*(3*x+(5))"
+  ]
+ }
+]
