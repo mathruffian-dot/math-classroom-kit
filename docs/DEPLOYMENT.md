@@ -4,7 +4,7 @@
 
 ## 步驟
 
-> 這台電腦的教學專案慣例用 `teaching-cloud` profile（和 `wrangler.jsonc` 固定的 `account_id` 是同一個帳號）。要用它時，在本資料夾執行一次 `npx wrangler auth activate teaching-cloud .`（把 profile 綁到這個資料夾；Wrangler 4.150 的 `whoami` 不接受 `--profile`），之後下面的指令照原樣執行就會用這個 profile；要改回預設登入用 `npx wrangler auth deactivate .`。
+> 這台電腦用專用的 `math-classroom` profile（mathruffian 帳號，和 `wrangler.jsonc` 固定的 `account_id` 同一個），2026-11-26 已綁到本資料夾，下面的指令照原樣執行就會用它。不要用 `teaching-cloud`（現在登入的是另一個帳號）或 `school`。換電腦或登入過期時：`npx wrangler auth create math-classroom`（瀏覽器先登入 mathruffian 再按 Allow）→ `npx wrangler auth activate math-classroom .` → `npx wrangler whoami` 確認帳號。
 
 1. **登入 Cloudflare：**
 
@@ -89,7 +89,7 @@
 1. 老師在 Cloudflare 後台（Storage & Databases → R2）啟用 R2。這一步要自己做，可能需要付款資料。
 2. 登入 wrangler，再用 `npx wrangler whoami` 確認是數感課堂的帳號（`account_id` 已固定在 `wrangler.jsonc`）。兩種擇一，之後的建 bucket、設 secret、部署都用同一種：
    - 預設登入：`npx wrangler login`。
-   - 教學共用 profile（這台電腦的 Codex 慣例）：`npx wrangler auth activate teaching-cloud .`（綁到本資料夾）。
+   - 專用 profile（這台電腦的做法）：`npx wrangler auth create math-classroom`，再 `npx wrangler auth activate math-classroom .`（綁到本資料夾）。
 3. 建立 bucket：`npx wrangler r2 bucket create math-classroom-photos`，然後 `npx wrangler r2 bucket list` 確認有這個名稱。
 4. 確認 bucket 是私人的：後台 R2 → `math-classroom-photos` → Settings，不要開 Public Development URL（r2.dev），也不要接自訂網域。照片只經過 Worker 讀寫。
 5. 部署：`npm run deploy`（已綁 profile 時也一樣，不用另外加參數）。
@@ -101,7 +101,7 @@
 - 本機 `npm run dev` 用模擬的 R2，存在 `.wrangler/state`（測試存在暫存資料夾），不連到雲端。
 - 設定頁「儲存空間」把 Durable Object 裡的舊照片與 R2 的照片分開列，合計只算 Durable Object 的 5 GB。
 - 沒有任何紀錄指到的照片（刪除失敗、上傳到一半中斷留下的），放超過 1 小時後由清理收掉：老師打開首頁或設定頁時一天跑一次，按「清除舊照片」時也會跑。清理只看這一套站（`APP_INSTANCE`）自己的資料夾。
-- `wrangler.jsonc` 固定了 `account_id`（數感課堂的帳號）：不管用預設登入或 `teaching-cloud` profile，登入的帳號沒有這個 account 的權限時，部署、建 bucket 都會直接失敗，不會跑到別的帳號（`school` profile 是另一個帳號，不要用）。
+- `wrangler.jsonc` 固定了 `account_id`（數感課堂的帳號）：不管用預設登入或哪一個 profile，登入的帳號沒有這個 account 的權限時，部署、建 bucket 都會直接失敗，不會跑到別的帳號（`school` profile 是另一個帳號，不要用）。
 - 每一套站（`APP_INSTANCE`）在 bucket 裡有自己的資料夾（站名經過 `encodeURIComponent`，不同站名不會撞在一起）。另一個 Worker 要共用這個 bucket 時，`APP_INSTANCE` 一定要不同；最穩的是每個部署用自己的 bucket。
 - 清理記下「這次嘗試的時間」：失敗也是隔天才再試；清理失敗不影響首頁與設定頁。
 
